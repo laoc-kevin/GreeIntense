@@ -78,8 +78,8 @@ PR_BEGIN_EXTERN_C
  * xMBUtilSetBits( ucBits, 8, 8, 0x5A);
  * \endcode
  */
-eMBErrorCode
-xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDataType );
+eMBErrorCode xMBSlaveUtilSetBits( sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
+                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType );
 
 /*! \brief Function to read bits in a byte buffer.
  *
@@ -97,11 +97,14 @@ xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eD
  * UCHAR ucResult;
  *
  * // Extract the bits 3 - 10.
- * ucResult = xMBUtilGetBits( ucBits, 3, 8 );
+ * ucResult = xMBSlaveUtilGetBits( ucBits, 3, 8 );
  * \endcode
  */
-eMBErrorCode
-xMBUtilGetBits( UCHAR* ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
+eMBErrorCode xMBSlaveUtilGetBits( sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
+                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
+
+eMBException   prveMBSlaveError2Exception( eMBErrorCode eErrorCode );
+
 
 /*! @} */
 

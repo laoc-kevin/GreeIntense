@@ -35,7 +35,8 @@
 #include "mbport.h"
 #include "mbproto.h"
 #include "mbframe.h"
-#include "mbfunc.h"
+#include "user_mb_dict.h"
+
 
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
@@ -66,46 +67,127 @@ PR_BEGIN_EXTERN_C
  * }
  * \endcode
  */
-
 /* ----------------------- Defines ------------------------------------------*/
-
 /*! \ingroup modbus
  * \brief Use the default Modbus TCP port (502)
  */
 #define MB_TCP_PORT_USE_DEFAULT 0   
 
 
-typedef void    ( *pvMBFrameStart ) ( void );
+/* ----------------------- Type definitions ---------------------------------*/
+typedef enum
+{
+    STATE_RX_INIT,              /*!< Receiver is in initial state. */
+    STATE_RX_IDLE,              /*!< Receiver is in idle state. */
+    STATE_RX_RCV,               /*!< Frame is beeing received. */
+    STATE_RX_ERROR              /*!< If the frame is invalid. */
+} eMBSlaveRcvState;
 
-typedef void    ( *pvMBFrameStop ) ( void );
+typedef enum
+{
+    STATE_TX_IDLE,              /*!< Transmitter is in idle state. */
+    STATE_TX_XMIT               /*!< Transmitter is in transfer state. */
+} eMBSlaveSndState;
 
-typedef void    ( *pvMBFrameClose ) ( void );
+
+typedef struct                 /* master poll task information */ 
+{
+    OS_TCB                p_tcb;
+    OS_PRIO               prio;
+    CPU_STK              *p_stk_base;
+    CPU_STK_SIZE          stk_size;
+}sMBSlaveTaskInfo;
+
+typedef struct sMBSlaveInfo  /* Slave information */
+{
+    sMBSlavePortInfo*        psMBPortInfo;                        //从栈硬件接口信息
+	sMBSlaveTaskInfo*        psMBTaskInfo;                        //从栈状态机任务信息
+    sMBSlaveCommInfo*        psMBCommInfo;                        //从栈通讯信息
+    
+	eMBMode                  eMode;                               //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
+    eMBState                 eMBState;                            //从栈状态
+	eMBSlaveSndState         eSndState;                           //发送状态
+    eMBSlaveRcvState         eRcvState;                           //接收状态
+    
+    USHORT                   usSndBufferCount;                    //发送缓冲区数据量
+    USHORT                   usRcvBufferPos;                      //接收缓冲区数据位置
+    
+    UCHAR*                   pucSndBufferCur;                     //当前发送数据缓冲区指针
+    
+#if MB_SLAVE_RTU_ENABLED > 0         //RTU mode information
+    UCHAR                    ucRTUBuf[MB_SER_PDU_SIZE_MAX];       //接收缓冲区                      
+#endif
+
+#if MB_SLAVE_CPN_ENABLED > 0    
+     USHORT                  usCPNName;    
+     UCHAR*                  pucCPNHead;
+     UCHAR                   ucSourAddr;
+     UCHAR                   ucDestAddr;
+     UCHAR                   ucCPNBuf[MB_CPN_FRAME_SIZE_MAX];
+#endif   
+    
+#if MB_MASTER_ASCII_ENABLED > 0 
+#endif
+	  
+     struct sMBSlaveInfo*    pNext;                               //下一从栈节点
+     struct sMBSlaveInfo*    pLast;                               //末尾从栈节点
+}sMBSlaveInfo;
+
+
+typedef void    (*pvMBSlaveFrameStart) (sMBSlaveInfo* psMBSlaveInfo);
+
+typedef void    (*pvMBSlaveFrameStop) (sMBSlaveInfo* psMBSlaveInfo);
+
+typedef void    (*pvMBSlaveFrameClose) (sMBSlavePortInfo* psMBPortInfo);
 
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
-typedef eMBErrorCode (*peMBFrameReceive)( UCHAR * pucRcvAddress,
-                                            UCHAR ** pucFrame,
-                                            USHORT * pusLength );
+typedef eMBErrorCode (*peMBSlaveFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRcvAddress,
+                                                         UCHAR** pucFrame, USHORT * pusLength);
 
-typedef eMBErrorCode (*peMBFrameSend )( UCHAR slaveAddress,
-                                         const UCHAR * pucFrame,
-                                         USHORT usLength );
+typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR slaveAddress,
+                                                      const UCHAR* pucFrame, USHORT usLength);
 #endif
+
 
 #if MB_SLAVE_CPN_ENABLED > 0
 										 
 										 									 
-typedef eMBErrorCode (*peMBCPNFrameReceive)( UCHAR * pucSourAddress,
-	                                        UCHAR * pucDestAddress,
-                                            UCHAR ** pucFrame,
-                                            USHORT * pusLength );
+typedef eMBErrorCode (*peMBSlaveCPNFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
+	                                                       UCHAR* pucDestAddr, UCHAR** pucFrame, USHORT * pusLength);
 
-typedef eMBErrorCode (*peMBCPNFrameSend)( UCHAR ucSourAddress,
-	                                     UCHAR ucDestAddress,
-                                         const UCHAR * pucFrame,
-                                         USHORT usLength );
+typedef eMBErrorCode (*peMBSlaveCPNFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr,
+	                                                    UCHAR ucDestAddr, const UCHAR* pucFrame, USHORT usLength);
 #endif
+
+/* ----------------------- Callback for the protocol stack ------------------*/
+/*!
+ * \brief Callback function for the porting layer when a new byte is
+ *   available.
+ *
+ * Depending upon the mode this callback function is used by the RTU or
+ * ASCII transmission layers. In any case a call to xMBPortSerialGetByte()
+ * must immediately return a new character.
+ *
+ * \return <code>TRUE</code> if a event was posted to the queue because
+ *   a new byte was received. The port implementation should wake up the
+ *   tasks which are currently blocked on the eventqueue.
+ */
+typedef BOOL (*pxMBSlaveFrameCBByteReceived) (sMBSlaveInfo* psMBSlaveInfo);
+
+typedef BOOL (*pxMBSlaveFrameCBTransmitterEmpty) (sMBSlaveInfo* psMBSlaveInfo);
+
+typedef BOOL (*pxMBSlaveFrameCBTimerExpired) (sMBSlaveInfo* psMBSlaveInfo);
+
+
+/* Callback functions required by the porting layer. They are called when
+ * an external event has happend which includes a timeout or the reception
+ * or transmission of a character.
+ */
+extern pxMBSlaveFrameCBByteReceived      pxMBSlaveFrameCBByteReceivedCur;
+extern pxMBSlaveFrameCBTransmitterEmpty  pxMBSlaveFrameCBTransmitterEmptyCur;
+extern pxMBSlaveFrameCBTimerExpired      pxMBSlaveFrameCBTimerExpiredCur;
 
 
 
@@ -135,7 +217,7 @@ typedef eMBErrorCode (*peMBCPNFrameSend)( UCHAR ucSourAddress,
  *        slave addresses are in the range 1 - 247.
  *    - eMBErrorCode::MB_EPORTERR IF the porting layer returned an error.
  */
-eMBErrorCode  eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UART_Def *Uart );
+eMBErrorCode  eMBSlaveInit(sMBSlaveInfo* psMBSlaveInfo);
 
 /*! \ingroup modbus
  * \brief Initialize the Modbus protocol stack for Modbus TCP.
@@ -151,7 +233,7 @@ eMBErrorCode  eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UART_Def *Uart );
  *        slave addresses are in the range 1 - 247.
  *    - eMBErrorCode::MB_EPORTERR IF the porting layer returned an error.
  */
-eMBErrorCode    eMBTCPInit( USHORT usTCPPort );
+eMBErrorCode    eMBSlaveTCPInit( USHORT usTCPPort );
 
 /*! \ingroup modbus
  * \brief Release resources used by the protocol stack.
@@ -167,7 +249,7 @@ eMBErrorCode    eMBTCPInit( USHORT usTCPPort );
  *   If the protocol stack is not in the disabled state it returns
  *   eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBClose( void );
+eMBErrorCode    eMBSlaveClose(sMBSlaveInfo* psMBSlaveInfo);
 
 /*! \ingroup modbus
  * \brief Enable the Modbus protocol stack.
@@ -179,7 +261,7 @@ eMBErrorCode    eMBClose( void );
  *   eMBErrorCode::MB_ENOERR. If it was not in the disabled state it 
  *   return eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBEnable( void );
+eMBErrorCode    eMBSlaveEnable( sMBSlaveInfo* psMBSlaveInfo );
 
 /*! \ingroup modbus
  * \brief Disable the Modbus protocol stack.
@@ -190,7 +272,7 @@ eMBErrorCode    eMBEnable( void );
  *  eMBErrorCode::MB_ENOERR. If it was not in the enabled state it returns
  *  eMBErrorCode::MB_EILLSTATE.
  */
-eMBErrorCode    eMBDisable( void );
+eMBErrorCode    eMBSlaveDisable( sMBSlaveInfo* psMBSlaveInfo );
 
 /*! \ingroup modbus
  * \brief The main pooling loop of the Modbus protocol stack.
@@ -204,7 +286,7 @@ eMBErrorCode    eMBDisable( void );
  *   returns eMBErrorCode::MB_EILLSTATE. Otherwise it returns 
  *   eMBErrorCode::MB_ENOERR.
  */
-eMBErrorCode    eMBPoll( void );
+eMBErrorCode    eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo );
 
 /*! \ingroup modbus
  * \brief Configure the slave id of the device.
@@ -224,32 +306,9 @@ eMBErrorCode    eMBPoll( void );
  *   mbconfig.h is to small it returns eMBErrorCode::MB_ENORES. Otherwise
  *   it returns eMBErrorCode::MB_ENOERR.
  */
-eMBErrorCode    eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
-                               UCHAR const *pucAdditional,
-                               USHORT usAdditionalLen );
+eMBErrorCode    eMBSlaveSetID( sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSlaveID, BOOL xIsRunning,
+                               UCHAR const *pucAdditional, USHORT usAdditionalLen );
 
-/*! \ingroup modbus
- * \brief Registers a callback handler for a given function code.
- *
- * This function registers a new callback handler for a given function code.
- * The callback handler supplied is responsible for interpreting the Modbus PDU and
- * the creation of an appropriate response. In case of an error it should return
- * one of the possible Modbus exceptions which results in a Modbus exception frame
- * sent by the protocol stack. 
- *
- * \param ucFunctionCode The Modbus function code for which this handler should
- *   be registers. Valid function codes are in the range 1 to 127.
- * \param pxHandler The function handler which should be called in case
- *   such a frame is received. If \c NULL a previously registered function handler
- *   for this function code is removed.
- *
- * \return eMBErrorCode::MB_ENOERR if the handler has been installed. If no
- *   more resources are available it returns eMBErrorCode::MB_ENORES. In this
- *   case the values in mbconfig.h should be adjusted. If the argument was not
- *   valid it returns eMBErrorCode::MB_EINVAL.
- */
-eMBErrorCode    eMBRegisterCB( UCHAR ucFunctionCode, 
-                               pxMBFunctionHandler pxHandler );
 
 /* ----------------------- Callback -----------------------------------------*/
 
@@ -295,8 +354,8 @@ eMBErrorCode    eMBRegisterCB( UCHAR ucFunctionCode,
  *   - eMBErrorCode::MB_EIO If an unrecoverable error occurred. In this case
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
-eMBErrorCode    eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                               USHORT usNRegs );
+eMBErrorCode    eMBSlaveRegInputCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer,
+                                    USHORT usAddress, USHORT usNRegs );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Holding Register</em> value is
@@ -330,8 +389,8 @@ eMBErrorCode    eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *   - eMBErrorCode::MB_EIO If an unrecoverable error occurred. In this case
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
-eMBErrorCode    eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                                 USHORT usNRegs, eMBRegisterMode eMode );
+eMBErrorCode    eMBSlaveRegHoldingCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer,
+                                      USHORT usAddress, USHORT usNRegs, eMBRegisterMode eMode );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Coil Register</em> value is
@@ -365,8 +424,8 @@ eMBErrorCode    eMBRegHoldingCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *   - eMBErrorCode::MB_EIO If an unrecoverable error occurred. In this case
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
-eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
-                               USHORT usNCoils, eMBRegisterMode eMode );
+eMBErrorCode    eMBSlaveRegCoilsCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, 
+                                    USHORT usAddress, USHORT usNCoils, eMBRegisterMode eMode );
 
 /*! \ingroup modbus_registers
  * \brief Callback function used if a <em>Input Discrete Register</em> value is
@@ -394,11 +453,28 @@ eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
  *   - eMBErrorCode::MB_EIO If an unrecoverable error occurred. In this case
  *       a <b>SLAVE DEVICE FAILURE</b> exception is sent as a response.
  */
-eMBErrorCode eMBRegDiscreteCB( UCHAR* pucRegBuffer, USHORT usAddress,USHORT usNDiscrete );
+eMBErrorCode eMBSlaveRegDiscreteCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, 
+                                    USHORT usAddress,USHORT usNDiscrete );
 
-eMBErrorCode eMBReadCPNCB( UCHAR* pucRegBuffer, UCHAR ucValCount, USHORT* usLen);
+eMBErrorCode eMBSlaveReadCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, 
+                                UCHAR ucValCount, USHORT* usLen);
 
-eMBErrorCode eMBWriteCPNCB( UCHAR* pucRegBuffer, UCHAR ucValCount, USHORT* usLen);
+eMBErrorCode eMBSlaveWriteCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, 
+                                 UCHAR ucValCount, USHORT* usLen);
+
+/************************************************************************! 
+ *! \ingroup modbus
+ *\brief These functions are register node for Modbus Slave
+ *************************************************************************/
+BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, UART_Def* psSlaveUart, CHAR* pcMBPortName, 
+                           USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio);
+
+sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName);
+									 
+BOOL xMBSlaveCreatePollTask(const sMBSlaveInfo* psMBSlaveInfo);									 
+
+void vMBSlavePollTask(void *p_arg);
+
 
 #ifdef __cplusplus
 PR_END_EXTERN_C

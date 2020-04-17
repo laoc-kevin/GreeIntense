@@ -63,6 +63,13 @@ PR_BEGIN_EXTERN_C
 
 /* ----------------------- Type definitions ---------------------------------*/
 
+typedef enum
+{
+    STATE_ENABLED,                /*!< enable. */
+    STATE_DISABLED,               /*!< disable. */
+    STATE_NOT_INITIALIZED         /*!< not initialized. */
+}eMBState;
+
 /*! \ingroup modbus
  * \brief Modbus serial transmission modes (RTU/ASCII).
  *
@@ -87,7 +94,7 @@ typedef enum
  * registers should be updated and reading means that the modbus protocol
  * stack needs to know the current register values.
  *
- * \see eMBRegHoldingCB( ), eMBRegCoilsCB( ), eMBRegDiscreteCB( ) and 
+ * \see eMBRegHoldingCB( ), eMBRegCoilsCB( ), eMBSlaveRegDiscreteCB( ) and 
  *   eMBRegInputCB( ).
  */
 
@@ -128,13 +135,7 @@ typedef enum
 } eMBException;
 
 
-typedef         eMBException( *pxMBFunctionHandler ) ( UCHAR * pucFrame, USHORT * pusLength );
 
-typedef struct
-{
-    UCHAR           ucFunctionCode;
-    pxMBFunctionHandler pxHandler;
-} xMBFunctionHandler;
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif

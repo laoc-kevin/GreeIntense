@@ -39,24 +39,24 @@ typedef enum
 	EV_ERROR_RESPOND_DATA,            /*!< Respond frame data error. */
 } eMBMasterErrorEventType;
 
-typedef struct
+typedef struct                                /* 主栈接口定义  */
 {
-	const UART_Def* const psMBMasterUart;
+	const UART_Def* psMBMasterUart;               //主栈通讯串口结构
 	
-	OS_TMR MasterPortTmr;
-    OS_TMR ConvertDelayTmr;
-    OS_TMR RespondTimeoutTmr;
+	OS_TMR sMasterPortTmr;                        //主栈3.5字符间隔定时器
+    OS_TMR sConvertDelayTmr;                      //主栈转换延时定时器
+    OS_TMR sRespondTimeoutTmr;                    //主栈等待响应定时器
 	
-	eMBMasterEventType eQueuedEvent;
-	eMBMasterTimerMode  eMasterCurTimerMode;
+	eMBMasterEventType  eQueuedEvent;             //主栈事件
+	eMBMasterTimerMode  eCurTimerMode;            //当前定时器模式
 	
-	OS_SEM MasterEventSem;
-    OS_SEM MasterErrorEventSem;
+	OS_SEM sMBEventSem;                           //主栈事件消息量
+    OS_SEM sMBErrorEventSem;                      //主栈错误事件
 	
-    BOOL   xEventInQueue;
-    BOOL   xErrorEventInQueue;
+    BOOL   xEventInQueue;                         //主栈有新事件
+    BOOL   xErrorEventInQueue;                    //主栈有新错误事件
 	
-    const  CHAR* const pcMasterPortName; 
+    const  CHAR* pcMBPortName;                    //主栈接口名称
 }sMBMasterPortInfo;
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0 
@@ -98,31 +98,31 @@ void vMBMasterRunResRelease( void );
 
 /* ----------------------- Timers functions ---------------------------------*/
 
-BOOL xMBMasterPortTmrsInit(sMBMasterPortInfo* psMBPortInfo, USHORT usTim1Timerout50us);
+BOOL xMBsMasterPortTmrsInit(sMBMasterPortInfo* psMBPortInfo, USHORT usTim1Timerout50us);
 
-void xMBMasterPortTmrsClose(sMBMasterPortInfo* psMBPortInfo);
+void xMBsMasterPortTmrsClose(sMBMasterPortInfo* psMBPortInfo);
 
-INLINE void     vMBMasterPortTmrsEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsEnable( sMBMasterPortInfo* psMBPortInfo );
 
-INLINE void     vMBMasterPortTmrsConvertDelayEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsConvertDelayEnable( sMBMasterPortInfo* psMBPortInfo );
 
-INLINE void     vMBMasterPortTmrsRespondTimeoutEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsRespondTimeoutEnable( sMBMasterPortInfo* psMBPortInfo );
 
-INLINE void     vMBMasterPortTmrsDisable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsDisable( sMBMasterPortInfo* psMBPortInfo );
 
 
 /* ----------------- Callback for the master error process ------------------*/
 
-void vMBMasterErrorCBRespondTimeout( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddress, 
+void vMBMasterErrorCBRespondTimeout( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
 	                                 const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBReceiveData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddress, 
+void vMBMasterErrorCBReceiveData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
 	                              const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBExecuteFunction( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddress, 
+void vMBMasterErrorCBExecuteFunction( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
                                       const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBRespondData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddress, 
+void vMBMasterErrorCBRespondData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
                                   const UCHAR* pucPDUData, USHORT ucPDULength );
 
 void vMBMasterCBRequestSuccess( sMBMasterPortInfo* psMBPortInfo );

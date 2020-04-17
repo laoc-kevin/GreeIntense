@@ -10,15 +10,14 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
-eMBErrorCode eMBScanRegInMap( USHORT usAddress, sMBRegData ** pvRegInValue)
+eMBErrorCode 
+eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usAddress, sMBSlaveRegData** pvRegInValue)
 {
 	UCHAR i;
-	sMBIndexTable psRegInputBuf;
 	eMBErrorCode    eStatus = MB_ENOERR;
-	*pvRegInValue = NULL;
-	
-	psRegInputBuf = psSRegInTable[SLAVE_PROTOCOL_TYPE_ID];
+    
+    sMBSlaveCommInfo*        psMBCommInfo  = psMBSlaveInfo->psMBCommInfo;
+	const sMBSlaveDataTable* psRegInputBuf = psMBCommInfo->psSlaveCurData->psMBRegInTable;
 	
 	switch( SLAVE_PROTOCOL_TYPE_ID )
 	{
@@ -34,7 +33,7 @@ eMBErrorCode eMBScanRegInMap( USHORT usAddress, sMBRegData ** pvRegInValue)
 		   
 		default: break;
 	}
-	*pvRegInValue = (sMBRegData*)psRegInputBuf.DataBuf + i;
+	*pvRegInValue = (sMBSlaveRegData*)psRegInputBuf->pvDataBuf + i;
     return eStatus;	
 }
 
@@ -51,15 +50,15 @@ eMBErrorCode eMBScanRegInMap( USHORT usAddress, sMBRegData ** pvRegInValue)
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
-eMBErrorCode eMBScanRegHoldMap( USHORT usRegHoldAddr, sMBRegData** pvRegHoldValue)
+eMBErrorCode 
+eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRegData** pvRegHoldValue)
 {
 	UCHAR i;
-	sMBIndexTable psRegHoldBuf;
     eMBErrorCode    eStatus = MB_ENOERR;
-	psRegHoldBuf = psSRegHoldTable[SLAVE_PROTOCOL_TYPE_ID];
-	
-	*pvRegHoldValue = NULL;
+    
+    sMBSlaveCommInfo*        psMBCommInfo  = psMBSlaveInfo->psMBCommInfo;
+	const sMBSlaveDataTable* psRegHoldBuf = psMBCommInfo->psSlaveCurData->psMBRegHoldTable;
+
 	switch (SLAVE_PROTOCOL_TYPE_ID)
 	{
 		case 0:                             //字典各寄存器的映射地址
@@ -112,7 +111,7 @@ eMBErrorCode eMBScanRegHoldMap( USHORT usRegHoldAddr, sMBRegData** pvRegHoldValu
 		break;	
         default: break;
 	}
-	*pvRegHoldValue = (sMBRegData*)psRegHoldBuf.DataBuf + i;
+	*pvRegHoldValue = (sMBSlaveRegData*)psRegHoldBuf->pvDataBuf + i;
 	return eStatus;
 }
 #endif
@@ -127,18 +126,17 @@ eMBErrorCode eMBScanRegHoldMap( USHORT usRegHoldAddr, sMBRegData** pvRegHoldValu
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
-eMBErrorCode eMBScanCoilsMap( USHORT usCoilAddr, sMBBitData** pvCoilValue)
+eMBErrorCode 
+eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData** pvCoilValue)
 {
 	UCHAR i;
+    USHORT iRegIndex, iRegBitIndex,iBit ;
+    
 	eMBErrorCode    eStatus = MB_ENOERR;
-	USHORT iRegIndex, iRegBitIndex,iBit ;
-	sMBIndexTable psCoilBuf;
 	
-	psCoilBuf = psSCoilTable[SLAVE_PROTOCOL_TYPE_ID];
-	
-	*pvCoilValue = NULL;
-
+	sMBSlaveCommInfo*        psMBCommInfo  = psMBSlaveInfo->psMBCommInfo;
+	const sMBSlaveDataTable* psCoilBuf = psMBCommInfo->psSlaveCurData->psMBCoilTable;
+    
 	switch (SLAVE_PROTOCOL_TYPE_ID)
 	{
 		case 0:
@@ -161,8 +159,7 @@ eMBErrorCode eMBScanCoilsMap( USHORT usCoilAddr, sMBBitData** pvCoilValue)
 			
 		default: break;
 	}
-	
-	*pvCoilValue = (sMBBitData*)psCoilBuf.DataBuf + i ;
+	*pvCoilValue = (sMBSlaveBitData*)psCoilBuf->pvDataBuf + i ;
 	return eStatus;
 } 
 
@@ -179,15 +176,16 @@ eMBErrorCode eMBScanCoilsMap( USHORT usCoilAddr, sMBBitData** pvCoilValue)
  * @date 2019.01.22
  *************************************************************************************/
 
-eMBErrorCode eMBScanDiscreteMap( USHORT usDiscreteAddr, sMBBitData** pvDiscreteValue)
+eMBErrorCode 
+eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlaveBitData** pvDiscreteValue)
 {
 	UCHAR i;
+    USHORT iRegIndex, iRegBitIndex,iBit;
+    
 	eMBErrorCode    eStatus = MB_ENOERR;
-	USHORT iRegIndex, iRegBitIndex,iBit ;
-	sMBIndexTable psDiscInBuf;
-	psDiscInBuf = psSDiscInTable[SLAVE_PROTOCOL_TYPE_ID];
 
-	*pvDiscreteValue = NULL;
+	sMBSlaveCommInfo*        psMBCommInfo  = psMBSlaveInfo->psMBCommInfo;
+	const sMBSlaveDataTable* psDiscInBuf = psMBCommInfo->psSlaveCurData->psMBDiscInTable;
 
 	switch (SLAVE_PROTOCOL_TYPE_ID)
 	{
@@ -201,12 +199,13 @@ eMBErrorCode eMBScanDiscreteMap( USHORT usDiscreteAddr, sMBBitData** pvDiscreteV
 			}
 		break;
 	}
-	*pvDiscreteValue = (sMBBitData*)psDiscInBuf.DataBuf + i ;
+	*pvDiscreteValue = (sMBSlaveBitData*)psDiscInBuf->pvDataBuf + i ;
 	 return eStatus;
 }
 #endif
 
-#if MB_FUNC_CPN_READ_ENABLED > 0
+
+#if MB_SLAVE_CPN_ENABLED > 0 
 
 /***********************************************************************************
  * @brief  CPN变量字典映射
@@ -216,16 +215,15 @@ eMBErrorCode eMBScanDiscreteMap( USHORT usDiscreteAddr, sMBBitData** pvDiscreteV
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
-eMBErrorCode eMBScanCPNMap( USHORT usCpnName, sValCPNData ** pvCPNValue)
+eMBErrorCode 
+eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData ** pvCPNValue)
 {
 	UCHAR i;
-	sMBIndexTable psCPNBuf;
 	eMBErrorCode    eStatus = MB_ENOERR;
-	psCPNBuf = psSCPNTable[SLAVE_PROTOCOL_TYPE_ID];
+    
+    sMBSlaveCommInfo*        psMBCommInfo  = psMBSlaveInfo->psMBCommInfo;
+	const sMBSlaveDataTable* psCPNBuf = psMBCommInfo->psSlaveCurData->psMBCPNTable;
 
-	*pvCPNValue = NULL;
-	
 	switch (SLAVE_PROTOCOL_TYPE_ID)
 	{
 		case 0:
@@ -293,7 +291,7 @@ eMBErrorCode eMBScanCPNMap( USHORT usCpnName, sValCPNData ** pvCPNValue)
 		break;
 		default: break;
 	}
-	*pvCPNValue = (sValCPNData*)psCPNBuf.DataBuf + i;
+	*pvCPNValue = (sMBSlaveCPNData*)psCPNBuf->pvDataBuf + i;
 	return eStatus;
 }
 

@@ -1,4 +1,4 @@
-#include "user_mb_app.h"
+#include "mbframe.h"
 #include "user_mb_dict.h"
 #include "app_val.h"
 
@@ -6,7 +6,7 @@
                                OBJECT DICTIONARY
 ************************************************************************/
 
-sMBRegData Slave_Protocol0_RegHoldBuf[]=             //保持寄存器字典
+sMBSlaveRegData Slave_Protocol0_RegHoldBuf[]=             //保持寄存器字典
 {
     {0, uint16,  0,  65535, 0, RO,  (void*)&CHID         },   
     {1, uint16,  0,  65535, 0, RO,  (void*)&CHProtocolVer},
@@ -49,7 +49,7 @@ sMBRegData Slave_Protocol0_RegHoldBuf[]=             //保持寄存器字典
 	{800, uint16,   0, 65535, 0, RO, (void*)&CHID    }, 
 };
 
-sMBBitData Slave_Protocol0_CoilBuf[]=                //线圈字典
+sMBSlaveBitData Slave_Protocol0_CoilBuf[]=                //线圈字典
 {
     {17,  RO,  (UCHAR*)&CHFaultStateClear },
 	{33,  RO,  (UCHAR*)&CHCommHMIFault    },
@@ -62,7 +62,7 @@ sMBBitData Slave_Protocol0_CoilBuf[]=                //线圈字典
 	{76,  RO,  (UCHAR*)&CHRYWPState   },
 };
 
-sValCPNData Slave_Protocol0_CPNBuf[]=             //CPN变量字典
+sMBSlaveCPNData Slave_Protocol0_CPNBuf[]=             //CPN变量字典
 {
 	{0x200,  uint8, CPN_UINT32, 0,       1, RO,  1, (void*)&CHRunState   },
 	{0x202, uint16, CPN_UINT32, 0,       1, RO,  1, (void*)&CHRemoteEn   },
@@ -124,40 +124,40 @@ sValCPNData Slave_Protocol0_CPNBuf[]=             //CPN变量字典
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
 
-const sMBIndexTable psSRegInTable [1];
+const sMBSlaveDataTable psSRegInTable [1];
 
 #endif
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 \
     || MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_READWRITE_HOLDING_ENABLED > 0
 
-const sMBIndexTable psSRegHoldTable [1] = 
+const sMBSlaveDataTable psSRegHoldTable [1] = 
 {
-	{(sMBRegData*)Slave_Protocol0_RegHoldBuf, 0, 36}
+	{(sMBSlaveRegData*)Slave_Protocol0_RegHoldBuf, 0, 800, sizeof(Slave_Protocol0_RegHoldBuf)/sizeof(sMBSlaveRegData)}
 };
 
 #endif
 
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
 
-const sMBIndexTable psSCoilTable [1] =
+const sMBSlaveDataTable psSCoilTable [1] =
 {
-	{(sMBBitData*)Slave_Protocol0_CoilBuf, 0, 2}
+	{(sMBSlaveBitData*)Slave_Protocol0_CoilBuf, 17, 76, sizeof(Slave_Protocol0_CoilBuf)/sizeof(sMBSlaveBitData)}
 };
 
 #endif
 
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
 
-const sMBIndexTable psSDiscInTable [1];
+const sMBSlaveDataTable psSDiscInTable [1];
 
 #endif
 
-#if MB_FUNC_CPN_READ_ENABLED > 0
+#if MB_SLAVE_CPN_ENABLED > 0 
 
-const sMBIndexTable psSCPNTable [1]=
+const sMBSlaveDataTable psSCPNTable [1]=
 {
-	{(sValCPNData*)Slave_Protocol0_CPNBuf, 0, 45}
+	{(sMBSlaveCPNData*)Slave_Protocol0_CPNBuf, 0x200, 0x31D, sizeof(Slave_Protocol0_CPNBuf)/sizeof(sMBSlaveCPNData)}
 };
 
 #endif

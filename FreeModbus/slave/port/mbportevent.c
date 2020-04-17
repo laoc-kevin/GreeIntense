@@ -27,11 +27,6 @@
 
 #define TIME_TICK_OUT 0
 
-/* ----------------------- Variables ----------------------------------------*/
-static eMBEventType eQueuedEvent;
-static BOOL     xEventInQueue;
-extern OS_TCB AppMbSlavePollTaskTCB;
-OS_SEM SlaveEventSem;	
 
 /* ----------------------- Start implementation -----------------------------*/
 
@@ -41,10 +36,9 @@ OS_SEM SlaveEventSem;
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL
-xMBPortEventInit( void )
+BOOL xMBSlavePortEventInit(sMBSlavePortInfo* psMBPortInfo)
 {
-    xEventInQueue = FALSE;
+    psMBPortInfo->xEventInQueue = FALSE;
     return TRUE;
 }
 
@@ -55,14 +49,13 @@ xMBPortEventInit( void )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL
-xMBPortEventPost( eMBEventType eEvent )
+BOOL xMBSlavePortEventPost(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType eEvent)
 {
 	OS_ERR err = OS_ERR_NONE;
-    xEventInQueue = TRUE;
-    eQueuedEvent = eEvent;
+    psMBPortInfo->xEventInQueue = TRUE;
+    psMBPortInfo->eQueuedEvent = eEvent;
 	
-    (void)OSSemPost(&SlaveEventSem, OS_OPT_POST_ALL, &err);
+    (void)OSSemPost(&psMBPortInfo->sMBEventSem, OS_OPT_POST_ALL, &err);
 	
 //	 (void)OSTaskSemPost(&AppMbSlavePollTaskTCB, OS_OPT_POST_NONE, &err);
     return TRUE;
@@ -75,19 +68,18 @@ xMBPortEventPost( eMBEventType eEvent )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL
-xMBPortEventGet( eMBEventType * eEvent )
+BOOL xMBSlavePortEventGet(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType * eEvent)
 {
     BOOL xEventHappened = FALSE;
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-	(void)OSSemPend( &SlaveEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err );
+	(void)OSSemPend( &psMBPortInfo->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err );
 //	(void)OSSemSet(&SlaveEventSem, 0, &err);
-    if( xEventInQueue )
+    if( psMBPortInfo->xEventInQueue )
     {
-        *eEvent = eQueuedEvent;
-        xEventInQueue = FALSE;
+        *eEvent = psMBPortInfo->eQueuedEvent;
+        psMBPortInfo->xEventInQueue = FALSE;
         xEventHappened = TRUE;	
     }
     return xEventHappened;

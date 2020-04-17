@@ -30,30 +30,24 @@
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
 
-#define MODBUS_TIMER_INTR_USED		(TIMER0_IRQn)
-#define MODBUS_SLAVE_TIMER 	        (LPC_TIM0)
 #define TMR_TICK_PER_SECOND      OS_CFG_TMR_TASK_RATE_HZ
 
 /* ----------------------- static functions ---------------------------------*/
-static void slave_timeout_ind(void * p_tmr, void * p_arg);
-
-/* ----------------------- Variables ----------------------------------------*/
-OS_TMR SlavePortTimer;
+static void vSlaveTimeoutInd(void * p_tmr, void * p_arg);
 
 /* ----------------------- Start implementation -----------------------------*/
-BOOL
-xMBPortTimersInit( USHORT usTim1Timerout50us )
+BOOL xMBSlavePortTimersInit(sMBSlavePortInfo* psMBPortInfo, USHORT usTim1Timerout50us)
 {
 	OS_ERR err = OS_ERR_NONE;
-	ULONG i = 0;
-	i= (usTim1Timerout50us * 80 ) /( 1000000 / TMR_TICK_PER_SECOND ); 
-	OSTmrCreate(&SlavePortTimer,
-			"SlavePortTimer",
+	ULONG    i = (usTim1Timerout50us * 80 ) / (1000000 / TMR_TICK_PER_SECOND);
+
+    OSTmrCreate(&psMBPortInfo->sSlavePortTmr,
+			"sSlavePortTmr",
 		    i,   //50us太快，改为80us 
 			0,
 			OS_OPT_TMR_ONE_SHOT,
-			slave_timeout_ind,
-			0,
+			vSlaveTimeoutInd,
+			(void*)psMBPortInfo,
 			&err);
 	if( err == OS_ERR_NONE )
 	{
@@ -62,25 +56,34 @@ xMBPortTimersInit( USHORT usTim1Timerout50us )
     return FALSE;
 }
 
-void
-vMBPortTimersEnable( void )
+void vMBSlavePortTimersEnable(sMBSlavePortInfo* psMBPortInfo)
 {	
 	OS_ERR err = OS_ERR_NONE;
-	OS_STATE S;
-	S=OSTmrStateGet(&SlavePortTimer, &err);
-    (void)OSTmrStart(&SlavePortTimer, &err);
+    
+	(void)OSTmrStateGet(&psMBPortInfo->sSlavePortTmr, &err);;
+    (void)OSTmrStart(&psMBPortInfo->sSlavePortTmr, &err);
 }
 
-void
-vMBPortTimersDisable( void )
+void vMBSlavePortTimersDisable(sMBSlavePortInfo* psMBPortInfo)
 {
 	OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrStop(&SlavePortTimer, OS_OPT_TMR_NONE, NULL, &err);
+    (void)OSTmrStop(&psMBPortInfo->sSlavePortTmr, OS_OPT_TMR_NONE, NULL, &err);
 }
 
-static void slave_timeout_ind(void * p_tmr, void * p_arg)  //定时器中断服务函数
+static void TIMERExpiredISR(void * p_arg)    //定时器中断服务函数
 {
-   (void)pxMBPortCBTimerExpired();
+	sMBSlavePortInfo*  psMBPortInfo = (sMBSlavePortInfo*)p_arg;
+	sMBSlaveInfo*    psMBSlaveInfo = psMBSlaveFindNodeByPort(psMBPortInfo->pcMBPortName);
+	
+	if( psMBSlaveInfo != NULL )
+	{
+		pxMBSlaveFrameCBTimerExpiredCur(psMBSlaveInfo);
+	} 
+}
+
+static void vSlaveTimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
+{
+     TIMERExpiredISR(p_arg);
 }
 
 #endif

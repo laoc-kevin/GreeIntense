@@ -22,6 +22,8 @@
 #include "port.h"
 #include "my_rtt_printf.h"
 
+#define MB_MASTER_SCAN_TASK_STK_SIZE  128
+
 /**********************************************************************
 *变量声明
 ************************************************************************/
@@ -43,80 +45,37 @@ static void AppMbScanWriteSlave(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr,
                         
 static eMBMasterReqErrCode AppMbDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevInfo* psMBSlaveDev, 
                                            const sMBTestDevCmd* psMBDevCmd);                        
+
 /**********************************************************************
- * @brief   从栈状态机
+ * @brief   创建主栈轮询从设备任务
  * @param   *p_arg    
  * @return	none
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void AppMbSlavePollTask(void *p_arg)
-{
-	CPU_SR_ALLOC();
-	
-	OS_ERR err = OS_ERR_NONE;
-	CPU_TS ts = 0;
-	eMBErrorCode    eStatus = MB_ENOERR;
-	
-#if MB_SLAVE_RTU_ENABLED > 0
-	eStatus = eMBInit(MB_RTU, ControllerID, &sMBSlaveUart);
-#endif	
-	
-#if MB_SLAVE_CPN_ENABLED > 0
-	eStatus = eMBInit(MB_CPN, ControllerID, &sMBSlaveUart);
-#endif	
-	if(eStatus == MB_ENOERR)
-	{
-		eStatus = eMBEnable();
-		if(eStatus == MB_ENOERR)
-		{
-			while (DEF_TRUE)
-			{
-                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);				
-//				OS_CRITICAL_ENTER();		
-				 (void)eMBPoll();
-//				OS_CRITICAL_EXIT(); //退出临界区			
-			}
-		}			
-	}	
+void AppMbScanSlaveTaskCreate(sMBMasterInfo* psMBMasterInfo, OS_PRIO prio)
+{   
+    OS_ERR               err = OS_ERR_NONE;
+    CPU_STK_SIZE    stk_size = MB_MASTER_SCAN_TASK_STK_SIZE; 
+    
+    OS_TCB*            p_tcb = (OS_TCB*)calloc(stk_size, sizeof(OS_TCB));    
+    CPU_STK*      p_stk_base = (CPU_STK*) calloc(stk_size, sizeof(CPU_STK));
+    
+    OSTaskCreate( p_tcb,
+                  "AppMbScanSlaveTask",
+                  AppMbScanSlaveTask,
+                  (void*)psMBMasterInfo,
+                  prio,
+                  p_stk_base ,
+                  stk_size / 10u,
+                  stk_size,
+                  0u,
+                  0u,
+                  0u,
+                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
+                  &err);
 }
 
-
-/**********************************************************************
- * @brief   UART1中断响应函数
- * @return	none
- *********************************************************************/
-void UART1_IRQHandler(void)
-{
-	uint32_t intSrc=0, curIntr=0, lineSts=0;
-
-	/* Determine the interrupt source */
-	intSrc = UART_GetIntId(UART_1);
-	curIntr = intSrc & UART_IIR_INTID_MASK;
-
-	switch(curIntr)
-	{
-		case UART1_IIR_INTID_MODEM:			
-		break;
-		
-		case UART_IIR_INTID_RLS:		
-			lineSts = UART_GetLineStatus(UART_1);     					// Check line status
-			lineSts &= (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE \
-					  | UART_LSR_BI | UART_LSR_RXFE);                 // Mask out the Receive Ready and Transmit Holding empty status
-		break;
-		
-		case UART_IIR_INTID_RDA:
-		case UART_IIR_INTID_CTI:
-		    prvvUARTRxISR();	   //Modbus Uart ISR
-		break;
-		
-		case UART_IIR_INTID_THRE:
-	         prvvUARTTxReadyISR();  //Modbus Uart ISR
-		break;
-		
-		default:break ;
-	}	
-}	
 
 /**********************************************************************
  * @brief   主栈轮询从设备任务
@@ -136,11 +95,12 @@ void AppMbScanSlaveTask(void *p_arg)
 
     eMBMasterReqErrCode       errorCode = MB_MRE_NO_ERR;
     sMBSlaveDevInfo*       psMBSlaveDev = NULL;
-	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
-    sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;       //从设备状态信息
     
-    UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveMaxAddr;
-    UCHAR ucMinAddr = psMBDevsInfo->ucSlaveMinAddr;
+	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
+    sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;       //从设备状态信息
+    
+    UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;
+    UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
     
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
     
@@ -330,7 +290,7 @@ void AppMbDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSl
         else
         {
             psMBSlaveDev->ucRetryTimes++;
-            vMBMasterDevOfflineTmrEnable(psMBSlaveDev);
+            vMBMastersDevOfflineTmrEnable(psMBSlaveDev);
         }            
     }
     psMBMasterInfo->xMBRunInTestMode = FALSE;  //退出测试从设备状态    
@@ -377,7 +337,7 @@ eMBMasterReqErrCode AppMbDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlav
 void AppMbScanSlaveDevice(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
-    sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;      //从设备列表
+    sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;      //从设备列表
     UCHAR               iSlaveAddr   = psMBSlaveDev->ucDevAddr;                 //通讯地址
     
     psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;   //当前从设备
@@ -464,6 +424,42 @@ void AppMbScanWriteSlave(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR 
     errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, iSlaveAddr, bCheckPreValue);            //写线圈 
 #endif   
 }
+
+/**********************************************************************
+ * @brief   UART1中断响应函数
+ * @return	none
+ *********************************************************************/
+void UART1_IRQHandler(void)
+{
+	uint32_t intSrc=0, curIntr=0, lineSts=0;
+
+	/* Determine the interrupt source */
+	intSrc = UART_GetIntId(UART_1);
+	curIntr = intSrc & UART_IIR_INTID_MASK;
+
+	switch(curIntr)
+	{
+		case UART1_IIR_INTID_MODEM:			
+		break;
+		
+		case UART_IIR_INTID_RLS:		
+			lineSts = UART_GetLineStatus(UART_1);     					// Check line status
+			lineSts &= (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE \
+					  | UART_LSR_BI | UART_LSR_RXFE);                 // Mask out the Receive Ready and Transmit Holding empty status
+		break;
+		
+		case UART_IIR_INTID_RDA:
+		case UART_IIR_INTID_CTI:
+		    prvvSlaveUARTRxISR("UART1");	   //Modbus Uart ISR
+		break;
+		
+		case UART_IIR_INTID_THRE:
+	         prvvSlaveUARTTxReadyISR("UART1");  //Modbus Uart ISR
+		break;
+		
+		default:break ;
+	}	
+}	
 
 /**********************************************************************
  * @brief   UART0中断响应函数

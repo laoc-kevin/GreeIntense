@@ -62,7 +62,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 	
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
 	
     ENTER_CRITICAL_SECTION();
@@ -94,7 +94,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
              */
             usTimerT35_50us = (7UL * 220000UL) / (2UL * psMBMasterUart->UARTCfg.Baud_rate);
         }
-        if( xMBMasterPortTmrsInit(psMBPortInfo, (USHORT)usTimerT35_50us) != TRUE )       //t35超时定时器
+        if( xMBsMasterPortTmrsInit(psMBPortInfo, (USHORT)usTimerT35_50us) != TRUE )       //t35超时定时器
         {
             eStatus = MB_EPORTERR;
         }
@@ -117,7 +117,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 void eMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo)
 {
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	
     ENTER_CRITICAL_SECTION();     //关全局中断
     /* Initially the receiver is in the state STATE_M_RX_INIT. we start
@@ -127,7 +127,7 @@ void eMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo)
      */
     psMBMasterInfo->eRcvState = STATE_M_RX_INIT;
     vMBMasterPortSerialEnable(psMBPortInfo, TRUE, FALSE);    //从栈等待数据，开启串口接收，发送未开启
-    vMBMasterPortTmrsEnable(psMBPortInfo);               //启动定时器
+    vMBsMasterPortTmrsEnable(psMBPortInfo);               //启动定时器
 
     EXIT_CRITICAL_SECTION();      //开全局中断
 }
@@ -139,12 +139,12 @@ void eMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 void eMBMasterRTUStop(sMBMasterInfo* psMBMasterInfo)
 {
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	
     ENTER_CRITICAL_SECTION();
 	
     vMBMasterPortSerialEnable(psMBPortInfo,FALSE, FALSE);
-    vMBMasterPortTmrsDisable(psMBPortInfo);
+    vMBsMasterPortTmrsDisable(psMBPortInfo);
 	
     EXIT_CRITICAL_SECTION();
 }
@@ -169,24 +169,24 @@ eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR 
     eMBErrorCode    eStatus = MB_ENOERR;
 
     ENTER_CRITICAL_SECTION();
-    assert_param(usMasterRcvBufferPos < MB_SER_PDU_SIZE_MAX);      //断言宏，判断接收到的字节数<256，如果>256，终止程序
+    assert_param(usRcvBufferPos < MB_SER_PDU_SIZE_MAX);      //断言宏，判断接收到的字节数<256，如果>256，终止程序
   
     /* Length and CRC check */
-    if((psMBMasterInfo->usMasterRcvBufferPos >= MB_SER_PDU_SIZE_MIN)
-        && (usMBCRC16( (UCHAR*)psMBMasterInfo->ucMasterRTURcvBuf, psMBMasterInfo->usMasterRcvBufferPos ) == 0) )
+    if((psMBMasterInfo->usRcvBufferPos >= MB_SER_PDU_SIZE_MIN)
+        && (usMBCRC16( (UCHAR*)psMBMasterInfo->ucRTURcvBuf, psMBMasterInfo->usRcvBufferPos ) == 0) )
     {
         /* Save the address field. All frames are passed to the upper layed
          * and the decision if a frame is used is done there.
          */
-        *pucRcvAddress = psMBMasterInfo->ucMasterRTURcvBuf[MB_SER_PDU_ADDR_OFF];
+        *pucRcvAddress = psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_ADDR_OFF];
 
         /* Total length of Modbus-PDU is Modbus-Serial-Line-PDU minus
          * size of address field and CRC checksum.
          */
-        *pusLength = (USHORT)(psMBMasterInfo->usMasterRcvBufferPos - MB_SER_PDU_PDU_OFF - MB_SER_PDU_SIZE_CRC);     //PDU的长度为数据帧-从栈地址-CRC校验
+        *pusLength = (USHORT)(psMBMasterInfo->usRcvBufferPos - MB_SER_PDU_PDU_OFF - MB_SER_PDU_SIZE_CRC);     //PDU的长度为数据帧-从栈地址-CRC校验
 
         /* Return the start of the Modbus PDU to the caller. */
-        *pucFrame = (UCHAR*) &(psMBMasterInfo->ucMasterRTURcvBuf[MB_SER_PDU_PDU_OFF]);      //pucFrame指向PDU起始位置
+        *pucFrame = (UCHAR*) &(psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_PDU_OFF]);      //pucFrame指向PDU起始位置
     }
     else
     {
@@ -202,7 +202,7 @@ eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR 
  *         1. 对响应报文PDU前面加上从机地址
  *         2. 对响应报文PDU后加上CRC校
  *         3. 使能发送，启动传输
- * @param  ucSlaveAddress   从站地址
+ * @param  ucSlaveAddr   从站地址
  * @param  pucFrame        MODBUS数据帧指针
  * @param  pusLength       PDU长度
  * @return eMBErrorCode    协议栈错误  
@@ -210,7 +210,7 @@ eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR 
  * @date 2019.01.22
  *********************************************************************/
 eMBErrorCode
-eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddress, const UCHAR* pucFrame, USHORT usLength )
+eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, const UCHAR* pucFrame, USHORT usLength )
 {
 
     /* 在 eMBRTUSend函数中会调用串口发送数据，在进入串口发送中断后会调用xMBRTUTransmitFSM
@@ -218,10 +218,10 @@ eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddress, const UCH
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 	
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
-	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;          //从设备状态
+    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态
 	
-    if( (ucSlaveAddress < psMBDevsInfo->ucSlaveMinAddr) || (ucSlaveAddress > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSlaveAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSlaveAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		return MB_EINVAL;
 	}
@@ -235,26 +235,26 @@ eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddress, const UCH
     if( psMBMasterInfo->eRcvState == STATE_M_RX_IDLE )
     {
         /* First byte before the Modbus-PDU is the slave address. */
-        psMBMasterInfo->pucMasterSndBufferCur = (UCHAR*)(pucFrame - 1);
-        psMBMasterInfo->usMasterSndBufferCount = 1;
+        psMBMasterInfo->pucSndBufferCur = (UCHAR*)(pucFrame - 1);
+        psMBMasterInfo->usSndBufferCount = 1;
 
         /* Now copy the Modbus-PDU into the Modbus-Serial-Line-PDU. */
-        *( psMBMasterInfo->pucMasterSndBufferCur + MB_SER_PDU_ADDR_OFF ) = ucSlaveAddress;        //在协议数据单元前加从机地址
-        psMBMasterInfo->usMasterSndBufferCount += usLength;
+        *( psMBMasterInfo->pucSndBufferCur + MB_SER_PDU_ADDR_OFF ) = ucSlaveAddr;        //在协议数据单元前加从机地址
+        psMBMasterInfo->usSndBufferCount += usLength;
 
         /* Calculate CRC16 checksum for Modbus-Serial-Line-PDU. */
-        usCRC16 = usMBCRC16( (UCHAR*) psMBMasterInfo->pucMasterSndBufferCur, psMBMasterInfo->usMasterSndBufferCount );
-        psMBMasterInfo->ucMasterRTUSndBuf[psMBMasterInfo->usMasterSndBufferCount++] = ( UCHAR )( usCRC16 & 0xFF );
-        psMBMasterInfo->ucMasterRTUSndBuf[psMBMasterInfo->usMasterSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
+        usCRC16 = usMBCRC16( (UCHAR*) psMBMasterInfo->pucSndBufferCur, psMBMasterInfo->usSndBufferCount );
+        psMBMasterInfo->ucRTUSndBuf[psMBMasterInfo->usSndBufferCount++] = ( UCHAR )( usCRC16 & 0xFF );
+        psMBMasterInfo->ucRTUSndBuf[psMBMasterInfo->usSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
 
         /* Activate the transmitter. */
         psMBMasterInfo->eSndState = STATE_M_TX_XMIT;               //发送状态
         vMBMasterPortSerialEnable( psMBPortInfo, FALSE, TRUE );  //使能发送，禁止接收	
 
 		//启动第一次发送
-        (void)xMBMasterPortSerialPutByte( psMBPortInfo, (CHAR)(*psMBMasterInfo->pucMasterSndBufferCur) );
-        psMBMasterInfo->pucMasterSndBufferCur++;
-        psMBMasterInfo->usMasterSndBufferCount--;	
+        (void)xMBMasterPortSerialPutByte( psMBPortInfo, (CHAR)(*psMBMasterInfo->pucSndBufferCur) );
+        psMBMasterInfo->pucSndBufferCur++;
+        psMBMasterInfo->usSndBufferCount--;	
     }
     else
     {
@@ -281,7 +281,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
 
     BOOL            xTaskNeedSwitch = FALSE;
     UCHAR           ucByte;
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	
     assert_param(( eSndState == STATE_M_TX_IDLE ) || ( eSndState == STATE_M_TX_XFWR ));   //确保没有数据在发送或者主栈没有在等待从栈响应
 
@@ -294,14 +294,14 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
          * wait until the frame is finished.
          */
     case STATE_M_RX_INIT:
-        vMBMasterPortTmrsEnable(psMBPortInfo);
+        vMBsMasterPortTmrsEnable(psMBPortInfo);
         break;
 
         /* In the error state we wait until all characters in the
          * damaged frame are transmitted.
          */
     case STATE_M_RX_ERROR:                                                    //数据帧被损坏，重启定时器，不保存串口接收的数据
-        vMBMasterPortTmrsEnable(psMBPortInfo);
+        vMBsMasterPortTmrsEnable(psMBPortInfo);
         break;
 
         /* In the idle state we wait for a new character. If a character
@@ -313,15 +313,15 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
     	/* In time of respond timeout,the receiver receive a frame.
     	 * Disable timer of respond timeout and change the transmiter state to idle.
     	 */
-    	vMBMasterPortTmrsDisable( psMBPortInfo );
+    	vMBsMasterPortTmrsDisable( psMBPortInfo );
     	psMBMasterInfo->eSndState = STATE_M_TX_IDLE;
 
-        psMBMasterInfo->usMasterRcvBufferPos = 0;
-        psMBMasterInfo->ucMasterRTURcvBuf[psMBMasterInfo->usMasterRcvBufferPos++] = ucByte;
+        psMBMasterInfo->usRcvBufferPos = 0;
+        psMBMasterInfo->ucRTURcvBuf[psMBMasterInfo->usRcvBufferPos++] = ucByte;
         psMBMasterInfo->eRcvState = STATE_M_RX_RCV;
 
         /* Enable t3.5 timers. */
-        vMBMasterPortTmrsEnable(psMBPortInfo);              //重启3.5T定时器
+        vMBsMasterPortTmrsEnable(psMBPortInfo);              //重启3.5T定时器
         break;
 
         /* We are currently receiving a frame. Reset the timer after
@@ -330,15 +330,15 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
          * ignored.
          */
     case STATE_M_RX_RCV:
-        if( psMBMasterInfo->usMasterRcvBufferPos < MB_SER_PDU_SIZE_MAX )            //一帧报文的字节数大于最大PDU长度，忽略超出的数据
+        if( psMBMasterInfo->usRcvBufferPos < MB_SER_PDU_SIZE_MAX )            //一帧报文的字节数大于最大PDU长度，忽略超出的数据
         {
-            psMBMasterInfo->ucMasterRTURcvBuf[psMBMasterInfo->usMasterRcvBufferPos++] = ucByte;
+            psMBMasterInfo->ucRTURcvBuf[psMBMasterInfo->usRcvBufferPos++] = ucByte;
         }
         else
         {
             psMBMasterInfo->eRcvState = STATE_M_RX_ERROR;
         }
-        vMBMasterPortTmrsEnable(psMBPortInfo);                   //每收到一个字节，都重启3.5T定时器
+        vMBsMasterPortTmrsEnable(psMBPortInfo);                   //每收到一个字节，都重启3.5T定时器
         break;
 	default: break;
     }
@@ -356,7 +356,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
 BOOL xMBMasterRTUTransmitFSM( sMBMasterInfo* psMBMasterInfo )
 {
     BOOL            xNeedPoll = FALSE;
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	
     assert_param( eRcvState == STATE_M_RX_IDLE );
 
@@ -371,35 +371,34 @@ BOOL xMBMasterRTUTransmitFSM( sMBMasterInfo* psMBMasterInfo )
 
     case STATE_M_TX_XMIT:                                      //发送器处于发送状态,在从机发送函数eMBRTUSend中赋值STATE_TX_XMIT
         /* check if we are finished. */
-        if( psMBMasterInfo->usMasterSndBufferCount != 0 )
+        if( psMBMasterInfo->usSndBufferCount != 0 )
         {
-            (void)xMBMasterPortSerialPutByte( psMBPortInfo, (CHAR)(*psMBMasterInfo->pucMasterSndBufferCur) );          //发送数据
-            psMBMasterInfo->pucMasterSndBufferCur++;  /* next byte in sendbuffer. */
-            psMBMasterInfo->usMasterSndBufferCount--;
+            (void)xMBMasterPortSerialPutByte( psMBPortInfo, (CHAR)(*psMBMasterInfo->pucSndBufferCur) );          //发送数据
+            psMBMasterInfo->pucSndBufferCur++;  /* next byte in sendbuffer. */
+            psMBMasterInfo->usSndBufferCount--;
         }
         else
         {
-            psMBMasterInfo->xFrameIsBroadcast = ( psMBMasterInfo->ucMasterRTUSndBuf[MB_SER_PDU_ADDR_OFF] == MB_ADDRESS_BROADCAST ) ? TRUE : FALSE;
+            psMBMasterInfo->xFrameIsBroadcast = ( psMBMasterInfo->ucRTUSndBuf[MB_SER_PDU_ADDR_OFF] == MB_ADDRESS_BROADCAST ) ? TRUE : FALSE;
             /* Disable transmitter. This prevents another transmit buffer
              * empty interrupt. */
 			
-            vMBMasterPortSerialEnable( psMBPortInfo, TRUE, FALSE );
+            vMBMasterPortSerialEnable(psMBPortInfo, TRUE, FALSE);
             psMBMasterInfo->eSndState = STATE_M_TX_XFWR;
             /* If the frame is broadcast ,master will enable timer of convert delay,
              * else master will enable timer of respond timeout. */
             if ( psMBMasterInfo->xFrameIsBroadcast == TRUE )
             {
-            	vMBMasterPortTmrsConvertDelayEnable(psMBPortInfo);
+            	vMBsMasterPortTmrsConvertDelayEnable(psMBPortInfo);
             }
             else
             {
-            	vMBMasterPortTmrsRespondTimeoutEnable(psMBPortInfo);
+            	vMBsMasterPortTmrsRespondTimeoutEnable(psMBPortInfo);
             }
         }
         break;
 	default: break;
     }
-
     return xNeedPoll;
 }
 
@@ -413,7 +412,7 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 {
 	BOOL xNeedPoll = FALSE;
     BOOL xSndStateNeedChange = TRUE;
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 	
 	switch (psMBMasterInfo->eRcvState)
 	{
@@ -426,7 +425,7 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 		 * a new frame was received. */
 	case STATE_M_RX_RCV:
 		
-	    if( psMBMasterInfo->usMasterRcvBufferPos >= 5)              //防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据
+	    if( psMBMasterInfo->usRcvBufferPos >= 5)              //防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据
 		{
 			xNeedPoll = xMBMasterPortEventPost(psMBPortInfo, EV_MASTER_FRAME_RECEIVED);   //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
 //			myprintf("EV_MASTER_FRAME_RECEIVED******************\n");
@@ -434,7 +433,7 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 		else
 		{
 			psMBMasterInfo->eSndState = STATE_M_TX_XFWR;
-			vMBMasterPortTmrsRespondTimeoutEnable(psMBPortInfo);      //接收数据不完整，重启定时器
+			vMBsMasterPortTmrsRespondTimeoutEnable(psMBPortInfo);      //接收数据不完整，重启定时器
 
 			xSndStateNeedChange = FALSE;
 //			myprintf("EV_MASTER_FRAME_RECEIVED_ERROR******************\n");
@@ -477,9 +476,9 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 		}
 		psMBMasterInfo->eSndState = STATE_M_TX_IDLE;
 
-        vMBMasterPortTmrsDisable(psMBPortInfo);                                 //当接收到一帧数据后，禁止3.5T定时器，直到接受下一帧数据开始，开始计时
+        vMBsMasterPortTmrsDisable(psMBPortInfo);                                 //当接收到一帧数据后，禁止3.5T定时器，直到接受下一帧数据开始，开始计时
 	/* If timer mode is convert delay, the master event then turns EV_MASTER_EXECUTE status. */
-        if (psMBPortInfo->eMasterCurTimerMode == MB_TMODE_CONVERT_DELAY) {
+        if (psMBPortInfo->eCurTimerMode == MB_TMODE_CONVERT_DELAY) {
             xNeedPoll = xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_EXECUTE );
         }
 	}
@@ -487,27 +486,27 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 }
 
 /* Get Modbus Master send RTU's buffer address pointer.*/
-void vMBMasterGetRTUSndBuf( const sMBMasterInfo* psMBMasterInfo, UCHAR ** pucFrame )
+void vMBMasterGetRTUSndBuf( const sMBMasterInfo* psMBMasterInfo, UCHAR** pucFrame )
 {
-	*pucFrame = (UCHAR*)psMBMasterInfo->ucMasterRTUSndBuf;
+	*pucFrame = (UCHAR*)psMBMasterInfo->ucRTUSndBuf;
 }
 
 /* Get Modbus Master send PDU's buffer address pointer.*/
-void vMBMasterGetPDUSndBuf( const sMBMasterInfo* psMBMasterInfo, UCHAR ** pucFrame )
+void vMBMasterGetPDUSndBuf( const sMBMasterInfo* psMBMasterInfo, UCHAR** pucFrame )
 {
-	*pucFrame = (UCHAR*) &(psMBMasterInfo->ucMasterRTUSndBuf[MB_SER_PDU_PDU_OFF]);
+	*pucFrame = (UCHAR*) &(psMBMasterInfo->ucRTUSndBuf[MB_SER_PDU_PDU_OFF]);
 }
 
 /* Set Modbus Master send PDU's buffer length.*/
 void vMBMasterSetPDUSndLength( sMBMasterInfo* psMBMasterInfo, USHORT SendPDULength )
 {
-	psMBMasterInfo->usMasterSendPDULength = SendPDULength;
+	psMBMasterInfo->usSndPDULength = SendPDULength;
 }
 
 /* Get Modbus Master send PDU's buffer length.*/
 USHORT usMBMasterGetPDUSndLength( const sMBMasterInfo* psMBMasterInfo )
 {
-	return psMBMasterInfo->usMasterSendPDULength;
+	return psMBMasterInfo->usSndPDULength;
 }
 
 /* The master request is broadcast? */

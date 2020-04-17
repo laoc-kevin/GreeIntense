@@ -1,19 +1,24 @@
-#ifndef _USER_MB_MAP_
-#define _USER_MB_MAP_
+#ifndef _USER_MB_MAP_H
+#define _USER_MB_MAP_H
 
-#include "mbframe.h"
 #include "mb.h"
+#include "user_mb_dict.h"
 
-eMBErrorCode eMBScanRegInMap( USHORT usAddress, sMBRegData ** pvRegInValue);
+eMBErrorCode 
+eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usAddress, sMBSlaveRegData** pvRegInValue);
 
-eMBErrorCode eMBScanRegHoldMap( USHORT usRegHoldAddr, sMBRegData** pvRegHoldValue);
+eMBErrorCode 
+eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRegData** pvRegHoldValue);
 
-eMBErrorCode eMBScanCoilsMap( USHORT usCoilAddr, sMBBitData** pvCoilValue);
+eMBErrorCode 
+eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData** pvCoilValue);
 
-eMBErrorCode eMBScanDiscreteMap( USHORT usDiscreteAddr, sMBBitData** pvDiscreteValue);
+eMBErrorCode 
+eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlaveBitData** pvDiscreteValue);
 
-eMBErrorCode eMBScanCPNMap( USHORT usCpnName, sValCPNData ** pvCPNValue);
+eMBErrorCode 
+eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCPNName, sMBSlaveCPNData** pvCPNValue);
 
-void eMBSlaveTableInit( void );
+void eMBSlaveSlaveTableInit( void );
 
 #endif

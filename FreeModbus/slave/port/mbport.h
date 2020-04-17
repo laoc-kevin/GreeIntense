@@ -44,92 +44,75 @@ typedef enum
     EV_FRAME_RECEIVED,          /*!< Frame received. */
     EV_EXECUTE,                 /*!< Execute function. */
     EV_FRAME_SENT               /*!< Frame sent. */
-} eMBEventType;
+} eMBSlaveEventType;
 
-/*! \ingroup modbus
- * \brief Parity used for characters in serial mode.
- *
- * The parity which should be applied to the characters sent over the serial
- * link. Please note that this values are actually passed to the porting
- * layer and therefore not all parity modes might be available.
- */
-typedef enum
+
+typedef struct                        /* 从栈接口定义  */
 {
-    MB_PAR_NONE,                /*!< No parity. */
-    MB_PAR_ODD,                 /*!< Odd parity. */
-    MB_PAR_EVEN                 /*!< Even parity. */
-} eMBParity;
+	const UART_Def*     psMBSlaveUart;         //从栈通讯串口结构
+	OS_TMR              sSlavePortTmr;         //从栈3.5字符间隔定时器
+                        
+	eMBSlaveEventType   eQueuedEvent;          //从栈事件
+	OS_SEM              sMBEventSem;           //从栈事件消息量
+                        
+    BOOL                xEventInQueue;         //从栈有新事件
+    BOOL                xErrorEventInQueue;    //从栈有新错误事件
+	                    
+    const CHAR*         pcMBPortName;          //从栈名称
+}sMBSlavePortInfo;
 
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
 
 /* -----------------------Slave Serial port functions ----------------------------*/
-BOOL xMBPortSerialInit( UART_Def *Uart );
+BOOL xMBSlavePortSerialInit(sMBSlavePortInfo* psMBPortInfo);
 
-void vMBPortClose(void);
+void vMBSlavePortClose(sMBSlavePortInfo* psMBPortInfo);
 
-void xMBPortSerialClose(void);
+void xMBSlavePortSerialClose(sMBSlavePortInfo* psMBPortInfo);
 
-void vMBPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable );
+void vMBSlavePortSerialEnable(sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable);
 
-INLINE BOOL xMBPortSerialGetByte(CHAR* pucByte );
+INLINE BOOL xMBSlavePortSerialGetByte(sMBSlavePortInfo* psMBPortInfo, CHAR* pucByte);
 
-INLINE BOOL xMBPortSerialPutByte(CHAR ucByte);
+INLINE BOOL xMBSlavePortSerialPutByte(sMBSlavePortInfo* psMBPortInfo, CHAR ucByte);
 
-BOOL xMBPortEventInit( void );
+void prvvSlaveUARTTxReadyISR(const CHAR* pcMBPortName);
 
-BOOL xMBPortEventPost( eMBEventType eEvent );
+void prvvSlaveUARTRxISR(const CHAR* pcMBPortName);
 
-BOOL xMBPortEventGet(  /*@out@ */ eMBEventType * eEvent );
+/* -----------------------Master Serial port event functions ----------------------------*/
+BOOL xMBSlavePortEventInit(sMBSlavePortInfo* psMBPortInfo);
 
-/* ----------------------- Callback for the protocol stack ------------------*/
+BOOL xMBSlavePortEventPost(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType eEvent);
 
-/*!
- * \brief Callback function for the porting layer when a new byte is
- *   available.
- *
- * Depending upon the mode this callback function is used by the RTU or
- * ASCII transmission layers. In any case a call to xMBPortSerialGetByte()
- * must immediately return a new character.
- *
- * \return <code>TRUE</code> if a event was posted to the queue because
- *   a new byte was received. The port implementation should wake up the
- *   tasks which are currently blocked on the eventqueue.
- */
-extern          BOOL( *pxMBFrameCBByteReceived ) ( void );
-
-extern          BOOL( *pxMBFrameCBTransmitterEmpty ) ( void );
-
-extern          BOOL( *pxMBPortCBTimerExpired ) ( void );
-
+BOOL xMBSlavePortEventGet(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType* eEvent);
 
 
 /* ----------------------- Timers functions ---------------------------------*/
-BOOL xMBPortTimersInit( USHORT usTim1Timerout50us );
+BOOL xMBSlavePortTimersInit(sMBSlavePortInfo* psMBPortInfo, USHORT usTim1Timerout50us);
 
-void xMBPortTimersClose( void );
+void xMBSlavePortTimersClose(sMBSlavePortInfo* psMBPortInfo);
 
-INLINE void vMBPortTimersEnable( void );
+INLINE void vMBSlavePortTimersEnable(sMBSlavePortInfo* psMBPortInfo);
 
-INLINE void vMBPortTimersDisable( void );
+INLINE void vMBSlavePortTimersDisable(sMBSlavePortInfo* psMBPortInfo);
 
 #endif
-
-
 
 
 #if MB_SLAVE_TCP_ENABLED > 0 
 
 /* ----------------------- TCP port functions -------------------------------*/
-BOOL            xMBTCPPortInit( USHORT usTCPPort );
+BOOL xMBSlaveTCPPortInit( USHORT usTCPPort );
 
-void            vMBTCPPortClose( void );
+void vMBSlaveTCPPortClose( void );
 
-void            vMBTCPPortDisable( void );
+void vMBSlaveTCPPortDisable( void );
 
-BOOL            xMBTCPPortGetRequest( UCHAR **ppucMBTCPFrame, USHORT * usTCPLength );
+BOOL xMBSlaveTCPPortGetRequest( UCHAR **ppucMBTCPFrame, USHORT * usTCPLength );
 
-BOOL            xMBTCPPortSendResponse( const UCHAR *pucMBTCPFrame, USHORT usTCPLength );
+BOOL xMBSlaveTCPPortSendResponse( const UCHAR *pucMBTCPFrame, USHORT usTCPLength );
 
 #endif
 

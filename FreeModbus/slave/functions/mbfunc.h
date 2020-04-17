@@ -35,66 +35,85 @@
 PR_BEGIN_EXTERN_C
 #endif
 
+
 #include "mbframe.h"
 #include "mbproto.h"
+#include "mb.h"
+
+typedef  eMBException (*pxMBSlaveFunctionHandler) (sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* pusLength);
+
+typedef struct
+{
+    UCHAR                    ucFunctionCode;
+    pxMBSlaveFunctionHandler pxHandler;
+}xMBSlaveFunctionHandler;
+
+
 
 /* ----------------------- Callback Functions-----------------------------------------*/
 #if MB_FUNC_OTHER_REP_SLAVEID_BUF > 0
-eMBException    eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
-eMBException    eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
+eMBException eMBSlaveFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
-eMBException    eMBFuncReadInputRegister( UCHAR * pucFrame, USHORT * usLen );
-
+eMBException 
+eMBSlaveFuncReadInputRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 #endif
 
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
-eMBException    eMBFuncReadHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
-
+eMBException 
+eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 #endif
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
-eMBException    eMBFuncWriteHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
-
+eMBException 
+eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 #endif
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
-eMBException    eMBFuncWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_READ_COILS_ENABLED > 0
-eMBException    eMBFuncReadCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncReadCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_WRITE_COIL_ENABLED > 0
-eMBException    eMBFuncWriteCoil( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-eMBException    eMBFuncWriteMultipleCoils( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-eMBException    eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_READWRITE_HOLDING_ENABLED > 0
-eMBException    eMBFuncReadWriteMultipleHoldingRegister( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen);
 
 #endif
 
 #if MB_FUNC_CPN_READ_ENABLED > 0 
-eMBException eMBFuncReadCPNValue( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncReadCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucFrame, USHORT * usLen);
 #endif
 
 #if MB_FUNC_CPN_WRITE_ENABLED > 0
-eMBException eMBFuncWriteCPNValue( UCHAR * pucFrame, USHORT * usLen );
+eMBException 
+eMBSlaveFuncWriteCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucFrame, USHORT * usLen);
 #endif
 
 #ifdef __cplusplus

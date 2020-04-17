@@ -41,7 +41,8 @@
 #include "mbproto.h"
 #include "mbconfig.h"
 
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
+#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
+
 #if MB_FUNC_OTHER_REP_SLAVEID_ENABLED > 0
 
 /* ----------------------- Static variables ---------------------------------*/
@@ -49,10 +50,8 @@ static UCHAR    ucMBSlaveID[MB_FUNC_OTHER_REP_SLAVEID_BUF];
 static USHORT   usMBSlaveIDLen;
 
 /* ----------------------- Start implementation -----------------------------*/
-
-eMBErrorCode
-eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
-               UCHAR const *pucAdditional, USHORT usAdditionalLen )
+eMBErrorCode 
+eMBSlaveSetID( UCHAR ucSlaveID, BOOL xIsRunning, UCHAR const *pucAdditional, USHORT usAdditionalLen )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
@@ -78,8 +77,7 @@ eMBSetSlaveID( UCHAR ucSlaveID, BOOL xIsRunning,
     return eStatus;
 }
 
-eMBException
-eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen )
+eMBException eMBSlaveFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen )
 {
     memcpy( &pucFrame[MB_PDU_DATA_OFF], &ucMBSlaveID[0], ( size_t )usMBSlaveIDLen );
     *usLen = ( USHORT )( MB_PDU_DATA_OFF + usMBSlaveIDLen );

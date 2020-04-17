@@ -56,8 +56,6 @@
 #include "mbtcp_m.h"
 #endif
 
-#define TMR_TICK_PER_SECOND  OS_CFG_TMR_TASK_RATE_HZ
-#define MB_MASTER_DEV_OFFLINE_TMR_S              30
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 
@@ -65,29 +63,34 @@
 #define MB_PORT_HAS_CLOSE 0
 #endif
 
-#define MB_MASTER_POLL_INTERVAL_MS              50
+#define TMR_TICK_PER_SECOND                  OS_CFG_TMR_TASK_RATE_HZ
+
+#define MB_MASTER_DEV_OFFLINE_TMR_S          30
+#define MB_MASTER_POLL_INTERVAL_MS           50
+#define MB_MASTER_POLL_TASK_STK_SIZE         128
+
 
 /* ----------------------- Static variables ---------------------------------*/
-static sMBMasterNodeInfo*      sMBMasterNodeList = NULL;    
+static sMBMasterInfo*      psMBMasterList = NULL;    
 
 /* Functions pointer which are initialized in eMBInit( ). Depending on the
  * mode (RTU or ASCII) the are set to the correct implementations.
  * Using for Modbus Master,Add by Armink 20130813
  */
-static peMBMasterFrameSend peMBMasterFrameSendCur;
-static pvMBMasterFrameStart pvMBMasterFrameStartCur;
-static pvMBMasterFrameStop pvMBMasterFrameStopCur;
-static peMBMasterFrameReceive peMBMasterFrameReceiveCur;
-static pvMBMasterFrameClose pvMBMasterFrameCloseCur;
+static peMBMasterFrameSend        peMBMasterFrameSendCur;
+static pvMBMasterFrameStart       pvMBMasterFrameStartCur;
+static pvMBMasterFrameStop        pvMBMasterFrameStopCur;
+static peMBMasterFrameReceive     peMBMasterFrameReceiveCur;
+static pvMBMasterFrameClose       pvMBMasterFrameCloseCur;
 
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-pxMBMasterFrameCBByteReceived pxMBMasterFrameCBByteReceivedCur;
-pxMBMasterFrameCBTransmitterEmpty pxMBMasterFrameCBTransmitterEmptyCur ;
-pxMBMasterFrameCBTimerExpired pxMBMasterFrameCBTimerExpiredCur;
+pxMBMasterFrameCBByteReceived         pxMBMasterFrameCBByteReceivedCur;
+pxMBMasterFrameCBTransmitterEmpty     pxMBMasterFrameCBTransmitterEmptyCur ;
+pxMBMasterFrameCBTimerExpired         pxMBMasterFrameCBTimerExpiredCur;
 
 /* An array of Modbus functions handlers which associates Modbus function
  * codes with implementing functions.
@@ -141,7 +144,7 @@ static void vMBMasterDevOfflineTimeout( void * p_tmr, void * p_arg);
 eMBErrorCode eMBMasterInit ( sMBMasterInfo* psMBMasterInfo)
 {
     eMBErrorCode       eStatus = MB_ENOERR;
-    sMBMasterPortInfo* psMBPortInfo= psMBMasterInfo->psMasterPortInfo;
+    sMBMasterPortInfo* psMBPortInfo= psMBMasterInfo->psMBPortInfo;
 	
 	switch(psMBMasterInfo->eMode)
 	{
@@ -163,6 +166,7 @@ eMBErrorCode eMBMasterInit ( sMBMasterInfo* psMBMasterInfo)
 	
 		break;
 #endif
+    
 #if MB_MASTER_ASCII_ENABLED > 0
 		case MB_ASCII:
 		pvMBMasterFrameStartCur = eMBMasterASCIIStart;
@@ -208,7 +212,7 @@ eMBErrorCode eMBMasterInit ( sMBMasterInfo* psMBMasterInfo)
 eMBErrorCode eMBMasterClose( sMBMasterInfo* psMBMasterInfo )
 {
     eMBErrorCode       eStatus = MB_ENOERR;
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
 
     if( psMBMasterInfo->eMBState == STATE_DISABLED )
     {
@@ -295,13 +299,14 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
     static USHORT   usLength;
     static eMBException eException;
 
-    int             i , j;
-    eMBErrorCode    eStatus = MB_ENOERR;
-    eMBMasterEventType    eEvent;
+    USHORT          i , j;
+    
+    eMBMasterEventType      eEvent;
     eMBMasterErrorEventType errorType;
-
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMasterPortInfo;     //硬件结构
-	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
+    
+    eMBErrorCode            eStatus = MB_ENOERR;  
+	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;     //硬件结构
+	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
 	
     /* Check if the protocol stack is ready. */
     if( psMBMasterInfo->eMBState != STATE_ENABLED )
@@ -326,7 +331,6 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddress(psMBMasterInfo)) )
 			{
 				( void ) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_EXECUTE );
-				
 			}
 			else
 			{
@@ -361,7 +365,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 						if ( xMBMasterRequestIsBroadcast(psMBMasterInfo) ) 
 						{
 							usLength = usMBMasterGetPDUSndLength(psMBMasterInfo);
-							for(j = psMBDevsInfo->ucSlaveMinAddr; j <= psMBDevsInfo->ucSlaveMaxAddr; j++)
+							for(j = psMBDevsInfo->ucSlaveDevMinAddr; j <= psMBDevsInfo->ucSlaveDevMaxAddr; j++)
 							{
 								vMBMasterSetDestAddress(psMBMasterInfo, j);
 								eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, ucMBFrame, &usLength);
@@ -440,35 +444,95 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL vMBMasterRegisterNode(sMBMasterInfo* psMBMasterInfo)
+BOOL xMBMasterRegisterNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, UART_Def* psMasterUart, CHAR* pcMBPortName, 
+                           USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable)
 {
-    sMBMasterNodeInfo* psMBMasterNodeInfo = NULL;
-	const CHAR*        pcMBPortName       = psMBMasterInfo->psMasterPortInfo->pcMasterPortName;
-	
-	if(psMBMasterFindNodeByPort(pcMBPortName) == NULL)
+    sMBMasterPortInfo*   psMBPortInfo   = NULL;      //主栈硬件接口信息
+	sMBMasterDevsInfo*   psMBDevsInfo   = NULL;      //主栈从设备信息
+	sMBMasterTaskInfo*   psMBTaskInfo   = NULL;      //主栈状态机任务信息
+    sMBMasterDTUInfo*    psMBDTUInfo    = NULL;      //DTU模块
+    
+	if( (psMBMasterInfo = psMBMasterFindNodeByPort(pcMBPortName)) == NULL)
     {
-        psMBMasterNodeInfo =(sMBMasterNodeInfo*) calloc(1, sizeof(sMBMasterNodeInfo));
-        
-        if(psMBMasterNodeInfo == NULL)
+        psMBMasterInfo = (sMBMasterInfo*) calloc(1, sizeof(sMBMasterInfo));
+
+        if(psMBMasterInfo != NULL)
         {
-            return FALSE;
-        }
+            psMBMasterInfo->pNext = NULL;
+            psMBMasterInfo->eMode = eMode;
+            
+            /***************************硬件接口申请***************************/
+            psMBPortInfo = (sMBMasterPortInfo*) calloc(1, sizeof(sMBMasterPortInfo));
+            if(psMBPortInfo != NULL)
+            {
+                psMBPortInfo->psMBMasterUart = psMasterUart;
+                psMBPortInfo->pcMBPortName   = pcMBPortName;
+            }
         
-        if(xMBMasterCreatePollTask(psMBMasterInfo))   //创建主栈状态机任务
-        {
-            return FALSE;
+            /***************************从设备列表申请***************************/
+            psMBDevsInfo = (sMBMasterDevsInfo*) calloc(1, sizeof(sMBMasterDevsInfo));
+            if(psMBDevsInfo != NULL)
+            {
+                psMBDevsInfo->ucSlaveDevMaxAddr = usMaxAddr;
+                psMBDevsInfo->ucSlaveDevMaxAddr = usMinAddr;
+            }
+            
+            /***************************主栈状态机任务块申请***************************/
+            psMBTaskInfo   = (sMBMasterTaskInfo*) calloc(1, sizeof(sMBMasterTaskInfo));
+            if(psMBTaskInfo != NULL)
+            {
+                psMBTaskInfo->prio       = prio;
+                psMBTaskInfo->stk_size   = MB_MASTER_POLL_TASK_STK_SIZE;
+                psMBTaskInfo->p_stk_base = (CPU_STK*) calloc(MB_MASTER_POLL_TASK_STK_SIZE, sizeof(CPU_STK));
+            }
+            
+            if( (psMBPortInfo != NULL) && (psMBDevsInfo != NULL) && (psMBTaskInfo != NULL) )
+            {
+                psMBMasterInfo->psMBPortInfo = psMBPortInfo;
+                psMBMasterInfo->psMBDevsInfo = psMBDevsInfo;
+                psMBMasterInfo->psMBTaskInfo = psMBTaskInfo;
+                
+                if(psMBTaskInfo->p_stk_base == NULL)
+                {
+                   return FALSE;
+                }
+            }
+            else
+            {
+                return FALSE;
+            }
+            
+            /******************************GPRS模块功能支持****************************/
+#ifdef MB_MASTER_DTU_ENABLED    
+            if(bDTUEnable)
+            {
+                psMBDTUInfo = (sMBMasterDTUInfo*) calloc(1, sizeof(sMBMasterDTUInfo));
+                if(psMBDTUInfo != NULL)
+                {
+                    psMBMasterInfo->psMBDTUInfo = psMBDTUInfo;
+                }
+                else
+                {
+                    return FALSE;
+                }                    
+            }         
+#endif  
+            /*******************************创建主栈状态机任务*************************/
+            if(xMBMasterCreatePollTask(psMBMasterInfo))   
+            {
+                return FALSE;
+            }
+            
+	        if(psMBMasterList == NULL)
+	        {
+                psMBMasterList = psMBMasterInfo;
+	        }
+	        else if(psMBMasterList->pLast != NULL)
+	        {
+                psMBMasterList->pLast->pNext = psMBMasterInfo;
+	        }
+            psMBMasterList->pLast = psMBMasterInfo;
         }
-	    psMBMasterNodeInfo->psMBMasterInfo = psMBMasterInfo;
-	    psMBMasterNodeInfo->pNext = NULL; 
-	    
-	    if(sMBMasterNodeList->pNext == NULL)
-	    {
-            sMBMasterNodeList = psMBMasterNodeInfo;
-	    }
-	    else
-	    {
-            sMBMasterNodeList->pNext = psMBMasterNodeInfo;
-	    }
     }
     return TRUE;
 }
@@ -484,21 +548,15 @@ sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName)
 {
 	char*              pcPortName = NULL;
 	sMBMasterInfo*     psMBMasterInfo = NULL;
-	sMBMasterNodeInfo* psMBMasterNodeInfo = NULL;
-    
-	for( psMBMasterNodeInfo = sMBMasterNodeList; psMBMasterNodeInfo != NULL;
-	     psMBMasterNodeInfo = psMBMasterNodeInfo->pNext )
+	
+	for( psMBMasterInfo = psMBMasterList; psMBMasterInfo != NULL; psMBMasterInfo = psMBMasterInfo->pNext )
 	{
-		if( psMBMasterNodeInfo->psMBMasterInfo != NULL)
-		{
-			psMBMasterInfo = psMBMasterNodeInfo->psMBMasterInfo;
-		    strcpy(pcPortName, psMBMasterInfo->psMasterPortInfo->pcMasterPortName);
-		    
-		    if( strcmp(pcPortName,pcMBPortName) == 0 )
-		    {
-		    	return psMBMasterInfo;
-		    }
-		}
+        strcpy(pcPortName, psMBMasterInfo->psMBPortInfo->pcMBPortName);
+        
+        if( strcmp(pcPortName, pcMBPortName) == 0 )
+        {
+        	return psMBMasterInfo;
+        }
 	}
 	return psMBMasterInfo;		
 }
@@ -513,7 +571,7 @@ sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName)
 BOOL xMBMasterCreatePollTask(const sMBMasterInfo* psMBMasterInfo)
 {
     OS_ERR err = OS_ERR_NONE;
-    sMBMasterTaskInfo* psMBTaskInfo = psMBMasterInfo->psMBMasterTaskInfo;
+    sMBMasterTaskInfo* psMBTaskInfo = psMBMasterInfo->psMBTaskInfo;
     
     OSTaskCreate(&psMBTaskInfo->p_tcb,
                   "vMBMasterPollTask",
@@ -565,7 +623,7 @@ void vMBMasterPollTask(void *p_arg)
 }
 
 /**********************************************************************
- * @brief   获取设备状态
+ * @brief   获取从设备
  * @param   psMBMasterInfo  主栈信息块
  * @param   Address         从设备地址   
  * @return	sMBSlaveDevInfo 
@@ -575,7 +633,7 @@ void vMBMasterPollTask(void *p_arg)
 sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address)
 {
     sMBSlaveDevInfo*  psMBDev = NULL;
-    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;    //从设备状态信息
+    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;    //从设备状态信息
     
     if( psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
     {
@@ -602,17 +660,19 @@ sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Ad
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevDataInfo* psDevDataInfo)
+sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo)
 {
-    sMBSlaveDevInfo*  psMBDev = NULL;
-    sMBSlaveDevInfo*  psMBNewDev = NULL;
+    sMBSlaveDevInfo*   psMBDev    = NULL;
+    sMBSlaveDevInfo*   psMBNewDev = NULL;
  
-    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;    //从设备信息
+    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;    //从设备信息
     
     if( (psMBNewDev = (sMBSlaveDevInfo*) calloc(1, sizeof(sMBSlaveDevInfo))) != NULL ) //申请成功
     {
         (void)xMBMasterInitDevTimer(psMBNewDev, MB_MASTER_DEV_OFFLINE_TMR_S);   //初始化掉线定时器
-         psMBNewDev->pNext = NULL;
+        
+        psMBNewDev->psDevDataInfo = psDevDataInfo;
+        psMBNewDev->pNext = NULL;
         
         if( psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
         {
@@ -622,8 +682,8 @@ sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, con
         {
             psMBDev = psMBDevsInfo->psMBSlaveDevsList->pLast;   //尾节点
             psMBDev->pNext = psMBNewDev;
-            psMBDevsInfo->psMBSlaveDevsList->pLast = psMBNewDev;
         }
+        psMBDevsInfo->psMBSlaveDevsList->pLast = psMBNewDev;
         psMBDevsInfo->ucSlaveDevCount++;
     }
     return psMBNewDev;
@@ -641,7 +701,7 @@ BOOL xMBMasterRemoveDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address)
 {
     sMBSlaveDevInfo*  psMBDev = NULL;
     sMBSlaveDevInfo*  psMBPreDev = NULL;
-    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;    //从设备状态信息
+    sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;    //从设备状态信息
     
     if( psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
     {
@@ -676,7 +736,7 @@ BOOL xMBMasterRemoveDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address)
                     }  
                 }
                 
-                vMBMasterDevOfflineTmrDel(psMBDev);
+                vMBMastersDevOfflineTmrDel(psMBDev);
                 (void)free(psMBDev); 
                 return TRUE;         
             }
@@ -701,8 +761,8 @@ BOOL xMBMasterInitDevTimer( sMBSlaveDevInfo* psMBDev, USHORT usTimerSec)
     OS_ERR err = OS_ERR_NONE;
 	OS_TICK i = (OS_TICK)(usTimerSec * TMR_TICK_PER_SECOND);  //延时30s
     
-    OSTmrCreate( &(psMBDev->DevOfflineTmr),       //主定时器
-			      "DevOfflineTmr",
+    OSTmrCreate( &(psMBDev->sDevOfflineTmr),       //主定时器
+			      "sDevOfflineTmr",
 			      i,      
 			      0,
 			      OS_OPT_TMR_ONE_SHOT,
@@ -734,10 +794,10 @@ void vMBMasterDevOfflineTimeout( void * p_tmr, void * p_arg)
  * @param   psMBDev   从设备状态
  * @return	none
  *********************************************************************/
-void vMBMasterDevOfflineTmrEnable( sMBSlaveDevInfo* psMBDev)
+void vMBMastersDevOfflineTmrEnable( sMBSlaveDevInfo* psMBDev)
 {
     OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrStart( &(psMBDev->DevOfflineTmr), &err);
+    (void)OSTmrStart( &(psMBDev->sDevOfflineTmr), &err);
     psMBDev->ucDevOnTimeout = TRUE;
 }
 
@@ -748,10 +808,10 @@ void vMBMasterDevOfflineTmrEnable( sMBSlaveDevInfo* psMBDev)
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBMasterDevOfflineTmrDel( sMBSlaveDevInfo* psMBDev)
+void vMBMastersDevOfflineTmrDel( sMBSlaveDevInfo* psMBDev)
 {
     OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrDel( &(psMBDev->DevOfflineTmr), &err);
+    (void)OSTmrDel( &(psMBDev->sDevOfflineTmr), &err);
 }
 
 
@@ -772,22 +832,22 @@ void vMBMasterSetCBRunInMasterMode( sMBMasterInfo* psMBMasterInfo, BOOL IsMaster
 /* Get Modbus Master send destination address. */
 UCHAR ucMBMasterGetDestAddress( const sMBMasterInfo* psMBMasterInfo )
 {
-	return psMBMasterInfo->ucMBMasterDestAddr;
+	return psMBMasterInfo->ucMBDestAddr;
 }
 /* Set Modbus Master send destination address. */
 void vMBMasterSetDestAddress( sMBMasterInfo* psMBMasterInfo, UCHAR Address )
 {
-	psMBMasterInfo->ucMBMasterDestAddr = Address;
+	psMBMasterInfo->ucMBDestAddr = Address;
 }
 /* Get Modbus Master current error event type. */
 eMBMasterErrorEventType eMBMasterGetErrorType( const sMBMasterInfo* psMBMasterInfo )
 {
-	return psMBMasterInfo->eMBMasterCurErrorType;
+	return psMBMasterInfo->eCurErrorType;
 }
 /* Set Modbus Master current error event type. */
 void vMBMasterSetErrorType( sMBMasterInfo* psMBMasterInfo, eMBMasterErrorEventType errorType )
 {
-	psMBMasterInfo->eMBMasterCurErrorType = errorType;
+	psMBMasterInfo->eCurErrorType = errorType;
 }
 
 #endif

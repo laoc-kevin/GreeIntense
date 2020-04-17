@@ -41,6 +41,7 @@
 #include "mbframe.h"
 #include "mbutils.h"
 #include "user_mb_map.h"
+#include "user_mb_map.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define BITS_UCHAR      8U
@@ -57,96 +58,60 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode
-xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDataType )
+eMBErrorCode xMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
+                                 USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
-    USHORT          usNPreBits, iNReg, iBit;
+    USHORT          usNPreBits, iNReg, iBits, i;
     UCHAR*          pucValue; 
 	UCHAR           ucBit;
 	
-    sMBBitData *    pucBitData = NULL;
+    sMBSlaveBitData *    pucBitData = NULL;
 	
-	iNReg = ( USHORT )(ucNBits / BITS_UCHAR) + 1;
-    usNPreBits = ( USHORT )(ucNBits % BITS_UCHAR);
+	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
 	while (iNReg > 0)
 	{
-		if( (iNReg == 1) && ( usNPreBits > 0) )
-		{
-			for ( iBit = 0; iBit < usNPreBits; iBit++ )
-			{
-				switch(eDataType)
-				{
-					
+        if( (iNReg == 1) && (usNPreBits > 0) ) //未满8个bit
+        {
+            iBits = usNPreBits;
+        }
+        else    //超过8bits
+        {
+            iBits = BITS_UCHAR;
+        }             
+        for ( i = 0; i < iBits; i++ )
+        {
+            switch(eDataType)
+            {	
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
-				   case CoilData:		   
-					   (void)eMBScanCoilsMap( usAddress, &pucBitData);         //扫描线圈字典，找到对应的线圈
-				   break;
+                case CoilData:		   
+                    (void)eMBSlaveCoilsMap(psMBSlaveInfo, usAddress, &pucBitData);         //扫描线圈字典，找到对应的线圈
+				break;
 #endif
 				   
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-				   case DiscInData:
-					   (void)eMBScanDiscreteMap( usAddress, &pucBitData);
-				   break;
+                case DiscInData:
+                    (void)eMBSlaveDiscreteMap(psMBSlaveInfo, usAddress, &pucBitData);
+                break;
 #endif
-				   default:break;			
-			    }
-				
-				if( (pucBitData != NULL) && (pucBitData->Value != NULL) && (pucBitData->OperateMode != RO) )
-				{
-					ucBit = (UCHAR)( ((*ucByteBuf) & (1 << iBit) ) >> iBit );   //取对应位的值
-					if( *(UCHAR*)pucBitData->Value != ucBit )
-				    {		
-				        (*(UCHAR*)(pucBitData->Value)) = (UCHAR)ucBit;			
-				    }	
-				}
-				else
-				{
-					eStatus = MB_ENOREG;
-					return eStatus;
-				}
-				usAddress++;
-			}
-		}
-		
-		else
-		{
-			for ( iBit = 0; iBit < BITS_UCHAR; iBit++ )
-			{
-				switch(eDataType)
-				{
-									
-#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
-				   case CoilData:		   
-					   (void)eMBScanCoilsMap( usAddress, &pucBitData);
-				   break;
-#endif
-				   
-#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-				   case DiscInData:
-					   (void)eMBScanDiscreteMap( usAddress, &pucBitData);
-				   break;
-#endif
-
-				   default:break;			
-			    }
-				
-				if( (pucBitData != NULL) && (pucBitData->Value != NULL) && (pucBitData->OperateMode != RO) )
-				{
-					ucBit = (UCHAR)( ((*ucByteBuf) & (1 << iBit) ) >> iBit );
-					if( *(UCHAR*)(pucBitData->Value) != ucBit )
-				    {		
-				        (*(UCHAR*)(pucBitData->Value)) = (UCHAR)ucBit;						 
-				    }	
-				}
-				else
-				{
-					eStatus = MB_ENOREG;
-					return eStatus;
-				}
-				usAddress++;
-			}  
+                default:break;			
+            }	
+            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) && (pucBitData->ucAccessMode != RO) )
+            {
+                ucBit = (UCHAR)( ((*ucByteBuf) & (1 << i) ) >> i );   //取对应位的值
+                if( *(UCHAR*)pucBitData->pvValue != ucBit )
+                {		
+                    (*(UCHAR*)(pucBitData->pvValue)) = (UCHAR)ucBit;			
+                }	
+            }
+            else
+            {
+                eStatus = MB_ENOREG;
+                return eStatus;
+            }
+            usAddress++;
 		}
 		iNReg--;
 		ucByteBuf++;	
@@ -165,94 +130,60 @@ xMBUtilSetBits( UCHAR * ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eD
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode
-xMBUtilGetBits( UCHAR* ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
+eMBErrorCode xMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
+                                 USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
 	eMBErrorCode    eStatus = MB_ENOERR;
-    USHORT          usNPreBits, iNReg, iBit;
+    USHORT          usNPreBits, iNReg, iBits, i;
     UCHAR*          pucValue; 
 	
-	sMBBitData *    pucBitData = NULL;
+	sMBSlaveBitData *    pucBitData = NULL;
 	
-	iNReg = ( USHORT )(ucNBits / BITS_UCHAR) + 1;
-    usNPreBits = ( USHORT )(ucNBits % BITS_UCHAR);
+	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
 	while (iNReg > 0)
 	{
 		*ucByteBuf = 0;
-		if( (iNReg == 1) && ( usNPreBits > 0) )
-		{
-			for ( iBit = 0; iBit < usNPreBits; iBit++ )
-			{
-				switch(eDataType)
-				{
-				 					
+		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
+        {
+            iBits = usNPreBits;
+        }
+        else    //超过8bits
+        {
+            iBits = BITS_UCHAR;
+        }
+        for ( i = 0; i < iBits; i++ )
+        {
+            switch(eDataType)
+            {					
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
-				   case CoilData:		   
-					   (void)eMBScanCoilsMap( usAddress, &pucBitData);
-				   break;
+				case CoilData:		   
+                    (void)eMBSlaveCoilsMap(psMBSlaveInfo, usAddress, &pucBitData);         //扫描线圈字典，找到对应的线圈
+				break;
 #endif
 				   
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-				   case DiscInData:
-					   (void)eMBScanDiscreteMap( usAddress, &pucBitData);
-				   break;
+				case DiscInData:
+                    (void)eMBSlaveDiscreteMap(psMBSlaveInfo, usAddress, &pucBitData);
+                break;
 #endif
-
-				   default:break;			
-			    }
-				
-				if( (pucBitData != NULL) && (pucBitData->Value != NULL) && (pucBitData->OperateMode != WO) )
-				{
-					if( (*(UCHAR*)pucBitData->Value) > 0)
-					{
-						*ucByteBuf |= ( 1 << iBit );
-					}			
-				}
-				else
-				{
-					eStatus = MB_ENOREG;
-					return eStatus;
-				}
-				usAddress++;
+                default:break;					
 			}
-		}
-		else
-		{
-			for ( iBit = 0; iBit < BITS_UCHAR; iBit++ )
-			{
-				switch(eDataType)
-				{
-				  					
-#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
-				   case CoilData:		   
-					   (void)eMBScanCoilsMap( usAddress, &pucBitData);
-				   break;
-#endif
-				   
-#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-				   case DiscInData:
-					   (void)eMBScanDiscreteMap( usAddress, &pucBitData);
-				   break;
-#endif
-
-				   default:break;			
-			    }	
-				if( (pucBitData != NULL) && (pucBitData->Value != NULL) && (pucBitData->OperateMode != WO))
-				{
-					if( (*(UCHAR*)pucBitData->Value) > 0)
-					{
-						*ucByteBuf |= ( 1 << iBit );
-					}			
-				}
-				else
-				{
-					eStatus = MB_ENOREG;
-					return eStatus;
-				}
-				usAddress++;
-			}
-		}
+            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) && (pucBitData->ucAccessMode != WO) )
+            {
+                if( (*(UCHAR*)pucBitData->pvValue) > 0)
+                {
+                    *ucByteBuf |= ( 1 << i );
+                }			
+            }
+            else
+            {
+                eStatus = MB_ENOREG;
+                return eStatus;
+            }
+            usAddress++;
+        }
 		iNReg--;
 		ucByteBuf++;	
 	}
@@ -266,8 +197,7 @@ xMBUtilGetBits( UCHAR* ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDa
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBException
-prveMBError2Exception( eMBErrorCode eErrorCode )
+eMBException prveMBSlaveError2Exception( eMBErrorCode eErrorCode )
 {
     eMBException    eStatus;
 

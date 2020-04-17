@@ -16,7 +16,6 @@ PR_BEGIN_EXTERN_C
 #if MB_SLAVE_CPN_ENABLED > 0
 
 
-
 typedef struct         /* CPN变量 */
 {
 	uint16_t Name;     //变量名称（ID）
@@ -24,14 +23,18 @@ typedef struct         /* CPN变量 */
 	uint8_t  Length;   //数据长度
 } eCPNValue;                    
 
-eMBErrorCode eMBCPNInit( UART_Def *Uart );
-void            eMBCPNStart( void );
-void            eMBCPNStop( void );
-eMBErrorCode    eMBCPNReceive( UCHAR * pucSouAddress, UCHAR * pucDestAddress, UCHAR ** pucFrame, USHORT * pusLength );
-eMBErrorCode    eMBCPNSend( UCHAR ucSourAddress, UCHAR ucDestAddress, const UCHAR * pucFrame, USHORT usLength );
-BOOL            xMBCPNReceiveFSM( void );
-BOOL            xMBCPNTransmitFSM( void );
-BOOL            xMBCPNTimerT35Expired( void );
+eMBErrorCode    eMBSlaveCPNInit(sMBSlaveInfo* psMBSlaveInfo);
+void            eMBSlaveCPNStart(sMBSlaveInfo* psMBSlaveInfo);
+void            eMBSlaveCPNStop(sMBSlaveInfo* psMBSlaveInfo);
+
+eMBErrorCode    eMBSlaveCPNReceive(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr, 
+                                   UCHAR * pucDestAddr, UCHAR ** pucFrame, USHORT * pusLength );
+eMBErrorCode    eMBSlaveCPNSend(sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr, UCHAR ucDestAddr, 
+                                const UCHAR * pucFrame, USHORT usLength );
+
+BOOL            xMBSlaveCPNReceiveFSM( sMBSlaveInfo* psMBSlaveInfo );
+BOOL            xMBSlaveCPNTransmitFSM( sMBSlaveInfo* psMBSlaveInfo );
+BOOL            xMBSlaveCPNTimerT35Expired( sMBSlaveInfo* psMBSlaveInfo );
 #endif
 
 #ifdef __cplusplus

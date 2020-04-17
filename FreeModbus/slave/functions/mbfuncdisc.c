@@ -31,9 +31,9 @@
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
+#include "mbutils.h"
 
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
-#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
+#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_FUNC_READ_ADDR_OFF           ( MB_PDU_DATA_OFF )
@@ -41,11 +41,10 @@
 #define MB_PDU_FUNC_READ_SIZE               ( 4 )
 #define MB_PDU_FUNC_READ_DISCCNT_MAX        ( 0x07D0 )
 
-/* ----------------------- Static functions ---------------------------------*/
-eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 
 /* ----------------------- Start implementation -----------------------------*/
 
+#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
 /***********************************************************************************
  * @brief 读离散量功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -54,8 +53,8 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBException
-eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
+eMBException 
+eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
     USHORT          usRegAddress;
     USHORT          usDiscreteCnt;
@@ -67,12 +66,12 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
 
     if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
+        usRegAddress = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
+        usRegAddress |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usDiscreteCnt = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF] << 8 );
-        usDiscreteCnt |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF + 1] );
+        usDiscreteCnt = (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF] << 8 );
+        usDiscreteCnt |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception. 
@@ -92,22 +91,21 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
              * byte is only partially field with unused coils set to zero. */
             if( ( usDiscreteCnt & 0x0007 ) != 0 )
             {
-                ucNBytes = ( UCHAR ) ( usDiscreteCnt / 8 + 1 );
+                ucNBytes = (UCHAR) ( usDiscreteCnt/8 + 1 );
             }
             else
             {
-                ucNBytes = ( UCHAR ) ( usDiscreteCnt / 8 );
+                ucNBytes = (UCHAR) ( usDiscreteCnt/8 );
             }
             *pucFrameCur++ = ucNBytes;
             *usLen += 1;
 
-            eRegStatus =
-                eMBRegDiscreteCB( pucFrameCur, usRegAddress, usDiscreteCnt );
+            eRegStatus = eMBSlaveRegDiscreteCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usDiscreteCnt);
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
             {
-                eStatus = prveMBError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -131,5 +129,48 @@ eMBFuncReadDiscreteInputs( UCHAR * pucFrame, USHORT * usLen )
     return eStatus;
 }
 
+
+
+/*********************************************************************************************
+ * @brief 离散输入量回调函数（读、连续读）
+ * @param pucRegBuffer  用当前的线圈数据更新这个寄存器，起始寄存器对应的位处于该字节pucRegBuffer的最低位LSB。
+ *                      如果回调函数要写这个缓冲区，没有用到的线圈（例如不是8个一组的线圈状态）
+ *                      对应的位的数值必须设置为0。
+ * 
+ * @param usAddress     离散输入的起始地址
+ * @param usNDiscrete   离散输入点数量
+ * 
+ * @return eMBErrorCode 错误码
+ * @author laoc
+ * @date 2019.01.22
+ ********************************************************************************************/
+eMBErrorCode 
+eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
+{
+    USHORT          usDiscreteInputStart;
+    USHORT          DISCRETE_INPUT_START,DISCRETE_INPUT_END;
+    eMBErrorCode    eStatus = MB_ENOERR;
+
+    const sMBSlaveDataTable* psDiscreteBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBDiscInTable;  //从栈通讯协议表
+    
+    DISCRETE_INPUT_START = psDiscreteBuf->usStartAddr;
+    DISCRETE_INPUT_END = psDiscreteBuf->usEndAddr;
+
+    /* it already plus one in modbus function method. */
+    usAddress--;
+
+    if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
+    {
+        /* read current coil values from the protocol stack. */ 
+        eStatus = xMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+    }
+    else
+    {
+        eStatus = MB_ENOREG;
+    }
+    return eStatus;
+}
+
 #endif
+
 #endif

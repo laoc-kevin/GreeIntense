@@ -114,6 +114,9 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_READ_COILS_ENABLED              (  1 )
 
 /*! \brief If the <em>Write Coils</em> function should be enabled. */
+#define MB_FUNC_WRITE_COIL_ENABLED              (  1 )
+
+/*! \brief If the <em>Write Coils</em> function should be enabled. */
 #define MB_FUNC_WRITE_COILS_ENABLED              (  1 )
 
 /*! \brief If the <em>Write Multiple Coils</em> function should be enabled. */

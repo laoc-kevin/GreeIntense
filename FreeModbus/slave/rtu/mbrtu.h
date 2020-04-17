@@ -40,15 +40,22 @@ PR_BEGIN_EXTERN_C
 #include "mbconfig.h"
 
 #if MB_SLAVE_RTU_ENABLED > 0
-eMBErrorCode eMBRTUInit( UART_Def *Uart );
-void            eMBRTUStart( void );
-void            eMBRTUStop( void );
-eMBErrorCode    eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength );
-eMBErrorCode    eMBRTUSend( UCHAR slaveAddress, const UCHAR * pucFrame, USHORT usLength );
-BOOL            xMBRTUReceiveFSM( void );
-BOOL            xMBRTUTransmitFSM( void );
-BOOL            xMBRTUTimerT15Expired( void );
-BOOL            xMBRTUTimerT35Expired( void );
+
+eMBErrorCode eMBSlaveRTUInit(sMBSlaveInfo* psMBSlaveInfo );
+
+void            eMBSlaveRTUStart( sMBSlaveInfo* psMBSlaveInfo );
+void            eMBSlaveRTUStop( sMBSlaveInfo* psMBSlaveInfo );
+
+eMBErrorCode    eMBSlaveRTUReceive( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRcvAddress,
+                                    UCHAR** pucFrame, USHORT* pusLength );
+eMBErrorCode    eMBSlaveRTUSend( sMBSlaveInfo* psMBSlaveInfo, UCHAR slaveAddress, 
+                                  const UCHAR* pucFrame, USHORT usLength );
+
+BOOL            xMBSlaveRTUReceiveFSM( sMBSlaveInfo* psMBSlaveInfo );
+BOOL            xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo );
+
+BOOL            xMBSlaveRTUTimerT15Expired( sMBSlaveInfo* psMBSlaveInfo );
+BOOL            xMBSlaveRTUTimerT35Expired( sMBSlaveInfo* psMBSlaveInfo );
 #endif
 
 #ifdef __cplusplus

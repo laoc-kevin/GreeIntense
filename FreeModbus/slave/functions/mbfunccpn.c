@@ -40,13 +40,18 @@
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
+#include "mbutils.h"
+#include "user_mb_map.h"
 #include "app_led.h"
 
-/* ----------------------- Static functions ---------------------------------*/
-eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
+#if MB_SLAVE_CPN_ENABLED > 0 
+
+#define S_VAL_CPN_START               500
+#define S_VAL_CPN_NREGS               600
 
 /* ----------------------- Start implementation -----------------------------*/
 
+#if MB_FUNC_CPN_WRITE_ENABLED > 0
 /***********************************************************************************
  * @brief 写CPN变量功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -55,10 +60,7 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-#if MB_FUNC_CPN_WRITE_ENABLED > 0
-
-eMBException
-eMBFuncWriteCPNValue( UCHAR * pucFrame, USHORT * usLen )
+eMBException eMBSlaveFuncWriteCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
 	UCHAR          ucValCount;
     UCHAR          *pucFrameCur;
@@ -96,12 +98,12 @@ eMBFuncWriteCPNValue( UCHAR * pucFrame, USHORT * usLen )
 		pucFrameCur += 2;
 		
 		/* Make callback to fill the buffer. */
-        eRegStatus = eMBWriteCPNCB( pucFrameCur, ucValCount, usLen );
+        eRegStatus = eMBSlaveWriteCPNCB(psMBSlaveInfo, pucFrameCur, ucValCount, usLen );
 
         /* If an error occured convert it into a Modbus exception. */
 		if( eRegStatus != MB_ENOERR )
 		{
-			eStatus = prveMBError2Exception( eRegStatus );
+			eStatus = prveMBSlaveError2Exception(eRegStatus);
 		}
 		else
 		{
@@ -116,8 +118,233 @@ eMBFuncWriteCPNValue( UCHAR * pucFrame, USHORT * usLen )
     return eStatus;
 }
 
+/***********************************************************************************
+ * @brief  写CPN变量回调函数（读、连续读）
+ * @param  pucRegBuffer  回调函数将变量当前值写入缓冲区
+ * @param  ucValCount    变量个数
+ * @param  usLen         缓冲区长度
+ * @return eMBErrorCode 错误码
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+eMBErrorCode 
+eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucValCount, USHORT * usLen )
+{
+	float pfNum;
+    UCHAR *pcNum = NULL;
+	
+	USHORT          iValBitIndex, iValDataBitIndex, iNVal;
+	USHORT          VAL_CPN_START, VAL_CPN_NREGS, VAL_CPN_DEFINE_SIZE;
+    USHORT          usValCPNStart, usValCPNBytes, usValCPNType;
+    ULONG           ulValCPNName;
+	ULONG           ulValCPNValue;
+	LONG            lValCPNValue;
+	SHORT           sValCPNValue;
+    int8_t          cValCPNValue;
+	
+	eMBErrorCode               eStatus      = MB_ENOERR;
+    sMBSlaveCPNData*           pvCPNValue   = NULL;
+    const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
+    
+    VAL_CPN_START        = S_VAL_CPN_START;
+    VAL_CPN_NREGS        = S_VAL_CPN_NREGS;
+	VAL_CPN_DEFINE_SIZE  = MB_CPN_VALUE_DEFINE_SIZE;	
+
+    if((ucValCount <= VAL_CPN_NREGS))
+    {
+        iValDataBitIndex = VAL_CPN_DEFINE_SIZE * ucValCount;
+		*usLen += iValDataBitIndex;
+		
+        for ( iNVal = 0; iNVal < ucValCount; iNVal++ )
+        {
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_NAME_OFF;
+			
+			ulValCPNName =   ((ULONG)(*(pucRegBuffer + iValBitIndex)))
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 1)) ) << 8 )
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 2)) ) << 16)
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 3)) ) << 24)  ;
+			
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_BYTES_OFF;
+			usValCPNBytes =   ( (USHORT)(*(pucRegBuffer + iValBitIndex)) )
+			                | ( ((USHORT)(*(pucRegBuffer + iValBitIndex + 1)))<< 8 )  ;
+			
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_TYPE_OFF;
+			usValCPNType =    ( (USHORT)(*(pucRegBuffer + iValBitIndex)) )
+			                | ( ((USHORT)(*(pucRegBuffer + iValBitIndex + 1)))<< 8 )  ;
+						
+			(void)eMBSlaveCPNMap(psMBSlaveInfo, ulValCPNName, &pvCPNValue);
+			
+			if( (pvCPNValue != NULL) && (pvCPNValue->pvValue != NULL))
+			{
+				switch( pvCPNValue->ucValType )  //分数据类型处理
+				{
+					case CPN_UINT8:   
+						ulValCPNValue = *(UCHAR*)(pucRegBuffer + iValDataBitIndex);
+						iValDataBitIndex += 1;
+						*usLen += 1;
+                    
+					    if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+						{
+							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+						}
+					break;
+					
+					case CPN_UINT16:
+						ulValCPNValue =  ( *(USHORT*)(pucRegBuffer + iValDataBitIndex) ) 
+							                |( *(USHORT*)(pucRegBuffer + iValDataBitIndex + 1)  << 8 );
+						iValDataBitIndex += 2;
+						*usLen += 2;
+					    
+					    if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+						{
+							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+						}
+					break;
+					
+					case CPN_UINT32:
+						ulValCPNValue =  ( *(ULONG*)(pucRegBuffer + iValDataBitIndex) ) 
+											|( *(ULONG*)(pucRegBuffer + iValDataBitIndex + 1) << 8 )
+											|( *(ULONG*)(pucRegBuffer + iValDataBitIndex + 2) << 16)
+											|( *(ULONG*)(pucRegBuffer + iValDataBitIndex + 3) << 24);
+						iValDataBitIndex += 4;
+						*usLen += 4;
+						 if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+						{
+							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+						}
+					break;
+						
+					case CPN_FLOAT:		
+						pcNum = (UCHAR*)&pfNum;	
+						* pcNum      = *( pucRegBuffer + iValDataBitIndex ); 
+						*(pcNum + 1) = *( pucRegBuffer + iValDataBitIndex + 1);
+						*(pcNum + 2) = *( pucRegBuffer + iValDataBitIndex + 2);
+						*(pcNum + 3) = *( pucRegBuffer + iValDataBitIndex + 3);
+						
+                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        {
+                            ulValCPNValue  = (USHORT)( pfNum * (float)pvCPNValue->fTransmitMultiple);
+                        } 
+                        
+						iValDataBitIndex += 4;
+						*usLen += 4;	
+					break;
+					default:break;
+				}
+				switch (pvCPNValue->ucDataType )
+				{
+					case uint8:
+						if( (ulValCPNValue >= (UCHAR)pvCPNValue->lMinVal) && (ulValCPNValue <= (UCHAR)pvCPNValue->lMaxVal) )
+						{
+							if( ulValCPNValue != *(UCHAR*)pvCPNValue->pvValue )  //更新值
+							{
+								(*(UCHAR*)pvCPNValue->pvValue)=(UCHAR)ulValCPNValue ;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}	
+					break;
+					case uint16:
+						if( (ulValCPNValue >= (USHORT)pvCPNValue->lMinVal) && (ulValCPNValue <= (USHORT)pvCPNValue->lMaxVal) )
+						{
+							if( ulValCPNValue != *(USHORT*)pvCPNValue->pvValue )
+							{
+								(*(USHORT*)pvCPNValue->pvValue)=(USHORT)ulValCPNValue;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}
+					break;
+					case uint32:
+						if( (ulValCPNValue >= (ULONG)pvCPNValue->lMinVal) && (ulValCPNValue <= (ULONG)pvCPNValue->lMaxVal) )
+						{
+							if( ulValCPNValue != *(ULONG*)pvCPNValue->pvValue )
+							{
+								*(ULONG*)pvCPNValue->pvValue=(ULONG)ulValCPNValue ;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}
+						
+					break;
+					case int8:
+						cValCPNValue = (int8_t)ulValCPNValue;
+					
+						if( (cValCPNValue >= (int8_t)pvCPNValue->lMinVal) && (cValCPNValue <= (int8_t)pvCPNValue->lMaxVal) )
+						{
+							if( cValCPNValue != *(int8_t*)pvCPNValue->pvValue )
+							{
+								*(int8_t*)pvCPNValue->pvValue=(int8_t)cValCPNValue ;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}
+					break;
+					case int16:
+						
+						sValCPNValue = (SHORT)ulValCPNValue;
+					
+						 if( (sValCPNValue >= (SHORT)pvCPNValue->lMinVal) && (sValCPNValue <= (SHORT)pvCPNValue->lMaxVal) )
+						{
+							if( sValCPNValue != *(SHORT*)pvCPNValue->pvValue )
+							{
+								*(SHORT*)pvCPNValue->pvValue=(SHORT)sValCPNValue;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}	
+					break;
+					case int32:
+						lValCPNValue = (LONG)ulValCPNValue;
+					
+						 if( (lValCPNValue >= (LONG)pvCPNValue->lMinVal) && (lValCPNValue <= (LONG)pvCPNValue->lMaxVal) )
+						{
+							if( lValCPNValue != *(LONG*)pvCPNValue->pvValue )
+							{
+								*(LONG*)pvCPNValue->pvValue=(LONG)lValCPNValue ;
+							}
+						}
+						else
+						{
+							eStatus = MB_EINVAL;
+							return eStatus;
+						}	
+					break;
+					default: break;
+				}	 
+			}
+			else
+			{
+				eStatus = MB_ENOREG;
+				return eStatus;
+			}	
+        }
+    }
+    else
+	{
+		eStatus = MB_EINVAL;
+		return eStatus;
+	}
+    return eStatus;
+}
 #endif
 
+#if MB_FUNC_CPN_READ_ENABLED > 0
 /***********************************************************************************
  * @brief 读CPN变量功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -126,10 +353,7 @@ eMBFuncWriteCPNValue( UCHAR * pucFrame, USHORT * usLen )
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
-#if MB_FUNC_CPN_READ_ENABLED > 0
-eMBException
-eMBFuncReadCPNValue( UCHAR * pucFrame, USHORT * usLen )
+eMBException eMBSlaveFuncReadCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucFrame, USHORT * usLen )
 {
 	UCHAR          ucValCount; 	
     UCHAR          *pucFrameCur;
@@ -167,12 +391,12 @@ eMBFuncReadCPNValue( UCHAR * pucFrame, USHORT * usLen )
 		pucFrameCur += 2;
 		
 		/* Make callback to fill the buffer. */
-        eRegStatus = eMBReadCPNCB( pucFrameCur, ucValCount, usLen);
+        eRegStatus = eMBSlaveReadCPNCB(psMBSlaveInfo, pucFrameCur, ucValCount, usLen);
 		
          /* If an error occured convert it into a Modbus exception. */
 		if( eRegStatus != MB_ENOERR )
 		{
-			eStatus = prveMBError2Exception( eRegStatus );
+			eStatus = prveMBSlaveError2Exception(eRegStatus);
 		}	
 	}
 	else
@@ -181,9 +405,197 @@ eMBFuncReadCPNValue( UCHAR * pucFrame, USHORT * usLen )
         eStatus = MB_EX_ILLEGAL_DATA_VALUE;
     }
     return eStatus;
-	
-	
-	
 }
+
+/***********************************************************************************
+ * @brief  读CPN变量回调函数（读、连续读）
+ * @param  pucRegBuffer  回调函数将变量当前值写入缓冲区
+ * @param  ucValCount    变量个数
+ * @param  usLen         缓冲区长度
+ * @return eMBErrorCode 错误码
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+eMBErrorCode eMBSlaveReadCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucValCount, USHORT * usLen )
+{
+	float fNum;
+    UCHAR *pcNum = NULL;
+    UCHAR iExchange;
+	USHORT          iValBitIndex, iValDataBitIndex, iNVal;
+	USHORT          VAL_CPN_START, VAL_CPN_NREGS, VAL_CPN_DEFINE_SIZE;
+	USHORT          usValCPNStart, usValCPNBytes, usValCPNType;
+    
+    ULONG            ulValCPNName;
+	ULONG            ulValCPNValue;
+    
+    eMBErrorCode                eStatus = MB_ENOERR;
+    sMBSlaveCPNData*         pvCPNValue = NULL;
+	const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
+     	
+    VAL_CPN_START        = S_VAL_CPN_START;
+    VAL_CPN_NREGS        = S_VAL_CPN_NREGS;
+	VAL_CPN_DEFINE_SIZE  = MB_CPN_VALUE_DEFINE_SIZE;	
+
+    
+    if ((ucValCount <= VAL_CPN_NREGS))
+    {
+        iValDataBitIndex = VAL_CPN_DEFINE_SIZE * ucValCount ;
+
+		*usLen += iValDataBitIndex;
+
+		for ( iNVal = 0; iNVal < ucValCount; iNVal++ )
+        {
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_NAME_OFF ;
+			ulValCPNName =   (  (ULONG)(*(pucRegBuffer + iValBitIndex)) )                          //CPN变量名称
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 1)) ) << 8 )
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 2)) ) << 16)
+			                |(( (ULONG)(*(pucRegBuffer + iValBitIndex + 3)) ) << 24)  ;
+			
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_BYTES_OFF;
+			usValCPNBytes =   ( (USHORT)(*(pucRegBuffer + iValBitIndex)) )                        //CPN变量长度
+			                | ( ((USHORT)(*(pucRegBuffer + iValBitIndex + 1)))<< 8 )  ;
+			
+			iValBitIndex = VAL_CPN_DEFINE_SIZE * iNVal + MB_CPN_VALUE_DATA_TYPE_OFF;
+			usValCPNType =    ( (USHORT)(*(pucRegBuffer + iValBitIndex)) )                  //CPN变量类型
+			                | ( ((USHORT)(*(pucRegBuffer + iValBitIndex + 1)))<< 8 )  ;
+		
+			(void)eMBSlaveCPNMap(psMBSlaveInfo, ulValCPNName, &pvCPNValue);                //扫描CPN变量字典
+			
+			if( (pvCPNValue != NULL) && (pvCPNValue->pvValue != NULL))
+			{
+				switch (pvCPNValue->ucDataType )                                          //根据数据类型进行指针转换
+				{
+					case uint8:
+						ulValCPNValue = (ULONG)(*(UCHAR*)pvCPNValue->pvValue) ;
+					break;
+					case uint16:
+						ulValCPNValue = (ULONG)(*(USHORT*)pvCPNValue->pvValue) ;
+					break;
+					case uint32:
+						ulValCPNValue = (ULONG)(*(ULONG*)pvCPNValue->pvValue);
+					break;
+					
+					case int8:
+						ulValCPNValue = (ULONG)(*(int8_t*)pvCPNValue->pvValue) ;
+					break;
+					case int16:
+						ulValCPNValue = (ULONG)(*(SHORT*)pvCPNValue->pvValue) ;
+					break;
+					case int32:
+						ulValCPNValue = (ULONG)(*(LONG*)pvCPNValue->pvValue) ;
+					break;
+
+                   default: break;					
+				}
+				switch(pvCPNValue->ucValType )
+				{
+					case CPN_UINT8:
+                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        {
+                            ulValCPNValue *= pvCPNValue->fTransmitMultiple;
+                        }
+						*( pucRegBuffer + iValDataBitIndex ) = (UCHAR)( ulValCPNValue & 0xFF );;
+						iValDataBitIndex += 1;
+						*usLen += 1;
+						break;
+                        
+					case CPN_UINT16:
+                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        {
+                            ulValCPNValue *= pvCPNValue->fTransmitMultiple;
+                        }
+						*( pucRegBuffer + iValDataBitIndex )    = (UCHAR)( ulValCPNValue & 0xFF );
+					    *( pucRegBuffer + iValDataBitIndex + 1) = (UCHAR)( ulValCPNValue >> 8 );
+						iValDataBitIndex += 2;
+						*usLen += 2;
+						break;
+					
+					case CPN_UINT32:
+						if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        {
+                            ulValCPNValue *= pvCPNValue->fTransmitMultiple;
+                        }
+						*( pucRegBuffer + iValDataBitIndex )    = (UCHAR)( ulValCPNValue & 0xFF ) ;
+					    *( pucRegBuffer + iValDataBitIndex + 1) = (UCHAR)( ulValCPNValue >> 8 );
+						*( pucRegBuffer + iValDataBitIndex + 2) = (UCHAR)( ulValCPNValue >> 16 );
+						*( pucRegBuffer + iValDataBitIndex + 3) = (UCHAR)( ulValCPNValue >> 24 );
+						iValDataBitIndex += 4;
+						*usLen += 4;
+					    break;
+							
+					case CPN_FLOAT:	
+                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+						{
+							fNum = (float)( ulValCPNValue / (float)pvCPNValue->fTransmitMultiple );	
+						}											
+						pcNum = (UCHAR*)(&fNum);															
+						*( pucRegBuffer + iValDataBitIndex )    = *pcNum;
+						*( pucRegBuffer + iValDataBitIndex + 1) = *(pcNum + 1);
+						*( pucRegBuffer + iValDataBitIndex + 2) = *(pcNum + 2);
+						*( pucRegBuffer + iValDataBitIndex + 3) = *(pcNum + 3);
+						
+						iValDataBitIndex += 4;
+						*usLen += 4;
+					    break;
+					default:break;	
+				}	
+			}
+            else
+			{
+				switch(usValCPNType)
+				{
+					case CPN_UINT8:
+					    ulValCPNValue = 0;
+						*( pucRegBuffer + iValDataBitIndex ) = (UCHAR)( ulValCPNValue & 0xFF );;
+						iValDataBitIndex += 1;
+						*usLen += 1;
+						break;
+					case CPN_UINT16:
+						ulValCPNValue = 0;
+						*( pucRegBuffer + iValDataBitIndex )    = (UCHAR)( ulValCPNValue & 0xFF );
+					    *( pucRegBuffer + iValDataBitIndex + 1) = (UCHAR)( ulValCPNValue >> 8 );
+						iValDataBitIndex += 2;
+						*usLen += 2;
+						break;
+					
+					case CPN_UINT32:
+						ulValCPNValue = 0;
+						*( pucRegBuffer + iValDataBitIndex )    = (UCHAR)( ulValCPNValue & 0xFF ) ;
+					    *( pucRegBuffer + iValDataBitIndex + 1) = (UCHAR)( ulValCPNValue >> 8 );
+						*( pucRegBuffer + iValDataBitIndex + 2) = (UCHAR)( ulValCPNValue >> 16 );
+						*( pucRegBuffer + iValDataBitIndex + 3) = (UCHAR)( ulValCPNValue >> 24 );
+						iValDataBitIndex += 4;
+						*usLen += 4;
+					    break;
+							
+					case CPN_FLOAT:	
+                 		ulValCPNValue = 0;	
+                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+						{
+							fNum = (float)( ulValCPNValue / (float)pvCPNValue->fTransmitMultiple );	
+						}									
+						pcNum = (UCHAR*)(&fNum);
+																			
+						*( pucRegBuffer + iValDataBitIndex )    = *pcNum;
+						*( pucRegBuffer + iValDataBitIndex + 1) = *(pcNum + 1);
+						*( pucRegBuffer + iValDataBitIndex + 2) = *(pcNum + 2);
+						*( pucRegBuffer + iValDataBitIndex + 3) = *(pcNum + 3);
+						
+						iValDataBitIndex += 4;
+						*usLen += 4;
+					    break;
+					default:break;	
+					}
+				return MB_ENOREG;	
+			}			
+        }
+    }
+    else
+	{
+		return MB_EINVAL;
+	}
+    return eStatus;
+}
+#endif
 
 #endif

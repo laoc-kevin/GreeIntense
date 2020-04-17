@@ -18,14 +18,14 @@ eMBMasterReqErrCode eMBMasterRegInMap(const sMBMasterInfo* psMBMasterInfo, UCHAR
 	USHORT i;
 	
     eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable* psRegInputBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegInTable;
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    const sMBDevDataTable* psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
 
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegInputBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegInTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     } 
    
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
@@ -77,14 +77,14 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(const sMBMasterInfo* psMBMasterInfo, 
 	USHORT i;
     
 	eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*  psRegHoldBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegHoldTable;
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    const sMBDevDataTable*  psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegHoldBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegHoldTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     } 
     
 	if( (psRegHoldBuf->pvDataBuf == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
@@ -145,14 +145,14 @@ eMBMasterReqErrCode eMBMasterCoilMap(const sMBMasterInfo* psMBMasterInfo, UCHAR 
 	USHORT iRegIndex, iRegBitIndex, iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*     psCoilBuf = psMBSlaveDevCur->psDevDataInfo->psMBCoilTable;
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable*     psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psCoilBuf = psMBSlaveDevCur->psDevDataInfo->psMBCoilTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
     } 
 	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->pvDataBuf == 0)) //非空且数据点不为0
 	{
@@ -212,14 +212,14 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(const sMBMasterInfo* psMBMasterInfo, UC
 	USHORT iRegIndex, iRegBitIndex,iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*     psDiscInBuf = psMBSlaveDevCur->psDevDataInfo->psMBDiscInTable;
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable*     psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psDiscInBuf = psMBSlaveDevCur->psDevDataInfo->psMBDiscInTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
     } 
 	if( (psDiscInBuf->pvDataBuf == NULL) || (psDiscInBuf->usDataCount == 0)) //非空且数据点不为0
 	{
@@ -263,7 +263,7 @@ void eMBMasterTableInit(const sMBMasterInfo* psMBMasterInfo)
 //	sMasterBitCoilData*     psCoilValue;
 
 //	sMBMasterDictInfo* psMBDictInfo = psMBMasterInfo->psMBMasterDictInfo;          //通讯字典
-//	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;          //从设备状态
+//	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态
 
 //	USHORT nSlaveTypes = psMBDevsInfo->ucSlaveDevTypes;                            //从设备类型数
 //	

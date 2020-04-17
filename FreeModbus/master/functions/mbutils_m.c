@@ -58,7 +58,8 @@
  * @date 2019.01.22
  *************************************************************************************/
 eMBErrorCode
-xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
+xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
+                      USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;
@@ -91,13 +92,13 @@ xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, USHORT us
                  //扫描，找到对应点位
                 (void)eMBMasterCoilMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitCoilData);     
                 
-                if( (pucBitCoilData != NULL) && (pucBitCoilData->Value != NULL) && (pucBitCoilData->OperateMode != WO))
+                if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO))
                 {
                     ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	
-                    if( *(UCHAR*)(pucBitCoilData->Value) != ucBit )
+                    if( *(UCHAR*)(pucBitCoilData->pvValue) != ucBit )
                     {	 
-                        (*(UCHAR*)(pucBitCoilData->Value)) = (UCHAR)ucBit;
-                    	pucBitCoilData->PreValue  = (UCHAR)ucBit;
+                        (*(UCHAR*)(pucBitCoilData->pvValue)) = (UCHAR)ucBit;
+                    	pucBitCoilData->ucPreVal  = (UCHAR)ucBit;
                     }						
                 }
                 else
@@ -111,12 +112,12 @@ xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, USHORT us
                 case DiscInData:
                     (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitDiscreteData);
                 
-                    if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->Value != NULL) && (pucBitDiscreteData->OperateMode != WO))
+                    if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->pvValue != NULL) && (pucBitDiscreteData->ucAccessMode != WO))
                     {
                         ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	
-                        if( *(UCHAR*)(pucBitDiscreteData->Value) != ucBit )
+                        if( *(UCHAR*)(pucBitDiscreteData->pvValue) != ucBit )
                         {	 
-                            (*(UCHAR*)(pucBitDiscreteData->Value)) = (UCHAR)ucBit;
+                            (*(UCHAR*)(pucBitDiscreteData->pvValue)) = (UCHAR)ucBit;
                         }						
                     }
                     else
@@ -181,9 +182,9 @@ xMBMasterUtilGetBits( const sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
 				    //通过映射找到对应的点位
                     (void)eMBMasterCoilMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitCoilData);
 				
-                    if( (pucBitCoilData != NULL) && (pucBitCoilData->Value != NULL) && (pucBitCoilData->OperateMode != WO) )
+                    if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO) )
                     {
-                     	if( (*(UCHAR*)pucBitCoilData->Value) > 0 )
+                     	if( (*(UCHAR*)pucBitCoilData->pvValue) > 0 )
                      	{
                      		*ucByteBuf |= (1 << i);
                      	}			
@@ -199,9 +200,9 @@ xMBMasterUtilGetBits( const sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
 				case DiscInData:
 				    (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitDiscreteData);
 				
-					if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->Value != NULL) && (pucBitDiscreteData->OperateMode != WO))
+					if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->pvValue != NULL) && (pucBitDiscreteData->ucAccessMode != WO))
 				    {
-				     	if( (*(UCHAR*)pucBitDiscreteData->Value) > 0)
+				     	if( (*(UCHAR*)pucBitDiscreteData->pvValue) > 0)
 				     	{
 				     		*ucByteBuf |= (1 << i);
 				     	}			
@@ -230,8 +231,7 @@ xMBMasterUtilGetBits( const sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBException
-prveMBMasterError2Exception( eMBErrorCode eErrorCode )
+eMBException prveMBMasterError2Exception( eMBErrorCode eErrorCode )
 {
     eMBException    eStatus;
 

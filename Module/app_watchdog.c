@@ -1,6 +1,5 @@
 
 #include "lpc_wwdt.h"
-#include "mb.h"
 #include "app_watchdog.h"
 #include "app_led.h"
 

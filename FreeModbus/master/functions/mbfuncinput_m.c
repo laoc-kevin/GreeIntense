@@ -77,10 +77,10 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo
 	
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 	
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
+    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -178,9 +178,6 @@ eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame,
  */
 eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
 {
-    eMBErrorCode    eStatus = MB_ENOERR;
-	sMasterRegInData*  pvRegInValue = NULL;
-	
     USHORT          iRegIndex, n;
     USHORT          REG_INPUT_START, REG_INPUT_END;
     USHORT          usProtocolType, nSlaveTypes;
@@ -188,10 +185,13 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 	USHORT          usRegInValue;
 	SHORT           sRegInValue;
 	CHAR            cRegInValue;
-	
-	sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*    psRegInputBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegInTable;           //从设备通讯协议表
-    UCHAR                ucMBMasterDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);                 //从设备通讯地址
+    
+	eMBErrorCode            eStatus = MB_ENOERR;
+	sMasterRegInData*  pvRegInValue = NULL;
+    
+	sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    const sMBDevDataTable*    psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;     //从设备通讯协议表
+    UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
     if(psMBMasterInfo->xMBRunInTestMode)
@@ -202,16 +202,16 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegInputBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegInTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     }
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
 
-	REG_INPUT_START = psRegInputBuf->ucStartAddr;
-    REG_INPUT_END = psRegInputBuf->ucEndAddr;
+	REG_INPUT_START = psRegInputBuf->usStartAddr;
+    REG_INPUT_END = psRegInputBuf->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;
@@ -222,23 +222,23 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
         
         while (usNRegs > 0)
         {
-		    (void)eMBMasterRegInMap(psMBMasterInfo, ucMBMasterDestAddr, iRegIndex, &pvRegInValue);    //扫描字典
+		    (void)eMBMasterRegInMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegInValue);    //扫描字典
 			
 			usRegInValue = ( (USHORT)(*pucRegBuffer++) ) << 8;
 			usRegInValue |=( (USHORT)(*pucRegBuffer++) ) & 0xFF;
 
-		    if( (pvRegInValue != NULL) && (pvRegInValue->Value != NULL) && (pvRegInValue->OperateMode != WO) )
+		    if( (pvRegInValue != NULL) && (pvRegInValue->pvValue != NULL) && (pvRegInValue->ucAccessMode != WO) )
 			{
-			    if( (pvRegInValue->Multiple != 0) && (pvRegInValue->Multiple != 1))
+			    if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1))
 			    {
-			    	usRegInValue = (USHORT)((float)usRegInValue / (float)pvRegInValue->Multiple);      //计算因子
+			    	usRegInValue = (USHORT)((float)usRegInValue / (float)pvRegInValue->fTransmitMultiple);      //传输因子
 			    }
 				
-				if (pvRegInValue->DataType == uint16)
+				if (pvRegInValue->ucDataType == uint16)
 				{
-					if( (usRegInValue >= pvRegInValue->MinValue) && (usRegInValue <= pvRegInValue->MaxValue) )
+					if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
 					{
-						*(USHORT*)pvRegInValue->Value  = (USHORT)usRegInValue;
+						*(USHORT*)pvRegInValue->pvValue  = (USHORT)usRegInValue;
 					}
 					else
 					{
@@ -246,11 +246,11 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 						return eStatus;
 					}								
 				}
-				else if(pvRegInValue->DataType == uint8)
+				else if(pvRegInValue->ucDataType == uint8)
 				{			
-					if( (usRegInValue >= pvRegInValue->MinValue) && (usRegInValue <= pvRegInValue->MaxValue) )
+					if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
 					{
-						*(UCHAR*)pvRegInValue->Value = (UCHAR)usRegInValue;
+						*(UCHAR*)pvRegInValue->pvValue = (UCHAR)usRegInValue;
 					}
 					else
 					{
@@ -258,12 +258,12 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 						return eStatus;
 					}	
 				}
-				else if(pvRegInValue->DataType == int16)
+				else if(pvRegInValue->ucDataType == int16)
 				{	
 					sRegInValue = (SHORT)usRegInValue;
-					if( ( usRegInValue >= (SHORT)pvRegInValue->MinValue) && ( usRegInValue <= (SHORT)pvRegInValue->MaxValue) )
+					if( ( usRegInValue >= (SHORT)pvRegInValue->lMinVal) && ( usRegInValue <= (SHORT)pvRegInValue->lMaxVal) )
 					{		
-						*(SHORT*)pvRegInValue->Value = (SHORT)sRegInValue ;			   
+						*(SHORT*)pvRegInValue->pvValue = (SHORT)sRegInValue ;			   
 					}
 					else
 					{
@@ -271,13 +271,13 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 						return eStatus;
 					}	
 				}
-                else if(pvRegInValue->DataType == int8)
+                else if(pvRegInValue->ucDataType == int8)
 				{	
                     cRegInValue = (int8_t)usRegInValue;
 					
-					if( (cRegInValue >= (int8_t)pvRegInValue->MinValue) && (cRegInValue <= (int8_t)pvRegInValue->MaxValue) )
+					if( (cRegInValue >= (int8_t)pvRegInValue->lMinVal) && (cRegInValue <= (int8_t)pvRegInValue->lMaxVal) )
 					{		
-						*(CHAR*)pvRegInValue->Value = (int8_t)cRegInValue ;				   
+						*(CHAR*)pvRegInValue->pvValue = (int8_t)cRegInValue;				   
 					}
 					else
 					{

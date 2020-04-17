@@ -107,10 +107,10 @@ eMBMasterReqWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr
 	
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 
-	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;       //从设备状态表
+	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;       //从设备状态表
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -197,10 +197,10 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister( sMBMasterInfo* psM
 	
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 	
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
+    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -310,10 +310,10 @@ eMBMasterReqReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
     UCHAR* ucMBFrame;
     eMBMasterReqErrCode   eErrStatus = MB_MRE_NO_ERR;
     
-	sMBMasterPortInfo*  psMBPortInfo = psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
+	sMBMasterPortInfo*  psMBPortInfo = psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -374,7 +374,7 @@ eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFram
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception.
          */
-        if( ( usRegCount >= 1 ) && ( 2*usRegCount == *(pucFrame + MB_PDU_FUNC_READ_BYTECNT_OFF)) )
+        if( (usRegCount >= 1) && ( 2*usRegCount == *(pucFrame + MB_PDU_FUNC_READ_BYTECNT_OFF)) )
         {
             /* Make callback to fill the buffer. */
             eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, pucFrame + MB_PDU_FUNC_READ_VALUES_OFF, usRegAddress, usRegCount, MB_REG_READ );
@@ -424,10 +424,10 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 	
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
 	
-	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
+	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -547,9 +547,6 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
 eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress,
         USHORT usNRegs, eMBRegisterMode eMode)
 {
-    eMBErrorCode    eStatus = MB_ENOERR;
-	sMasterRegHoldData* pvRegHoldValue = NULL;
-	
     USHORT          iRegIndex, n, m, nSlaveTypes;
     USHORT          REG_HOLDING_START, REG_HOLDING_END;
     USHORT          usProtocolType;
@@ -557,10 +554,13 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
 	USHORT          usRegHoldValue;
     SHORT           sRegHoldValue;
 	int8_t          cRegHoldValue;
-	
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*     psRegHoldBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegHoldTable;         //从设备通讯协议表
-    UCHAR                ucMBMasterDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);                 //从设备通讯地址
+    
+    eMBErrorCode               eStatus = MB_ENOERR;
+	sMasterRegHoldData* pvRegHoldValue = NULL;
+    
+    sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    const sMBDevDataTable*     psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;   //从设备通讯协议表
+    UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
     if(psMBMasterInfo->xMBRunInTestMode)
@@ -571,16 +571,16 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegHoldBuf = psMBSlaveDevCur->psDevDataInfo->psMBRegHoldTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     }
     if( (psRegHoldBuf->pvDataBuf  == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
     
-	REG_HOLDING_START = psRegHoldBuf->ucStartAddr;
-    REG_HOLDING_END = psRegHoldBuf->ucEndAddr;
+	REG_HOLDING_START = psRegHoldBuf->usStartAddr;
+    REG_HOLDING_END = psRegHoldBuf->usEndAddr;
 	
     /* if mode is read, the master will write the received date to buffer. */
 
@@ -598,24 +598,24 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
            					
             while (usNRegs > 0)          
             {
-				(void)eMBMasterRegHoldingMap(psMBMasterInfo, ucMBMasterDestAddr, iRegIndex, &pvRegHoldValue);     //扫描字典中变量，找出对应的变量
+				(void)eMBMasterRegHoldingMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegHoldValue);     //扫描字典中变量，找出对应的变量
 
 				usRegHoldValue = ( (USHORT)(*pucRegBuffer++) ) << 8;
 			    usRegHoldValue |=( (USHORT)(*pucRegBuffer++) ) & 0xFF;
 				
-				if( (pvRegHoldValue != NULL) && (pvRegHoldValue->Value != NULL) && (pvRegHoldValue->OperateMode != WO) )
+				if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != WO) )
 				{
-					if( (pvRegHoldValue->Multiple != 0) && (pvRegHoldValue->Multiple != 1))
+					if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1) )
 				    {
-				    	usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->Multiple);      //计算因子
+				    	usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
 				    }
 					
-					if (pvRegHoldValue->DataType == uint16)
+					if (pvRegHoldValue->ucDataType == uint16)
 					{
-						if( (usRegHoldValue >= (USHORT)pvRegHoldValue->MinValue ) && (usRegHoldValue <= (USHORT)pvRegHoldValue->MaxValue))
+						if( (usRegHoldValue >= (USHORT)pvRegHoldValue->lMinVal ) && (usRegHoldValue <= (USHORT)pvRegHoldValue->lMaxVal))
 						{ 
-							*(USHORT*)pvRegHoldValue->Value = (USHORT)usRegHoldValue;    //更新对应点位
-                            pvRegHoldValue->PreValue = (USHORT)usRegHoldValue;							
+							*(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;    //更新对应点位
+                            pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;							
 						}							
 						else
 						{
@@ -623,12 +623,12 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
 							return eStatus;
 						}						
 					}
-					else if(pvRegHoldValue->DataType == uint8)
+					else if(pvRegHoldValue->ucDataType == uint8)
 					{  
-						if( ((UCHAR)usRegHoldValue >= (UCHAR)pvRegHoldValue->MinValue ) && ((UCHAR)usRegHoldValue <= (UCHAR)pvRegHoldValue->MaxValue) )
+						if( ((UCHAR)usRegHoldValue >= (UCHAR)pvRegHoldValue->lMinVal ) && ((UCHAR)usRegHoldValue <= (UCHAR)pvRegHoldValue->lMaxVal) )
 						{
-							*(UCHAR*)pvRegHoldValue->Value = (UCHAR)usRegHoldValue;
-                            pvRegHoldValue->PreValue = (USHORT)usRegHoldValue;							
+							*(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;
+                            pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;							
 						}
 						else
 						{
@@ -636,14 +636,14 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
 							return eStatus;
 						}	
 					}
-					else if (pvRegHoldValue->DataType == int16)
+					else if (pvRegHoldValue->ucDataType == int16)
 					{
 						sRegHoldValue = (SHORT)usRegHoldValue;
 						
-						 if( (sRegHoldValue >= (SHORT)pvRegHoldValue->MinValue ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->MaxValue) )	
+						 if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
 						{
-							*(SHORT*)pvRegHoldValue->Value = (SHORT)sRegHoldValue;
-							 pvRegHoldValue->PreValue = (USHORT)sRegHoldValue;
+							*(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;
+							 pvRegHoldValue->usPreVal = (USHORT)sRegHoldValue;
 						}
 						else
 						{
@@ -651,14 +651,14 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
 							return eStatus;
 						}						
 					}
-					else if(pvRegHoldValue->DataType == int8)
+					else if(pvRegHoldValue->ucDataType == int8)
 					{  	
                         cRegHoldValue = (int8_t)usRegHoldValue;
 						
-						 if( (cRegHoldValue >= (int8_t)pvRegHoldValue->MinValue ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->MaxValue) )		
+						if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )		
 						{
-							*(int8_t*)pvRegHoldValue->Value = (int8_t)cRegHoldValue;
-                             pvRegHoldValue->PreValue = (USHORT)cRegHoldValue;							
+							*(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;
+                             pvRegHoldValue->usPreVal = (USHORT)cRegHoldValue;							
 						}
 						else
 						{

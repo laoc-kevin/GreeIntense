@@ -1,42 +1,71 @@
-#ifndef _USER_MB_DICT_
-#define _USER_MB_DICT_
+#ifndef _USER_MB_DICT_H
+#define _USER_MB_DICT_H
 
-#include "user_mb_app.h"
-#include "user_mb_map.h"
-#include "mbconfig.h"
 #include "port.h"
+#include "mbconfig.h"
 
 #define SLAVE_PROTOCOL_TYPE_ID    0
 
-#if MB_FUNC_READ_INPUT_ENABLED > 0
+typedef struct        /* 从栈寄存器数据结构 */
+{
+	const USHORT                      usAddr;             //地址
+    const UCHAR                       ucDataType;         //数据类型
+    const LONG                        lMinVal;            //最小值
+    const LONG                        lMaxVal;            //最大值
+    const UCHAR                       ucAccessMode;       //访问权限
+    const float                       fTransmitMultiple;  //传输因子
+	void* const                       pvValue;            //变量指针       
+}sMBSlaveRegData;     		
 
-extern const sMBIndexTable psSRegInTable[];
+typedef struct       /* 从栈线圈和离散量数据结构 */
+{
+    const USHORT                      usAddr;           //地址
+    const UCHAR                       ucAccessMode;     //访问权限
+	UCHAR* const                      pvValue;          //变量指针     
+}sMBSlaveBitData;  
 
-#endif
 
-#if MB_FUNC_WRITE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 \
-    || MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_READWRITE_HOLDING_ENABLED > 0
+typedef struct        /*CPN数据结构 */
+{
+	const USHORT                      usAddr;              //地址
+	const UCHAR                       ucDataType;          //数据类型
+    const UCHAR                       ucValType;           //变量类型
+    const LONG                        lMinVal;             //最小值
+    const LONG                        lMaxVal;             //最大值
+    const UCHAR                       ucAccessMode;        //访问权限
+    const USHORT                      fTransmitMultiple;   //传输因子
+    void * const                      pvValue;             //变量指针   
+}sMBSlaveCPNData;  						
 
-extern const sMBIndexTable psSRegHoldTable[];
 
-#endif
+typedef struct   /* 从栈字典数据列表结构 */
+{
+    const void* const  pvDataBuf;             //协议数据域
+	const USHORT       usStartAddr;           //起始地址
+	const USHORT       usEndAddr;             //末尾地址
+    const USHORT       usDataCount;           //协议点位总数
+}sMBSlaveDataTable;
 
-#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
+typedef struct            /* 从栈通讯字典数据结构 */  
+{
+	const sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
+	const sMBSlaveDataTable* const psMBRegHoldTable;     //保持寄存器数据表
+	const sMBSlaveDataTable* const psMBCoilTable;        //线圈数据表
+	const sMBSlaveDataTable* const psMBDiscInTable;      //离散量数据表
+    
+#if MB_SLAVE_CPN_ENABLED > 0
+    const sMBSlaveDataTable* const psMBCPNTable;         //CPN数据表 
+#endif   
+    
+    const  UCHAR                   ucProtocolID;         //协议ID
+}sMBSlaveDataInfo; 
 
-extern const sMBIndexTable psSCoilTable[];
-
-#endif
-
-#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-
-extern const sMBIndexTable psSDiscInTable[];
-
-#endif
-
-#if MB_FUNC_CPN_READ_ENABLED > 0
-
-extern const sMBIndexTable psSCPNTable[];
-
-#endif
+typedef struct                 /* 从栈通讯参数信息 */   
+{
+    UCHAR               ucSlaveAddr;                //从栈通讯地址
+	UCHAR               ucDataReady;                //数据是否准备好
+    UCHAR               ucProtocolID;               //协议ID
+    sMBSlaveDataInfo*   psSlaveCurData;             //从栈当前数据域   
+}sMBSlaveCommInfo; 
 
 #endif

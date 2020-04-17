@@ -3,17 +3,18 @@
 #include "user_mb_dict_m.h"
 #include "user_mb_scan_m.h"
 
-static UCHAR ucSlaveMaxAddr, ucSlaveMinAddr;
+static UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
+
 static sMBSlaveDevDataInfo* psDevDataDTU247;
 static sMBSlaveDevDataInfo* psDevDataDTU200;
 
-static USHORT usDTUInitCommand[2]={ DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
-static USHORT usDTUInitedCommand[2]={ DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
+static USHORT usDTUInitCmd[2]={ DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
+static USHORT usDTUInitedCmd[2]={ DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
 
 static void AppMbDevDTUTest(sMBMasterInfo* psMBMasterInfo);
-static BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout);
-static void vDTUTimeoutInd(void * p_tmr, void * p_arg);
-static void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo);
+static BOOL AppDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout);
+static void AppDTUTimeoutInd(void * p_tmr, void * p_arg);
+static void AppDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo);
 
 /**********************************************************************
  * @brief   DTU轮询
@@ -22,13 +23,13 @@ static void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo);
 void AppMbScanDevDTU(sMBMasterInfo* psMBMasterInfo)
 {
     eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
-	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
-	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBMasterDTUInfo;
+	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBDTUInfo;
     
     sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;
     sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
     
-    if(psMBMasterInfo->psMBMasterDTUInfo == NULL)
+    if(psMBMasterInfo->psMBDTUInfo == NULL)
     {
         return;
     }
@@ -38,11 +39,11 @@ void AppMbScanDevDTU(sMBMasterInfo* psMBMasterInfo)
         return;
     }
    
-    ucSlaveMaxAddr = psMBDevsInfo->ucSlaveMaxAddr;  //切换最大，最小地址
-    ucSlaveMinAddr = psMBDevsInfo->ucSlaveMinAddr;
+    ucSlaveDevMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;  //切换最大，最小地址
+    ucSlaveDevMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
     
-    psMBDevsInfo->ucSlaveMaxAddr = DTU247_SLAVE_ADDR;
-    psMBDevsInfo->ucSlaveMinAddr = DTU200_SLAVE_ADDR;
+    psMBDevsInfo->ucSlaveDevMaxAddr = DTU247_SLAVE_ADDR;
+    psMBDevsInfo->ucSlaveDevMinAddr = DTU200_SLAVE_ADDR;
     
     AppMbDevDTUTest(psMBMasterInfo);
     
@@ -50,19 +51,22 @@ void AppMbScanDevDTU(sMBMasterInfo* psMBMasterInfo)
 	if( psDevDTU200->ucOnLine == TRUE)   //轮询DTU模块数据表
 	{
         psMBDevsInfo->psMBSlaveDevCur = psDevDTU200;
+        
 #if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 		
 		errorCode =eMBMasterScanWriteHoldingRegister(psMBMasterInfo, DTU200_SLAVE_ADDR, FALSE);
 #endif
 	}
+    
     if( (psDevDTU247->ucOnLine == TRUE) && (psDevDTU247->ucDataReady == TRUE) )   //
     {
         psMBDevsInfo->psMBSlaveDevCur = psDevDTU247;
+        
 #if MB_FUNC_READ_INPUT_ENABLED > 0				
         errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, DTU247_SLAVE_ADDR);						
-#endif
+#endif   
 	}
-    psMBDevsInfo->ucSlaveMaxAddr = ucSlaveMaxAddr;
-    psMBDevsInfo->ucSlaveMinAddr = ucSlaveMinAddr;
+    psMBDevsInfo->ucSlaveDevMaxAddr = ucSlaveDevMaxAddr;
+    psMBDevsInfo->ucSlaveDevMinAddr = ucSlaveDevMinAddr;
 }
 
 /**********************************************************************
@@ -75,13 +79,13 @@ void AppMbDevDTUTest(sMBMasterInfo* psMBMasterInfo)
     
 	OS_ERR                      err     = OS_ERR_NONE;
     eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
-	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBMasterDevsInfo;   //从设备状态表
-	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBMasterDTUInfo;
+	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBDTUInfo;
     
-    sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;
+    sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;        //虚拟从设备
     sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
     
-    if(psMBMasterInfo->psMBMasterDTUInfo == NULL)
+    if(psMBMasterInfo->psMBDTUInfo == NULL)
     {
         return;
     }
@@ -90,11 +94,11 @@ void AppMbDevDTUTest(sMBMasterInfo* psMBMasterInfo)
         return;
     }
     /***********************开始测试DTU的状态*************************************/
-    ucSlaveMaxAddr = psMBDevsInfo->ucSlaveMaxAddr;  //切换最大，最小地址
-    ucSlaveMinAddr = psMBDevsInfo->ucSlaveMinAddr;
+    ucSlaveDevMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;  //切换最大，最小地址
+    ucSlaveDevMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
     
-    psMBDevsInfo->ucSlaveMaxAddr = DTU247_SLAVE_ADDR;
-    psMBDevsInfo->ucSlaveMinAddr = DTU200_SLAVE_ADDR;
+    psMBDevsInfo->ucSlaveDevMaxAddr = DTU247_SLAVE_ADDR;
+    psMBDevsInfo->ucSlaveDevMinAddr = DTU200_SLAVE_ADDR;
     
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //处于测试从设备状态
     for(n = 0; n < 5; n++)
@@ -127,7 +131,7 @@ void AppMbDevDTUTest(sMBMasterInfo* psMBMasterInfo)
         psDevDTU247->ucDataReady = FALSE;
         psDevDTU200->ucDataReady = FALSE;
         
-        vDTUTimerTimeoutEnable(psDTUInfo);
+        AppDTUTimerTimeoutEnable(psDTUInfo);
     }
     else   //GPRS模块已经初始化
     {
@@ -153,35 +157,39 @@ void AppMbDevDTUTest(sMBMasterInfo* psMBMasterInfo)
     }
     psMBMasterInfo->xMBRunInTestMode = FALSE;  //退出测试从设备状态 
     
-    psMBDevsInfo->ucSlaveMaxAddr = ucSlaveMaxAddr;
-    psMBDevsInfo->ucSlaveMinAddr = ucSlaveMinAddr;   
+    psMBDevsInfo->ucSlaveDevMaxAddr = ucSlaveDevMaxAddr;
+    psMBDevsInfo->ucSlaveDevMinAddr = ucSlaveDevMinAddr;   
 }
 
 /**********************************************************************
  * @brief   DTU初始化
  * @return	none
  *********************************************************************/
-void AppMbDTUInit(sMBMasterInfo* psMBMasterInfo)
+BOOL AppMbDTUInit(sMBMasterInfo* psMBMasterInfo)
 {
-    sMBMasterDTUInfo* psDTUInfo = psMBMasterInfo->psMBMasterDTUInfo;
+    sMBMasterDTUInfo* psDTUInfo = psMBMasterInfo->psMBDTUInfo;
     
     sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;
     sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
     
-    if(psMBMasterInfo->psMBMasterDTUInfo == NULL)
+    if(psMBMasterInfo->psMBDTUInfo == NULL)
     {
-        return;
+        return FALSE;
     }
-	xDTUTimerTimeoutInit(psDTUInfo, DTU_TIMEOUT_S);
     
-    psDevDTU247 = psMBMasterRegisterDev(psMBMasterInfo, psDevDataDTU247);
+    psDTUInfo->psDTUInitCmd   = usDTUInitCmd;
+    psDTUInfo->psDTUInitedCmd = usDTUInitedCmd;
+    
+    psDevDTU247 = psMBMasterRegisterDev(psMBMasterInfo, psDevDataDTU247);   //注册虚拟设备
     psDevDTU200 = psMBMasterRegisterDev(psMBMasterInfo, psDevDataDTU200);
     
-    psDevDTU247->ucDevAddr = DTU247_SLAVE_ADDR;                 //DTU247通讯地址
-    psDevDTU200->ucDevAddr = DTU200_SLAVE_ADDR;                 //DTU200通讯地址
+    psDevDTU247->ucDevAddr = DTU247_SLAVE_ADDR;      //DTU247通讯地址
+    psDevDTU200->ucDevAddr = DTU200_SLAVE_ADDR;      //DTU200通讯地址
     
-    psDevDTU247->psDevCurData = psDevDTU247->psDevDataInfo;     //DTU247当前数据域
-    psDevDTU200->psDevCurData = psDevDTU200->psDevDataInfo;     //DTU200当前数据域
+    psDevDTU247->psDevCurData = psDevDataDTU247;     //DTU247当前数据域
+    psDevDTU200->psDevCurData = psDevDataDTU200;     //DTU200当前数据域
+    
+    return AppDTUTimerTimeoutInit(psDTUInfo, DTU_TIMEOUT_S);
     
 }
 
@@ -190,7 +198,7 @@ void AppMbDTUInit(sMBMasterInfo* psMBMasterInfo)
  * @param   usTimerout    s   
  * @return	BOOL
 ********************************************************************/
-BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout)
+BOOL AppDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout)
 {
 	OS_ERR err = OS_ERR_NONE;
 	ULONG i = 0;
@@ -204,7 +212,7 @@ BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout)
 			    i,      
 			    0,
 			    OS_OPT_TMR_ONE_SHOT,
-			    vDTUTimeoutInd,
+			    AppDTUTimeoutInd,
 			    (void*)psDTUInfo,
 			    &err);
 	if( err != OS_ERR_NONE )
@@ -218,7 +226,7 @@ BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout)
 /********************************************************************
 * @brief    DTU模块定时器中断
 ********************************************************************/
-void vDTUTimeoutInd(void * p_tmr, void * p_arg)
+void AppDTUTimeoutInd(void * p_tmr, void * p_arg)
 {
     sMBMasterDTUInfo* psDTUInfo = (sMBMasterDTUInfo*)p_arg;
     psDTUInfo->ucDTUInited = TRUE;
@@ -227,7 +235,7 @@ void vDTUTimeoutInd(void * p_tmr, void * p_arg)
 /********************************************************************
 * @brief    DTU模块定时器使能
 ********************************************************************/
-void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo)
+void AppDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo)
 {
 	OS_ERR err = OS_ERR_NONE;
 	psDTUInfo->ucDTUInited = FALSE;

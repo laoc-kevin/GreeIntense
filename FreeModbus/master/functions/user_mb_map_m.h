@@ -1,5 +1,5 @@
-#ifndef _USER_MB_MAP_M_
-#define _USER_MB_MAP_M_
+#ifndef _USER_MB_MAP_M_H
+#define _USER_MB_MAP_M_H
 
 #include "mbframe.h"
 #include "mb_m.h"

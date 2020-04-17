@@ -52,7 +52,6 @@ typedef struct
  *************************************************************************/
  
 #if MB_FUNC_OTHER_REP_SLAVEID_BUF > 0
-eMBException    eMBFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 eMBException    eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 #endif
 
@@ -72,7 +71,7 @@ eMBException    eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo,
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
 eMBMasterReqErrCode eMBMasterReqWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                                      USHORT usRegAddr, USHORT usMBRegData, LONG lTimeOut );	
+                                                      USHORT usRegAddr, USHORT usMBSlaveRegData, LONG lTimeOut );	
 eMBException    eMBMasterFuncWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
@@ -93,7 +92,7 @@ eMBException    eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * p
 
 #if MB_FUNC_WRITE_COIL_ENABLED > 0
 eMBMasterReqErrCode eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                           USHORT usCoilAddr, USHORT usMBBitData, LONG lTimeOut );
+                                           USHORT usCoilAddr, USHORT usMBSlaveBitData, LONG lTimeOut );
 eMBException    eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 

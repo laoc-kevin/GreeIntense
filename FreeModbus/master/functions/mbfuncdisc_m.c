@@ -72,10 +72,10 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 {
     UCHAR                 *ucMBFrame;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMasterPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBMasterDevsInfo;    //从设备状态信息
+    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;    //从设备状态信息
 	
-    if( (ucSndAddr < psMBDevsInfo->ucSlaveMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveMaxAddr) ) 
+    if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
@@ -183,25 +183,25 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
  */
 eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
 {
-    eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          DISCRETE_INPUT_START, DISCRETE_INPUT_END;
-
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevDataInfo->psMBDiscInTable;          //从设备通讯协议表
+    eMBErrorCode    eStatus = MB_ENOERR;
+   
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;          //从设备通讯协议表
 
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBMasterDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
-        psDiscreteBuf = psMBSlaveDevCur->psDevDataInfo->psMBDiscInTable;
+        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
     } 
     if( (psDiscreteBuf->pvDataBuf == NULL) || (psDiscreteBuf->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
     
-    DISCRETE_INPUT_START = psDiscreteBuf->ucStartAddr;
-    DISCRETE_INPUT_END = psDiscreteBuf->ucEndAddr;
+    DISCRETE_INPUT_START = psDiscreteBuf->usStartAddr;
+    DISCRETE_INPUT_END = psDiscreteBuf->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;

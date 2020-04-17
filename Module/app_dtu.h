@@ -26,7 +26,7 @@
 #define TEST_DTU247_PROTOCOL_REG_IN_VALUE       0xFF
 
 void AppMbScanDevDTU(sMBMasterInfo* psMBMasterInfo);
-void AppMbDTUInit(sMBMasterInfo* psMBMasterInfo);
+BOOL AppMbDTUInit(sMBMasterInfo* psMBMasterInfo);
 #endif
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef _USER_MB_DICT_M_
-#define _USER_MB_DICT_M_
+#ifndef _USER_MB_DICT_M_H
+#define _USER_MB_DICT_M_H
 
 #include "mbframe.h"
 #include "mbconfig.h"
@@ -46,40 +46,40 @@ typedef enum      /* 测试模式 */
 
 typedef struct        /* 主栈保持寄存器数据结构 */
 {
-	const USHORT                      Address;            //地址
-    const UCHAR                       DataType;           //数据类型
-    volatile USHORT                   PreValue;          //先前值
-    const LONG                        MinValue;           //最小值
-    const LONG                        MaxValue;           //最大值
-    const UCHAR                       OperateMode;        //操作类型
-    const float                       Multiple;           //计算因子
-    void * const                      Value;              //变量指针    
+	const USHORT                      usAddr;            //地址
+    const UCHAR                       ucDataType;        //数据类型
+    volatile USHORT                   usPreVal;          //先前值
+    const LONG                        lMinVal;           //最小值
+    const LONG                        lMaxVal;           //最大值
+    const UCHAR                       ucAccessMode;      //访问权限
+    const float                       fTransmitMultiple; //传输因子
+    void * const                      pvValue;           //变量指针    
 }sMasterRegHoldData;     		
 
 typedef struct        /* 主栈字典保持寄存器数据结构 */
 {
-	const USHORT                      Address;            //地址
-    const UCHAR                       DataType;           //数据类型
-    const LONG                        MinValue;           //最小值
-    const LONG                        MaxValue;           //最大值
-    const UCHAR                       OperateMode;        //操作类型
-    const float                       Multiple;           //计算因子
-    void * const                      Value;              //变量指针    
+	const USHORT                      usAddr;             //地址
+    const UCHAR                       ucDataType;         //数据类型
+    const LONG                        lMinVal;            //最小值
+    const LONG                        lMaxVal;            //最大值
+    const UCHAR                       ucAccessMode;       //访问权限
+    const float                       fTransmitMultiple;  //传输因子
+    void * const                      pvValue;            //变量指针    
 }sMasterRegInData; 
 
 typedef struct       /* 主栈字典线圈数据结构 */
 {
-    const USHORT                      Address;           //地址
-    volatile UCHAR                    PreValue;          //先前值
-    const UCHAR                       OperateMode;       //操作类型
-	UCHAR* const                      Value;             //变量指针   
+    const USHORT                      usAddr;           //地址
+    volatile UCHAR                    ucPreVal;         //先前值
+    const UCHAR                       ucAccessMode;     //访问权限
+	UCHAR* const                      pvValue;          //变量指针   
 }sMasterBitCoilData;  
 
 typedef struct       /* 主栈字典离散量数据结构 */
 {
-    const USHORT                      Address;           //地址
-    const UCHAR                       OperateMode;       //操作类型
-	UCHAR* const                      Value;             //变量指针      
+    const USHORT                      usAddr;           //地址
+    const UCHAR                       ucAccessMode;     //访问权限
+	UCHAR* const                      pvValue;          //变量指针      
 }sMasterBitDiscData;  
 
 
@@ -93,32 +93,32 @@ typedef struct   /* 用于测试从栈的指令数据结构 */
 typedef struct   /* 主栈字典数据列表结构 */
 {
     const void* const  pvDataBuf;             //协议数据域
-	const UCHAR        ucStartAddr;           //起始地址
-	const UCHAR        ucEndAddr;             //末尾地址
+	const USHORT       usStartAddr;           //起始地址
+	const USHORT       usEndAddr;             //末尾地址
     const USHORT       usDataCount;           //协议点位总数
 }sMBDevDataTable;
 
 typedef struct sMBSlaveDevDataInfo   /* 从设备通讯字典数据结构 */  
 {
-	const sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
-	const sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	const sMBDevDataTable* const psMBCoilTable;        //线圈数据表
-	const sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
-    const sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
-    const UCHAR                  ucProtocolID;         //协议ID
-    struct sMBSlaveDevDataInfo*  pNext;                //下一个数据表
+	const  sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
+	const  sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
+	const  sMBDevDataTable* const psMBCoilTable;        //线圈数据表
+	const  sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
+    const  sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
+    const  UCHAR                  ucProtocolID;         //协议ID
+    struct sMBSlaveDevDataInfo*   pNext;                //下一个数据表
 }sMBSlaveDevDataInfo; 
 
 typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */   
 {
-    UCHAR               ucDevAddr;                  //设备通讯地址
-	UCHAR               ucRetryTimes;               //测试间隔
-	UCHAR               ucOnLine;                   //是否在线
-	UCHAR               ucDataReady;                //数据是否准备好
-    UCHAR               ucProtocolID;               //协议ID
-	UCHAR               ucSynchronized;             //是否同步
-    UCHAR               ucDevOnTimeout;             //是否处于延时
-    OS_TMR              DevOfflineTmr;              //设备掉线定时器
+    UCHAR                    ucDevAddr;             //设备通讯地址
+	UCHAR                    ucRetryTimes;          //测试间隔
+	UCHAR                    ucOnLine;              //是否在线
+	UCHAR                    ucDataReady;           //数据是否准备好
+    UCHAR                    ucProtocolID;          //协议ID
+	UCHAR                    ucSynchronized;        //是否同步
+    UCHAR                    ucDevOnTimeout;        //是否处于延时
+    OS_TMR                   sDevOfflineTmr;        //设备掉线定时器
     
     sMBSlaveDevDataInfo*     psDevDataInfo;         //从设备数据域
     sMBSlaveDevDataInfo*     psDevCurData;          //从设备当前数据域   
@@ -129,19 +129,12 @@ typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */
 
 typedef struct    /* 主栈从设备状态结构  */
 {
-    UCHAR                           ucSlaveDevCount;   //从设备总数量     
-	const UCHAR                     ucSlaveDevTypes;   //从设备种类数量
-    
-#ifndef MB_MASTER_DTU_ENABLED    
-	const UCHAR                     ucSlaveMinAddr;    //从设备最小通讯地址
-	const UCHAR                     ucSlaveMaxAddr;    //从设备最大通讯地址
-    
-#else           /*由于DTU通讯地址达到200，所以MaxAddr和MinAddr要动态切换 */   
-    UCHAR                           ucSlaveMinAddr;    //从设备最小通讯地址
-	UCHAR                           ucSlaveMaxAddr;    //从设备最大通讯地址
-#endif  
-	sMBSlaveDevInfo*               psMBSlaveDevsList; //当前在线从设备列表
-    sMBSlaveDevInfo*               psMBSlaveDevCur;   //当前活动的设备
+    UCHAR                    ucSlaveDevCount;    //从设备总数量        
+    UCHAR                    ucSlaveDevMinAddr;  //从设备最小通讯地址
+	UCHAR                    ucSlaveDevMaxAddr;  //从设备最大通讯地址
+                      
+	sMBSlaveDevInfo*         psMBSlaveDevsList;  //当前在线从设备列表
+    sMBSlaveDevInfo*         psMBSlaveDevCur;    //当前活动的设备
        
 }sMBMasterDevsInfo; 
 

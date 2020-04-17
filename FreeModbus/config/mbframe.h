@@ -74,11 +74,13 @@ PR_BEGIN_EXTERN_C
 #define MB_PDU_FUNC_OFF          0   /*!< Offset of function code in PDU. */
 #define MB_PDU_DATA_OFF          1   /*!< Offset for response data in PDU. */
 
-#define MB_CPN_PDU_SIZE_MAX           1004 /*!< Maximum size of a cpn PDU. */
-#define MB_CPN_PDU_SIZE_MIN           4    /*!< Minimum size of a cpn PDU. */
-#define MB_CPN_PDU_FUNC_OFF           0    /*!< Offset of cpn function code in cpn PDU. */
-#define MB_CPN_PDU_DATA_OFF           4     /*!< Offset for response data in cpn PDU. */
-#define MB_CPN_PDU_VALUE_COUNT_OFF    1     /*!< Offset of the count of values in cpn PDU. */
+#define MB_CPN_FRAME_SIZE_MIN         22      /*!< Minimum size of a Modbus CPN frame. */
+#define MB_CPN_FRAME_SIZE_MAX         1022    /*!< Maximum size of a Modbus CPN frame. */
+#define MB_CPN_PDU_SIZE_MAX           1004    /*!< Maximum size of a cpn PDU. */
+#define MB_CPN_PDU_SIZE_MIN           4       /*!< Minimum size of a cpn PDU. */
+#define MB_CPN_PDU_FUNC_OFF           0       /*!< Offset of cpn function code in cpn PDU. */
+#define MB_CPN_PDU_DATA_OFF           4       /*!< Offset for response data in cpn PDU. */
+#define MB_CPN_PDU_VALUE_COUNT_OFF    1       /*!< Offset of the count of values in cpn PDU. */
 
 
 #define MB_CPN_VALUE_DEFINE_SIZE      8    /*!< The size of the defination of a CPN value. */
@@ -163,7 +165,21 @@ typedef int16_t SHORT;
 
 typedef uint32_t ULONG;
 typedef int32_t LONG;
-									 
+
+/*! \ingroup modbus
+ * \brief Parity used for characters in serial mode.
+ *
+ * The parity which should be applied to the characters sent over the serial
+ * link. Please note that this values are actually passed to the porting
+ * layer and therefore not all parity modes might be available.
+ */
+typedef enum
+{
+    MB_PAR_NONE,                /*!< No parity. */
+    MB_PAR_ODD,                 /*!< Odd parity. */
+    MB_PAR_EVEN                 /*!< Even parity. */
+} eMBParity;
+
 typedef enum                      /* Modbus数据类型 */
 {
   RegHoldData = 0,
@@ -172,47 +188,6 @@ typedef enum                      /* Modbus数据类型 */
   DiscInData ,
   ValCPNData ,
 }eDataType ;  
-
-typedef struct                   /* 字典结构 */
-{
-    void*   DataBuf;             //协议数据域
-    UCHAR   ProtocolType;        //协议类型
-    USHORT  DataCount;           //协议总数
-} sMBIndexTable;
-
-typedef void  ( *pvMBDataCallback ) ( void* p_arg );
-
-typedef struct        /* 寄存器数据结构 */
-{
-	const USHORT                      Address;            //地址
-    const UCHAR                       DataType;           //数据类型
-    const LONG                        MinValue;           //最小值
-    const LONG                        MaxValue;           //最大值
-    const UCHAR                       OperateMode;        //操作类型
-    const float                       Multiple;           //计算因子
-	void* const                       Value;              //变量指针       
-}sMBRegData;     		
-
-typedef struct       /* 线圈数据结构 */
-{
-    const USHORT                      Address;           //地址
-    const UCHAR                       OperateMode;       //操作类型
-	UCHAR* const                      Value;             //变量指针     
-}sMBBitData;  
-
-typedef struct        /** Struct for creating entries in the communictaion profile */
-{
-	const USHORT                      Address;              //地址
-	const UCHAR                       DataType;             //数据类型
-    const UCHAR                       ValueType;            //变量类型
-    const LONG                        MinValue;             //最小值
-    const LONG                        MaxValue;             //最大值
-    const UCHAR                       OperateMode;          //操作类型
-    const USHORT                      Multiple;             //计算因子
-    void * const                      Value;                //变量指针   
-}sValCPNData;  										 										 
-
-
 
 #ifdef __cplusplus
 PR_END_EXTERN_C

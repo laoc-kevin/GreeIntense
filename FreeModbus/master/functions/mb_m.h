@@ -77,12 +77,6 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_TCP_PORT_USE_DEFAULT 0
 
 /* ----------------------- Type definitions ---------------------------------*/
-typedef enum
-{
-    STATE_ENABLED,                /*!< enable. */
-    STATE_DISABLED,               /*!< disable. */
-    STATE_NOT_INITIALIZED         /*!< not initialized. */
-}eMBMasterState;
 
 /*! \ingroup modbus
  * \brief Errorcodes used by all function in the Master request.
@@ -132,85 +126,82 @@ typedef struct                 /* master GPRS of data transmit unit (DTU) inform
     sMBSlaveDevInfo* psDevDTU200;   
     sMBSlaveDevInfo* psDevDTU247;
     
-    USHORT* const psDTUInitCmd;
-    USHORT* const psDTUInitedCmd;
+    USHORT*          psDTUInitCmd;
+    USHORT*          psDTUInitedCmd;
     
     OS_TMR DTUTimerTimeout;    
     UCHAR  ucDTUInited;   
 }sMBMasterDTUInfo;
 #endif 
 
-typedef struct   /* master information */
+typedef struct sMBMasterInfo  /* master information */
 {
-    sMBMasterPortInfo*  const psMasterPortInfo;                     //硬件接口信息
-	sMBMasterDevsInfo*  const psMBMasterDevsInfo;                   //从设备信息
-	sMBMasterTaskInfo*  const psMBMasterTaskInfo;                   //系统任务信息
+    sMBMasterPortInfo*  psMBPortInfo;                   //主栈硬件接口信息
+	sMBMasterDevsInfo*  psMBDevsInfo;                   //主栈从设备信息
+	sMBMasterTaskInfo*  psMBTaskInfo;                   //主栈状态机任务信息
                                                                     
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持                 
-    sMBMasterDTUInfo*   const psMBMasterDTUInfo;                    //DTU模块
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+    BOOL                bDTUEnable;    
+    sMBMasterDTUInfo*   psMBDTUInfo;                    //DTU模块
 #endif                                                              
                                                                     
-	eMBMode             eMode;                                       //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
-	eMBMasterState      eMBState;                                    //主栈状态
-    eMBMasterSndState   eSndState;                                   //发送状态
-    eMBMasterRcvState   eRcvState;                                   //接收状态
-	                                                                
-	eMBMasterErrorEventType eMBMasterCurErrorType;                   //当前错误类型
-	
-#if MB_MASTER_RTU_ENABLED > 0         //RTU mode information
-    USHORT              usMasterSendPDULength;                       //PDU数据域长度
-    USHORT              usMasterSndBufferCount;                      //发送缓冲区数据量
-    USHORT              usMasterRcvBufferPos;                        //接收缓冲区数据位置
-	                                                                 
-	UCHAR*              pucMasterSndBufferCur;                       //当前发送数据缓冲区指针
-    UCHAR*              pucMasterPDUCur;                             //当前发送帧PDU数据域指针
-	UCHAR               ucMasterRTUSndBuf[MB_PDU_SIZE_MAX];          //发送缓冲区
-    UCHAR               ucMasterRTURcvBuf[MB_SER_PDU_SIZE_MAX];      //接收缓冲区
+	eMBMode             eMode;                          //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
+	eMBState            eMBState;                       //主栈状态
+    eMBMasterSndState   eSndState;                      //发送状态
+    eMBMasterRcvState   eRcvState;                      //接收状态
+	                                                          
+	eMBMasterErrorEventType eCurErrorType;              //当前错误类型
     
-    UCHAR               ucMBMasterDestAddr;                          //当前从设备地址
-    BOOL                xMBRunInMasterMode;                          //是否处于主栈模式
-    BOOL                xMBRunInTestMode;                            //是否处于主栈测试从设备模式
-	BOOL                xFrameIsBroadcast;                           //是否为广播帧
+	USHORT              usSndPDULength;                 //PDU数据域长度
+    USHORT              usSndBufferCount;               //发送缓冲区数据量
+    USHORT              usRcvBufferPos;                 //接收缓冲区数据位置
+	                                                          
+	UCHAR*              pucSndBufferCur;                //当前发送数据缓冲区指针
+    UCHAR*              pucMasterPDUCur;                //当前发送帧PDU数据域指针
+    
+    UCHAR               ucMBDestAddr;                   //当前从设备地址
+    BOOL                xMBRunInMasterMode;             //是否处于主栈模式
+    BOOL                xMBRunInTestMode;               //是否处于主栈测试从设备模式
+	BOOL                xFrameIsBroadcast;              //是否为广播帧
+    
+#if MB_MASTER_RTU_ENABLED > 0         //RTU mode information
+	UCHAR               ucRTUSndBuf[MB_PDU_SIZE_MAX];         //发送缓冲区
+    UCHAR               ucRTURcvBuf[MB_SER_PDU_SIZE_MAX];     //接收缓冲区
 #endif
 
 #if MB_MASTER_ASCII_ENABLED > 0 
 #endif
 	
+    struct sMBMasterInfo* pNext;                              //下一主栈节点
+    struct sMBMasterInfo* pLast;                              //末尾主栈节点
 }sMBMasterInfo;
-
-typedef struct sMBMasterNodeInfo  /* master information linklist */
-{
-	sMBMasterInfo*             psMBMasterInfo;
-	struct sMBMasterNodeInfo*  pNext;
-	
-}sMBMasterNodeInfo;
 
 /* Functions pointer which are initialized in eMBInit( ). Depending on the
  * mode (RTU or ASCII) the are set to the correct implementations.
  * Using for Modbus Master,Add by Armink 20130813
  */
-typedef void    (*pvMBMasterFrameStart) ( sMBMasterInfo* psMBMasterInfo );
+typedef void    (*pvMBMasterFrameStart) (sMBMasterInfo* psMBMasterInfo);
 
-typedef void    (*pvMBMasterFrameStop) ( sMBMasterInfo* psMBMasterInfo );
+typedef void    (*pvMBMasterFrameStop) (sMBMasterInfo* psMBMasterInfo);
 										 
-typedef void    (*pvMBMasterFrameClose) ( sMBMasterPortInfo* psMBPortInfo );
+typedef void    (*pvMBMasterFrameClose) (sMBMasterPortInfo* psMBPortInfo);
 										 
-typedef eMBErrorCode ( *peMBMasterFrameReceive)(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRcvAddress, 
-	                                            UCHAR ** pucFrame, USHORT * pusLength );
+typedef eMBErrorCode (*peMBMasterFrameReceive) (sMBMasterInfo* psMBMasterInfo, UCHAR* pucRcvAddress, 
+	                                            UCHAR ** pucFrame, USHORT * pusLength);
 
 typedef eMBErrorCode (*peMBMasterFrameSend) (sMBMasterInfo* psMBMasterInfo, UCHAR slaveAddress,
-                                             const UCHAR * pucFrame, USHORT usLength );
+                                             const UCHAR * pucFrame, USHORT usLength);
 
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-typedef BOOL (*pxMBMasterFrameCBByteReceived) ( sMBMasterInfo* psMBMasterInfo );
+typedef BOOL (*pxMBMasterFrameCBByteReceived) (sMBMasterInfo* psMBMasterInfo);
 
-typedef BOOL (*pxMBMasterFrameCBTransmitterEmpty) ( sMBMasterInfo* psMBMasterInfo );
+typedef BOOL (*pxMBMasterFrameCBTransmitterEmpty) (sMBMasterInfo* psMBMasterInfo);
 
-typedef BOOL (*pxMBMasterFrameCBTimerExpired) ( sMBMasterInfo* psMBMasterInfo );
+typedef BOOL (*pxMBMasterFrameCBTimerExpired) (sMBMasterInfo* psMBMasterInfo);
 
 
 /* Callback functions required by the porting layer. They are called when
@@ -512,7 +503,7 @@ void vMBMasterPollTask(void *p_arg);
  *! \ingroup modbus
  *\brief These functions are for Modbus Master slave device state
  *************************************************************************/
-sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevDataInfo* psDevDataInfo); 
+sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo); 
  
 sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
 
@@ -524,9 +515,9 @@ BOOL xMBMasterRemoveDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
  *************************************************************************/
 BOOL xMBMasterInitDevTimer( sMBSlaveDevInfo* psMBDev, USHORT usTimerSec); 
  
-void vMBMasterDevOfflineTmrEnable( sMBSlaveDevInfo* psMBDev);
+void vMBMastersDevOfflineTmrEnable( sMBSlaveDevInfo* psMBDev);
 
-void vMBMasterDevOfflineTmrDel( sMBSlaveDevInfo* psMBDev);
+void vMBMastersDevOfflineTmrDel( sMBSlaveDevInfo* psMBDev);
 
 #ifdef __cplusplus
 PR_END_EXTERN_C
