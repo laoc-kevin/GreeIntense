@@ -1,10 +1,10 @@
 #include "lpc_rtc.h"
-#include "app_rtc.h"
+#include "md_rtc.h"
 
 RTC_TIME_Type CurrTime;
 
 /*RTC初始化*/
-void AppRTCInit(void)
+void vRTCInit(void)
 {
 	// Init RTC module
 	RTC_Init(LPC_RTC);
@@ -28,7 +28,7 @@ void AppRTCInit(void)
 }
 
 /* 设置RTC时间 */
-void AppRTCSetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec, uint8_t dow)
+void vRTCSetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t min, uint8_t sec, uint8_t dow)
 {
 	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MONTH, month);
@@ -48,7 +48,7 @@ void AppRTCSetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint
 }
 
 /* 获取RTC当前时间 */
-void AppRTCGetTime(void)
+void vRTCGetTime(void)
 {
 	RTC_GetFullTime(LPC_RTC, &CurrTime);
 }

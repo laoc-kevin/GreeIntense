@@ -40,7 +40,7 @@
 #include "mbcpn.h"
 #include "mbframe.h"
 #include "mbport.h"
-#include "app_led.h"
+#include "md_led.h"
 #include "my_rtt_printf.h"
 
 #if MB_SLAVE_CPN_ENABLED > 0
@@ -75,7 +75,7 @@ eMBErrorCode eMBSlaveCPNInit(sMBSlaveInfo* psMBSlaveInfo)
     eMBErrorCode    eStatus = MB_ENOERR;
    
     sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
-	const UART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
     ENTER_CRITICAL_SECTION( );
 

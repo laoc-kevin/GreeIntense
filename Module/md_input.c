@@ -2,77 +2,89 @@
 #include "lpc_gpio.h"
 #include "lpc_adc.h"
 #include "includes.h"
-#include "app_input.h"
+#include "md_input.h"
 #include "my_rtt_printf.h"
+
+#define AI_NUM 8
+#define DI_NUM 15
+
 //采样电流误差,单位uA*10，每个20个单位的采样偏差，400、420、440、、、
-const int8_t DeltaUAList[81] = {	32,32,32,33,32,32,32,31,31,31,32,32,31,31,31,31,32,31,
-								31,30,30,29,31,31,30,30,29,29,28,29,29,29,28,28,27,29,
-								29,28,28,27,26,27,27,26,25,23,21,19,18,16,14,13,12,11,
-								13,12,11,11,11,10,11,11,10,9, 9, 8, 10, 8, 8, 7, 6, 6,
-								6, 6, 5, 3, 1, 0,-15,-42,-60};
-const int16_t RealUAList[81] = {	432,452,472,493,512,532,552,571,591,
-								611,632,652,671,691,711,731,752,771,
-								791,810,830,849,871,891,910,930,949,
-								969,988,1009,1029,1049,1068,1088,1107,1129,
-								1149,1168,1188,1207,1226,1247,1267,1286,1305,
-								1323,1341,1359,1378,1396,1414,1433,1452,1471,
-								1493,1512,1531,1551,1571,1590,1611,1631,1650,
-								1669,1689,1708,1730,1748,1768,1787,1806,1826,
-								1846,1866,1885,1903,1921,1940,1945,1938,1940};
+const int8_t DeltaUAList[81] = { 32,32,32,33,32,32,32,31,31,31,32,32,31,31,31,31,32,31,
+								 31,30,30,29,31,31,30,30,29,29,28,29,29,29,28,28,27,29,
+								 29,28,28,27,26,27,27,26,25,23,21,19,18,16,14,13,12,11,
+								 13,12,11,11,11,10,11,11,10,9, 9, 8, 10, 8, 8, 7, 6, 6,
+								 6, 6, 5, 3, 1, 0,-15,-42,-60};
+
+const int16_t RealUAList[81] = { 432,452,472,493,512,532,552,571,591,
+								 611,632,652,671,691,711,731,752,771,
+								 791,810,830,849,871,891,910,930,949,
+								 969,988,1009,1029,1049,1068,1088,1107,1129,
+								 1149,1168,1188,1207,1226,1247,1267,1286,1305,
+								 1323,1341,1359,1378,1396,1414,1433,1452,1471,
+								 1493,1512,1531,1551,1571,1590,1611,1631,1650,
+								 1669,1689,1708,1730,1748,1768,1787,1806,1826,
+								 1846,1866,1885,1903,1921,1940,1945,1938,1940};
 
 /***************************全局变量*************************************/
-uint8_t ControllerID;               /* 控制器ID 通过拨码设置*/
+uint8_t ControllerID;           //控制器ID 通过拨码设置                           
+uint8_t	SaInput;                //拨码值
+								
+uint8_t LogicInput1;            //DI接口临时存储
+uint8_t	LogicInput2;            
+								
+int16_t AnalogInputuA[8];       //AI接口临时存储
                                 
-uint8_t	SaInput;
-								
-uint8_t LogicInput1;
-uint8_t	LogicInput2;
-								
-int16_t AnalogInputuA[8];
-
-sAIData pAnalogInputData[8] ; 
-uint8_t *pDigitalInputData[16] = {NULL};
-								
+sAIData AnalogInputData[AI_NUM];   //AI接口数据                            
+sDIData DigitalInputData[DI_NUM];  //DI接口数据
+	
 /*****************************************************************
 *函数声明
 ******************************************************************/
-static void AppInputIOInit(void);
-static uint32_t AppInputAnalogSampling(void);
-static int16_t AppInputCalibrateuA(int16_t uA);
-static int16_t AppInputAnalogToUA(uint32_t Input);
-static uint8_t AppInputGet4051Channel(void);
-static void AppInputSet4051Channel(uint8_t Channel);
-static void AppInputReceive(void);
+static void     vInputIOInit(void);
+                
+static uint32_t ulAnalogInputSampling(void);
+static int16_t  sAnalogInputCalibrateuA(int16_t s10_uA);
+static int16_t  sAnalogInputAnalogToUA(uint32_t ulSample);
+                
+static uint8_t  ucInputGet4051Channel(void);
+static void     vInputSet4051Channel(uint8_t ucChannel);
+                
+static void     vInputReceive(void);
+static uint32_t ulAnalogInputConvertToReal(int32_t lMin, int32_t lMax, int16_t s10_uA);
+
+static int16_t  sAnalogInputGetuA(uint8_t ucChannel);
+static uint8_t  ucDigitalInputGetBit(uint8_t ucDACNum, uint8_t ucBit);
+
+static uint8_t  ucSaInputConvertToID(void);
 
 /**************************************************************
-*@brief DI接口设置
+*@brief DI接口变量注册
 ***************************************************************/
-void AppDigitalInputConfig( uint8_t channel, uint8_t* value )
+void vDigitalInputRegister(uint8_t ucChannel, uint8_t* pvVal)
 {
-	if( (channel > 0) && (channel <= 15) && (value != NULL))
+	if( (ucChannel > 0) && (ucChannel <= DI_NUM) && (pvVal != NULL))
 	{
-		pDigitalInputData[channel-1] = value;
+		DigitalInputData[ucChannel-1].pvDIVal = pvVal;
 	}
 }
 
 /**************************************************************
-*@brief AI接口设置
+*@brief AI接口变量注册
 ***************************************************************/
-void AppAnalogInputConfig( uint8_t channel, int16_t min, int16_t max, void* value )
+void vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal)
 {
-	
-	if( (channel > 0) && (channel <= 8) && (value != NULL))
+	if( (ucChannel > 0) && (ucChannel <= AI_NUM) && (pvVal != NULL))
 	{
-		pAnalogInputData[channel-1].Max = max;
-		pAnalogInputData[channel-1].Min = min;
-		pAnalogInputData[channel-1].InputValue = value;
+		AnalogInputData[ucChannel-1].lMax    = lMax;
+		AnalogInputData[ucChannel-1].lMin    = lMin;
+		AnalogInputData[ucChannel-1].pvAIVal = pvVal;
 	}
 }
 
 /******************************************************************
 *@brief 输入量所有管脚初始化								
 ******************************************************************/
-static void AppInputIOInit(void)
+static void vInputIOInit(void)
 {
 	GPIO_Init();
 	
@@ -113,7 +125,7 @@ static void AppInputIOInit(void)
 *@brief  模拟输入采样函数，采7次，去除最大、最小值取平均	
 *@return 采样电流值
 ******************************************************************/
-static uint32_t AppInputAnalogSampling(void)
+static uint32_t ulAnalogInputSampling(void)
 {
 	uint8_t i, n;
 	uint32_t hits[7];											//存取7次采样值
@@ -125,17 +137,14 @@ static uint32_t AppInputAnalogSampling(void)
 	//连续采样7次，并求其中的最大值和最小值
 	for(i = 0; i < 7; i++)
 	{
-		n = 0;
-		
 		ADC_StartCmd(LPC_ADC, ADC_START_NOW);
 		
-		while ( ((ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_2, ADC_DATA_DONE)) == 0) &&  (n < 10) )
+		while ( (ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_2, ADC_DATA_DONE)) == 0)
 		{
-//			(void)OSTimeDlyHMSM(0, 0, 0, 1, OS_OPT_TIME_HMSM_STRICT, &err);
-//			n++;
 			//等待数据获取完毕
 		}
 		hits[i] = ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_2);
+        
 		if(i > 0)
 		{
 			if(1 == i)
@@ -161,36 +170,36 @@ static uint32_t AppInputAnalogSampling(void)
 }
 
 /******************************************************************
-*@brief  模拟量输入转换成实际的电流值，单位为100uA
+*@brief  模拟量输入转换成实际的电流值，单位为10uA  
 *@return 实际电流值								
 ******************************************************************/
-static int16_t AppInputAnalogToUA(uint32_t Input)
+static int16_t  sAnalogInputToUA(uint32_t ulSample)
 {
-	uint32_t VInput = 0;	//输入电压
-	int16_t uA = 0;
-	VInput = 100 * 3300 * Input / (0xFFF);  //12位采样 3.3v的参考电压  根据原理图计算
-	uA = (int16_t)(VInput /150);
+	uint32_t ulInput_V = 0;	   //参考电压
+	int16_t  s10_uA = 0;
+    
+	ulInput_V = 100 * 3300 * ulSample / (1<<12);  //12位采样 3.3v的参考电压  根据原理图计算  VInput / 3.3v  =  ulSample /4096
+	s10_uA = (int16_t)(ulInput_V /150);            // uA = VInput /150Ω  * 1000000
 
-	return uA;
+	return s10_uA;
 }
 
 /******************************************************************
 *@brief 获取当前输入通道							
 ******************************************************************/
-static uint8_t AppInputGet4051Channel(void)
+static uint8_t  ucInputGet4051Channel(void)
 {
-	uint32_t IOValve;
-	IOValve = GPIO_ReadValue(1);
-	return (uint8_t)(IOValve>>27 & 0x07);		//注意，类型强转优先级比位移运算高
+	uint32_t ulIOValue = GPIO_ReadValue(1); 
+	return (uint8_t)(ulIOValue>>27 & 0x07);		//注意，类型强转优先级比位移运算高
 }
 
 /******************************************************************
 *@brief 设置当前输入通道，通过设置74HC4051芯片的选择管脚
 *@param  channel	1~8
 ******************************************************************/
-static void AppInputSet4051Channel(uint8_t Channel)
+static void vInputSet4051Channel(uint8_t ucChannel)
 {
-	switch(Channel)
+	switch(ucChannel)
 	{
 		case 1:
 			GPIO_ClearValue(1, 0x07<<27);
@@ -231,12 +240,15 @@ static void AppInputSet4051Channel(uint8_t Channel)
 /******************************************************************
 *@brief 输入数据接收函数，包括拨码、数字量和模拟量								
 ******************************************************************/
-static void AppInputReceive(void)
+static void vInputReceive(void)
 {
-	int16_t i, ucMax, ucMin, n;
+	int16_t i, n;
+    
 	uint8_t SaInputTmp=0; 
 	uint8_t LogicInput1Tmp=0; 
 	uint8_t LogicInput2Tmp = 0;
+    
+    uint32_t ucMax, ucMin;
 	uint32_t AnalogInputTmp[8] = {0};
 	
 	OS_ERR err = OS_ERR_NONE;
@@ -245,10 +257,10 @@ static void AppInputReceive(void)
 	for(i = 0; i < 8; i++)
 	{
 		n = 0;
-		AppInputSet4051Channel( i+1 );   //输入通道设置
+		vInputSet4051Channel( i+1 );   //输入通道设置
 		
 		/* 等待4051设置完毕 */
-		while( (AppInputGet4051Channel() != i) && ( n < 10 ) )
+		while( (ucInputGet4051Channel() != i) && (n < 10) )
         {
 			(void)OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_HMSM_STRICT, &err);
 			n++;
@@ -258,64 +270,60 @@ static void AppInputReceive(void)
 		LogicInput1Tmp |= (uint8_t)(GPIO_ReadValue(0)>>29 & 1) << i;
 		LogicInput2Tmp |= (uint8_t)(GPIO_ReadValue(1)>>19 & 1) << i;
 				
-		AnalogInputTmp[i] = AppInputAnalogSampling();			
-		AnalogInputuA[i] = AppInputAnalogToUA(AnalogInputTmp[i]);		
+		AnalogInputTmp[i] = ulAnalogInputSampling();			
+		AnalogInputuA[i] = sAnalogInputToUA(AnalogInputTmp[i]);		
 	}
 	
 	SaInput = SaInputTmp;
 	LogicInput1 = LogicInput1Tmp;
 	LogicInput2 = LogicInput2Tmp;
 	
-	for(i = 0; i < 8; i++)
+	for(i = 0; i < AI_NUM; i++)
 	{
-		if( pAnalogInputData[i].InputValue  != NULL )
+		if( AnalogInputData[i].pvAIVal != NULL )
 		{
-			ucMax = pAnalogInputData[i].Max;
-			ucMin = pAnalogInputData[i].Min;
-			*((int16_t*)(pAnalogInputData[i].InputValue)) = AppGetAIRealValue( i+1, ucMin, ucMax);
+			*((int32_t*)(AnalogInputData[i].pvAIVal)) = ulAnalogInputGetRealVal(i+1);
 		}	
 	}
-	
-	for(i = 0; i < 15; i++)
+	for(i = 0; i < DI_NUM; i++)
 	{
-		if( pDigitalInputData[i] !=NULL )
+		if( DigitalInputData[i].pvDIVal !=NULL )
 		{
-			*(uint8_t*)pDigitalInputData[i] = AppGetDIRealValue( i+1 );
+			*(uint8_t*)(DigitalInputData[i].pvDIVal) = ucDigitalInputGetRealVal(i+1);
 		}
     }
+    ControllerID = ucSaInputConvertToID();
 }
-
 
 /******************************************************************
 *@brief  校准电流
-*@param  uA	电流值
+*@param  uA	电流值 单位10uA
 *@return 实际电流值								
 ******************************************************************/
-static int16_t AppInputCalibrateuA(int16_t uA)
+static int16_t sAnalogInputCalibrateuA(int16_t us10_uA)
 {
 	uint8_t i = 0;
 	int16_t delta = 0;
 	int16_t deltaMin = 0;
 	uint8_t deltaMinIndex = 0;
 
-	if (uA > RealUAList[0])
+	if (us10_uA > RealUAList[0])
 	{
-		deltaMin = uA - RealUAList[0];
+		deltaMin = us10_uA - RealUAList[0];
 	}
 	else
 	{
-		deltaMin = RealUAList[0] - uA;
+		deltaMin = RealUAList[0] - us10_uA;
 	}
-	
 	for (i = 0; i < 81; i++)
 	{
-		if (uA > RealUAList[i])
+		if (us10_uA > RealUAList[i])
 		{
-			delta = uA - RealUAList[i];
+			delta = us10_uA - RealUAList[i];
 		}
 		else
 		{
-			delta = RealUAList[i] - uA;
+			delta = RealUAList[i] - us10_uA;
 		}
 		
 		if(deltaMin > delta)
@@ -324,83 +332,75 @@ static int16_t AppInputCalibrateuA(int16_t uA)
 			deltaMinIndex = i;
 		}
 	}
-
-	return (uA - DeltaUAList[deltaMinIndex]);
+	return (us10_uA - DeltaUAList[deltaMinIndex]);
 }
-
 
 /******************************************************************
 *@brief 将AI输入转换成实际值*10
-*@param  min	量程最小值
-*@param  max	量程最大值
-*@param  uA	    电流值
+*@param  min	量程最小值 = 实际值*10
+*@param  max	量程最大值 = 实际值*10
+*@param  uA	    电流值  单位为10uA
 *@return 实际值	
 ******************************************************************/
-int16_t AppInputConvertToReal(int16_t min, int16_t max, int16_t uA)
+uint32_t ulInputConvertToReal(int32_t lMin, int32_t lMax, int16_t s10uA)
 {
-	int16_t uA_C = 0;
-	int16_t real = 0;
+	int16_t  s10uA_C = 0;
+	uint32_t ulReal = 0;
 
-	uA_C = AppInputCalibrateuA(uA);
-	if (uA_C >= 400)
+	s10uA_C = sAnalogInputCalibrateuA(s10uA);
+	if (s10uA_C >= 400)
 	{
-		real = (uA_C - 400) * (max - min) / (2000 - 400) + min;  //对应4~20mA
+		ulReal = (s10uA_C - 400) * (lMax - lMin) / (2000 - 400) + lMin;  //对应4~20mA
 	}
 	else
 	{
-		real = 0;
+		ulReal = 0;
 	}
-	return real;
+	return ulReal;
 }
 
 /******************************************************************
-*@brief 提取AI的电流值
-*@param  channel	AI通道  A1~A8
-*@return 实际电流值
+*@brief 提取AI的电流值 
+*@param  channel	  AI通道  A1~A8
+*@return 实际电流值   单位为10uA
 ******************************************************************/
-int16_t AppGetAIuA(uint8_t channel)
+int16_t sAnalogInputGetuA(uint8_t ucChannel)
 {
-	int16_t sRealuA = 0;
+	int16_t sReal10_uA = 0;
 	
-	if((channel > 0) && (channel <= 8))
+	if((ucChannel > 0) && (ucChannel <= AI_NUM))
 	{
-		switch(channel)
+        /*AI的定义与原理图不是一一对应，需参照原理图*/
+		switch(ucChannel)
 		{
 			case 1:			
-				sRealuA = AnalogInputuA[2];
-			break;
-				
+				sReal10_uA = AnalogInputuA[2];
+			     break;
 			case 2:	
-				sRealuA = AnalogInputuA[1];	
-			break;
-				
+				sReal10_uA = AnalogInputuA[1];	
+			    break;
 			case 3:	
-				sRealuA = AnalogInputuA[0];	
-			break;
-			
+				sReal10_uA = AnalogInputuA[0];	
+			    break;
 			case 4:	
-				sRealuA = AnalogInputuA[3];	
-			break;
-			
+				sReal10_uA = AnalogInputuA[3];	
+			    break;
 			case 5:	
-				sRealuA = AnalogInputuA[7];	
-			break;
-			
+				sReal10_uA = AnalogInputuA[7];	
+			    break;
 			case 6:	
-				sRealuA = AnalogInputuA[5];	
-			break;
-			
+				sReal10_uA = AnalogInputuA[5];	
+			    break;
 			case 7:	
-				sRealuA = AnalogInputuA[4];	
-			break;
-			
+				sReal10_uA = AnalogInputuA[4];	
+			    break;
 			case 8:	
-				sRealuA = AnalogInputuA[6];	
-			break;
+				sReal10_uA = AnalogInputuA[6];	
+			    break;
 			default:break;
 		}	
 	}
-	return sRealuA;
+	return sReal10_uA;
 }
 
 /******************************************************************
@@ -410,50 +410,18 @@ int16_t AppGetAIuA(uint8_t channel)
 *@param  max	    量程最大值
 *@return 实际值	
 ******************************************************************/
-int16_t AppGetAIRealValue(uint8_t channel, int16_t ucMin, int16_t ucMax)
+uint32_t ulAnalogInputGetRealVal(uint8_t ucChannel)
 {
-	int16_t sRealValue = 0;
+	uint32_t ulRealValue = 0;
 	
-	if((channel > 0) && (channel <= 8))
+	if((ucChannel > 0) && (ucChannel <= AI_NUM))
 	{
-		/*AI的定义与原理图不是一一对应，需参照原理图*/
-		switch(channel)
-		{
-			case 1:			
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[2]);
-			break;
-				
-			case 2:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[1]);	
-			break;
-				
-			case 3:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[0]);	
-			break;
-			
-			case 4:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[3]);	
-			break;
-			
-			case 5:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[7]);	
-			break;
-			
-			case 6:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[5]);	
-			break;
-			
-			case 7:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[4]);	
-			break;
-			
-			case 8:	
-				sRealValue = AppInputConvertToReal(ucMin, ucMax, AnalogInputuA[6]);	
-			break;
-			default:break;
-		}	
+        uint32_t lMin = AnalogInputData[ucChannel-1].lMin;
+        uint32_t lMax = AnalogInputData[ucChannel-1].lMax;
+        
+        ulRealValue = ulInputConvertToReal(lMin, lMax, sAnalogInputGetuA(ucChannel));	
 	}
-	return sRealValue;
+	return ulRealValue;
 }
 
 /******************************************************************
@@ -463,146 +431,125 @@ int16_t AppGetAIRealValue(uint8_t channel, int16_t ucMin, int16_t ucMax)
 *@param  max	    量程最大值
 
 ******************************************************************/
-void AppSetAIRange(uint8_t channel, int16_t ucMin, int16_t ucMax)
+void vAnalogInputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 {
-	if( (channel > 0) && (channel <= 8)  )
+	if( (ucChannel > 0) && (ucChannel <= AI_NUM)  )
 	{
-		pAnalogInputData[channel-1].Max = ucMax;
-		pAnalogInputData[channel-1].Min = ucMin;
+		AnalogInputData[ucChannel-1].lMax = lMax;
+		AnalogInputData[ucChannel-1].lMin = lMin;
 	}
 }
 
 /******************************************************************
 *@brief 提取DI的值
-*@param  DACNum	    DAC通道  1或2
-*@param  bit	    偏移
+*@param  ucDACNum	    DAC通道  1或2
+*@param  ucBit	        偏移
 *@return 实际值	
 ******************************************************************/
-uint8_t AppGetDIBit(uint8_t DACNum, uint8_t bit)
+uint8_t ucDigitalInputGetBit(uint8_t ucDACNum, uint8_t ucOffsetBit)
 {
-	uint8_t uBit;
-	if (DACNum == 1)
+	if (ucDACNum == 1)
 	{
-		uBit = (LogicInput1 >> bit) & 0x01;
-	
+		return (LogicInput1 >> ucOffsetBit) & 0x01;
 	}
 	else
 	{
-		uBit = (LogicInput2 >> bit) & 0x01;
-		
-	}
-	
-	if(uBit)
-	{
-		return 0;
-	}
-	else
-	{
-		return 1;
+		return (LogicInput2 >> ucOffsetBit) & 0x01;
 	}
 }
 
 /******************************************************************
-*@brief 提取DI的值
+*@brief 提取DI实际值
 *@param  channel	DI通道  D1~D15
 ******************************************************************/
-uint8_t AppGetDIRealValue(uint8_t channel)
+uint8_t ucDigitalInputGetRealVal(uint8_t ucChannel)
 {
-	uint8_t uBit = 0;
+	uint8_t ucBit = 0;
 	
-	if ( (channel > 0) && (channel <= 15) )
+	if( (ucChannel > 0) && (ucChannel <= DI_NUM) )
 	{
-		switch (channel)
+		switch (ucChannel)
 		{
 			case 1:
-				uBit = AppGetDIBit(2, 4);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 4);
+			    break;
 			case 2:
-				uBit = AppGetDIBit(2, 6);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 6);
+			    break;
 			case 3:
-				uBit = AppGetDIBit(2, 2);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 2);
+			    break;
 			case 4:
-				uBit = AppGetDIBit(2, 1);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 1);
+			    break;
 			case 5:
-				uBit = AppGetDIBit(2, 0);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 0);
+			    break;
 			case 6:
-				uBit = AppGetDIBit(2, 3);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 3);
+			    break;
 			case 7:
-				uBit = AppGetDIBit(2, 5);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(2, 5);
+			    break;
 			case 8:
-				uBit = AppGetDIBit(1, 4);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 4);
+			    break;
 			case 9:
-				uBit = AppGetDIBit(1, 6);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 6);
+			    break;
 			case 10:
-				uBit = AppGetDIBit(1, 2);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 2);
+			    break;
 			case 11:
-				uBit = AppGetDIBit(1, 1);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 1);
+			    break;
 			case 12:
-				uBit = AppGetDIBit(1, 0);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 0);
+			    break;
 			case 13:
-				uBit = AppGetDIBit(1, 3);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 3);
+			    break;
 			case 14:
-				uBit = AppGetDIBit(1, 7);
-			break;
-			
+				ucBit = ucDigitalInputGetBit(1, 7);
+			    break;
 			case 15:
-				uBit = AppGetDIBit(1, 5);
-			break;
+				ucBit = ucDigitalInputGetBit(1, 5);
+			    break;
 			default:break;
 		}
 	}
-    return uBit;
+    return ucBit;
 }
 
 /******************************************************************
 *@brief 提取拨码值								
 ******************************************************************/
-uint8_t AppGetSaInput(void)
+uint8_t ucGetSaInput(void)
 {
 	return SaInput;	
+}
+
+uint8_t ucGetControllerID(void)
+{
+    return ControllerID;
+}
+
+uint8_t ucSaInputConvertToID(void)
+{
+	return (~(((SaInput & 1) << 4) | ((SaInput & 2) >> 1) | ((SaInput & 4) >> 1) | (SaInput & 8) | ((SaInput & 16) >> 2))) & 31;
 }
 
 /******************************************************************
 *@brief 读取输入量任务函数							
 ******************************************************************/
-void AppInputReceiveTask(void *p_arg)
+void vInputReceiveTask(void *p_arg)
 {
 	OS_ERR err = OS_ERR_NONE;
 	
-	AppInputIOInit();
-	
+	vInputIOInit();
 	while(DEF_TRUE)
 	{
-		AppInputReceive();
-		
+		vInputReceive();	
 		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 	}
 }
-
-
-

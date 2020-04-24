@@ -4,9 +4,6 @@
 
 #define WATCHDOG_ENABLE 1
 
-
-void AppWatchDogInit(void);
-void AppWatchDogFeedTask(void * p_arg);
-
+void vWatchDogFeedTask(void * p_arg);
 
 #endif

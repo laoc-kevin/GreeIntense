@@ -25,15 +25,15 @@
 
 #include "my_rtt_printf.h"
 #include "lpc_clkpwr.h"
-
-#include "app_led.h"
 #include "app_config.h"
-#include "app_input.h"
-#include "app_segment.h"
-#include "app_modbus.h"
-#include "app_output.h"
-#include "app_rtc.h"
-#include "app_watchdog.h"
+
+#include "md_led.h"
+#include "md_input.h"
+#include "md_segment.h"
+#include "md_modbus.h"
+#include "md_output.h"
+#include "md_rtc.h"
+#include "md_watchdog.h"
 
 #include "mb.h"
 
@@ -241,14 +241,14 @@ static  void  AppTaskCreate (void)
 	
 	CPU_SR_ALLOC();
 
-	AppRTCInit();
+	vRTCInit();
 
 	OS_CRITICAL_ENTER();
 
     //IO输入数据接收任务
 	OSTaskCreate(&AppOutputSetTaskTCB,
-                  "AppOutputSetTask",
-                  AppOutputSetTask,
+                  "vOutputSetTask",
+                  vOutputSetTask,
                   0u,
                   APP_OUTPUT_SET_TASK_PRIO,
                   &AppOutputSetTaskStk[0u],
@@ -263,8 +263,8 @@ static  void  AppTaskCreate (void)
 
 	//IO输入数据接收任务
 	OSTaskCreate(&AppInputReceiveTaskTCB,
-                  "AppInputReceiveTask",
-                  AppInputReceiveTask,
+                  "vInputReceiveTask",
+                  vInputReceiveTask,
                   0u,
                   APP_INPUT_RECEIVE_TASK_PRIO,
                  &AppInputReceiveTaskStk[0u],
@@ -278,8 +278,8 @@ static  void  AppTaskCreate (void)
 				 
 	//数码管显示任务
 	OSTaskCreate(&AppSegmentTaskTCB,
-                  "AppSegmentTask",
-                  AppSegmentTask,
+                  "vSegmentTask",
+                  vSegmentTask,
                   0u,
                   APP_SEGMENT_TASK_PRIO,
                  &AppSegmentTaskStk[0u],
@@ -294,8 +294,8 @@ static  void  AppTaskCreate (void)
 #if WATCHDOG_ENABLE
 	//喂狗任务
 	OSTaskCreate(&AppWatchDogFeedTaskTCB,
-                  "AppWatchDogFeedTask",
-                  AppWatchDogFeedTask,
+                  "vWatchDogFeedTask",
+                  vWatchDogFeedTask,
                   0u,
                   APP_WATCHDOG_FEED_TASK_PRIO,
                  &AppWatchDogFeedTaskStk[0u],

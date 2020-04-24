@@ -49,7 +49,7 @@ typedef enum
 
 typedef struct                        /* 从栈接口定义  */
 {
-	const UART_Def*     psMBSlaveUart;         //从栈通讯串口结构
+	const sUART_Def*     psMBSlaveUart;         //从栈通讯串口结构
 	OS_TMR              sSlavePortTmr;         //从栈3.5字符间隔定时器
                         
 	eMBSlaveEventType   eQueuedEvent;          //从栈事件

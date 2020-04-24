@@ -1,7 +1,13 @@
-#ifndef APP_IO_H
-#define APP_IO_H
+#ifndef _MD_IO_H
+#define _MD_IO_H
 
 #include "includes.h"
+
+typedef enum
+{
+	OFF = 0,
+	ON  = 1
+}eCtrlEn;
 
 typedef struct
 {

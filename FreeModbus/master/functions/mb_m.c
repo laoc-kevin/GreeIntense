@@ -444,7 +444,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBMasterRegisterNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, UART_Def* psMasterUart, CHAR* pcMBPortName, 
+BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def* psMasterUart, CHAR* pcMBPortName, 
                            USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable)
 {
     sMBMasterPortInfo*   psMBPortInfo   = NULL;      //主栈硬件接口信息
@@ -660,7 +660,7 @@ sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Ad
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo)
+sMBSlaveDevInfo* psMBMasterRegistDev(const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo)
 {
     sMBSlaveDevInfo*   psMBDev    = NULL;
     sMBSlaveDevInfo*   psMBNewDev = NULL;

@@ -41,38 +41,38 @@ BOOL xMBMasterPortSerialInit( sMBMasterPortInfo* psMBPortInfo )     //初始化
      */
 	BOOL bInitialized = TRUE;
     
-    const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
-	ModbusUartInit(psMBMasterUart);
+    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	MB_UartInit(psMBMasterUart);
     
     return bInitialized;
 }
 
 void vMBMasterPortSerialEnable( sMBMasterPortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable)      
 {
-    const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
     UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
     
     if(xRxEnable)
 	{
          UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
-		 ModbusSendOrRecive(psMBMasterUart, UART_RX_EN);
+		 MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
 	}
 	else
 	{
 		 UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, DISABLE);    //开启关闭接收中断
-		 ModbusSendOrRecive(psMBMasterUart, UART_TX_EN);
+		 MB_SendOrRecive(psMBMasterUart, UART_TX_EN);
 	}
 
 	if(xTxEnable)
 	{
 		UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, ENABLE); 		//开启发送中断
-		ModbusSendOrRecive(psMBMasterUart, UART_TX_EN);
+		MB_SendOrRecive(psMBMasterUart, UART_TX_EN);
 		UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
 	}
 	else
 	{
 		UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, DISABLE); 		//关闭接收中断
-		ModbusSendOrRecive(psMBMasterUart, UART_RX_EN);
+		MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
 		UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
 	}
 	UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | 
@@ -81,7 +81,7 @@ void vMBMasterPortSerialEnable( sMBMasterPortInfo* psMBPortInfo, BOOL xRxEnable,
 
 void vMBMasterPortClose(sMBMasterPortInfo* psMBPortInfo)   //关闭串口
 {
-    const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
     UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE|UART_INTCFG_RBR, DISABLE);
 	UART_TxCmd(psMBMasterUart->ID, DISABLE);
 }
@@ -97,7 +97,7 @@ BOOL xMBMasterPortSerialPutByte(sMBMasterPortInfo* psMBPortInfo, CHAR ucByte)   
 //	l= (l<10)? l+48: l+87;	
 	
 //    myprintf("TX:%c%c\n", h,l);
-	const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
     UART_SendByte(psMBMasterUart->ID, ucByte);
     return TRUE;
 }
@@ -106,7 +106,7 @@ BOOL xMBMasterPortSerialGetByte(const sMBMasterPortInfo* psMBPortInfo, CHAR * pu
 {
 //	UCHAR h;
 //	UCHAR l;
-	const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
     *pucByte = UART_ReceiveByte(psMBMasterUart->ID);
 //	
 //	h=(* pucByte )>> 4 ;

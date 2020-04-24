@@ -10,11 +10,11 @@
 
 //extern uint8_t ControllerID;
 
-void AppMbSlavePollTask(void *p_arg);
-void AppMbSlaveUartTxTask(void *p_arg);
+void vMBSlavePollTask(void *p_arg);
+void vMBSlaveUartTxTask(void *p_arg);
 
-void AppMbMasterPollTask(void *p_arg);
-void AppMbScanSlaveTask(void *p_arg);
-void AppMbScanWriteSlaveTask(void *p_arg);
+void vMBMasterPollTask(void *p_arg);
+void vMBScanSlaveTask(void *p_arg);
+void vMBScanWriteSlaveTask(void *p_arg);
 
 #endif

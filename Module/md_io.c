@@ -1,4 +1,5 @@
-#include "app_io.h"
+#include "md_io.h"
+
 //敏捷群控管脚配置
 const IODef LedMCU 		= {1, 31};	//MCU_WORK
 const IODef LedModbus1 	= {3, 26};	//RS485_LED1

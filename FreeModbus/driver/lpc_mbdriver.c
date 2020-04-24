@@ -8,8 +8,8 @@
 #include "lpc_mbdriver.h"
 #include "lpc_Pinsel.h"
 
-#include "app_output.h"
-#include "app_led.h"
+#include "md_output.h"
+#include "md_led.h"
 
 #include "Port.h"
 #include <LPC407x_8x_177x_8x.h>
@@ -19,7 +19,7 @@
  * @param   *Uart   UART
  * @return	none
  *********************************************************************/
-void ModbusUartInit(const UART_Def *Uart)
+void MB_UartInit(const sUART_Def *Uart)
 {
 	uint8_t UartIntID = 0;  
 	UART_CFG_Type UARTCfg = Uart->UARTCfg;    //Uart串口基本设置
@@ -83,7 +83,7 @@ void ModbusUartInit(const UART_Def *Uart)
  * 					1：发送
  * @return	none
  *********************************************************************/
-void ModbusSendOrRecive(const UART_Def *Uart, UART_EN mode)
+void MB_SendOrRecive(const sUART_Def *Uart, eUART_EN mode)
 {
 	GPIO_SetDir(Uart->DE->Port, 1<<Uart->DE->Pin , 1);
 	if(mode == UART_TX_EN)
@@ -103,7 +103,7 @@ void ModbusSendOrRecive(const UART_Def *Uart, UART_EN mode)
  * @param   StartIndex   开始位置
  * @return	uint16_t      校验值
  *********************************************************************/
-uint16_t ModbusCRCCalc(const uint8_t *Data,uint8_t StartIndex, uint16_t DataSize)			//CRC校验码计算函数
+uint16_t MB_CRCCalc(const uint8_t *Data,uint8_t StartIndex, uint16_t DataSize)			//CRC校验码计算函数
 {
 	uint8_t i = 0;
 	uint8_t j = 0;

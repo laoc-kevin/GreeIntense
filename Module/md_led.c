@@ -1,17 +1,17 @@
 #include "lpc_gpio.h"
 #include "lpc_clkpwr.h"
-#include "app_led.h"
+#include "md_led.h"
 #include "lpc_pinsel.h"
 #include <os.h>
 #include <my_rtt_printf.h>
-#include "app_modbus.h"
+
 
 /**********************************************************************
  * @brief   初始化所有led，包括LedModbus1,LedModbus2,LedCAN,LedMCU
  * @param   NONE
  * @return	NONE
  *********************************************************************/ 
-void AppLedInit(void)
+void vLedInit(void)
 {
 	GPIO_Init();
 	
@@ -36,7 +36,7 @@ void AppLedInit(void)
  * @param   led   LED接口
  * @return	NONE
  *********************************************************************/
-void AppLedOn(const IODef* led)
+void vLedOn(const IODef* led)
 {
 	GPIO_ClearValue(led->Port, 1<<led->Pin);
 }
@@ -46,7 +46,7 @@ void AppLedOn(const IODef* led)
  * @param   led   LED接口
  * @return	NONE
  *********************************************************************/
-void AppLedOff(const IODef* led)
+void vLedOff(const IODef* led)
 {
 	GPIO_SetValue(led->Port, 1<<led->Pin);
 }
@@ -58,7 +58,7 @@ void AppLedOff(const IODef* led)
  * 					1:开LED
  * @return	NONE
  *********************************************************************/
-void LedStateChange(const IODef* ledName,uint8_t state)
+void vLedStateChange(const IODef* ledName,uint8_t state)
 {
 	if(state)
 	{

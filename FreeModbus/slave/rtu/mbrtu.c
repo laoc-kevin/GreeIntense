@@ -57,7 +57,7 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
     ULONG           usTimerT35_50us;
 
     sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
-	const UART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
     ENTER_CRITICAL_SECTION();
 
@@ -93,7 +93,6 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
         }
     }
     EXIT_CRITICAL_SECTION();
-
     return eStatus;
 }
 

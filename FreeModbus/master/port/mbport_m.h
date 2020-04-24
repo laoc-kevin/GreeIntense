@@ -41,7 +41,7 @@ typedef enum
 
 typedef struct                                /* 主栈接口定义  */
 {
-	const UART_Def* psMBMasterUart;               //主栈通讯串口结构
+	const sUART_Def* psMBMasterUart;               //主栈通讯串口结构
 	
 	OS_TMR sMasterPortTmr;                        //主栈3.5字符间隔定时器
     OS_TMR sConvertDelayTmr;                      //主栈转换延时定时器

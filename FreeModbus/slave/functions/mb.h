@@ -466,7 +466,7 @@ eMBErrorCode eMBSlaveWriteCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffe
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Slave
  *************************************************************************/
-BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, UART_Def* psSlaveUart, CHAR* pcMBPortName, 
+BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
                            USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio);
 
 sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName);

@@ -490,7 +490,8 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish( sMBMasterPortInfo* psMBPortInfo 
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Master
  *************************************************************************/
-BOOL vMBMasterRegisterNode(sMBMasterInfo* psMBMasterInfo);
+BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def* psMasterUart, CHAR* pcMBPortName, 
+                           USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable);
 
 sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName);
 									 
@@ -503,11 +504,11 @@ void vMBMasterPollTask(void *p_arg);
  *! \ingroup modbus
  *\brief These functions are for Modbus Master slave device state
  *************************************************************************/
-sMBSlaveDevInfo* psMBMasterRegisterDev( const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo); 
+sMBSlaveDevInfo* psMBMasterRegistDev(const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo); 
  
-sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
+sMBSlaveDevInfo* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
 
-BOOL xMBMasterRemoveDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
+BOOL xMBMasterRemoveDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
 
 /************************************************************************! 
  *! \ingroup modbus

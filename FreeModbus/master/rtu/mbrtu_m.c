@@ -63,7 +63,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
     ULONG           usTimerT35_50us;
 	
     sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
-	const UART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
 	
     ENTER_CRITICAL_SECTION();
 

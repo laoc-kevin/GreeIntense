@@ -32,31 +32,31 @@
 /* ----------------------- Start implementation -----------------------------*/
 void vMBSlavePortSerialEnable( sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable )
 {
-    const UART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
 	UART_FIFOReset(psMBSlaveUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
 	if(xRxEnable)
 	{
          UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
-		 ModbusSendOrRecive(psMBSlaveUart, UART_RX_EN);
+		 MB_SendOrRecive(psMBSlaveUart, UART_RX_EN);
 	}
 	else
 	{
 		 UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_RBR, DISABLE);    //关闭接收中断
-		 ModbusSendOrRecive(psMBSlaveUart, UART_TX_EN);
+		 MB_SendOrRecive(psMBSlaveUart, UART_TX_EN);
 		
 	}
 
 	if(xTxEnable)
 	{
 		UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_THRE, ENABLE); 	   //开启发送中断
-		ModbusSendOrRecive(psMBSlaveUart, UART_TX_EN);
+		MB_SendOrRecive(psMBSlaveUart, UART_TX_EN);
 		UART_TxCmd(psMBSlaveUart->ID, ENABLE);                           //UART中断
 	}
 	else
 	{
 		UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_THRE, DISABLE); 	//关闭接收中断
-		ModbusSendOrRecive(psMBSlaveUart, UART_RX_EN);
+		MB_SendOrRecive(psMBSlaveUart, UART_RX_EN);
 		UART_TxCmd(psMBSlaveUart->ID, DISABLE);                           
 	}
 	UART_FIFOReset(psMBSlaveUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
@@ -65,7 +65,7 @@ void vMBSlavePortSerialEnable( sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, B
 
 void vMBSlavePortClose(sMBSlavePortInfo* psMBPortInfo)
 {
-    const UART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
 	UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_THRE|UART_INTCFG_RBR, DISABLE);
 	UART_TxCmd(psMBSlaveUart->ID, DISABLE);
@@ -74,9 +74,9 @@ void vMBSlavePortClose(sMBSlavePortInfo* psMBPortInfo)
 BOOL xMBSlavePortSerialInit(sMBSlavePortInfo* psMBPortInfo)
 {	
 	BOOL bInitialized = TRUE;
-    const UART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
-	ModbusUartInit(psMBSlaveUart);
+	MB_UartInit(psMBSlaveUart);
     return bInitialized;
 }
 
@@ -86,7 +86,7 @@ xMBSlavePortSerialPutByte(sMBSlavePortInfo* psMBPortInfo, CHAR ucByte )
 //	UCHAR h;
 //	UCHAR l;
     
-	const UART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
 //	h=ucByte >> 4 ;
 //	l=ucByte % 16 ;	
@@ -103,7 +103,7 @@ BOOL xMBSlavePortSerialGetByte(sMBSlavePortInfo* psMBPortInfo, CHAR* pucByte)
 {
 //	UCHAR h;
 //	UCHAR l;
-	const UART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
 	

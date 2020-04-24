@@ -45,7 +45,7 @@
 #include "mbfunc.h"
 #include "mbport.h"
 #include "user_mb_map.h"
-#include "app_led.h"
+#include "md_led.h"
 
 #if MB_SLAVE_RTU_ENABLED == 1
 #include "mbrtu.h"
@@ -397,7 +397,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
 
         case EV_FRAME_RECEIVED:                    //接收到一帧数据，此事件发生
 
-			AppLedOn(&LedModbus2);
+			vLedOn(&LedModbus2);
 		
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0	
             /*CRC校验、提取地址、有效数据指针和有效数据长度*/
@@ -425,7 +425,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 }
             }     
 #endif  
-//			AppLedOff( &LedModbus2 );
+//			vLedOff( &LedModbus2 );
 		break;
 			
         case EV_EXECUTE:
@@ -445,7 +445,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode )
                 {
                     eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength ); //该结构体将功能码和相应功能的处理函数捆绑在一起。 
-                    AppLedOn(&LedModbus2);
+                    vLedOn(&LedModbus2);
                     break;                                                            
                 }
             }
@@ -478,7 +478,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 }
                 else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode )
                 {
-					AppLedOn(&LedModbus2);
+					vLedOn(&LedModbus2);
                     
                 /*xFuncHandlers数组的成员为xMBFunctionHandler结构体,该结构体将功能码和相应功能的处理函数捆绑在一起*/
                     eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength ); 
@@ -500,7 +500,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
 
         case EV_FRAME_SENT:
 			vMBSlavePortSerialEnable(psMBPortInfo, TRUE, FALSE);      //使能接收，禁止发送
-		    AppLedOff(&LedModbus2);
+		    vLedOff(&LedModbus2);
         break;
 		
 		default: break;
@@ -516,7 +516,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, eMBMode eMode, UART_Def* psSlaveUart, CHAR* pcMBPortName, 
+BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
                            USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio)
 {
     sMBSlavePortInfo*   psMBPortInfo = NULL;   //从栈硬件接口信息
