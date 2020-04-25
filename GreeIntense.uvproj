@@ -546,6 +546,11 @@
               <FileType>1</FileType>
               <FilePath>.\Device\sensor.c</FilePath>
             </File>
+            <File>
+              <FileName>system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\system.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -595,6 +600,11 @@
               <FileName>md_watchdog.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Module\md_watchdog.c</FilePath>
+            </File>
+            <File>
+              <FileName>md_event.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Module\md_event.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -3,7 +3,16 @@
 
 #include "device.h"
 
-
+typedef struct   /*频率设备接口信息*/
+{
+    eFreqType  eFanFreqType;   //频率类型
+    uint16_t   usMaxFreq;      //频率上限 = 实际值*10
+    uint16_t   usMinFreq;      //频率下限 = 实际值*10
+    
+    uint8_t    ucFreq_AO;      //频率输出AO通道   
+    uint8_t    ucFreq_AI;      //频率输入AI通道
+    uint8_t    ucSwitch_DO;    //启停DO通道 
+}sFanInfo;
 
 ABS_CLASS(Fan)          /*风机抽象类*/ 
 {

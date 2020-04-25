@@ -8,9 +8,6 @@
 #include "md_output.h"
 #include "md_input.h"
 
-#define  TRUE       1;
-#define  FALSE      0;
-
 typedef uint8_t BOOL;
 
 typedef unsigned char UCHAR;
@@ -28,19 +25,6 @@ typedef enum   /*频率类型*/
    VARIABLE_FREQ = 0,     //变频
    CONSTANT_FREQ = 1      //定频
 }eFreqType;
-
-typedef struct   /*频率设备接口信息*/
-{
-    eFreqType  eFanFreqType;   //频率类型
-    uint16_t   usMaxFreq;      //频率上限 = 实际值*10
-    uint16_t   usMinFreq;      //频率下限 = 实际值*10
-    
-    uint8_t    ucFreq_AO;      //频率输出AO通道   
-    uint8_t    ucFreq_AI;      //频率输入AI通道
-    uint8_t    ucSwitch_DO;    //启停DO通道 
-    
-}sFreqInfo;
-
 
 typedef struct  /*设备模拟量接口类型*/
 {
@@ -61,7 +45,7 @@ INTERFACE(IDevSwitch)    /*设备启停接口*/
     void     (*switchOpen)(void* pt);        //开启
     void    (*switchClose)(void* pt);        //关闭
     
-    void   (*registSwitch_IO)(void* pt, uint8_t ucSwitch_DO);                         //注册启停接口
+    void   (*registSwitch_IO)(void* pt, uint8_t ucSwitch_DO);                    //注册启停接口
     void  (*registSwitch_IOs)(void* pt, uint8_t ucOpen_DO, uint8_t ucClose_DO);  //注册开启和关闭接口，针对双接口
 };
 
