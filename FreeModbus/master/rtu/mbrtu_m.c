@@ -42,7 +42,7 @@
 #include "mbframe.h"
 #include "mbconfig.h"
 
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 
 #if MB_MASTER_RTU_ENABLED > 0
 

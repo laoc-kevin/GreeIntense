@@ -35,7 +35,7 @@
 #include "mbport_m.h"
 #include "mbproto.h"
 #include "mbframe.h"
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C

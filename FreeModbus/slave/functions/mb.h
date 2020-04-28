@@ -35,7 +35,7 @@
 #include "mbport.h"
 #include "mbproto.h"
 #include "mbframe.h"
-#include "user_mb_dict.h"
+#include "mbdict.h"
 
 
 #ifdef __cplusplus

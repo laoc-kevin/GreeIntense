@@ -44,7 +44,7 @@
 #include "mbproto.h"
 #include "mbfunc.h"
 #include "mbport.h"
-#include "user_mb_map.h"
+#include "mbmap.h"
 #include "md_led.h"
 
 #if MB_SLAVE_RTU_ENABLED == 1

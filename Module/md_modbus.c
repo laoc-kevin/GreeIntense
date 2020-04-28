@@ -18,7 +18,7 @@
 #include "mbrtu_m.h"
 #include "mbfunc_m.h"
 
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 #include "user_mb_scan_m.h"
 
 #include "port.h"

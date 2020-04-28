@@ -2,7 +2,7 @@
 #define _USER_MB_MAP_H
 
 #include "mb.h"
-#include "user_mb_dict.h"
+#include "mbdict.h"
 
 eMBErrorCode 
 eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usAddress, sMBSlaveRegData** pvRegInValue);

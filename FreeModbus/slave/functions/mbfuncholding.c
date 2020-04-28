@@ -41,8 +41,8 @@
 #include "mbproto.h"
 #include "mbconfig.h"
 #include "mbutils.h"
-#include "user_mb_dict.h"
-#include "user_mb_map.h"
+#include "mbdict.h"
+#include "mbmap.h"
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
