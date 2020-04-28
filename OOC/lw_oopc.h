@@ -172,5 +172,8 @@ void type##_ctor(type* cthis) {
 	SUB_PTR(SUB_PTR_2(selfptr, self, child, grandchild), grandchild, greatgrandchild)
 
 #define INHERIT_FROM(father, cthis, field)	cthis->father.field
-
+ 
+#define SIGNAL(type) \
+struct type
+   
 #endif

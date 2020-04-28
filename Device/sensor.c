@@ -1,17 +1,19 @@
 #include "sensor.h"
 
-/*****************************传感器抽象类****************************/
-void vSensor_init(void* pt, const sMBMasterInfo* psMBMasterInfo)
+/*************************************************************
+*                         传感器                             *
+**************************************************************/
+void vSensor_init(Sensor* pt, const sMBMasterInfo* psMBMasterInfo)
 {
-    Sensor* pThis = (Sensor*)pt;
+    IDevCom* pThis = SUPER_PTR(pt, IDevCom);
     
-    pThis->IDevCom.initCommDevData(pThis);                 //初始化设备通讯数据表   
-    pThis->IDevCom.registCommDev(pThis, psMBMasterInfo);   //向通讯主栈中注册设备
+    pThis->initCommDevData(pThis);               //初始化设备通讯数据表   
+    pThis->registCommDev(pThis, psMBMasterInfo); //向通讯主栈中注册设备
 }
 
-void vSensor_registCommDev(void* pt, const sMBMasterInfo* psMBMasterInfo)
+void vSensor_registCommDev(IDevCom* pt, const sMBMasterInfo* psMBMasterInfo)
 {
-    Sensor* pThis = (Sensor*)pt;
+    Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
     
     if(pThis->psDevDataInfo != NULL)
     {
@@ -26,10 +28,12 @@ ABS_CTOR(Sensor)  //传感器抽象类构造函数
 END_CTOR
 
 
-/*****************************CO2传感器****************************/
-void vCO2Sensor_initCommDevData(void* pt)
+/*************************************************************
+*                         CO2传感器                          *
+**************************************************************/
+void vCO2Sensor_initCommDevData(IDevCom* pt)
 {
-    
+   Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
 }
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
@@ -38,14 +42,15 @@ CTOR(CO2Sensor)   //CO2传感器构造函数
 END_CTOR
 
 
-
-/*****************************温湿度传感器****************************/
-void vTempHumiSensor_initCommDevData(void* pt)
+/*************************************************************
+*                         温湿度传感器                       *
+**************************************************************/
+void vTempHumiSensor_initCommDevData(IDevCom* pt)
 {
-    
+   Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
 }
 
-CTOR(TempHumiSensor)   //CO2传感器构造函数
+CTOR(TempHumiSensor)   //温湿度传感器构造函数
     SUPER_CTOR(Sensor);
     FUNCTION_SETTING(Sensor.IDevCom.initCommDevData, vTempHumiSensor_initCommDevData);
 END_CTOR

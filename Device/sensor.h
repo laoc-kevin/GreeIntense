@@ -19,7 +19,7 @@ ABS_CLASS(Sensor)          /*传感器*/
     sMBSlaveDevDataInfo* psDevDataInfo;  //通讯数据表
     sMBSlaveDevInfo*     psDevInfo;      //通讯设备信息
     
-    void (*init)(void* pt, const sMBMasterInfo* psMBMasterInfo);
+    void (*init)(Sensor* pt, const sMBMasterInfo* psMBMasterInfo);
 };
 
 CLASS(CO2Sensor)          /*CO2传感器*/  
@@ -41,7 +41,10 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
     
     uint16_t     usMaxHumi;        //量程上限 = 实际值*10
     uint16_t     usMinHumi;        //量程下限 = 实际值*10
-    uint16_t     usHumi;           //实际值     
+    uint16_t     usHumi;           //实际值  
+
+    SIGNAL(D){uint16_t A;} G;
+    
 };
 
 

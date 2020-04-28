@@ -3,7 +3,7 @@
 
 #include "device.h"
 
-typedef struct   /*频率设备接口信息*/
+typedef struct   /*风机设备信息*/
 {
     eFreqType  eFanFreqType;   //频率类型
     uint16_t   usMaxFreq;      //频率上限 = 实际值*10
@@ -19,7 +19,7 @@ ABS_CLASS(Fan)          /*风机抽象类*/
     EXTENDS(Device);
     eFreqType  eFanFreqType;      //风机频率类型
   
-    void (*init)(void* pt, eFreqType eFanFreqType);
+    void (*init)(Fan* pt, eFreqType eFanFreqType);
 };
 
 CLASS(SupAirFan)          /*送风风机*/ 

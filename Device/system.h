@@ -3,6 +3,21 @@
 #include "sensor.h"
 #include "modularRoof.h"
 
+typedef struct   /*系统信息*/
+{
+    const sMBMasterInfo* psMBMasterInfo;       //通讯主栈
+    
+    uint8_t              ucModularRoofNum;     //屋顶机数量
+    uint8_t              ucExAirFanNum;        //排风机数量
+    uint8_t              ucCO2SenNum;          //CO2传感器数量
+    uint8_t              ucTempHumiSenNum;     //温湿度传感器数量
+    
+    OS_PRIO              ucPrio;               //内部任务优先级   
+    CPU_STK_SIZE         ucStackSize;          //任务堆栈大小 
+}sSystemInfo;
+
+
+
 CLASS(System)   /*系统*/
 {
     EXTENDS(AirUnit);         //继承机组抽象类*
@@ -26,7 +41,6 @@ CLASS(System)   /*系统*/
          
     uint8_t              ucExAirFanNum;       //排风机数量
     ExAirFan**           psExAirFanList;      //排风机列表
-   
 
     uint8_t              ucModularRoofNum;    //屋顶机数量
     ModularRoof**        psModularRoofList;   //屋顶机列表
@@ -40,9 +54,10 @@ CLASS(System)   /*系统*/
     sMBSlaveDevDataInfo* psDevDataInfo;       //通讯数据表
     sMBSlaveDevInfo*     psDevInfo;           //通讯设备信息
     
-    BOOL   (*init)(void* pt, const sMBMasterInfo* psMBMasterInfo, uint8_t ucModularRoofNum, 
-                  uint8_t ucExAirFanNum, uint8_t ucCO2SenNum, uint8_t ucTempHumiSenNum);
+    sDevTaskInfo*        psTaskInfo;          //设备内部任务信息 
     
-    void (*registDev)(void* pt, void* pvDev, uint8_t ucDevNum, const char* pcDevType);
-       
+    BOOL   (*init)(System* pt, sSystemInfo* psSysInfo);
+    
+    void (*registDev)(System* pt, void* pvDev, uint8_t ucDevNum, const char* pcDevType);
+    
 };

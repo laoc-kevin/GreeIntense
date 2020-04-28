@@ -512,6 +512,11 @@
           <GroupName>Device</GroupName>
           <Files>
             <File>
+              <FileName>compressor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\compressor.c</FilePath>
+            </File>
+            <File>
               <FileName>modularRoof.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Device\modularRoof.c</FilePath>
@@ -525,21 +530,6 @@
               <FileName>fan.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Device\fan.c</FilePath>
-            </File>
-            <File>
-              <FileName>compressor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\compressor.c</FilePath>
-            </File>
-            <File>
-              <FileName>animal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\animal.c</FilePath>
-            </File>
-            <File>
-              <FileName>animalTest.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\animalTest.c</FilePath>
             </File>
             <File>
               <FileName>sensor.c</FileName>

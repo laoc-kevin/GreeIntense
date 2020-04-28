@@ -1,8 +1,9 @@
 #include "fan.h"
 
-/*****************************风机*****************************/
-
-void vFan_init(void* pt, eFreqType eFreqType)
+/*************************************************************
+*                         风机                               *
+**************************************************************/
+void vFan_init(Fan* pt, eFreqType eFreqType)
 {
     Fan* pThis = (Fan*)pt;    
     pThis->eFanFreqType = eFreqType;
@@ -14,46 +15,28 @@ ABS_CTOR(Fan)  //风机构造函数
 END_CTOR
 
 
-/****************************送风机****************************/
+
+/*************************************************************
+*                         送风机                             *
+**************************************************************/
 CTOR(SupAirFan)    //送风机构造函数
 
 END_CTOR
 
 
-/*****************************排风机*****************************/ 
-void vExAirFan_init(void* pt, sFanInfo* psFan)
-{
-    ExAirFan* pThis    = (ExAirFan*)pt;
 
-    pThis->Fan.init(pThis, psFan->eFanFreqType);    
-    pThis->IDevSwitch.registSwitch_IO(pThis, psFan->ucSwitch_DO);
-    pThis->IDevFreq.registFreq_IO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
-}
-
-
+/*************************************************************
+*                         排风机                             *
+**************************************************************/
 /*注册风机启停接口*/
-void vExAirFan_registSwitchIO(void* pt, uint8_t ucSwitch_DO)
+void vExAirFan_registSwitchIO(ExAirFan* pt, uint8_t ucSwitch_DO)
 {
     ExAirFan* pThis    = (ExAirFan*)pt;  
     pThis->sSwitch_DO.ucChannel = ucSwitch_DO;
 }
 
-/*开启风机*/
-void vExAirFan_switchOpen(void* pt)    
-{
-    ExAirFan* pThis = (ExAirFan*)pt;
-    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, ON);  //输出开启,继电器闭合
-}
-
-/*关闭风机*/
-void vExAirFan_switchClose(void* pt)   
-{
-    ExAirFan* pThis = (ExAirFan*)pt;
-    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, OFF); //输出关闭，继电器断开
-}
-
 /*注册风机频率接口*/
-void vExAirFan_registFreqIO(void* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq)
+void vExAirFan_registFreqIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
 
@@ -77,10 +60,37 @@ void vExAirFan_registFreqIO(void* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint
     }   
 }
 
-/*设置频率*/
-void vExFan_setFreq(void* pt, uint16_t usFreq)   
+/*排风机初始化*/
+void vExAirFan_init(ExAirFan* pt, sFanInfo* psFan)
 {
-    ExAirFan* pThis = (ExAirFan*)pt;
+    ExAirFan* pThis    = (ExAirFan*)pt;
+    Fan*      pFan     = SUPER_PTR(pThis, Fan);  //向上转型
+    
+    pThis->Fan.init(pFan, psFan->eFanFreqType);  
+    
+    vExAirFan_registSwitchIO(pThis, psFan->ucSwitch_DO);
+    vExAirFan_registFreqIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
+}
+
+/*开启风机*/
+void vExAirFan_switchOpen(IDevSwitch* pt)    
+{
+    ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
+    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, ON);  //输出开启,继电器闭合
+}
+
+/*关闭风机*/
+void vExAirFan_switchClose(IDevSwitch* pt)   
+{
+     ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
+    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, OFF); //输出关闭，继电器断开
+}
+
+
+/*设置频率*/
+void vExFan_setFreq(IDevFreq* pt, uint16_t usFreq)   
+{
+    ExAirFan* pThis = SUB_PTR(pt, IDevFreq, ExAirFan);
     
     if(pThis->Fan.eFanFreqType == VARIABLE_FREQ)
     {
@@ -90,9 +100,9 @@ void vExFan_setFreq(void* pt, uint16_t usFreq)
 }
 
 /*设置频率上下限*/
-void vExFan_setFreqRange(void* pt, uint16_t usMinFreq, uint16_t usMaxFreq) 
+void vExFan_setFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq) 
 {
-    ExAirFan* pThis = (ExAirFan*)pt;
+    ExAirFan* pThis = SUB_PTR(pt, IDevFreq, ExAirFan);
     
     if(pThis->Fan.eFanFreqType == VARIABLE_FREQ)
     {
@@ -113,21 +123,19 @@ CTOR(ExAirFan)     //排风机构造函数
     SUPER_CTOR(Fan);
 
     FUNCTION_SETTING(IDevFreq.setFreq,            vExFan_setFreq);
-    FUNCTION_SETTING(IDevFreq.registFreq_IO,      vExAirFan_registFreqIO);
     FUNCTION_SETTING(IDevFreq.setFreqRange,       vExFan_setFreqRange);
 
-    FUNCTION_SETTING(IDevSwitch.registSwitch_IO,  vExAirFan_registSwitchIO);
     FUNCTION_SETTING(IDevSwitch.switchOpen,       vExAirFan_switchOpen);
     FUNCTION_SETTING(IDevSwitch.switchClose,      vExAirFan_switchClose);
 END_CTOR
 
 
-void vExFan_setRunning (void* pt, uint8_t ucFreq)
-{
-    ExAirFan* f = ExAirFan_new();
-    uint16_t freq = 10;
-    
-   
-//    f->Fan.Device.ucAlarmFlag;
-}
+//void vExFan_setRunning (void* pt, uint8_t ucFreq)
+//{
+//    ExAirFan* f = ExAirFan_new();
+//    uint16_t freq = 10;
+//    
+//   
+////    f->Fan.Device.ucAlarmFlag;
+//}
 

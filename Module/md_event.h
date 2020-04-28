@@ -5,18 +5,16 @@
 
 typedef struct sEvent /*设备模拟量接口类型*/
 {
-    void*           pvVal;     
+    OS_SEM*         psSem;     
     OS_TCB*         psTCB; 
-    int32_t         lValBuf;
-    uint8_t         ucEventNum;    
     struct sEvent*  pNext;
     struct sEvent*  pLast;    
 }sEvent;
 
 typedef struct  /*设备模拟量接口类型*/
 {
-    void*          pvVal;     
-    uint8_t        ucEventNum;
+    OS_SEM*        psSem; 
+    void*          pvArg;     
 }sMsg;
 
 

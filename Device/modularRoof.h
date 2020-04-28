@@ -27,7 +27,7 @@ ABS_CLASS(AirUnit)       /*空调机组抽象类*/
     uint8_t   ucSwitchMode;          //启停模式 
     uint8_t   ucStopErrFlag;         //停系统故障标志
     
-    void (*setRunningMode)(void* pt, eRunMode eRunMode);
+    void (*setRunningMode)(AirUnit* pt, eRunMode eRunMode);
     
 };
 
@@ -63,7 +63,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint8_t       ucCompNum;                //压缩机数量
     Compressor**  psCompList;               //压缩机列表
     
-    BOOL (*init)(void* pt, uint8_t ucSupAirFanNum, uint8_t ucCompNum);
+    BOOL (*init)(ModularRoof* pt, uint8_t ucSupAirFanNum, uint8_t ucCompNum);
 };
 
 
