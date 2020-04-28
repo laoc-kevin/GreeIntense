@@ -1,5 +1,5 @@
-#include "user_mb_map_m.h"
-#include "user_mb_dict_m.h"
+#include "mbmap_m.h"
+#include "mbdict_m.h"
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
 
@@ -18,7 +18,7 @@ eMBMasterReqErrCode eMBMasterRegInMap(const sMBMasterInfo* psMBMasterInfo, UCHAR
 	USHORT i;
 	
     eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable* psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
 
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
@@ -27,37 +27,16 @@ eMBMasterReqErrCode eMBMasterRegInMap(const sMBMasterInfo* psMBMasterInfo, UCHAR
         psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
         psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     } 
-   
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	
-	switch(psMBSlaveDevCur->ucProtocolID)
-	{
-		 case DTU247_PROTOCOL_TYPE_ID:	
-			    switch(usRegAddr)
-			    {
-			        case 12	:   i = 0 ;  break;
-                    case 59	:   i = 1 ;  break;
-                    case 60	:   i = 2 ;  break;
-                    case 61	:   i = 3 ;  break;
-                    case 62	:   i = 4 ;  break;
-                    case 63	:   i = 5 ;  break;
-         	
-	                default:
-			    		return MB_MRE_NO_REG;
-			    	break;
-			    }
-		break;
-		default: break;
-	}
-	
+    i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(RegInputData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
+    
 	*pvRegInValue = (sMasterRegInData*)(psRegInputBuf->pvDataBuf) + i; //指针赋值，这里传递的是个地址，指向目标寄存器所在数组位置
 	return eStatus;
 }
 #endif
-
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 \
     || MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_READWRITE_HOLDING_ENABLED > 0
@@ -76,9 +55,9 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(const sMBMasterInfo* psMBMasterInfo, 
 {
 	USHORT i;
     
-	eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
+	eMBMasterReqErrCode        eStatus  = MB_MRE_NO_ERR;
     sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*  psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
+    const sMBDevDataTable* psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
@@ -86,42 +65,12 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(const sMBMasterInfo* psMBMasterInfo, 
         psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
         psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     } 
-    
 	if( (psRegHoldBuf->pvDataBuf == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	
-	switch (psMBSlaveDevCur->ucProtocolID )
-	{
-		case DTU200_PROTOCOL_TYPE_ID:
-			switch(usRegAddr)
-			{
-		        case 0	 : i = 0  ; break;
-                case 1	 : i = 1  ; break;
-   
-				default:
-					return MB_MRE_NO_REG;
-				break;
-			}
-		break;
-		
-        case SEC_PROTOCOL_TYPE_ID:	
-			    switch(usRegAddr)
-			    {
-			        case 0	:   i = 0 ;  break;
-                    case 1	:   i = 1 ;  break;
-                    case 9	:   i = 2 ;  break;
-                    case 23	:   i = 3 ;  break;
-                    case 180:   i = 4 ;  break;
-
-	                default:
-			    		return MB_MRE_NO_REG;
-			    	break;
-			    }
-		break;			
-	    default: break;
-        }
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(RegHoldData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
+    
 	*pvRegHoldValue = (sMasterRegHoldData*)(psRegHoldBuf->pvDataBuf) + i ;
 	return eStatus;
 } 
@@ -145,7 +94,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(const sMBMasterInfo* psMBMasterInfo, UCHAR 
 	USHORT iRegIndex, iRegBitIndex, iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*     psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
@@ -158,37 +107,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(const sMBMasterInfo* psMBMasterInfo, UCHAR 
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	switch ( psMBSlaveDevCur->ucProtocolID )
-	{
-		case SEC_PROTOCOL_TYPE_ID:
-			switch(usCoilAddr)
-			{
-				case 17: i= 0;break;
-				case 33: i= 1;break;
-				case 37: i= 2;break;
-				case 38: i= 3;break;
-				case 43: i= 4;break;
-				
-				case 44: i= 5;break;
-				case 47: i= 6;break;
-				case 76: i= 7;break;
-				
-				case 77: i= 8;break;
-				case 78: i= 9;break;
-				case 79: i= 10;break;
-				case 80: i= 11;break;
-				case 81: i= 12;break;
-				case 82: i= 13;break;
-				case 83: i= 14;break;
-				case 84: i= 15;break;
-				case 85: i= 16;break;
-				default:
-					return MB_MRE_NO_REG;
-				break;
-			}
-		break;
-		default: break;
-	}
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(CoilData, psMBSlaveDevCur->ucProtocolID, usCoilAddr);  //字典映射函数
 	
 	*pvCoilValue = (sMasterBitCoilData*)(psCoilBuf->pvDataBuf) + i ; 	
 	return eStatus;
@@ -212,8 +131,8 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(const sMBMasterInfo* psMBMasterInfo, UC
 	USHORT iRegIndex, iRegBitIndex,iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*     psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable*   psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
@@ -225,20 +144,8 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(const sMBMasterInfo* psMBMasterInfo, UC
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	switch ( psMBSlaveDevCur->ucProtocolID )
-	{
-		case 0:
-			switch(usDiscreteAddr)
-			{
-				case 0: i= 0;break;
-				default:
-					return MB_MRE_NO_REG;
-				break;
-			}
-		break;
-			
-		default: break;
-	}
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr);  //字典映射函数
+    
 	*pvDiscreteValue = (sMasterBitDiscData*)(psDiscInBuf->pvDataBuf)  + i;
 	return eStatus;
 }    

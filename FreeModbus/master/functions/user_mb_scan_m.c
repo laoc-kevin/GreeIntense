@@ -2,7 +2,7 @@
 #include "mb_m.h"
 #include "mbframe.h"
 #include "mbfunc_m.h"
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 #include "user_mb_scan_m.h"
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0

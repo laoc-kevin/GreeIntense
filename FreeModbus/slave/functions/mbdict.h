@@ -3,6 +3,7 @@
 
 #include "port.h"
 #include "mbconfig.h"
+#include "mbframe.h"
 
 #define SLAVE_PROTOCOL_TYPE_ID    0
 
@@ -46,6 +47,8 @@ typedef struct   /* 从栈字典数据列表结构 */
     const USHORT       usDataCount;           //协议点位总数
 }sMBSlaveDataTable;
 
+typedef USHORT (*usMBSlaveDataMap)(eDataType eDataType, USHORT usAddr); //字典映射函数
+
 typedef struct            /* 从栈通讯字典数据结构 */  
 {
 	const sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
@@ -56,15 +59,15 @@ typedef struct            /* 从栈通讯字典数据结构 */
 #if MB_SLAVE_CPN_ENABLED > 0
     const sMBSlaveDataTable* const psMBCPNTable;         //CPN数据表 
 #endif   
+    usMBSlaveDataMap               psMBSlaveDataMap;     //从栈字典映射函数
     
-    const  UCHAR                   ucProtocolID;         //协议ID
 }sMBSlaveDataInfo; 
 
 typedef struct                 /* 从栈通讯参数信息 */   
 {
     UCHAR               ucSlaveAddr;                //从栈通讯地址
 	UCHAR               ucDataReady;                //数据是否准备好
-    UCHAR               ucProtocolID;               //协议ID
+
     sMBSlaveDataInfo*   psSlaveCurData;             //从栈当前数据域   
 }sMBSlaveCommInfo; 
 

@@ -40,8 +40,8 @@
 #include "mbproto.h"
 #include "mbframe.h"
 #include "mbutils.h"
-#include "user_mb_map.h"
-#include "user_mb_map.h"
+#include "mbmap.h"
+
 
 /* ----------------------- Defines ------------------------------------------*/
 #define BITS_UCHAR      8U

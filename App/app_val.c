@@ -1,6 +1,6 @@
 #include "stdint.h"
 #include "app_val.h"
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 /**************************************************************************/
 /* Declaration of mapped variables                                        */
 /**************************************************************************/

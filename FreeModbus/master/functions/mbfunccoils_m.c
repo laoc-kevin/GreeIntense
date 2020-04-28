@@ -42,7 +42,7 @@
 #include "mbconfig.h"
 #include "mbfunc_m.h"
 #include "mbutils_m.h"
-#include "user_mb_dict_m.h"
+#include "mbdict_m.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_REQ_READ_ADDR_OFF            ( MB_PDU_DATA_OFF + 0 )
