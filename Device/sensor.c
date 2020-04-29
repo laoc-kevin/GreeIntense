@@ -31,6 +31,12 @@ END_CTOR
 /*************************************************************
 *                         CO2传感器                          *
 **************************************************************/
+void vCO2Sensor_CommDevDataMap(IDevCom* pt)
+{
+   Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
+}
+
+
 void vCO2Sensor_initCommDevData(IDevCom* pt)
 {
    Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);

@@ -12,19 +12,19 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterRegInMap(const sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
+eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                       USHORT usRegAddr, sMasterRegInData ** pvRegInValue)
 {
 	USHORT i;
 	
     eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable* psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
 
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     } 
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
@@ -50,19 +50,19 @@ eMBMasterReqErrCode eMBMasterRegInMap(const sMBMasterInfo* psMBMasterInfo, UCHAR
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterRegHoldingMap(const sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
+eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                            USHORT usRegAddr, sMasterRegHoldData ** pvRegHoldValue)
 {
 	USHORT i;
     
 	eMBMasterReqErrCode        eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable* psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     } 
 	if( (psRegHoldBuf->pvDataBuf == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
@@ -87,20 +87,20 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(const sMBMasterInfo* psMBMasterInfo, 
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterCoilMap(const sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
+eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                      USHORT usCoilAddr, sMasterBitCoilData ** pvCoilValue)
 {
 	UCHAR i;
 	USHORT iRegIndex, iRegBitIndex, iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*     psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
     } 
 	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->pvDataBuf == 0)) //非空且数据点不为0
@@ -124,20 +124,20 @@ eMBMasterReqErrCode eMBMasterCoilMap(const sMBMasterInfo* psMBMasterInfo, UCHAR 
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterDiscreteMap(const sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
+eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                          USHORT usDiscreteAddr, sMasterBitDiscData ** pvDiscreteValue)
 {
 	UCHAR i;
 	USHORT iRegIndex, iRegBitIndex,iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*   psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
     } 
 	if( (psDiscInBuf->pvDataBuf == NULL) || (psDiscInBuf->usDataCount == 0)) //非空且数据点不为0

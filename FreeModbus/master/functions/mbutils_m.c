@@ -57,9 +57,8 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode
-xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
-                      USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
+eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
+                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;
@@ -146,9 +145,8 @@ xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode
-xMBMasterUtilGetBits( const sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, 
-	                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
+eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, 
+	                              USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
 	eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;

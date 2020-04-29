@@ -98,7 +98,7 @@ void vMBScanSlaveTask(void *p_arg)
     sMBSlaveDevInfo*       psMBSlaveDev = NULL;
     
 	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
-    sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;       //从设备状态信息
+    sMBMasterDevsInfo*     psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;       //从设备状态信息
     
     UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
@@ -338,7 +338,7 @@ eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
 void vMBScanSlaveDevice(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
-    sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;      //从设备列表
+    sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
     UCHAR               iSlaveAddr   = psMBSlaveDev->ucDevAddr;                 //通讯地址
     
     psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;   //当前从设备

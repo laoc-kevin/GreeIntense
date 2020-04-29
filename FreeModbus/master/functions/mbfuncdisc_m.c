@@ -70,10 +70,10 @@
 eMBMasterReqErrCode
 eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
 {
-    UCHAR                 *ucMBFrame;
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;    //从设备状态信息
+    UCHAR                   *ucMBFrame;
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -186,13 +186,13 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
     USHORT          DISCRETE_INPUT_START, DISCRETE_INPUT_END;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;          //从设备通讯协议表
 
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
     } 
     if( (psDiscreteBuf->pvDataBuf == NULL) || (psDiscreteBuf->usDataCount == 0)) //非空且数据点不为0
@@ -208,7 +208,7 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
 
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
     {
-		eStatus = xMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+		eStatus = eMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
 	}   
     else
     {

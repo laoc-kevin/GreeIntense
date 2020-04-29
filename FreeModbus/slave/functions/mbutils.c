@@ -58,7 +58,7 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode xMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
+eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
@@ -130,7 +130,7 @@ eMBErrorCode xMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode xMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
+eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
 	eMBErrorCode    eStatus = MB_ENOERR;

@@ -74,7 +74,7 @@ eMBErrorCode eMBSlaveCPNInit(sMBSlaveInfo* psMBSlaveInfo)
     ULONG           usTimerT35_50us;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo*  psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
 	const sUART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
     ENTER_CRITICAL_SECTION( );
@@ -128,7 +128,7 @@ eMBErrorCode eMBSlaveCPNInit(sMBSlaveInfo* psMBSlaveInfo)
  *********************************************************************/
 void eMBSlaveCPNStart(sMBSlaveInfo* psMBSlaveInfo)
 {
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION();              //关全局中断
     /* Initially the receiver is in the state STATE_RX_INIT. we start
@@ -151,7 +151,7 @@ void eMBSlaveCPNStart(sMBSlaveInfo* psMBSlaveInfo)
  *********************************************************************/
 void eMBSlaveCPNStop(sMBSlaveInfo* psMBSlaveInfo)
 {
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION( );
     
@@ -253,12 +253,11 @@ eMBSlaveCPNSend(sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr, UCHAR ucDestAddr,
 {
     /* 在 eMBCPNSend函数中会调用串口发送数据，在进入串口发送中断后会调用xMBCPNTransmitFSM
      * 发送状态机函数发送应答报文。*/
-
     USHORT            usCRC16;
     OS_ERR            err = OS_ERR_NONE;
     eMBErrorCode  eStatus = MB_ENOERR;
    
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION( );
     /* Check if the receiver is still in idle state. If not we where to
@@ -351,7 +350,7 @@ BOOL xMBSlaveCPNReceiveFSM(sMBSlaveInfo* psMBSlaveInfo)
     UCHAR             ucByte;
     
     BOOL              xTaskNeedSwitch = FALSE;
-    sMBSlavePortInfo*    psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     assert_param( eSndState == STATE_TX_IDLE );    //确保没有数据在发送
 
@@ -420,7 +419,7 @@ BOOL
 xMBSlaveCPNTransmitFSM(sMBSlaveInfo* psMBSlaveInfo)
 {
     BOOL                    xNeedPoll = FALSE;
-    sMBSlavePortInfo*    psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     assert_param( eRcvState == STATE_RX_IDLE );
 
@@ -465,7 +464,7 @@ BOOL
 xMBSlaveCPNTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
 {
     BOOL                    xNeedPoll = FALSE;
-	sMBSlavePortInfo*    psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+	sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     
     switch (psMBSlaveInfo->eRcvState)             //上报modbus协议栈的事件状态给poll函数
     {

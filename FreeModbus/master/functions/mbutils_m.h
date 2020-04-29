@@ -80,7 +80,7 @@ PR_BEGIN_EXTERN_C
  * \endcode
  */
 eMBErrorCode
-xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR * ucByteBuf,
+eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR * ucByteBuf,
                       USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
 
 /*! \brief Function to read bits in a byte buffer.
@@ -102,9 +102,8 @@ xMBMasterUtilSetBits( sMBMasterInfo* psMBMasterInfo, UCHAR * ucByteBuf,
  * ucResult = xMBUtilGetBits( ucBits, 3, 8 );
  * \endcode
  */
-eMBErrorCode
-xMBMasterUtilGetBits( const sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, 
-	                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
+eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, 
+	                              USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
 
 eMBException
 prveMBMasterError2Exception( eMBErrorCode eErrorCode );

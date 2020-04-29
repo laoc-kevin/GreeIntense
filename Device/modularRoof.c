@@ -21,8 +21,8 @@ BOOL xModularRoof_init(ModularRoof* pt, uint8_t ucSupAirFanNum, uint8_t ucCompNu
     pThis->ucSupAirFanNum = ucSupAirFanNum;
     pThis->ucCompNum      = ucCompNum;
     
-    pThis->psSupAirFanList = (SupAirFan**)  calloc(ucSupAirFanNum, sizeof(SupAirFan*));    //存储的是对象指针
-    pThis->psCompList      = (Compressor**) calloc(ucCompNum, sizeof(Compressor*));
+    pThis->psSupAirFanList = (SupAirFan**) calloc(ucSupAirFanNum, sizeof(SupAirFan*));    //存储的是对象指针
+    pThis->psCompList      = (Compressor**)calloc(ucCompNum, sizeof(Compressor*));
     
     if( (pThis->psSupAirFanList == NULL) || (pThis->psCompList == NULL) )
     {

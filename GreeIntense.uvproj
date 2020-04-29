@@ -541,6 +541,11 @@
               <FileType>1</FileType>
               <FilePath>.\Device\system.c</FilePath>
             </File>
+            <File>
+              <FileName>comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\comm.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -595,6 +600,11 @@
               <FileName>md_event.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Module\md_event.c</FilePath>
+            </File>
+            <File>
+              <FileName>md_dataMonitor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Module\md_dataMonitor.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -867,14 +877,9 @@
               <FilePath>.\FreeModbus\master\functions\mbutils_m.c</FilePath>
             </File>
             <File>
-              <FileName>user_mb_dict_m.c</FileName>
+              <FileName>mbmap_m.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\FreeModbus\master\functions\user_mb_dict_m.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_mb_map_m.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus\master\functions\user_mb_map_m.c</FilePath>
+              <FilePath>.\FreeModbus\master\functions\mbmap_m.c</FilePath>
             </File>
             <File>
               <FileName>user_mb_scan_m.c</FileName>
@@ -952,14 +957,9 @@
               <FilePath>.\FreeModbus\slave\port\mbporttimer.c</FilePath>
             </File>
             <File>
-              <FileName>user_mb_dict.c</FileName>
+              <FileName>mbmap.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\FreeModbus\slave\functions\user_mb_dict.c</FilePath>
-            </File>
-            <File>
-              <FileName>user_mb_map.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus\slave\functions\user_mb_map.c</FilePath>
+              <FilePath>.\FreeModbus\slave\functions\mbmap.c</FilePath>
             </File>
           </Files>
         </Group>

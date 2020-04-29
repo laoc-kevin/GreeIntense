@@ -370,7 +370,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     eMBErrorCode  eStatus = MB_ENOERR;
     
     sMBSlaveRegData *        pvRegHoldValue = NULL;
-	const sMBSlaveDataTable*   psRegHoldBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBRegHoldTable;  //从栈通讯协议表
+	const sMBSlaveDataTable*   psRegHoldBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBRegHoldTable;  //从栈通讯协议表
     
     REG_HOLDING_START = psRegHoldBuf->usStartAddr;
     REG_HOLDING_END = psRegHoldBuf->usEndAddr;

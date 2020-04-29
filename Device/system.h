@@ -1,3 +1,5 @@
+#ifndef _SYSTEM_H_
+#define _SYSTEM_H_
 
 #include "device.h"
 #include "sensor.h"
@@ -61,3 +63,5 @@ CLASS(System)   /*系统*/
     void (*registDev)(System* pt, void* pvDev, uint8_t ucDevNum, const char* pcDevType);
     
 };
+
+#endif
