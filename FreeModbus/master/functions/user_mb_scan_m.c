@@ -21,7 +21,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
     eMBMasterReqErrCode             eStatus = MB_MRE_NO_ERR;
     sMasterRegInData*       psRegInputValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;   //当前从设备
+    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;   //当前从设备
     const sMBDevDataTable*   psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;         //从设备通讯协议表
 
     iLastAddr = 0;
@@ -31,7 +31,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     }
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
@@ -107,7 +107,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 	eMBMasterReqErrCode            eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData*     psRegHoldValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*    psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;         //从设备通讯协议表
     
 	iLastAddr = 0;
@@ -117,7 +117,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     }
 	if( (psRegHoldBuf->pvDataBuf == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
@@ -207,7 +207,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
 	eMBMasterReqErrCode            eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData*     psRegHoldValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*    psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;         //从设备通讯协议表
 	
     volatile USHORT  RegHoldValueList[MB_PDU_SIZE_MAX];
@@ -223,7 +223,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     }
     if( (psRegHoldBuf->pvDataBuf  == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
@@ -340,7 +340,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
        	    	bStarted = FALSE;
        	    }
        	    
-       	    if( xMBMasterPortCurrentEvent(psMBMasterInfo->psMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
+       	    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
        	    {	
        	    	for( i = nRegs ; i > 0; i--)
        	    	{
@@ -362,7 +362,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
              	iRegs = 0;
              	bStarted = FALSE;
              	
-             	if( xMBMasterPortCurrentEvent(psMBMasterInfo->psMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新当前数据
+             	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新当前数据
              	{	
              		for( i = nRegs ; i > 0; i--)
              		{
@@ -395,7 +395,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
     eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData*      psCoilValue = NULL;
 
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*        psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
     
 	iLastAddr = 0;
@@ -408,7 +408,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
     }
 	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->usDataCount == 0)) //非空且数据点不为0
@@ -497,8 +497,8 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData*      psCoilValue = NULL;
 
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*        psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
+    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable*       psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
     
     volatile UCHAR  BitCoilByteValueList[MB_PDU_SIZE_MAX];
     volatile UCHAR* pBitCoilPreValueList[MB_PDU_SIZE_MAX * 8];
@@ -514,7 +514,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
     }
 	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->usDataCount == 0)) //非空且数据点不为0
@@ -564,7 +564,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 			{
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits - 1, 
 														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
-			    if( xMBMasterPortCurrentEvent(psMBMasterInfo->psMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
+			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
 			    {	
 			    	for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -608,7 +608,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
 														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 			
-			    if( xMBMasterPortCurrentEvent(psMBMasterInfo->psMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
+			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
 			    {	
 			    	for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -645,7 +645,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
 		    											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 				
-		    	if( xMBMasterPortCurrentEvent(psMBMasterInfo->psMBPortInfo) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据
+		    	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据
 		    	{	
 		    		for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -696,8 +696,8 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
     eMBMasterReqErrCode             eStatus = MB_MRE_NO_ERR;
     sMasterBitDiscData*      pDiscreteValue = NULL;
     
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;          //从设备通讯协议表
+    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;  //从设备通讯协议表
 
 	iLastAddr = 0;
 	iStartAddr = 0;
@@ -706,7 +706,7 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
     } 
 

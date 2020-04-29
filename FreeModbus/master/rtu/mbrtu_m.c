@@ -62,7 +62,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 	
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
 	
     ENTER_CRITICAL_SECTION();
@@ -117,7 +117,7 @@ eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 void eMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo)
 {
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	
     ENTER_CRITICAL_SECTION();     //关全局中断
     /* Initially the receiver is in the state STATE_M_RX_INIT. we start
@@ -139,7 +139,7 @@ void eMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 void eMBMasterRTUStop(sMBMasterInfo* psMBMasterInfo)
 {
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	
     ENTER_CRITICAL_SECTION();
 	
@@ -218,8 +218,8 @@ eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, const UCHAR*
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 	
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
-	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态
+    sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
+	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态
 	
     if( (ucSlaveAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSlaveAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -281,7 +281,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
 
     BOOL            xTaskNeedSwitch = FALSE;
     UCHAR           ucByte;
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	
     assert_param(( eSndState == STATE_M_TX_IDLE ) || ( eSndState == STATE_M_TX_XFWR ));   //确保没有数据在发送或者主栈没有在等待从栈响应
 
@@ -356,7 +356,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
 BOOL xMBMasterRTUTransmitFSM( sMBMasterInfo* psMBMasterInfo )
 {
     BOOL            xNeedPoll = FALSE;
-    sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+    sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	
     assert_param( eRcvState == STATE_M_RX_IDLE );
 
@@ -412,7 +412,7 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 {
 	BOOL xNeedPoll = FALSE;
     BOOL xSndStateNeedChange = TRUE;
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
+	sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
 	
 	switch (psMBMasterInfo->eRcvState)
 	{

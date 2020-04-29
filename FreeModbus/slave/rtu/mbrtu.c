@@ -56,7 +56,7 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
 	const sUART_Def*  psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
     
     ENTER_CRITICAL_SECTION();
@@ -109,7 +109,7 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
  *********************************************************************/
 void eMBSlaveRTUStart(sMBSlaveInfo* psMBSlaveInfo)
 {
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION();              //关全局中断
     /* Initially the receiver is in the state STATE_RX_INIT. we start
@@ -131,7 +131,7 @@ void eMBSlaveRTUStart(sMBSlaveInfo* psMBSlaveInfo)
  *********************************************************************/
 void eMBSlaveRTUStop( sMBSlaveInfo* psMBSlaveInfo )
 {
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION();
     
@@ -160,7 +160,6 @@ eMBSlaveRTUReceive(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRcvAddress, UCHAR** pu
     *  eMBPoll函数发送 ( void )xMBPortEventPost( EV_EXECUTE )事件。在EV_EXECUTE 事件中，从
     *  站对接收到的数据进行处理，包括根据功能码寻找功能函数处理报文和调用eStatus =
     *  peMBFrameSendCur( ucMBAddress, ucMBFrame, usLength ) 发送应答报文。*/
-
     eMBErrorCode    eStatus = MB_ENOERR;
 
     ENTER_CRITICAL_SECTION();
@@ -187,7 +186,6 @@ eMBSlaveRTUReceive(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRcvAddress, UCHAR** pu
     {
         eStatus = MB_EIO;
     }
-
     EXIT_CRITICAL_SECTION();
     return eStatus;
 }
@@ -211,7 +209,7 @@ eMBSlaveRTUSend( sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSlaveAddress, const UCHAR*
      * 发送状态机函数发送应答报文。*/
     USHORT          usCRC16;
     eMBErrorCode      eStatus      = MB_ENOERR;
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     ENTER_CRITICAL_SECTION();
 
@@ -272,7 +270,7 @@ BOOL xMBSlaveRTUReceiveFSM( sMBSlaveInfo* psMBSlaveInfo )
     UCHAR           ucByte;
     BOOL            xTaskNeedSwitch = FALSE;
     
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     assert_param(psMBSlaveInfo->eSndState == STATE_TX_IDLE);    //确保没有数据在发送
 
@@ -339,7 +337,7 @@ BOOL xMBSlaveRTUReceiveFSM( sMBSlaveInfo* psMBSlaveInfo )
 BOOL xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo )
 {
     BOOL              xNeedPoll    = FALSE;
-    sMBSlavePortInfo* psMBPortInfo = psMBSlaveInfo->psMBPortInfo;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     assert_param(psMBSlaveInfo->eRcvState == STATE_RX_IDLE);
 
@@ -382,9 +380,9 @@ BOOL xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo )
  *********************************************************************/
 BOOL xMBSlaveRTUTimerT35Expired( sMBSlaveInfo* psMBSlaveInfo )
 {
-    BOOL                 xNeedPoll     = FALSE;
-    BOOL       xRcvStateNeedChange     = TRUE;
-    sMBSlavePortInfo* psMBPortInfo     = psMBSlaveInfo->psMBPortInfo;
+    BOOL                 xNeedPoll  = FALSE;
+    BOOL       xRcvStateNeedChange  = TRUE;
+    sMBSlavePortInfo* psMBPortInfo  = &psMBSlaveInfo->sMBPortInfo;
     
     switch (psMBSlaveInfo->eRcvState)             //上报modbus协议栈的事件状态给poll函数
     {

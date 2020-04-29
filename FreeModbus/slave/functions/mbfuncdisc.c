@@ -151,7 +151,7 @@ eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT u
     USHORT          DISCRETE_INPUT_START,DISCRETE_INPUT_END;
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    const sMBSlaveDataTable* psDiscreteBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBDiscInTable;  //从栈通讯协议表
+    const sMBSlaveDataTable* psDiscreteBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBDiscInTable;  //从栈通讯协议表
     
     DISCRETE_INPUT_START = psDiscreteBuf->usStartAddr;
     DISCRETE_INPUT_END = psDiscreteBuf->usEndAddr;
@@ -162,7 +162,7 @@ eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT u
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
     {
         /* read current coil values from the protocol stack. */ 
-        eStatus = xMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+        eStatus = eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
     }
     else
     {

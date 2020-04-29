@@ -105,10 +105,9 @@ eMBMasterReqWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr
 {
     UCHAR                 *ucMBFrame;
 	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-
-	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;       //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -195,10 +194,9 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister( sMBMasterInfo* psM
     UCHAR                 *ucMBFrame;
     USHORT                 usRegIndex = 0;
 	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-	
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -308,10 +306,10 @@ eMBMasterReqErrCode
 eMBMasterReqReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut )
 {
     UCHAR* ucMBFrame;
-    eMBMasterReqErrCode   eErrStatus = MB_MRE_NO_ERR;
     
-	sMBMasterPortInfo*  psMBPortInfo = psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*  psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -422,10 +420,9 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
     UCHAR                 *ucMBFrame;
     USHORT                 usRegIndex = 0;
 	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-	
-	sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -558,7 +555,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     eMBErrorCode               eStatus = MB_ENOERR;
 	sMasterRegHoldData* pvRegHoldValue = NULL;
     
-    sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable*     psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;   //从设备通讯协议表
     UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
     
@@ -571,7 +568,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     }
     if( (psRegHoldBuf->pvDataBuf  == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0

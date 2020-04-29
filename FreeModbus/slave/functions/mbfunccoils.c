@@ -306,7 +306,7 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
     eMBErrorCode    eStatus = MB_ENOERR;
 	OS_ERR          err = OS_ERR_NONE;
     
-    const sMBSlaveDataTable* psCoilBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBCoilTable;  //从栈通讯协议表
+    const sMBSlaveDataTable* psCoilBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBCoilTable;  //从栈通讯协议表
     
     COIL_START = psCoilBuf->usStartAddr;
     COIL_END = psCoilBuf->usEndAddr;
@@ -320,11 +320,11 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
         {
         /* read current coil values from the protocol stack. */
         case MB_REG_READ:
-            eStatus = xMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
+            eStatus = eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
         break;
 
         case MB_REG_WRITE:	
-            eStatus = xMBSlaveUtilSetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
+            eStatus = eMBSlaveUtilSetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
         break;
 		
 		default: break;

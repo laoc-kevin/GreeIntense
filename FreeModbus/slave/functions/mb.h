@@ -73,6 +73,7 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_TCP_PORT_USE_DEFAULT 0   
 
+#define MB_SLAVE_POLL_TASK_STK_SIZE         128
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -92,17 +93,16 @@ typedef enum
 
 typedef struct                 /* master poll task information */ 
 {
-    OS_TCB                p_tcb;
-    OS_PRIO               prio;
-    CPU_STK              *p_stk_base;
-    CPU_STK_SIZE          stk_size;
+    OS_TCB     p_tcb;
+    OS_PRIO    prio;
+    CPU_STK    stk[MB_SLAVE_POLL_TASK_STK_SIZE];
 }sMBSlaveTaskInfo;
 
 typedef struct sMBSlaveInfo  /* Slave information */
 {
-    sMBSlavePortInfo*        psMBPortInfo;                        //从栈硬件接口信息
-	sMBSlaveTaskInfo*        psMBTaskInfo;                        //从栈状态机任务信息
-    sMBSlaveCommInfo*        psMBCommInfo;                        //从栈通讯信息
+    sMBSlavePortInfo         sMBPortInfo;                        //从栈硬件接口信息
+	sMBSlaveTaskInfo         sMBTaskInfo;                        //从栈状态机任务信息
+    sMBSlaveCommInfo         sMBCommInfo;                        //从栈通讯信息
     
 	eMBMode                  eMode;                               //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
     eMBState                 eMBState;                            //从栈状态
@@ -466,12 +466,12 @@ eMBErrorCode eMBSlaveWriteCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffe
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Slave
  *************************************************************************/
-BOOL vMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
+BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
                            USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio);
 
 sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName);
 									 
-BOOL xMBSlaveCreatePollTask(const sMBSlaveInfo* psMBSlaveInfo);									 
+BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo);									 
 
 void vMBSlavePollTask(void *p_arg);
 

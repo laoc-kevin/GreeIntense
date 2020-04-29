@@ -23,13 +23,13 @@ static void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo);
 void vDTUScanDev(sMBMasterInfo* psMBMasterInfo)
 {
     eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
-	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
-	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBDTUInfo;
+	sMBMasterDevsInfo*    psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
+	sMBMasterDTUInfo*     psDTUInfo     = &psMBMasterInfo->sMBDTUInfo;
     
-    sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;
-    sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
+    sMBSlaveDevInfo* psDevDTU247        = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo* psDevDTU200        = &psDTUInfo->sDevDTU200;
     
-    if(psMBMasterInfo->psMBDTUInfo == NULL)
+    if(psMBMasterInfo->bDTUEnable == FALSE)
     {
         return;
     }
@@ -79,13 +79,14 @@ void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
     
 	OS_ERR                      err     = OS_ERR_NONE;
     eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
-	sMBMasterDevsInfo*    psMBDevsInfo  = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
-	sMBMasterDTUInfo*     psDTUInfo     = psMBMasterInfo->psMBDTUInfo;
     
-    sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;        //虚拟从设备
-    sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
+	sMBMasterDevsInfo*    psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
+	sMBMasterDTUInfo*     psDTUInfo     = &psMBMasterInfo->sMBDTUInfo;
     
-    if(psMBMasterInfo->psMBDTUInfo == NULL)
+    sMBSlaveDevInfo* psDevDTU247        = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo* psDevDTU200        = &psDTUInfo->sDevDTU200;
+    
+   if(psMBMasterInfo->bDTUEnable == FALSE)
     {
         return;
     }
@@ -167,12 +168,12 @@ void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo)
 {
-    sMBMasterDTUInfo* psDTUInfo = psMBMasterInfo->psMBDTUInfo;
+    sMBMasterDTUInfo* psDTUInfo = &psMBMasterInfo->sMBDTUInfo;
+ 
+    sMBSlaveDevInfo* psDevDTU247  = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo* psDevDTU200  = &psDTUInfo->sDevDTU200;
     
-    sMBSlaveDevInfo* psDevDTU247        = psDTUInfo->psDevDTU247;
-    sMBSlaveDevInfo* psDevDTU200        = psDTUInfo->psDevDTU200;
-    
-    if(psMBMasterInfo->psMBDTUInfo == NULL)
+   if(psMBMasterInfo->bDTUEnable == FALSE)
     {
         return FALSE;
     }
@@ -180,8 +181,8 @@ BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo)
     psDTUInfo->psDTUInitCmd   = usDTUInitCmd;
     psDTUInfo->psDTUInitedCmd = usDTUInitedCmd;
     
-    psDevDTU247 = psMBMasterRegistDev(psMBMasterInfo, psDevDataDTU247);   //注册虚拟设备
-    psDevDTU200 = psMBMasterRegistDev(psMBMasterInfo, psDevDataDTU200);
+    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU247);   //注册虚拟设备
+    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU200);
     
     psDevDTU247->ucDevAddr = DTU247_SLAVE_ADDR;      //DTU247通讯地址
     psDevDTU200->ucDevAddr = DTU200_SLAVE_ADDR;      //DTU200通讯地址

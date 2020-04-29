@@ -91,8 +91,8 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
    
-	sMBMasterPortInfo* psMBPortInfo = psMBMasterInfo->psMBPortInfo;
-	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态表
+	sMBMasterPortInfo* psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
+	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -216,9 +216,9 @@ eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT us
 {
     UCHAR                 *ucMBFrame;
 	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;
-	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -334,10 +334,9 @@ eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
     USHORT                 usRegIndex = 0;
     UCHAR                  ucByteCount;
 	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-	
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -475,13 +474,13 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
     USHORT          COIL_START, COIL_END;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-	sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*       psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
+	sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    const sMBDevDataTable*       psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;    //从设备通讯协议表
 	
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
     }
 	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->usDataCount == 0)) //非空且数据点不为0
@@ -503,11 +502,11 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
         {
         /* read current register values from the protocol stack. */
         case MB_REG_READ: 
-		    eStatus = xMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
+		    eStatus = eMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
 		break;
 		
 		case MB_REG_WRITE:
-//			eStatus = xMBMasterUtilSetBits( pucRegBuffer, usAddress, usNCoils, CoilData, MB_REG_WRITE);
+//			eStatus = eMBMasterUtilSetBits( pucRegBuffer, usAddress, usNCoils, CoilData, MB_REG_WRITE);
 		break;
 		default: break;
 	    }

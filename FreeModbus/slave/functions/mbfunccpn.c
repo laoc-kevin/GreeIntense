@@ -144,7 +144,7 @@ eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucVa
 	
 	eMBErrorCode               eStatus      = MB_ENOERR;
     sMBSlaveCPNData*           pvCPNValue   = NULL;
-    const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
+    const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
     
     VAL_CPN_START        = S_VAL_CPN_START;
     VAL_CPN_NREGS        = S_VAL_CPN_NREGS;
@@ -430,7 +430,7 @@ eMBErrorCode eMBSlaveReadCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer
     
     eMBErrorCode                eStatus = MB_ENOERR;
     sMBSlaveCPNData*         pvCPNValue = NULL;
-	const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->psMBCommInfo->psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
+	const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
      	
     VAL_CPN_START        = S_VAL_CPN_START;
     VAL_CPN_NREGS        = S_VAL_CPN_NREGS;

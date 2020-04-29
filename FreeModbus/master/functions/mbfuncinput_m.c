@@ -73,12 +73,11 @@
 eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                                    USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut )
 {
-    UCHAR                 *ucMBFrame;
-	
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-	
-    sMBMasterPortInfo*     psMBPortInfo= psMBMasterInfo->psMBPortInfo;      //硬件结构
-	sMBMasterDevsInfo*     psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;   //从设备状态表
+    UCHAR                   *ucMBFrame;
+    
+    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
+    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -189,7 +188,7 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 	eMBErrorCode            eStatus = MB_ENOERR;
 	sMasterRegInData*  pvRegInValue = NULL;
     
-	sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur ;     //当前从设备
+	sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable*    psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;     //从设备通讯协议表
     UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
     
@@ -202,7 +201,7 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
-        psMBMasterInfo->psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDevCur;
+        psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
     }
 	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
