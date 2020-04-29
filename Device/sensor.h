@@ -13,13 +13,15 @@ typedef enum   /*传感器类型*/
 ABS_CLASS(Sensor)          /*传感器*/ 
 {
     EXTENDS(Device);
-    IMPLEMENTS(IDevCom);      //设备通讯接口
+    IMPLEMENTS(IDevCom);            //设备通讯接口
     
-    eSensorType  eType;                  //传感器类型
-    sMBSlaveDevDataInfo* psDevDataInfo;  //通讯数据表
-    sMBSlaveDevInfo*     psDevInfo;      //通讯设备信息
+    eSensorType          eType;            //传感器类型
     
-    void (*init)(Sensor* pt, const sMBMasterInfo* psMBMasterInfo);
+    sMBMasterInfo*       psMBMasterInfo;   //通讯主栈
+    sMBSlaveDevDataInfo* psDevDataInfo;    //通讯数据表
+    sMBSlaveDevInfo      sMBDev;           //本通讯设备
+    
+    void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo);
 };
 
 CLASS(CO2Sensor)          /*CO2传感器*/  

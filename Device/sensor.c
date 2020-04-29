@@ -3,21 +3,23 @@
 /*************************************************************
 *                         传感器                             *
 **************************************************************/
-void vSensor_init(Sensor* pt, const sMBMasterInfo* psMBMasterInfo)
+void vSensor_init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
 {
     IDevCom* pThis = SUPER_PTR(pt, IDevCom);
     
-    pThis->initCommDevData(pThis);               //初始化设备通讯数据表   
-    pThis->registCommDev(pThis, psMBMasterInfo); //向通讯主栈中注册设备
+    pt->psMBMasterInfo = psMBMasterInfo; //所属通讯主栈
+    
+    pThis->initCommDevData(pThis);       //初始化设备通讯数据表   
+    pThis->registCommDev(pThis);         //向通讯主栈中注册设备
 }
 
-void vSensor_registCommDev(IDevCom* pt, const sMBMasterInfo* psMBMasterInfo)
+void vSensor_registCommDev(IDevCom* pt)
 {
     Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
     
     if(pThis->psDevDataInfo != NULL)
     {
-         pThis->psDevInfo = psMBMasterRegistDev(psMBMasterInfo, pThis->psDevDataInfo);
+         (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBDev);
     }
 }
 

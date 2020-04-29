@@ -11,7 +11,7 @@ void vComm_init(Comm* pt, sCommMasterInfo* psMaster, sCommSlaveInfo* psSlave)
     
     uint8_t ucSlaveAddr = ucGetControllerID();
     
-    vMBSlaveRegisterNode(pThis->psMBSlaveInfo, psSlave->eMode, psSlave->psSlaveUart,
+    xMBSlaveRegisterNode(pThis->psMBSlaveInfo, psSlave->eMode, psSlave->psSlaveUart,
                          psSlave->pcMBPortName, ucSlaveAddr, psSlave->psSlaveCurData, 
                          psSlave->usPrio);
 }

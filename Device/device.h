@@ -70,9 +70,9 @@ INTERFACE(IDevFreq)      /*设备频率接口*/
 
 INTERFACE(IDevCom)      /*设备通讯接口*/
 {
-    void   (*registCommDev)(IDevCom* pt, const sMBMasterInfo* psMBMasterInfo);          //向通讯主栈中注册设备
-    void   (*initCommDevData)(IDevCom* pt);                                             //初始化设备通讯数据表
-//    void   (*initCommDevMap)(IDevCom* pt);                                              //初始化设备通讯映射函数
+    void   (*registCommDev)(IDevCom* pt);     //向通讯主栈中注册设备
+    void   (*initCommDevData)(IDevCom* pt);   //初始化设备通讯数据表
+//    void   (*initCommDevMap)(IDevCom* pt);  //初始化设备通讯映射函数
 };
 
 

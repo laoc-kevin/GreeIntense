@@ -11,30 +11,33 @@ void vSystem_initCommDevData(IDevCom* pt)
 }
 
 /*向通讯主栈中注册设备*/
-void vSystem_registCommDev(IDevCom* pt, const sMBMasterInfo* psMBMasterInfo)
+void vSystem_registCommDev(IDevCom* pt)
 {
     System* pThis = SUB_PTR(pt, IDevCom, System);
+    
     if(pThis->psDevDataInfo != NULL)
     {
-         pThis->psDevInfo = psMBMasterRegistDev(psMBMasterInfo, pThis->psDevDataInfo);
+         (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBDev);
     }
 }
 
 /*系统初始化*/
-BOOL xSystem_init(System* pt, sSystemInfo* psSysInfo)
+BOOL xSystem_init(System* pt, sSystemInfo* psSystem)
 {
     uint8_t n;
     
     System* pThis = (System*)pt;
     
-    pThis->ucModularRoofNum = psSysInfo->ucModularRoofNum;
-    pThis->ucExAirFanNum    = psSysInfo->ucExAirFanNum;
+    pThis->psMBMasterInfo = psSystem->psMBMasterInfo;
     
-    pThis->psModularRoofList = (ModularRoof**)calloc(psSysInfo->ucModularRoofNum, sizeof(ModularRoof*));    //存储的是对象指针
-    pThis->psExAirFanList    = (ExAirFan**)   calloc(psSysInfo->ucExAirFanNum, sizeof(ExAirFan*));
+    pThis->ucModularRoofNum = psSystem->ucModularRoofNum;
+    pThis->ucExAirFanNum    = psSystem->ucExAirFanNum;
     
-    pThis->psCO2SenList      = (CO2Sensor**)calloc(psSysInfo->ucCO2SenNum, sizeof(CO2Sensor*));    //存储的是对象指针
-    pThis->psTempHumiSenList = (TempHumiSensor**)calloc(psSysInfo->ucTempHumiSenNum, sizeof(TempHumiSensor*));
+    pThis->psModularRoofList = (ModularRoof**)calloc(psSystem->ucModularRoofNum, sizeof(ModularRoof*));    //存储的是对象指针
+    pThis->psExAirFanList    = (ExAirFan**)   calloc(psSystem->ucExAirFanNum, sizeof(ExAirFan*));
+    
+    pThis->psCO2SenList      = (CO2Sensor**)calloc(psSystem->ucCO2SenNum, sizeof(CO2Sensor*));    //存储的是对象指针
+    pThis->psTempHumiSenList = (TempHumiSensor**)calloc(psSystem->ucTempHumiSenNum, sizeof(TempHumiSensor*));
     
     if( (pThis->psModularRoofList == NULL) || (pThis->psExAirFanList == NULL) || 
         (pThis->psCO2SenList == NULL) || (pThis->psTempHumiSenList == NULL) )
@@ -42,7 +45,7 @@ BOOL xSystem_init(System* pt, sSystemInfo* psSysInfo)
          return FALSE;
     }
     vSystem_initCommDevData(&pThis->IDevCom);                            //初始化设备通讯数据表   
-    vSystem_registCommDev(&pThis->IDevCom, psSysInfo->psMBMasterInfo);   //向通讯主栈中注册设备
+    vSystem_registCommDev(&pThis->IDevCom);   //向通讯主栈中注册设备
    
     return TRUE;
 }

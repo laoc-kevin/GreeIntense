@@ -7,15 +7,15 @@
 
 typedef struct   /*系统信息*/
 {
-    const sMBMasterInfo* psMBMasterInfo;       //通讯主栈
+    sMBMasterInfo*  psMBMasterInfo;       //通讯主栈
     
-    uint8_t              ucModularRoofNum;     //屋顶机数量
-    uint8_t              ucExAirFanNum;        //排风机数量
-    uint8_t              ucCO2SenNum;          //CO2传感器数量
-    uint8_t              ucTempHumiSenNum;     //温湿度传感器数量
+    uint8_t         ucModularRoofNum;     //屋顶机数量
+    uint8_t         ucExAirFanNum;        //排风机数量
+    uint8_t         ucCO2SenNum;          //CO2传感器数量
+    uint8_t         ucTempHumiSenNum;     //温湿度传感器数量
     
-    OS_PRIO              ucPrio;               //内部任务优先级   
-    CPU_STK_SIZE         ucStackSize;          //任务堆栈大小 
+    OS_PRIO         ucPrio;               //内部任务优先级   
+    CPU_STK_SIZE    ucStackSize;          //任务堆栈大小 
 }sSystemInfo;
 
 
@@ -53,12 +53,13 @@ CLASS(System)   /*系统*/
     uint8_t              ucTempHumiSenNum;    //温湿度传感器数量
     TempHumiSensor**     psTempHumiSenList;   //温湿度传感器列表
     
+    sMBMasterInfo*       psMBMasterInfo;      //通讯主栈
     sMBSlaveDevDataInfo* psDevDataInfo;       //通讯数据表
-    sMBSlaveDevInfo*     psDevInfo;           //通讯设备信息
+    sMBSlaveDevInfo      sMBDev;              //本通讯设备
     
     sDevTaskInfo*        psTaskInfo;          //设备内部任务信息 
     
-    BOOL   (*init)(System* pt, sSystemInfo* psSysInfo);
+    BOOL   (*init)(System* pt, sSystemInfo* psSystem);
     
     void (*registDev)(System* pt, void* pvDev, uint8_t ucDevNum, const char* pcDevType);
     
