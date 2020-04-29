@@ -181,8 +181,8 @@ BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo)
     psDTUInfo->psDTUInitCmd   = usDTUInitCmd;
     psDTUInfo->psDTUInitedCmd = usDTUInitedCmd;
     
-    psDevDTU247 = psMBMasterRegistDev(psMBMasterInfo, psDevDTU247);   //注册虚拟设备
-    psDevDTU200 = psMBMasterRegistDev(psMBMasterInfo, psDevDTU200);
+    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU247);   //注册虚拟设备
+    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU200);
     
     psDevDTU247->ucDevAddr = DTU247_SLAVE_ADDR;      //DTU247通讯地址
     psDevDTU200->ucDevAddr = DTU200_SLAVE_ADDR;      //DTU200通讯地址

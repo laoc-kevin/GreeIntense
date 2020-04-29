@@ -318,7 +318,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
      * Otherwise we will handle the event. */
     if( xMBMasterPortEventGet( psMBPortInfo, &eEvent ) == TRUE )
     {
-        switch ( eEvent )
+        switch (eEvent)
         {
         case EV_MASTER_READY:
             break;
@@ -330,12 +330,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			/* Check if the frame is for us. If not ,send an error process event. */
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddress(psMBMasterInfo)) )
 			{
-				( void ) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_EXECUTE );
+				(void) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_EXECUTE );
 			}
 			else
 			{
 				vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_RECEIVE_DATA);
-				( void ) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_ERROR_PROCESS );
+				(void) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_ERROR_PROCESS );
 			}
 			break;
           
@@ -384,7 +384,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
             if (eException != MB_EX_NONE) 
 			{
             	vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_EXECUTE_FUNCTION);
-            	( void ) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_ERROR_PROCESS );
+            	(void) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_ERROR_PROCESS );
             }
             else 
 			{
@@ -633,12 +633,12 @@ sMBSlaveDevInfo* psMBMasterGetDev( const sMBMasterInfo* psMBMasterInfo, UCHAR Ad
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-sMBSlaveDevInfo* psMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBNewDev)
+BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBNewDev)
 {
     sMBSlaveDevInfo*   psMBDev    = NULL;
     sMBMasterDevsInfo* psMBDevsInfo =&(psMBMasterInfo->sMBDevsInfo);    //从设备信息
     
-    if( psMBNewDev != NULL ) //
+    if( psMBNewDev != NULL ) 
     {
         (void)xMBMasterInitDevTimer(psMBNewDev, MB_MASTER_DEV_OFFLINE_TMR_S);   //初始化掉线定时器
         
@@ -656,7 +656,7 @@ sMBSlaveDevInfo* psMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevI
         psMBDevsInfo->psMBSlaveDevsList->pLast = psMBNewDev;
         psMBDevsInfo->ucSlaveDevCount++;
     }
-    return psMBNewDev;
+    return TRUE;
 }
 
 /**********************************************************************

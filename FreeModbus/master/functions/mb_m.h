@@ -76,6 +76,9 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_MASTER_TCP_PORT_USE_DEFAULT 0
 
+#define MB_MASTER_POLL_TASK_STK_SIZE         128
+
+
 /* ----------------------- Type definitions ---------------------------------*/
 
 /*! \ingroup modbus
@@ -116,15 +119,14 @@ typedef struct                 /* master poll task information */
 {
     OS_TCB                p_tcb;
     OS_PRIO               prio;
-    CPU_STK              *p_stk_base;
-    CPU_STK_SIZE          stk_size;
+    CPU_STK               stk[MB_MASTER_POLL_TASK_STK_SIZE];
 }sMBMasterTaskInfo;
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
 typedef struct                 /* master GPRS of data transmit unit (DTU) information */
 {
-    sMBSlaveDevInfo* psDevDTU200;   
-    sMBSlaveDevInfo* psDevDTU247;
+    sMBSlaveDevInfo  sDevDTU200;   
+    sMBSlaveDevInfo  sDevDTU247;
     
     USHORT*          psDTUInitCmd;
     USHORT*          psDTUInitedCmd;
@@ -136,13 +138,13 @@ typedef struct                 /* master GPRS of data transmit unit (DTU) inform
 
 typedef struct sMBMasterInfo  /* master information */
 {
-    sMBMasterPortInfo*  psMBPortInfo;                   //主栈硬件接口信息
-	sMBMasterDevsInfo*  psMBDevsInfo;                   //主栈从设备信息
-	sMBMasterTaskInfo*  psMBTaskInfo;                   //主栈状态机任务信息
+    sMBMasterPortInfo   sMBPortInfo;                   //主栈硬件接口信息
+	sMBMasterDevsInfo   sMBDevsInfo;                   //主栈从设备信息
+	sMBMasterTaskInfo   sMBTaskInfo;                   //主栈状态机任务信息
                                                                     
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
     BOOL                bDTUEnable;    
-    sMBMasterDTUInfo*   psMBDTUInfo;                    //DTU模块
+    sMBMasterDTUInfo    sMBDTUInfo;                    //DTU模块
 #endif                                                              
                                                                     
 	eMBMode             eMode;                          //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
@@ -491,11 +493,11 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish( sMBMasterPortInfo* psMBPortInfo 
  *\brief These functions are register node for Modbus Master
  *************************************************************************/
 BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def* psMasterUart, CHAR* pcMBPortName, 
-                           USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable);
+                         USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable);
 
 sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName);
 									 
-BOOL xMBMasterCreatePollTask(const sMBMasterInfo* psMBMasterInfo);									 
+BOOL xMBMasterCreatePollTask(sMBMasterInfo* psMBMasterInfo);									 
 
 void vMBMasterPollTask(void *p_arg);
 
@@ -504,11 +506,11 @@ void vMBMasterPollTask(void *p_arg);
  *! \ingroup modbus
  *\brief These functions are for Modbus Master slave device state
  *************************************************************************/
-sMBSlaveDevInfo* psMBMasterRegistDev(const sMBMasterInfo* psMBMasterInfo, sMBSlaveDevDataInfo* psDevDataInfo); 
+BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBNewDev); 
  
 sMBSlaveDevInfo* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
 
-BOOL xMBMasterRemoveDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address);
+BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address);
 
 /************************************************************************! 
  *! \ingroup modbus
