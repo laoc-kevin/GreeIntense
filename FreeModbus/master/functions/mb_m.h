@@ -74,10 +74,13 @@ PR_BEGIN_EXTERN_C
 /*! \ingroup modbus
  * \brief Use the default Modbus Master TCP port (502)
  */
-#define MB_MASTER_TCP_PORT_USE_DEFAULT 0
+#define MB_MASTER_TCP_PORT_USE_DEFAULT   0
+#define MB_MASTER_POLL_TASK_STK_SIZE     128
 
-#define MB_MASTER_POLL_TASK_STK_SIZE         128
+#define MB_MASTER_WAITING_DELAY          50    //主栈等待响应时间
+#define MB_WRITE_SLAVE_DELAY_MS          30    //主栈写操作间隔
 
+#define MB_WRITE_RETRY_TIMES             1     //写入失败重复次数
 
 /* ----------------------- Type definitions ---------------------------------*/
 

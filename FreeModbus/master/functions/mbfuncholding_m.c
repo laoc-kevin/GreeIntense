@@ -45,7 +45,7 @@
 #include "mbutils_m.h"
 #include "mbdict_m.h"
 #include "mbmap_m.h"
-#include "user_mb_scan_m.h"
+#include "mbscan_m.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_REQ_READ_ADDR_OFF                ( MB_PDU_DATA_OFF + 0 )

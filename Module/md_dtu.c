@@ -1,7 +1,7 @@
 #include "md_dtu.h"
 #include "mbfunc_m.h"
 #include "mbdict_m.h"
-#include "user_mb_scan_m.h"
+#include "mbscan_m.h"
 
 static UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
 

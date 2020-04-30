@@ -3,7 +3,107 @@
 #include "mbframe.h"
 #include "mbfunc_m.h"
 #include "mbdict_m.h"
-#include "user_mb_scan_m.h"
+#include "mbtest_m.h"
+#include "mbscan_m.h"
+
+/**********************************************************************
+ * @brief   主栈轮询某个从设备
+ * @param   psMBMasterInfo  主栈信息块 
+ * @param   psMBSlaveDev    从设备
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+void vMBScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
+{
+    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
+    sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
+    UCHAR               iSlaveAddr   = psMBSlaveDev->ucDevAddr;                 //通讯地址
+    
+    psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;   //当前从设备
+    
+    if( (psMBSlaveDev != NULL) && (psMBSlaveDev->ucOnLine == TRUE) )   //如果设备在线则进行轮询
+    {
+        if( psMBSlaveDev->ucDataReady == TRUE)   //从栈数据准备好了才同步上来
+        {	 	    
+            if(psMBSlaveDev->ucSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
+            {
+                vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
+                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                psMBSlaveDev->ucSynchronized = TRUE;                     //同步完成
+            }
+            else   //同步完成后，先写后读
+            {
+                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, TRUE);  //写有变化数据	
+                vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据										
+            }
+        }
+        else  //从栈数据未好，则只进行写不读
+        {
+            if(psMBSlaveDev->ucSynchronized == FALSE) 
+            {
+                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                psMBSlaveDev->ucSynchronized = TRUE;  //同步完成
+            }
+            else    
+            {
+               vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据
+            }
+        }
+//        myprintf("iSlaveAddr %d CHWSwState %d   \n",iSlaveAddr, CHWSwState);
+        myprintf("******************** iSlaveAddr %d ***********************\n", iSlaveAddr);
+    }		
+}
+
+/**********************************************************************
+ * @brief   主栈轮询读某个从设备
+ * @param   psMBMasterInfo  主栈信息块
+ * @param   iSlaveAddr      从设备地址
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+void vMBScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr)
+{
+     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
+    
+#if MB_FUNC_READ_HOLDING_ENABLED > 0 			
+    errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, iSlaveAddr); //读保持寄存器 							
+#endif
+					
+#if MB_FUNC_READ_COILS_ENABLED > 0
+    errorCode = eMBMasterScanReadCoils(psMBMasterInfo, iSlaveAddr);           //读线圈
+#endif
+					
+#if MB_FUNC_READ_INPUT_ENABLED > 0				
+    errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, iSlaveAddr);	  //读输入寄存器					
+#endif	
+				
+#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
+    errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, iSlaveAddr);   //读离散量
+#endif
+}
+
+/**********************************************************************
+ * @brief   主栈轮询写某个从设备
+ * @param   psMBMasterInfo  主栈信息块
+ * @param   bCheckPreValue  是否检查数据变化
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+void vMBScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue)
+{
+    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
+    
+#if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 			
+    errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, iSlaveAddr, bCheckPreValue);	//写保持寄存器 									
+#endif
+					
+#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
+    errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, iSlaveAddr, bCheckPreValue);            //写线圈 
+#endif   
+}
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
 /***********************************************************************************
