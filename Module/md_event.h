@@ -18,4 +18,6 @@ typedef struct  /*设备模拟量接口类型*/
 }sMsg;
 
 
+OS_TCB* psEventGetTCB(void);
+
 #endif

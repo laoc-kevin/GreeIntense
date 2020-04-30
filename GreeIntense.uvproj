@@ -602,9 +602,9 @@
               <FilePath>.\Module\md_event.c</FilePath>
             </File>
             <File>
-              <FileName>md_dataMonitor.c</FileName>
+              <FileName>md_monitor.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Module\md_dataMonitor.c</FilePath>
+              <FilePath>.\Module\md_monitor.c</FilePath>
             </File>
           </Files>
         </Group>

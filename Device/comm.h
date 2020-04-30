@@ -3,17 +3,15 @@
 
 #include "mb.h"
 #include "device.h"
+#include "md_monitor.h"
 
 typedef struct   /*风机设备信息*/
 {
     sUART_Def* psMasterUart;
-    
     eMBMode    eMode;
-    CHAR*      pcMBPortName;
-               
+    CHAR*      pcMBPortName;           
     USHORT     usMaxAddr; 
-    USHORT     usMinAddr;
-               
+    USHORT     usMinAddr;          
     OS_PRIO    usPrio; 
     BOOL       bDTUEnable;
 }sCommMasterInfo;
@@ -21,24 +19,21 @@ typedef struct   /*风机设备信息*/
 typedef struct   /*风机设备信息*/
 {
     sUART_Def* psSlaveUart;
-
     eMBMode    eMode;
     OS_PRIO    usPrio;  
-    
-    CHAR*      pcMBPortName;                   
-    sMBSlaveDataInfo* psSlaveCurData;
-    
+    CHAR*      pcMBPortName;  
 }sCommSlaveInfo;
 
 CLASS(Comm)
 {
-    sMBMasterInfo*    psMBMasterInfo;
-    sMBSlaveInfo*     psMBSlaveInfo;
-    
-    sMBSlaveDataInfo* psSlaveCurData;
-    
-    OS_SEM            sMBValChangeSem;  
+    sMBMasterInfo     sMBMasterInfo;
+    sMBSlaveInfo      sMBSlaveInfo;
+    sMBSlaveDataInfo  sSlaveCurData;
 
+    sMonitorInfo*     pMonitorList;
+    
+    OS_SEM            sMBValChangeSem; 
+    
     void (*init)(Comm* pt, sCommMasterInfo* psMasterInfo, sCommSlaveInfo* psSlaveInfo);
 };
 
