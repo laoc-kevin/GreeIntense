@@ -43,7 +43,7 @@
 #include "mbfunc_m.h"
 #include "mbutils_m.h"
 #include "mbdict_m.h"
-#include "user_mb_scan_m.h"
+#include "mbscan_m.h"
 #include "mbmap_m.h"
 
 /* ----------------------- Defines ------------------------------------------*/
