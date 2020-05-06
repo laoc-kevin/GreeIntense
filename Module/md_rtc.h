@@ -1,5 +1,5 @@
-#ifndef APP_RTC_H
-#define APP_RTC_H
+#ifndef _MD_RTC_H
+#define _MD_RTC_H
 #include "includes.h"
 #include "lpc_rtc.h"
 

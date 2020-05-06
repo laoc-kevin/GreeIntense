@@ -1,9 +1,10 @@
-#ifndef APP_DTU_H
-#define APP_DTU_H
+#ifndef _MB_DTU_M_H
+#define _MB_DTU_M_H
 
 #include "mbconfig.h"
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+
 #include "mb_m.h"
 
 #define DTU_TIMEOUT_S               30
@@ -27,6 +28,7 @@
 
 void vDTUScanDev(sMBMasterInfo* psMBMasterInfo);
 BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo);
+
 #endif
 
 #endif

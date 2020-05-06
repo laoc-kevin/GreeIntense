@@ -133,6 +133,18 @@ typedef struct sMBSlaveInfo  /* Slave information */
      struct sMBSlaveInfo*    pLast;                               //末尾从栈节点
 }sMBSlaveInfo;
 
+typedef struct                 /* 从栈节点配置信息 */
+{
+   eMBMode             eMode;
+   sUART_Def*          psSlaveUart;
+   CHAR*               pcMBPortName; 
+    
+   USHORT              usSlaveAddr;
+   sMBSlaveDataInfo*   psSlaveCurData;
+    
+   OS_PRIO              prio;
+}sMBSlaveNodeInfo;
+
 
 typedef void    (*pvMBSlaveFrameStart) (sMBSlaveInfo* psMBSlaveInfo);
 
@@ -466,8 +478,7 @@ eMBErrorCode eMBSlaveWriteCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffe
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Slave
  *************************************************************************/
-BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo,eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
-                           USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio);
+BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode);
 
 sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName);
 									 

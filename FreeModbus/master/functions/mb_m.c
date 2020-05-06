@@ -444,50 +444,50 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def* psMasterUart, CHAR* pcMBPortName, 
-                           USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable)
+BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMasterNode)
 {
-    sMBMasterPortInfo*   psMBPortInfo   = NULL;      //主栈硬件接口信息
-	sMBMasterDevsInfo*   psMBDevsInfo   = NULL;      //主栈从设备信息
-	sMBMasterTaskInfo*   psMBTaskInfo   = NULL;      //主栈状态机任务信息
-    sMBMasterDTUInfo*    psMBDTUInfo    = NULL;      //DTU模块
+    sMBMasterPortInfo*   psMBPortInfo   = &psMBMasterInfo->sMBPortInfo;      //主栈硬件接口信息
+	sMBMasterDevsInfo*   psMBDevsInfo   = &psMBMasterInfo->sMBDevsInfo;      //主栈从设备信息
+	sMBMasterTaskInfo*   psMBTaskInfo   = &psMBMasterInfo->sMBTaskInfo;      //主栈状态机任务信息
+    sMBMasterDTUInfo*    psMBDTUInfo    = &psMBMasterInfo->sMBDTUInfo;       //DTU模块
     sMBMasterInfo*       psMBInfo       = NULL;
     
     if(psMBMasterInfo != NULL)
     {
         return FALSE;
     }
-	if((psMBInfo = psMBMasterFindNodeByPort(pcMBPortName)) == NULL)
+	if((psMBInfo = psMBMasterFindNodeByPort(psMasterNode->pcMBPortName)) == NULL)
     {
         psMBMasterInfo->pNext = NULL;
-        psMBMasterInfo->eMode = eMode;
+        psMBMasterInfo->eMode = psMasterNode->eMode;
         
         /***************************硬件接口设置***************************/
         psMBPortInfo = (sMBMasterPortInfo*)(&psMBMasterInfo->sMBPortInfo);
         if(psMBPortInfo != NULL)
         {
-            psMBPortInfo->psMBMasterUart = psMasterUart;
-            psMBPortInfo->pcMBPortName   = pcMBPortName;
+            psMBPortInfo->psMBMasterUart = psMasterNode->psMasterUart;
+            psMBPortInfo->pcMBPortName   = psMasterNode->pcMBPortName;
         }
         
         /***************************从设备列表设置***************************/
         psMBDevsInfo = (sMBMasterDevsInfo*)(&psMBMasterInfo->sMBDevsInfo);
         if(psMBDevsInfo != NULL)
         {
-            psMBDevsInfo->ucSlaveDevMaxAddr = usMaxAddr;
-            psMBDevsInfo->ucSlaveDevMaxAddr = usMinAddr;
+            psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->usMaxAddr;
+            psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->usMinAddr;
         }
         
         /***************************主栈状态机任务块设置***************************/
         psMBTaskInfo   = (sMBMasterTaskInfo*)(&psMBMasterInfo->sMBTaskInfo);
         if(psMBTaskInfo != NULL)
         {
-            psMBTaskInfo->prio       = prio;
+            psMBTaskInfo->ucMasterPollPrio = psMasterNode->ucMasterPollPrio;
+            psMBTaskInfo->ucMasterScanPrio = psMasterNode->ucMasterScanPrio;
         }
 
         /******************************GPRS模块功能支持****************************/
 #ifdef MB_MASTER_DTU_ENABLED    
-        psMBMasterInfo->bDTUEnable = bDTUEnable;
+        psMBMasterInfo->bDTUEnable = psMasterNode->bDTUEnable;
 #endif   
         
         /*******************************创建主栈状态机任务*************************/
@@ -495,7 +495,14 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def
         {
             return FALSE;
         }
-	    if(psMBMasterList == NULL)
+   
+        /*******************************创建主栈轮询任务*************************/
+        if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo))   
+        {
+            return FALSE;
+        }
+
+	    if(psMBMasterList == NULL)   //注册节点
 	    {
             psMBMasterList = psMBMasterInfo;
 	    }
@@ -544,16 +551,22 @@ sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName)
 BOOL xMBMasterCreatePollTask(sMBMasterInfo* psMBMasterInfo)
 {
     OS_ERR err = OS_ERR_NONE;
+    
+    CPU_STK_SIZE           stk_size = MB_MASTER_SCAN_TASK_STK_SIZE; 
     sMBMasterTaskInfo* psMBTaskInfo = &(psMBMasterInfo->sMBTaskInfo);
     
-    OSTaskCreate(&psMBTaskInfo->p_tcb,
+    OS_PRIO             prio = psMBTaskInfo->ucMasterPollPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sMasterScanTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usMasterScanStk);
+    
+    OSTaskCreate( p_tcb,
                   "vMBMasterPollTask",
                   vMBMasterPollTask,
                   (void*)psMBMasterInfo,
-                  psMBTaskInfo->prio,
-                  psMBTaskInfo->stk,
-                  MB_MASTER_POLL_TASK_STK_SIZE / 10u,
-                  MB_MASTER_POLL_TASK_STK_SIZE,
+                  prio,
+                  p_stk_base,
+                  stk_size / 10u,
+                  stk_size,
                   0u,
                   0u,
                   0u,

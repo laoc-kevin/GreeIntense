@@ -9,10 +9,12 @@
 #define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
 #define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         20
 
-void vMBScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev);
+BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo);
 
-void vMBScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr);
-void vMBScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue); 
+void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev);
+
+void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr);
+void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue); 
 
 eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr );
 
@@ -26,5 +28,7 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
 
 //eMBMasterReqErrCode eMBMasterSynchronizeDevice( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, UCHAR bSysnRegHold, UCHAR bSysnRegIn, 
 //                                                UCHAR bSysnCoil, UCHAR bSysnDiscrete);
+
+
 
 #endif

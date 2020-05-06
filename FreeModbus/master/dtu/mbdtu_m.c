@@ -1,15 +1,17 @@
-#include "md_dtu.h"
+#include "mbdtu_m.h"
 #include "mbfunc_m.h"
 #include "mbdict_m.h"
 #include "mbscan_m.h"
+
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
 
 static UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
 
 static sMBSlaveDevDataInfo* psDevDataDTU247;
 static sMBSlaveDevDataInfo* psDevDataDTU200;
 
-static USHORT usDTUInitCmd[2]={ DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
-static USHORT usDTUInitedCmd[2]={ DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
+static USHORT usDTUInitCmd[2]={DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
+static USHORT usDTUInitedCmd[2]={DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
 
 static void vDTUDevTest(sMBMasterInfo* psMBMasterInfo);
 static BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout);
@@ -190,8 +192,7 @@ BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo)
     psDevDTU247->psDevCurData = psDevDataDTU247;     //DTU247当前数据域
     psDevDTU200->psDevCurData = psDevDataDTU200;     //DTU200当前数据域
     
-    return xDTUTimerTimeoutInit(psDTUInfo, DTU_TIMEOUT_S);
-    
+    return xDTUTimerTimeoutInit(psDTUInfo, DTU_TIMEOUT_S);    
 }
 
 /********************************************************************
@@ -243,3 +244,4 @@ void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo)
     (void)OSTmrStart(&psDTUInfo->DTUTimerTimeout, &err);
 }	
 
+#endif

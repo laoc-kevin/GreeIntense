@@ -75,7 +75,9 @@ PR_BEGIN_EXTERN_C
  * \brief Use the default Modbus Master TCP port (502)
  */
 #define MB_MASTER_TCP_PORT_USE_DEFAULT   0
+
 #define MB_MASTER_POLL_TASK_STK_SIZE     128
+#define MB_MASTER_SCAN_TASK_STK_SIZE     128
 
 #define MB_MASTER_WAITING_DELAY          50    //主栈等待响应时间
 #define MB_WRITE_SLAVE_DELAY_MS          30    //主栈写操作间隔
@@ -120,9 +122,15 @@ typedef enum
 
 typedef struct                 /* master poll task information */ 
 {
-    OS_TCB                p_tcb;
-    OS_PRIO               prio;
-    CPU_STK               stk[MB_MASTER_POLL_TASK_STK_SIZE];
+    OS_TCB              sMasterPollTCB;
+    OS_TCB              sMasterScanTCB;
+    
+    OS_PRIO             ucMasterPollPrio;
+    OS_PRIO             ucMasterScanPrio;
+    
+    CPU_STK             usMasterPollStk[MB_MASTER_POLL_TASK_STK_SIZE];
+    CPU_STK             usMasterScanStk[MB_MASTER_SCAN_TASK_STK_SIZE];
+    
 }sMBMasterTaskInfo;
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
@@ -180,6 +188,23 @@ typedef struct sMBMasterInfo  /* master information */
     struct sMBMasterInfo* pNext;                              //下一主栈节点
     struct sMBMasterInfo* pLast;                              //末尾主栈节点
 }sMBMasterInfo;
+
+typedef struct                 /* 主栈节点配置信息 */
+{
+    eMBMode         eMode;
+    
+    sUART_Def*      psMasterUart;
+    CHAR*           pcMBPortName; 
+    
+    USHORT          usMaxAddr;
+    USHORT          usMinAddr;
+    
+    OS_PRIO         ucMasterPollPrio;
+    OS_PRIO         ucMasterScanPrio;
+    
+    BOOL            bDTUEnable;
+}sMBMasterNodeInfo;
+
 
 /* Functions pointer which are initialized in eMBInit( ). Depending on the
  * mode (RTU or ASCII) the are set to the correct implementations.
@@ -495,8 +520,7 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish( sMBMasterPortInfo* psMBPortInfo 
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Master
  *************************************************************************/
-BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, eMBMode eMode, sUART_Def* psMasterUart, CHAR* pcMBPortName, 
-                         USHORT usMaxAddr, USHORT usMinAddr, OS_PRIO prio, BOOL bDTUEnable);
+BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMasterNode);
 
 sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName);
 									 

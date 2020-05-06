@@ -1,5 +1,5 @@
-#ifndef _APP_LED_H_
-#define _APP_LED_H_
+#ifndef _MD_LED_H_
+#define _MD_LED_H_
 
 #include <stdint.h>
 #include "lpc_pinsel.h"

@@ -516,44 +516,43 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlaveRegisterNode(sMBSlaveInfo* psMBSlaveInfo, eMBMode eMode, sUART_Def* psSlaveUart, CHAR* pcMBPortName, 
-                           USHORT usSlaveAddr, sMBSlaveDataInfo* psSlaveCurData, OS_PRIO prio)
+BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
 {
-    sMBSlavePortInfo*   psMBPortInfo = NULL;   //从栈硬件接口信息
-	sMBSlaveTaskInfo*   psMBTaskInfo = NULL;   //从栈状态机任务信息
-    sMBSlaveCommInfo*   psMBCommInfo = NULL;   //从栈通讯信息
+    sMBSlavePortInfo*   psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;   //从栈硬件接口信息
+	sMBSlaveTaskInfo*   psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;   //从栈状态机任务信息
+    sMBSlaveCommInfo*   psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;   //从栈通讯信息
     sMBSlaveInfo*       psMBInfo     = NULL;
     
     if(psMBSlaveInfo != NULL)
     {
         return FALSE;
     }
-	if( (psMBInfo = psMBSlaveFindNodeByPort(pcMBPortName)) == NULL)
+	if( (psMBInfo = psMBSlaveFindNodeByPort(psSlaveNode->pcMBPortName)) == NULL)
     {
         psMBSlaveInfo->pNext = NULL;
-        psMBSlaveInfo->eMode = eMode;
+        psMBSlaveInfo->eMode = psSlaveNode->eMode;
         
         /***************************硬件接口设置***************************/
         psMBPortInfo = (sMBSlavePortInfo*)(&psMBSlaveInfo->sMBPortInfo);
         if(psMBPortInfo != NULL)
         {
-            psMBPortInfo->psMBSlaveUart = psSlaveUart;
-            psMBPortInfo->pcMBPortName  = pcMBPortName;
+            psMBPortInfo->psMBSlaveUart = psSlaveNode->psSlaveUart;
+            psMBPortInfo->pcMBPortName  = psSlaveNode->pcMBPortName;
         }
         
         /***************************通讯参数信息设置***************************/
         psMBCommInfo = (sMBSlaveCommInfo*)(&psMBSlaveInfo->sMBCommInfo);
         if(psMBCommInfo != NULL)
         {
-            psMBCommInfo->ucSlaveAddr     = usSlaveAddr;
-            psMBCommInfo->psSlaveCurData  = psSlaveCurData;
+            psMBCommInfo->ucSlaveAddr     = psSlaveNode->usSlaveAddr;
+            psMBCommInfo->psSlaveCurData  = psSlaveNode->psSlaveCurData;
         }
         
         /***************************从栈状态机任务块设置***************************/
         psMBTaskInfo   = (sMBSlaveTaskInfo*)(&psMBSlaveInfo->sMBTaskInfo);
         if(psMBTaskInfo != NULL)
         {
-            psMBTaskInfo->prio       = prio;
+            psMBTaskInfo->prio = psSlaveNode->prio;
         }
 
          /*******************************创建从栈状态机任务*************************/
@@ -561,7 +560,8 @@ BOOL xMBSlaveRegisterNode(sMBSlaveInfo* psMBSlaveInfo, eMBMode eMode, sUART_Def*
         {
             return FALSE;
         }
-	    if(psMBSlaveList == NULL)
+        
+	    if(psMBSlaveList == NULL)  //注册节点
 	    {
             psMBSlaveList = psMBSlaveInfo;
 	    }
