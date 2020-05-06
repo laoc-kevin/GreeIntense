@@ -1,5 +1,5 @@
-#ifndef APP_SEGMENT_H
-#define APP_SEGMENT_H
+#ifndef MD_SEGMENT_H
+#define MD_SEGMENT_H
 
 
 #include "includes.h"

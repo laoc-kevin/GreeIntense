@@ -1,10 +1,134 @@
 #include "mbport_m.h"
 #include "mb_m.h"
 #include "mbframe.h"
+
 #include "mbfunc_m.h"
+#include "mbdtu_m.h"
 #include "mbdict_m.h"
 #include "mbtest_m.h"
 #include "mbscan_m.h"
+
+static void vMBMasterScanSlaveDevTask(void *p_arg);
+
+
+/**********************************************************************
+ * @brief   创建主栈轮询从设备任务
+ * @param   *p_arg    
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo)
+{   
+    OS_ERR               err = OS_ERR_NONE;
+    CPU_STK_SIZE    stk_size = MB_MASTER_SCAN_TASK_STK_SIZE; 
+    
+    sMBMasterTaskInfo* psMBTaskInfo = &(psMBMasterInfo->sMBTaskInfo);
+    
+    OS_PRIO             prio = psMBTaskInfo->ucMasterScanPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sMasterScanTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usMasterScanStk);
+   
+    OSTaskCreate( p_tcb,
+                  "vMBMasterScanSlaveDevTask",
+                  vMBMasterScanSlaveDevTask,
+                  (void*)psMBMasterInfo,
+                  prio,
+                  p_stk_base ,
+                  stk_size / 10u,
+                  stk_size,
+                  0u,
+                  0u,
+                  0u,
+                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
+                  &err);
+    return (err == OS_ERR_NONE);              
+}
+
+/**********************************************************************
+ * @brief   主栈轮询从设备任务
+ * @param   *p_arg    
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+void vMBMasterScanSlaveDevTask(void *p_arg)
+{
+	UCHAR iSlaveAddr;
+	UCHAR n, iIndex;
+	OS_ERR err = OS_ERR_NONE;
+	CPU_TS ts = 0;
+  
+	USHORT msReadInterval = MB_SCAN_READ_SLAVE_INTERVAL_MS;
+
+    eMBMasterReqErrCode       errorCode = MB_MRE_NO_ERR;
+    sMBSlaveDevInfo*       psMBSlaveDev = NULL;
+    
+	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
+    sMBMasterDevsInfo*     psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
+    
+    UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;
+    UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
+    
+    UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
+    
+    UCHAR* pcDevsScanInv = calloc(ucAddrSub, sizeof(UCHAR));
+	UCHAR* pcDevAddrOccupy = calloc(ucAddrSub, sizeof(UCHAR));          //被占用的从设备通讯地址
+    
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持	
+    vDTUInit(psMBMasterInfo);    //初始化DTU
+#endif
+
+    /*************************上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
+
+    for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)  
+	{
+        pcDevsScanInv[iSlaveAddr - ucMinAddr] = ucAddrSub;  //首次上电所以都要测试
+    }
+	while (DEF_TRUE)
+	{
+		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
+        
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理
+		vDTUScanDev(psMBMasterInfo);  //轮询DTU模块
+#endif
+        
+		/*********************************轮询从设备***********************************/
+		for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
+        {
+            if(psMBSlaveDev->ucOnLine == FALSE)
+            {
+                for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)
+                {    
+                    if(pcDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)
+                    {
+                        vMBDevTest(psMBMasterInfo, psMBSlaveDev, iSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
+                        if(psMBSlaveDev->ucOnLine == TRUE)
+                        {
+                            pcDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
+                            break;
+                        }                            
+                    }
+                }
+            }
+        }
+        for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
+        {
+            if(psMBSlaveDev->ucOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
+            {
+                vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //防止从设备可能掉线
+                if( (psMBSlaveDev->ucOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
+                {
+                    vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
+                }
+                else if(psMBSlaveDev->ucOnLine == FALSE)
+                {
+                    pcDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
+                }                    
+            }
+        }     
+	}
+}
 
 /**********************************************************************
  * @brief   主栈轮询某个从设备
@@ -14,7 +138,7 @@
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
+void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
@@ -28,26 +152,26 @@ void vMBScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDe
         {	 	    
             if(psMBSlaveDev->ucSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
             {
-                vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
-                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
                 psMBSlaveDev->ucSynchronized = TRUE;                     //同步完成
             }
             else   //同步完成后，先写后读
             {
-                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, TRUE);  //写有变化数据	
-                vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据										
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, TRUE);  //写有变化数据	
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据										
             }
         }
         else  //从栈数据未好，则只进行写不读
         {
             if(psMBSlaveDev->ucSynchronized == FALSE) 
             {
-                vMBScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
                 psMBSlaveDev->ucSynchronized = TRUE;  //同步完成
             }
             else    
             {
-               vMBScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据
+               vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据
             }
         }
 //        myprintf("iSlaveAddr %d CHWSwState %d   \n",iSlaveAddr, CHWSwState);
@@ -63,7 +187,7 @@ void vMBScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDe
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr)
+void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr)
 {
      eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
@@ -92,7 +216,7 @@ void vMBScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr)
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue)
+void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue)
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     

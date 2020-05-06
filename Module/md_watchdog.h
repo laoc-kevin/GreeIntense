@@ -1,5 +1,5 @@
-#ifndef APP_WATCHDOG_H
-#define APP_WATCHDOG_H
+#ifndef MD_WATCHDOG_H
+#define MD_WATCHDOG_H
 #include "includes.h"
 
 #define WATCHDOG_ENABLE 1
