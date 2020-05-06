@@ -14,7 +14,7 @@
 #include "md_input.h"
 
 #include "mb.h"
-#include "mb_m.h"
+
 #include "mbrtu_m.h"
 #include "mbfunc_m.h"
 #include "mbtest_m.h"
@@ -38,6 +38,8 @@ sUART_Def sMBMasterUart = { &Uart0Rx,&Uart0Tx,&Uart0DE,&Uart0Inv,UART_0,        
 						  {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}  
 					    };
 
+                        
+static void vMBScanSlaveDevTask(void *p_arg);                        
 
 /**********************************************************************
  * @brief   创建主栈轮询从设备任务

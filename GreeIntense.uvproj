@@ -882,9 +882,14 @@
               <FilePath>.\FreeModbus\master\functions\mbmap_m.c</FilePath>
             </File>
             <File>
-              <FileName>user_mb_scan_m.c</FileName>
+              <FileName>mbscan_m.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\FreeModbus\master\functions\user_mb_scan_m.c</FilePath>
+              <FilePath>.\FreeModbus\master\functions\mbscan_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbtest_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\FreeModbus\master\functions\mbtest_m.c</FilePath>
             </File>
           </Files>
         </Group>
