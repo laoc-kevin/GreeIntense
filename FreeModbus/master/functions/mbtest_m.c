@@ -1,6 +1,9 @@
 #include "mbtest_m.h"
 #include "mbfunc_m.h"
 
+#define MB_TEST_RETRY_TIMES   2
+
+
 static eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevInfo* psMBSlaveDev, 
                                          const sMBTestDevCmd* psMBDevCmd);   
 
@@ -22,7 +25,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev, UC
     eMBMasterReqErrCode  errorCode       = MB_MRE_EILLSTATE;
 
     UCHAR*               pcPDUCur        = NULL;
-    sMBSlaveDevDataInfo* psMBDevData     = NULL;       //某从设备数据域
+    sMBSlaveDevCommData* psMBDevData     = NULL;       //某从设备数据域
     const sMBTestDevCmd* psMBCmd         = NULL;       //某从设备测试命令表
     
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //接口处于测试从设备状态
@@ -93,7 +96,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlav
 
     /****************************测试设备**********************************/
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //接口处于测试从设备状态
-    for( n=0; n<2; n++ )
+    for( n=0; n<MB_TEST_RETRY_TIMES; n++ )
     {
         errorCode = vMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);			
      
@@ -125,9 +128,10 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlav
     {
         psMBSlaveDev->ucDataReady = FALSE;
         
-        if(psMBSlaveDev->ucRetryTimes == 2)  //前两次测试都报故障
+        if(psMBSlaveDev->ucRetryTimes == MB_TEST_RETRY_TIMES)  //前两周期测试都报故障
         {
-            psMBSlaveDev->ucOnLine    = FALSE;                   //从设备掉线
+            psMBSlaveDev->ucOnLine           = FALSE;                   //从设备掉线
+            psMBSlaveDev->ucDevCurTestAddr   = 0;                       //从设备当前测试通讯地址置零
         }
         else
         {
@@ -167,3 +171,5 @@ eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
     }
     return errorCode;
 }
+
+
