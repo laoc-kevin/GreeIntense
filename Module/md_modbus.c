@@ -25,22 +25,51 @@
 #include "port.h"
 #include "my_rtt_printf.h"
 
+#define MB_SLAVE_POLL_TASK_PRIO    9
+
+#define MB_MASTER_POLL_TASK_PRIO   10
+#define MB_MASTER_SCAN_TASK_PRIO   11
 
 /**********************************************************************
 *变量声明
 ************************************************************************/
+sMBMasterInfo     MBMasterInfo;         //主栈接口
+sMBSlaveInfo      MBSlaveInfo;          //从栈接口
 
-sUART_Def sMBSlaveUart= { &Uart1Rx,&Uart1Tx,&Uart1DE,&Uart1Inv,UART_1,                    /* 从栈串口设置 */
-					    {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}         /* 默认串口配置 9600 8n1 */
-			          };
+sMBSlaveCommData  MBSlaveCommData;      //从栈数据域
+
+sMBSlaveDevCommData DevDataDTU247;      //DTU247数据域
+sMBSlaveDevCommData DevDataDTU200;      //DTU200数据域
+
+sUART_Def MBSlaveUart= { &Uart1Rx, &Uart1Tx, &Uart1DE, &Uart1Inv, UART_1,                /* 从栈串口设置 */
+                         {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}        /* 默认串口配置 9600 8n1 */
+		               };
 	
-sUART_Def sMBMasterUart = { &Uart0Rx,&Uart0Tx,&Uart0DE,&Uart0Inv,UART_0,                  /* 主栈串口设置 */
-						  {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}  
-					    };
+sUART_Def MBMasterUart = { &Uart0Rx, &Uart0Tx, &Uart0DE, &Uart0Inv, UART_0,              /* 主栈串口设置 */
+                          {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}  
+					     };
 
-                        
-                        
-                        
+sMBMasterNodeInfo MBMasterNode = {MB_RTU, &MBMasterUart, "UART0",                        /* 主栈配置信息 */
+                                  MB_MASTER_MIN_DEV_ADDR, MB_MASTER_MAX_DEV_ADDR,
+                                  MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO, 
+                                  TRUE, &DevDataDTU247, &DevDataDTU200};
+
+sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,           /* 从栈配置信息 */
+                                 MB_SLAVE_POLL_TASK_PRIO, &MBSlaveCommData};                                  
+                                  
+/**********************************************************************
+ * @brief  MODBUS初始化
+ * @param  psMBSlaveInfo  从栈信息块   
+ * @return BOOL   
+ * @author laoc
+ * @date 2019.01.22
+ *********************************************************************/
+BOOL xModbusInit(void)
+{
+    (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
+    (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
+}
+                     
 /**********************************************************************
  * @brief   UART1中断响应函数
  * @return	none

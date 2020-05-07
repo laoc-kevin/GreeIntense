@@ -56,7 +56,9 @@
 #include "mbtcp_m.h"
 #endif
 
-
+#ifdef MB_MASTER_DTU_ENABLED  
+#include "mbdtu_m.h"
+#endif
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 
 #ifndef MB_PORT_HAS_CLOSE
@@ -452,7 +454,7 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
     sMBMasterDTUInfo*    psMBDTUInfo    = &psMBMasterInfo->sMBDTUInfo;       //DTU模块
     sMBMasterInfo*       psMBInfo       = NULL;
     
-    if(psMBMasterInfo != NULL)
+    if(psMBMasterInfo == NULL)
     {
         return FALSE;
     }
@@ -473,8 +475,16 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         psMBDevsInfo = (sMBMasterDevsInfo*)(&psMBMasterInfo->sMBDevsInfo);
         if(psMBDevsInfo != NULL)
         {
+            if(psMasterNode->usMaxAddr > MB_MASTER_MAX_DEV_ADDR)
+            {
+                psMasterNode->usMaxAddr = MB_MASTER_MAX_DEV_ADDR;
+            }
+            if(psMasterNode->usMinAddr < MB_MASTER_MIN_DEV_ADDR)
+            {
+                psMasterNode->usMinAddr = MB_MASTER_MIN_DEV_ADDR;
+            }
             psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->usMaxAddr;
-            psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->usMinAddr;
+            psMBDevsInfo->ucSlaveDevMinAddr = psMasterNode->usMinAddr;
         }
         
         /***************************主栈状态机任务块设置***************************/
@@ -489,19 +499,34 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
 #ifdef MB_MASTER_DTU_ENABLED    
         psMBMasterInfo->bDTUEnable = psMasterNode->bDTUEnable;
 #endif   
-        
         /*******************************创建主栈状态机任务*************************/
-        if(xMBMasterCreatePollTask(psMBMasterInfo))   
+        if(xMBMasterCreatePollTask(psMBMasterInfo) == FALSE)   
         {
             return FALSE;
         }
-   
         /*******************************创建主栈轮询任务*************************/
-        if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo))   
+        if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo) == FALSE)   
         {
             return FALSE;
         }
-
+        /*******************************GPRS模块功能初始化*************************/
+#ifdef MB_MASTER_DTU_ENABLED     	
+        if(psMBMasterInfo->bDTUEnable != FALSE)
+        {
+            vDTURegistCommData(&psMBMasterInfo->sMBDTUInfo, psMasterNode->psDevDataDTU247, 
+                               psMasterNode->psDevDataDTU200);
+            
+            if( xDTUInit(&psMBMasterInfo->sMBDTUInfo) == FALSE )
+            {
+                return FALSE;
+            }
+        }
+#endif        
+        if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo) == FALSE)   
+        {
+            return FALSE;
+        }
+        
 	    if(psMBMasterList == NULL)   //注册节点
 	    {
             psMBMasterList = psMBMasterInfo;

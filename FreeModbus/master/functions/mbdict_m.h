@@ -5,37 +5,12 @@
 #include "mbconfig.h"
 #include "port.h"
 
-#define MODBUS_ACCESS_ADDR                      1     //自动寻址
-#define MODBUS_ACCESS_ADDR_INTERVAL_TIMES       10     //自动寻址轮询间隔次数
-
-/*************以下参数需要根据实际设备情况进行配置***********/
-#define DTU_PROTOCOL_VERSIPON                   0x0B    //DTU通讯协议版本号 V1.1
-
-#define MB_SLAVE_TYPES                          3
-//#define MB_SLAVE_ADDR_START                     200 
-//#define MB_MAX_SLAVE_ADDR                       247
-
-#define DTU200_PROTOCOL_TYPE_ID                 0
-#define DTU247_PROTOCOL_TYPE_ID                 1
-#define SEC_PROTOCOL_TYPE_ID                    2
-
-
-
-#define SEC_PROTOCOL_REG_IN_ADDR                10
-#define SEC_PROTOCOL_REG_IN_VALUE               0x1
-
 /* -----------------------Master Defines -------------------------------------*/
-#define M_DISCRETE_INPUT_START        0
-#define M_DISCRETE_INPUT_NDISCRETES   2000
+#define DTU_PROTOCOL_VERSIPON     0x0B    //DTU通讯协议版本号 V1.1
 
-#define M_COIL_START                  0
-#define M_COIL_NCOILS                 2000
+#define MB_MASTER_MIN_DEV_ADDR    1     //主栈从设备最小通讯地址
+#define MB_MASTER_MAX_DEV_ADDR    20    //主栈从设备最大通讯地址
 
-#define M_REG_INPUT_START             0
-#define M_REG_INPUT_NREGS             2000
-
-#define M_REG_HOLDING_START           0
-#define M_REG_HOLDING_NREGS           60000
 
 typedef enum      /* 测试模式 */        
 {
@@ -98,35 +73,36 @@ typedef struct   /* 主栈字典数据列表结构 */
     const USHORT       usDataCount;           //协议点位总数
 }sMBDevDataTable;
 
-typedef USHORT (*usMBDevDataMap)(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr); //字典映射函数
+typedef USHORT (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr); //字典映射函数
 
-typedef struct sMBSlaveDevDataInfo   /* 从设备通讯字典数据结构 */  
+typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */  
 {
-	const  sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
-	const  sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	const  sMBDevDataTable* const psMBCoilTable;        //线圈数据表
-	const  sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
-    const  sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
+	sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
+	sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
+	sMBDevDataTable* const psMBCoilTable;        //线圈数据表
+	sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
+    sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
     
-    const  UCHAR                  ucProtocolID;         //协议ID
-    usMBDevDataMap                psMBDevDataMap;       //字典映射函数
+    const  UCHAR            ucProtocolID;        //协议ID
+    psMBDevDataMapIndex     psMBDevDataMapIndex; //字典映射函数
     
-    struct sMBSlaveDevDataInfo*   pNext;                //下一个数据表
-}sMBSlaveDevDataInfo; 
+    struct sMBSlaveDevCommData*   pNext;         //下一个数据表
+}sMBSlaveDevCommData; 
 
 typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */   
 {
-    UCHAR                    ucDevAddr;             //设备通讯地址
-	UCHAR                    ucRetryTimes;          //测试间隔
-	UCHAR                    ucOnLine;              //是否在线
-	UCHAR                    ucDataReady;           //数据是否准备好
-    UCHAR                    ucProtocolID;          //协议ID
-	UCHAR                    ucSynchronized;        //是否同步
-    UCHAR                    ucDevOnTimeout;        //是否处于延时
-    OS_TMR                   sDevOfflineTmr;        //设备掉线定时器
+    UCHAR   ucDevAddr;             //设备通讯地址
+    UCHAR   ucDevCurTestAddr;      //设备当前测试地址
+	UCHAR   ucRetryTimes;          //测试间隔
+	UCHAR   ucOnLine;              //是否在线
+	UCHAR   ucDataReady;           //数据是否准备好
+    UCHAR   ucProtocolID;          //协议ID
+	UCHAR   ucSynchronized;        //是否同步
+    UCHAR   ucDevOnTimeout;        //是否处于延时
+    OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
-    sMBSlaveDevDataInfo*     psDevDataInfo;         //从设备数据域
-    sMBSlaveDevDataInfo*     psDevCurData;          //从设备当前数据域   
+    sMBSlaveDevCommData*     psDevDataInfo;         //从设备数据域
+    sMBSlaveDevCommData*     psDevCurData;          //从设备当前数据域   
     
     struct sMBSlaveDevInfo*  pNext;                 //下一个设备节点
     struct sMBSlaveDevInfo*  pLast;                 //尾设备节点
@@ -134,12 +110,14 @@ typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */
 
 typedef struct    /* 主栈从设备状态结构  */
 {
-    UCHAR                    ucSlaveDevCount;    //从设备总数量        
-    UCHAR                    ucSlaveDevMinAddr;  //从设备最小通讯地址
-	UCHAR                    ucSlaveDevMaxAddr;  //从设备最大通讯地址
-                      
-	sMBSlaveDevInfo*         psMBSlaveDevsList;  //当前在线从设备列表
-    sMBSlaveDevInfo*         psMBSlaveDevCur;    //当前活动的设备
+    UCHAR             ucSlaveDevCount;    //从设备总数量        
+    UCHAR             ucSlaveDevMinAddr;  //从设备最小通讯地址
+	UCHAR             ucSlaveDevMaxAddr;  //从设备最大通讯地址
+    
+    UCHAR             ucDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR];
+    
+	sMBSlaveDevInfo*  psMBSlaveDevsList;  //当前在线从设备列表
+    sMBSlaveDevInfo*  psMBSlaveDevCur;    //当前活动的设备
        
 }sMBMasterDevsInfo; 
 

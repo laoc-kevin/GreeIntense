@@ -93,37 +93,38 @@ typedef enum
 
 typedef struct                 /* master poll task information */ 
 {
-    OS_TCB     p_tcb;
-    OS_PRIO    prio;
-    CPU_STK    stk[MB_SLAVE_POLL_TASK_STK_SIZE];
+    OS_TCB     sSlavePollTCB;
+    OS_PRIO    ucSlavePollPrio;
+
+    CPU_STK    usSlavePollStk[MB_SLAVE_POLL_TASK_STK_SIZE];
 }sMBSlaveTaskInfo;
 
 typedef struct sMBSlaveInfo  /* Slave information */
 {
-    sMBSlavePortInfo         sMBPortInfo;                        //从栈硬件接口信息
-	sMBSlaveTaskInfo         sMBTaskInfo;                        //从栈状态机任务信息
-    sMBSlaveCommInfo         sMBCommInfo;                        //从栈通讯信息
+    sMBSlavePortInfo  sMBPortInfo;                        //从栈硬件接口信息
+	sMBSlaveTaskInfo  sMBTaskInfo;                        //从栈状态机任务信息
+    sMBSlaveCommInfo  sMBCommInfo;                        //从栈通讯信息
     
-	eMBMode                  eMode;                               //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
-    eMBState                 eMBState;                            //从栈状态
-	eMBSlaveSndState         eSndState;                           //发送状态
-    eMBSlaveRcvState         eRcvState;                           //接收状态
+	eMBMode           eMode;                               //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
+    eMBState          eMBState;                            //从栈状态
+	eMBSlaveSndState  eSndState;                           //发送状态
+    eMBSlaveRcvState  eRcvState;                           //接收状态
     
-    USHORT                   usSndBufferCount;                    //发送缓冲区数据量
-    USHORT                   usRcvBufferPos;                      //接收缓冲区数据位置
+    USHORT            usSndBufferCount;                    //发送缓冲区数据量
+    USHORT            usRcvBufferPos;                      //接收缓冲区数据位置
     
-    UCHAR*                   pucSndBufferCur;                     //当前发送数据缓冲区指针
+    UCHAR*            pucSndBufferCur;                     //当前发送数据缓冲区指针
     
 #if MB_SLAVE_RTU_ENABLED > 0         //RTU mode information
-    UCHAR                    ucRTUBuf[MB_SER_PDU_SIZE_MAX];       //接收缓冲区                      
+    UCHAR             ucRTUBuf[MB_SER_PDU_SIZE_MAX];       //接收缓冲区                      
 #endif
 
 #if MB_SLAVE_CPN_ENABLED > 0    
-     USHORT                  usCPNName;    
-     UCHAR*                  pucCPNHead;
-     UCHAR                   ucSourAddr;
-     UCHAR                   ucDestAddr;
-     UCHAR                   ucCPNBuf[MB_CPN_FRAME_SIZE_MAX];
+     USHORT           usCPNName;    
+     UCHAR*           pucCPNHead;
+     UCHAR            ucSourAddr;
+     UCHAR            ucDestAddr;
+     UCHAR            ucCPNBuf[MB_CPN_FRAME_SIZE_MAX];
 #endif   
     
 #if MB_MASTER_ASCII_ENABLED > 0 
@@ -137,12 +138,12 @@ typedef struct                 /* 从栈节点配置信息 */
 {
    eMBMode             eMode;
    sUART_Def*          psSlaveUart;
-   CHAR*               pcMBPortName; 
-    
-   USHORT              usSlaveAddr;
-   sMBSlaveDataInfo*   psSlaveCurData;
-    
-   OS_PRIO              prio;
+                       
+   CHAR*               pcMBPortName;  
+   UCHAR*              pcSlaveAddr;
+                       
+   OS_PRIO             ucSlavePollPrio;  
+   sMBSlaveCommData*   psSlaveCurData;
 }sMBSlaveNodeInfo;
 
 
@@ -478,7 +479,9 @@ eMBErrorCode eMBSlaveWriteCPNCB( sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffe
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Slave
  *************************************************************************/
-BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode);
+BOOL xMBSlaveRegistNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode);
+
+void vMBSlaveRegistCommData(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveCommData* psSlaveCurData);
 
 sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName);
 									 

@@ -4,10 +4,7 @@
 #include "port.h"
 #include "mb_m.h"
 
-#define MB_SCAN_SLAVE_DELAY_MS                  20    //主栈扫描从设备
 
-#define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
-#define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         20
 
 BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo);
 

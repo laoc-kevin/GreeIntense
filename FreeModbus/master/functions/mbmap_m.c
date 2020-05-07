@@ -31,7 +31,7 @@ eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSnd
 	{
 		return MB_MRE_ILL_ARG;
 	}
-    i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(RegInputData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
+    i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(RegInputData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
     
 	*pvRegInValue = (sMasterRegInData*)(psRegInputBuf->pvDataBuf) + i; //指针赋值，这里传递的是个地址，指向目标寄存器所在数组位置
 	return eStatus;
@@ -69,7 +69,7 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR 
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(RegHoldData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(RegHoldData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
     
 	*pvRegHoldValue = (sMasterRegHoldData*)(psRegHoldBuf->pvDataBuf) + i ;
 	return eStatus;
@@ -107,7 +107,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndA
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(CoilData, psMBSlaveDevCur->ucProtocolID, usCoilAddr);  //字典映射函数
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(CoilData, psMBSlaveDevCur->ucProtocolID, usCoilAddr);  //字典映射函数
 	
 	*pvCoilValue = (sMasterBitCoilData*)(psCoilBuf->pvDataBuf) + i ; 	
 	return eStatus;
@@ -144,7 +144,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMap(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr);  //字典映射函数
+	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr);  //字典映射函数
     
 	*pvDiscreteValue = (sMasterBitDiscData*)(psDiscInBuf->pvDataBuf)  + i;
 	return eStatus;
