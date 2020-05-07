@@ -150,7 +150,7 @@ static xMBSlaveFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 /**********************************************************************
  * @brief  MODBUS协议栈初始化
  * @param  eMode           MODBUS模式:    RTU模式   ASCII模式   TCP模式  
- * @param  ucSlaveAddr     从站地址
+ * @param  pcSlaveAddr     从站地址
  * @param  *psMBSlaveUart  UART配置
  * @return eMBErrorCode    错误码
  * @author laoc
@@ -163,9 +163,11 @@ eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
     sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
+    UCHAR ucSlaveAddr = *psMBCommInfo->pcSlaveAddr;
+    
     /* check preconditions */
-    if( (psMBCommInfo->ucSlaveAddr == MB_ADDRESS_BROADCAST) ||
-        (psMBCommInfo->ucSlaveAddr < MB_ADDRESS_MIN) || (psMBCommInfo->ucSlaveAddr > MB_ADDRESS_MAX) )
+    if( (ucSlaveAddr == MB_ADDRESS_BROADCAST) ||
+        (ucSlaveAddr < MB_ADDRESS_MIN) || (ucSlaveAddr > MB_ADDRESS_MAX) )
     {
         eStatus = MB_EINVAL;
     }
@@ -406,7 +408,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
 		    if(eStatus == MB_ENOERR)
             {
                 /* Check if the frame is for us. If not ignore the frame. */
-                if( (ucRcvAddress == psMBCommInfo->ucSlaveAddr) || (ucRcvAddress == MB_ADDRESS_BROADCAST) )
+                if( (ucRcvAddress == *(psMBCommInfo->pcSlaveAddr)) || (ucRcvAddress == MB_ADDRESS_BROADCAST) )
                 {
                     (void)xMBSlavePortEventPost(psMBPortInfo, EV_EXECUTE);      //修改事件标志为EV_EXECUTE执行事件
                 }
@@ -419,7 +421,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
 		    if(eStatus == MB_ENOERR)
             {
                 /* Check if the frame is for us. If not ignore the frame. */
-                if( (psMBSlaveInfo->ucDestAddr == psMBCommInfo->ucSlaveAddr) || (psMBSlaveInfo->ucDestAddr == MB_CPN_ADDRESS_BROADCAST) )
+                if( (psMBSlaveInfo->ucDestAddr == psMBCommInfo->pcSlaveAddr) || (psMBSlaveInfo->ucDestAddr == MB_CPN_ADDRESS_BROADCAST) )
                 {
                     (void)xMBSlavePortEventPost(psMBPortInfo, EV_EXECUTE );      //修改事件标志为EV_EXECUTE执行事件
                 }
@@ -460,7 +462,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                     *(ucMBFrame + (usLength++)) = eException;                                   //响应发送数据帧的第三个字节为错误码标识
                 }
                  /* eMBRTUSend()进行必要的发送预设后，禁用RX，使能TX。发送操作由USART_DATA（UDR空）中断实现。*/			
-                eStatus = peMBSlaveFrameSendCur(psMBSlaveInfo, psMBCommInfo->ucSlaveAddr, ucMBFrame, usLength); //modbus从机响应函数,发送响应给主机
+                eStatus = peMBSlaveFrameSendCur(psMBSlaveInfo, *(psMBCommInfo->pcSlaveAddr), ucMBFrame, usLength); //modbus从机响应函数,发送响应给主机
             }
 #endif    
 
@@ -492,7 +494,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 {
                     /* eMBRTUSend()进行必要的发送预设后，禁用RX，使能TX。发送操作由USART_DATA（UDR空）中断实现。
                     modbus从机响应函数,发送响应给主机,注意地址对换*/			
-					eStatus = peMBSlaveCPNFrameSendCur(psMBSlaveInfo, psMBCommInfo->ucSlaveAddr, psMBSlaveInfo->ucSourAddr, ucMBFrame, usLength);  
+					eStatus = peMBSlaveCPNFrameSendCur(psMBSlaveInfo, psMBCommInfo->pcSlaveAddr, psMBSlaveInfo->ucSourAddr, ucMBFrame, usLength);  
 			    }    
 			}			
 #endif 			
@@ -516,7 +518,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
+BOOL xMBSlaveRegistNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
 {
     sMBSlavePortInfo*   psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;   //从栈硬件接口信息
 	sMBSlaveTaskInfo*   psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;   //从栈状态机任务信息
@@ -544,19 +546,19 @@ BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlav
         psMBCommInfo = (sMBSlaveCommInfo*)(&psMBSlaveInfo->sMBCommInfo);
         if(psMBCommInfo != NULL)
         {
-            psMBCommInfo->ucSlaveAddr     = psSlaveNode->usSlaveAddr;
-            psMBCommInfo->psSlaveCurData  = psSlaveNode->psSlaveCurData;
+            psMBCommInfo->pcSlaveAddr    = psSlaveNode->pcSlaveAddr;
+            psMBCommInfo->psSlaveCurData = psSlaveNode->psSlaveCurData;
         }
-        
+  
         /***************************从栈状态机任务块设置***************************/
         psMBTaskInfo   = (sMBSlaveTaskInfo*)(&psMBSlaveInfo->sMBTaskInfo);
         if(psMBTaskInfo != NULL)
         {
-            psMBTaskInfo->prio = psSlaveNode->prio;
+            psMBTaskInfo->ucSlavePollPrio = psSlaveNode->ucSlavePollPrio;
         }
 
-         /*******************************创建从栈状态机任务*************************/
-        if(xMBSlaveCreatePollTask(psMBSlaveInfo))  
+        /*******************************创建从栈状态机任务*************************/
+        if(xMBSlaveCreatePollTask(psMBSlaveInfo) == FALSE)  
         {
             return FALSE;
         }
@@ -574,6 +576,18 @@ BOOL xMBSlaveRegisterNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlav
         return TRUE;
     }
     return FALSE;
+}
+
+/**********************************************************************
+ * @brief  MODBUS注册通讯数据表
+ * @param  psMBSlaveInfo  从栈信息块   
+ * @return BOOL   
+ * @author laoc
+ * @date 2019.01.22
+ *********************************************************************/
+void vMBSlaveRegistCommData(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveCommData* psSlaveCurData)
+{
+    psMBSlaveInfo->sMBCommInfo.psSlaveCurData = psSlaveCurData;
 }
 
 /**********************************************************************
@@ -610,16 +624,22 @@ sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName)
 BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
 {
     OS_ERR err = OS_ERR_NONE;
+    
+    CPU_STK_SIZE          stk_size = MB_SLAVE_POLL_TASK_STK_SIZE; 
     sMBSlaveTaskInfo* psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;
     
-    OSTaskCreate(&psMBTaskInfo->p_tcb,
+    OS_PRIO             prio = psMBTaskInfo->ucSlavePollPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sSlavePollTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usSlavePollStk);
+    
+    OSTaskCreate( p_tcb,
                   "vMBSlavePollTask",
                   vMBSlavePollTask,
                   (void*)psMBSlaveInfo,
-                  psMBTaskInfo->prio,
-                  psMBTaskInfo->stk ,
-                  MB_SLAVE_POLL_TASK_STK_SIZE / 10u,
-                  MB_SLAVE_POLL_TASK_STK_SIZE,
+                  prio,
+                  p_stk_base ,
+                  stk_size / 10u,
+                  stk_size,
                   0u,
                   0u,
                   0u,

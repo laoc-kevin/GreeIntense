@@ -15,7 +15,7 @@ eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegInAddr, sMBSlaveRegDat
 {
 	eMBErrorCode    eStatus = MB_ENOERR;
     
-    sMBSlaveDataInfo*           psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
+    sMBSlaveCommData*           psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psRegInputBuf = psCurData->psMBRegInTable;
 	
     UCHAR i = psCurData->psMBSlaveDataMap(RegInputData, usRegInAddr);    //从栈字典映射函数
@@ -40,7 +40,7 @@ eMBErrorCode
 eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRegData** pvRegHoldValue)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
-    sMBSlaveDataInfo*          psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
+    sMBSlaveCommData*          psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psRegHoldBuf = psCurData->psMBRegHoldTable;
 
 	UCHAR i = psCurData->psMBSlaveDataMap(RegInputData, usRegHoldAddr);    //从栈字典映射函数
@@ -65,7 +65,7 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     
-	sMBSlaveDataInfo*       psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
+	sMBSlaveCommData*       psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psCoilBuf = psCurData->psMBCoilTable;
     
 	UCHAR i = psCurData->psMBSlaveDataMap(RegInputData, usCoilAddr);    //从栈字典映射函数
@@ -92,7 +92,7 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 
-	sMBSlaveDataInfo*         psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
+	sMBSlaveCommData*         psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psDiscInBuf = psCurData->psMBDiscInTable;
 
 	UCHAR i = psCurData->psMBSlaveDataMap(RegInputData, usDiscreteAddr);    //从栈字典映射函数
@@ -117,7 +117,7 @@ eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData **
 {
 	eMBErrorCode    eStatus = MB_ENOERR;
     
-    sMBSlaveDataInfo*      psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
+    sMBSlaveCommData*      psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psCPNBuf = psCurData->psMBCPNTable;
 
 	UCHAR i = psCurData->psMBSlaveDataMap(ValCPNData, usCpnName);    //从栈字典映射函数

@@ -8,8 +8,15 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
-static void vMBMasterScanSlaveDevTask(void *p_arg);
 
+#define MB_SCAN_SLAVE_DELAY_MS                  20    //主栈扫描从设备
+
+#define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
+#define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         20
+
+
+
+static void vMBMasterScanSlaveDevTask(void *p_arg);
 
 /**********************************************************************
  * @brief   创建主栈轮询从设备任务
@@ -72,51 +79,65 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
     
-    UCHAR* pcDevsScanInv = calloc(ucAddrSub, sizeof(UCHAR));
-	UCHAR* pcDevAddrOccupy = calloc(ucAddrSub, sizeof(UCHAR));          //被占用的从设备通讯地址
+	UCHAR* pcDevAddrOccupy = psMBDevsInfo->ucDevAddrOccupy;          //被占用的从设备通讯地址
     
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持	
-    vDTUInit(psMBMasterInfo);    //初始化DTU
-#endif
-
-    /*************************上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
-
-    for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)  
-	{
-        pcDevsScanInv[iSlaveAddr - ucMinAddr] = ucAddrSub;  //首次上电所以都要测试
+    /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
+    for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
+    { 
+        for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)
+        {    
+            if(pcDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
+            {
+                vMBDevTest(psMBMasterInfo, psMBSlaveDev, iSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
+                if(psMBSlaveDev->ucOnLine == TRUE)
+                {
+                    pcDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
+                    break;
+                }                            
+            }
+        }
     }
 	while (DEF_TRUE)
 	{
 		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
         
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理
-		vDTUScanDev(psMBMasterInfo);  //轮询DTU模块
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理      
+        if(psMBMasterInfo->bDTUEnable != FALSE)    //轮询DTU模块
+        {
+             vDTUScanDev(psMBMasterInfo); 
+        }
 #endif
         
 		/*********************************轮询从设备***********************************/
 		for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
-            if(psMBSlaveDev->ucOnLine == FALSE)
+            if(psMBSlaveDev->ucOnLine == FALSE)   //如果设备不在线
             {
-                for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)
-                {    
-                    if(pcDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)
-                    {
-                        vMBDevTest(psMBMasterInfo, psMBSlaveDev, iSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
-                        if(psMBSlaveDev->ucOnLine == TRUE)
-                        {
-                            pcDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
-                            break;
-                        }                            
-                    }
+                if(psMBSlaveDev->ucDevCurTestAddr == 0)  //刚掉线
+                {
+                    psMBSlaveDev->ucDevCurTestAddr = ucMinAddr;   //从最小地址开始测试，一个周期只测试一个地址
                 }
+                if(psMBSlaveDev->ucDevCurTestAddr > ucMaxAddr)
+                {
+                    psMBSlaveDev->ucDevCurTestAddr = ucMinAddr;  //超过最大地址则重新从最小地址开始测试
+                }                    
+                if(pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
+                {
+                    vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
+                    if(psMBSlaveDev->ucOnLine == TRUE)
+                    {
+                        pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
+                        break;
+                    }                      
+                }
+                psMBSlaveDev->ucDevCurTestAddr++;
             }
         }
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
             if(psMBSlaveDev->ucOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
-                vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //防止从设备可能掉线
+                vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
                 if( (psMBSlaveDev->ucOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
                 {
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
@@ -142,9 +163,13 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBS
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
-    UCHAR               iSlaveAddr   = psMBSlaveDev->ucDevAddr;                 //通讯地址
+    UCHAR               iSlaveAddr   = psMBSlaveDev->ucDevAddr;           //通讯地址
     
     psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;   //当前从设备
+    if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
+    {
+        return;
+    }
     
     if( (psMBSlaveDev != NULL) && (psMBSlaveDev->ucOnLine == TRUE) )   //如果设备在线则进行轮询
     {

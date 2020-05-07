@@ -47,28 +47,28 @@ typedef struct   /* 从栈字典数据列表结构 */
     const USHORT       usDataCount;           //协议点位总数
 }sMBSlaveDataTable;
 
-typedef USHORT (*usMBSlaveDataMap)(eDataType eDataType, USHORT usAddr); //字典映射函数
+typedef USHORT (*psMBSlaveDataMap)(eDataType eDataType, USHORT usAddr); //字典映射函数
 
 typedef struct            /* 从栈通讯字典数据结构 */  
 {
-	const sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
-	const sMBSlaveDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	const sMBSlaveDataTable* const psMBCoilTable;        //线圈数据表
-	const sMBSlaveDataTable* const psMBDiscInTable;      //离散量数据表
-    
-#if MB_SLAVE_CPN_ENABLED > 0
-    const sMBSlaveDataTable* const psMBCPNTable;         //CPN数据表 
+	sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
+	sMBSlaveDataTable* const psMBRegHoldTable;     //保持寄存器数据表
+	sMBSlaveDataTable* const psMBCoilTable;        //线圈数据表
+	sMBSlaveDataTable* const psMBDiscInTable;      //离散量数据表
+                            
+#if MB_SLAVE_CPN_ENABLED > 0 
+    sMBSlaveDataTable* const psMBCPNTable;         //CPN数据表 
 #endif   
-    usMBSlaveDataMap               psMBSlaveDataMap;     //从栈字典映射函数
+    psMBSlaveDataMap         psMBSlaveDataMap;     //从栈字典映射函数
     
-}sMBSlaveDataInfo; 
+}sMBSlaveCommData; 
 
 typedef struct                 /* 从栈通讯参数信息 */   
 {
-    UCHAR               ucSlaveAddr;                //从栈通讯地址
+    UCHAR*              pcSlaveAddr;                //从栈通讯地址
 	UCHAR               ucDataReady;                //数据是否准备好
 
-    sMBSlaveDataInfo*   psSlaveCurData;             //从栈当前数据域   
+    sMBSlaveCommData*   psSlaveCurData;             //从栈当前数据域   
 }sMBSlaveCommInfo; 
 
 #endif

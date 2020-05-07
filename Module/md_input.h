@@ -18,6 +18,9 @@ typedef struct        /**DI数据结构**/
 	void*           pvDIVal;       //当前实际值       
 }sDIData; 
 
+extern uint8_t ControllerID;           //控制器ID 通过拨码设置    
+
+
 void     vDigitalInputRegister(uint8_t ucChannel, uint8_t* pvVal);
 void     vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);
          
