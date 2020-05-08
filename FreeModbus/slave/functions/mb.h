@@ -97,13 +97,13 @@ typedef struct                 /* master poll task information */
     OS_PRIO    ucSlavePollPrio;
 
     CPU_STK    usSlavePollStk[MB_SLAVE_POLL_TASK_STK_SIZE];
-}sMBSlaveTaskInfo;
+}sMBSlaveTask;
 
 typedef struct sMBSlaveInfo  /* Slave information */
 {
-    sMBSlavePortInfo  sMBPortInfo;        //从栈硬件接口信息
-	sMBSlaveTaskInfo  sMBTaskInfo;        //从栈状态机任务信息
-    sMBSlaveCommInfo  sMBCommInfo;        //从栈通讯信息
+    sMBSlavePort      sMBPort;        //从栈硬件接口信息
+	sMBSlaveTask      sMBTask;        //从栈状态机任务信息
+    sMBSlaveCommInfo  sMBCommInfo;    //从栈通讯信息
     
 	eMBMode           eMode;              //MODBUS模式: RTU模式   ASCII模式   TCP模式 
     eMBState          eMBState;           //从栈状态
@@ -143,35 +143,34 @@ typedef struct                 /* 从栈节点配置信息 */
    UCHAR*              pcSlaveAddr;
                        
    OS_PRIO             ucSlavePollPrio;  
-   sMBSlaveCommData*   psSlaveCurData;
 }sMBSlaveNodeInfo;
 
 
-typedef void    (*pvMBSlaveFrameStart) (sMBSlaveInfo* psMBSlaveInfo);
+typedef void (*pvMBSlaveFrameStart)(sMBSlaveInfo* psMBSlaveInfo);
 
-typedef void    (*pvMBSlaveFrameStop) (sMBSlaveInfo* psMBSlaveInfo);
+typedef void (*pvMBSlaveFrameStop)(sMBSlaveInfo* psMBSlaveInfo);
 
-typedef void    (*pvMBSlaveFrameClose) (sMBSlavePortInfo* psMBPortInfo);
+typedef void (*pvMBSlaveFrameClose)(sMBSlavePort* psMBPort);
 
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 typedef eMBErrorCode (*peMBSlaveFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRcvAddress,
-                                                         UCHAR** pucFrame, USHORT * pusLength);
+                                               UCHAR** pucFrame, USHORT * pusLength);
 
 typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR slaveAddress,
-                                                      const UCHAR* pucFrame, USHORT usLength);
+                                            const UCHAR* pucFrame, USHORT usLength);
 #endif
 
 
 #if MB_SLAVE_CPN_ENABLED > 0
 										 
 										 									 
-typedef eMBErrorCode (*peMBSlaveCPNFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
-	                                                       UCHAR* pucDestAddr, UCHAR** pucFrame, USHORT * pusLength);
+typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
+	                                             UCHAR* pucDestAddr, UCHAR** pucFrame, USHORT * pusLength);
 
-typedef eMBErrorCode (*peMBSlaveCPNFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr,
-	                                                    UCHAR ucDestAddr, const UCHAR* pucFrame, USHORT usLength);
+typedef eMBErrorCode (*peMBSlaveCPNFrameSend)(sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr,
+	                                          UCHAR ucDestAddr, const UCHAR* pucFrame, USHORT usLength);
 #endif
 
 /* ----------------------- Callback for the protocol stack ------------------*/
@@ -187,11 +186,11 @@ typedef eMBErrorCode (*peMBSlaveCPNFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHA
  *   a new byte was received. The port implementation should wake up the
  *   tasks which are currently blocked on the eventqueue.
  */
-typedef BOOL (*pxMBSlaveFrameCBByteReceived) (sMBSlaveInfo* psMBSlaveInfo);
+typedef BOOL (*pxMBSlaveFrameCBByteReceived)(sMBSlaveInfo* psMBSlaveInfo);
 
-typedef BOOL (*pxMBSlaveFrameCBTransmitterEmpty) (sMBSlaveInfo* psMBSlaveInfo);
+typedef BOOL (*pxMBSlaveFrameCBTransmitterEmpty)(sMBSlaveInfo* psMBSlaveInfo);
 
-typedef BOOL (*pxMBSlaveFrameCBTimerExpired) (sMBSlaveInfo* psMBSlaveInfo);
+typedef BOOL (*pxMBSlaveFrameCBTimerExpired)(sMBSlaveInfo* psMBSlaveInfo);
 
 
 /* Callback functions required by the porting layer. They are called when

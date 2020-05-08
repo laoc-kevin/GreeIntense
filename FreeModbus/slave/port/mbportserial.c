@@ -30,9 +30,9 @@
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
 
 /* ----------------------- Start implementation -----------------------------*/
-void vMBSlavePortSerialEnable( sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable )
+void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxEnable )
 {
-    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	UART_FIFOReset(psMBSlaveUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
 	if(xRxEnable)
@@ -63,30 +63,30 @@ void vMBSlavePortSerialEnable( sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, B
 	
 }
 
-void vMBSlavePortClose(sMBSlavePortInfo* psMBPortInfo)
+void vMBSlavePortClose(sMBSlavePort* psMBPort)
 {
-    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_THRE|UART_INTCFG_RBR, DISABLE);
 	UART_TxCmd(psMBSlaveUart->ID, DISABLE);
 }
 
-BOOL xMBSlavePortSerialInit(sMBSlavePortInfo* psMBPortInfo)
+BOOL xMBSlavePortSerialInit(sMBSlavePort* psMBPort)
 {	
 	BOOL bInitialized = TRUE;
-    const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+    const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	MB_UartInit(psMBSlaveUart);
     return bInitialized;
 }
 
 BOOL
-xMBSlavePortSerialPutByte(sMBSlavePortInfo* psMBPortInfo, CHAR ucByte )
+xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
 {
 //	UCHAR h;
 //	UCHAR l;
     
-	const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 //	h=ucByte >> 4 ;
 //	l=ucByte % 16 ;	
@@ -99,11 +99,11 @@ xMBSlavePortSerialPutByte(sMBSlavePortInfo* psMBPortInfo, CHAR ucByte )
     return TRUE;
 }
 
-BOOL xMBSlavePortSerialGetByte(sMBSlavePortInfo* psMBPortInfo, CHAR* pucByte)
+BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 {
 //	UCHAR h;
 //	UCHAR l;
-	const sUART_Def* psMBSlaveUart = psMBPortInfo->psMBSlaveUart;
+	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
 	

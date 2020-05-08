@@ -36,18 +36,18 @@
 static void vSlaveTimeoutInd(void * p_tmr, void * p_arg);
 
 /* ----------------------- Start implementation -----------------------------*/
-BOOL xMBSlavePortTimersInit(sMBSlavePortInfo* psMBPortInfo, USHORT usTim1Timerout50us)
+BOOL xMBSlavePortTimersInit(sMBSlavePort* psMBPort, USHORT usTim1Timerout50us)
 {
 	OS_ERR err = OS_ERR_NONE;
 	ULONG    i = (usTim1Timerout50us * 80 ) / (1000000 / TMR_TICK_PER_SECOND);
 
-    OSTmrCreate(&psMBPortInfo->sSlavePortTmr,
+    OSTmrCreate(&psMBPort->sSlavePortTmr,
 			"sSlavePortTmr",
 		    i,   //50us太快，改为80us 
 			0,
 			OS_OPT_TMR_ONE_SHOT,
 			vSlaveTimeoutInd,
-			(void*)psMBPortInfo,
+			(void*)psMBPort,
 			&err);
 	if( err == OS_ERR_NONE )
 	{
@@ -56,24 +56,24 @@ BOOL xMBSlavePortTimersInit(sMBSlavePortInfo* psMBPortInfo, USHORT usTim1Timerou
     return FALSE;
 }
 
-void vMBSlavePortTimersEnable(sMBSlavePortInfo* psMBPortInfo)
+void vMBSlavePortTimersEnable(sMBSlavePort* psMBPort)
 {	
 	OS_ERR err = OS_ERR_NONE;
     
-	(void)OSTmrStateGet(&psMBPortInfo->sSlavePortTmr, &err);;
-    (void)OSTmrStart(&psMBPortInfo->sSlavePortTmr, &err);
+	(void)OSTmrStateGet(&psMBPort->sSlavePortTmr, &err);;
+    (void)OSTmrStart(&psMBPort->sSlavePortTmr, &err);
 }
 
-void vMBSlavePortTimersDisable(sMBSlavePortInfo* psMBPortInfo)
+void vMBSlavePortTimersDisable(sMBSlavePort* psMBPort)
 {
 	OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrStop(&psMBPortInfo->sSlavePortTmr, OS_OPT_TMR_NONE, NULL, &err);
+    (void)OSTmrStop(&psMBPort->sSlavePortTmr, OS_OPT_TMR_NONE, NULL, &err);
 }
 
 static void TIMERExpiredISR(void * p_arg)    //定时器中断服务函数
 {
-	sMBSlavePortInfo*  psMBPortInfo = (sMBSlavePortInfo*)p_arg;
-	sMBSlaveInfo*    psMBSlaveInfo = psMBSlaveFindNodeByPort(psMBPortInfo->pcMBPortName);
+	sMBSlavePort*      psMBPort = (sMBSlavePort*)p_arg;
+	sMBSlaveInfo* psMBSlaveInfo = psMBSlaveFindNodeByPort(psMBPort->pcMBPortName);
 	
 	if( psMBSlaveInfo != NULL )
 	{

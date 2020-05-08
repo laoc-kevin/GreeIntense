@@ -57,24 +57,24 @@ typedef struct                                /* 主栈接口定义  */
     BOOL   xErrorEventInQueue;                    //主栈有新错误事件
 	
     const  CHAR* pcMBPortName;                    //主栈接口名称
-}sMBMasterPortInfo;
+}sMBMasterPort;
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0 
 
 
 /* -----------------------Master Serial port functions ----------------------------*/
 
-BOOL xMBMasterPortSerialInit( sMBMasterPortInfo* psMBPortInfo );
+BOOL xMBMasterPortSerialInit( sMBMasterPort* psMBPort );
 
-void vMBMasterPortClose( sMBMasterPortInfo* psMBPortInfo );
+void vMBMasterPortClose( sMBMasterPort* psMBPort );
 
-void xMBMasterPortSerialClose( sMBMasterPortInfo* psMBPortInfo );
+void xMBMasterPortSerialClose( sMBMasterPort* psMBPort );
 
-void vMBMasterPortSerialEnable( sMBMasterPortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable );
+void vMBMasterPortSerialEnable( sMBMasterPort* psMBPort, BOOL xRxEnable, BOOL xTxEnable );
 
-INLINE BOOL xMBMasterPortSerialGetByte( const sMBMasterPortInfo* psMBPortInfo, CHAR * pucByte );
+INLINE BOOL xMBMasterPortSerialGetByte( const sMBMasterPort* psMBPort, CHAR * pucByte );
 
-INLINE BOOL xMBMasterPortSerialPutByte( sMBMasterPortInfo* psMBPortInfo, CHAR ucByte );
+INLINE BOOL xMBMasterPortSerialPutByte( sMBMasterPort* psMBPort, CHAR ucByte );
 
 void prvvMasterUARTTxReadyISR( const CHAR* pcMBPortName );
 
@@ -83,11 +83,11 @@ void prvvMasterUARTRxISR( const CHAR* pcMBPortName );
 
 /* -----------------------Master Serial port event functions ----------------------------*/
 
-BOOL xMBMasterPortEventInit( sMBMasterPortInfo* psMBPortInfo );
+BOOL xMBMasterPortEventInit( sMBMasterPort* psMBPort );
 
-BOOL xMBMasterPortEventPost( sMBMasterPortInfo* psMBPortInfo, eMBMasterEventType eEvent );
+BOOL xMBMasterPortEventPost( sMBMasterPort* psMBPort, eMBMasterEventType eEvent );
 
-BOOL xMBMasterPortEventGet( sMBMasterPortInfo* psMBPortInfo, eMBMasterEventType* peEvent );
+BOOL xMBMasterPortEventGet( sMBMasterPort* psMBPort, eMBMasterEventType* peEvent );
 
 void vMBMasterOsResInit( void );
 
@@ -98,34 +98,34 @@ void vMBMasterRunResRelease( void );
 
 /* ----------------------- Timers functions ---------------------------------*/
 
-BOOL xMBsMasterPortTmrsInit(sMBMasterPortInfo* psMBPortInfo, USHORT usTim1Timerout50us);
+BOOL xMBsMasterPortTmrsInit(sMBMasterPort* psMBPort, USHORT usTim1Timerout50us);
 
-void xMBsMasterPortTmrsClose(sMBMasterPortInfo* psMBPortInfo);
+void xMBsMasterPortTmrsClose(sMBMasterPort* psMBPort);
 
-INLINE void     vMBsMasterPortTmrsEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsEnable( sMBMasterPort* psMBPort );
 
-INLINE void     vMBsMasterPortTmrsConvertDelayEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsConvertDelayEnable( sMBMasterPort* psMBPort );
 
-INLINE void     vMBsMasterPortTmrsRespondTimeoutEnable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsRespondTimeoutEnable( sMBMasterPort* psMBPort );
 
-INLINE void     vMBsMasterPortTmrsDisable( sMBMasterPortInfo* psMBPortInfo );
+INLINE void     vMBsMasterPortTmrsDisable( sMBMasterPort* psMBPort );
 
 
 /* ----------------- Callback for the master error process ------------------*/
 
-void vMBMasterErrorCBRespondTimeout( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
+void vMBMasterErrorCBRespondTimeout( sMBMasterPort* psMBPort, UCHAR ucDestAddr, 
 	                                 const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBReceiveData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
+void vMBMasterErrorCBReceiveData( sMBMasterPort* psMBPort, UCHAR ucDestAddr, 
 	                              const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBExecuteFunction( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
+void vMBMasterErrorCBExecuteFunction( sMBMasterPort* psMBPort, UCHAR ucDestAddr, 
                                       const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterErrorCBRespondData( sMBMasterPortInfo* psMBPortInfo, UCHAR ucDestAddr, 
+void vMBMasterErrorCBRespondData( sMBMasterPort* psMBPort, UCHAR ucDestAddr, 
                                   const UCHAR* pucPDUData, USHORT ucPDULength );
 
-void vMBMasterCBRequestSuccess( sMBMasterPortInfo* psMBPortInfo );
+void vMBMasterCBRequestSuccess( sMBMasterPort* psMBPort );
 
 #endif
 

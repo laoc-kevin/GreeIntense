@@ -66,11 +66,11 @@ eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
 
     if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
+        usRegAddress  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
         usRegAddress |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usDiscreteCnt = (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF] << 8 );
+        usDiscreteCnt  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF] << 8 );
         usDiscreteCnt |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
@@ -89,13 +89,13 @@ eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
 
             /* Test if the quantity of coils is a multiple of 8. If not last
              * byte is only partially field with unused coils set to zero. */
-            if( ( usDiscreteCnt & 0x0007 ) != 0 )
+            if( (usDiscreteCnt & 0x0007) != 0 )
             {
-                ucNBytes = (UCHAR) ( usDiscreteCnt/8 + 1 );
+                ucNBytes = (UCHAR)(usDiscreteCnt/8 + 1);
             }
             else
             {
-                ucNBytes = (UCHAR) ( usDiscreteCnt/8 );
+                ucNBytes = (UCHAR)(usDiscreteCnt/8);
             }
             *pucFrameCur++ = ucNBytes;
             *usLen += 1;

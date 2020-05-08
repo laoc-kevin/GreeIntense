@@ -89,7 +89,7 @@ typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */
     struct sMBSlaveDevCommData*   pNext;         //下一个数据表
 }sMBSlaveDevCommData; 
 
-typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */   
+typedef struct sMBSlaveDev   /* 从设备信息列表 */   
 {
     UCHAR   ucDevAddr;             //设备通讯地址
     UCHAR   ucDevCurTestAddr;      //设备当前测试地址
@@ -101,23 +101,23 @@ typedef struct sMBSlaveDevInfo   /* 从设备信息列表 */
     UCHAR   ucDevOnTimeout;        //是否处于延时
     OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
-    sMBSlaveDevCommData*     psDevDataInfo;         //从设备数据域
-    sMBSlaveDevCommData*     psDevCurData;          //从设备当前数据域   
+    sMBSlaveDevCommData* psDevDataInfo;     //从设备数据域
+    sMBSlaveDevCommData* psDevCurData;      //从设备当前数据域   
     
-    struct sMBSlaveDevInfo*  pNext;                 //下一个设备节点
-    struct sMBSlaveDevInfo*  pLast;                 //尾设备节点
-}sMBSlaveDevInfo; 
+    struct sMBSlaveDev*  pNext;             //下一个设备节点
+    struct sMBSlaveDev*  pLast;             //尾设备节点
+}sMBSlaveDev; 
 
 typedef struct    /* 主栈从设备状态结构  */
 {
-    UCHAR             ucSlaveDevCount;    //从设备总数量        
-    UCHAR             ucSlaveDevMinAddr;  //从设备最小通讯地址
-	UCHAR             ucSlaveDevMaxAddr;  //从设备最大通讯地址
+    UCHAR         ucSlaveDevCount;    //从设备总数量        
+    UCHAR         ucSlaveDevMinAddr;  //从设备最小通讯地址
+	UCHAR         ucSlaveDevMaxAddr;  //从设备最大通讯地址
     
-    UCHAR             ucDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR];
+    UCHAR         ucDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR];
     
-	sMBSlaveDevInfo*  psMBSlaveDevsList;  //当前在线从设备列表
-    sMBSlaveDevInfo*  psMBSlaveDevCur;    //当前活动的设备
+	sMBSlaveDev*  psMBSlaveDevsList;  //当前在线从设备列表
+    sMBSlaveDev*  psMBSlaveDevCur;    //当前活动的设备
        
 }sMBMasterDevsInfo; 
 

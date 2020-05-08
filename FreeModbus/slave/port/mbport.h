@@ -59,44 +59,44 @@ typedef struct                        /* 从栈接口定义  */
     BOOL                xErrorEventInQueue;    //从栈有新错误事件
 	                    
     const CHAR*         pcMBPortName;          //从栈名称
-}sMBSlavePortInfo;
+}sMBSlavePort;
 
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
 
 /* -----------------------Slave Serial port functions ----------------------------*/
-BOOL xMBSlavePortSerialInit(sMBSlavePortInfo* psMBPortInfo);
+BOOL xMBSlavePortSerialInit(sMBSlavePort* psMBPort);
 
-void vMBSlavePortClose(sMBSlavePortInfo* psMBPortInfo);
+void vMBSlavePortClose(sMBSlavePort* psMBPort);
 
-void xMBSlavePortSerialClose(sMBSlavePortInfo* psMBPortInfo);
+void xMBSlavePortSerialClose(sMBSlavePort* psMBPort);
 
-void vMBSlavePortSerialEnable(sMBSlavePortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable);
+void vMBSlavePortSerialEnable(sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxEnable);
 
-INLINE BOOL xMBSlavePortSerialGetByte(sMBSlavePortInfo* psMBPortInfo, CHAR* pucByte);
+INLINE BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte);
 
-INLINE BOOL xMBSlavePortSerialPutByte(sMBSlavePortInfo* psMBPortInfo, CHAR ucByte);
+INLINE BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte);
 
 void prvvSlaveUARTTxReadyISR(const CHAR* pcMBPortName);
 
 void prvvSlaveUARTRxISR(const CHAR* pcMBPortName);
 
 /* -----------------------Master Serial port event functions ----------------------------*/
-BOOL xMBSlavePortEventInit(sMBSlavePortInfo* psMBPortInfo);
+BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort);
 
-BOOL xMBSlavePortEventPost(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType eEvent);
+BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent);
 
-BOOL xMBSlavePortEventGet(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType* eEvent);
+BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType* eEvent);
 
 
 /* ----------------------- Timers functions ---------------------------------*/
-BOOL xMBSlavePortTimersInit(sMBSlavePortInfo* psMBPortInfo, USHORT usTim1Timerout50us);
+BOOL xMBSlavePortTimersInit(sMBSlavePort* psMBPort, USHORT usTim1Timerout50us);
 
-void xMBSlavePortTimersClose(sMBSlavePortInfo* psMBPortInfo);
+void xMBSlavePortTimersClose(sMBSlavePort* psMBPort);
 
-INLINE void vMBSlavePortTimersEnable(sMBSlavePortInfo* psMBPortInfo);
+INLINE void vMBSlavePortTimersEnable(sMBSlavePort* psMBPort);
 
-INLINE void vMBSlavePortTimersDisable(sMBSlavePortInfo* psMBPortInfo);
+INLINE void vMBSlavePortTimersDisable(sMBSlavePort* psMBPort);
 
 #endif
 

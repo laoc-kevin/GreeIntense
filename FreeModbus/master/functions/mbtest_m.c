@@ -4,7 +4,7 @@
 #define MB_TEST_RETRY_TIMES   2
 
 
-static eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevInfo* psMBSlaveDev, 
+static eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev, 
                                          const sMBTestDevCmd* psMBDevCmd);   
 
 
@@ -13,11 +13,11 @@ static eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sM
  * @param  psMBMasterInfo  主栈信息块
  * @param  psMBSlaveDev    某从设备状态
  * @param  iSlaveAddr      从设备地址
- * @return sMBSlaveDevInfo
+ * @return sMBSlaveDev
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev, UCHAR iSlaveAddr)
+void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR iSlaveAddr)
 {
     UCHAR   n, iIndex, nSlaveTypes;
     USHORT  usAddr, usDataVal;
@@ -73,7 +73,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev, UC
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
+void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
 {
     UCHAR   n, iIndex, nSlaveTypes;
     USHORT  usAddr, usDataVal;
@@ -150,10 +150,10 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlav
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDevInfo* psMBSlaveDev, 
+eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev, 
                                     const sMBTestDevCmd* psMBDevCmd)
 {
-    eMBMasterReqErrCode errorCode   = MB_MRE_EILLSTATE;
+    eMBMasterReqErrCode errorCode = MB_MRE_EILLSTATE;
    
     if( psMBDevCmd->eCmdMode == READ_REG_HOLD )
     {

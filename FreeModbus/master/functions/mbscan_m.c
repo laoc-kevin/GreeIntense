@@ -3,7 +3,6 @@
 #include "mbframe.h"
 
 #include "mbfunc_m.h"
-#include "mbdtu_m.h"
 #include "mbdict_m.h"
 #include "mbtest_m.h"
 #include "mbscan_m.h"
@@ -13,44 +12,6 @@
 
 #define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
 #define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         20
-
-
-
-static void vMBMasterScanSlaveDevTask(void *p_arg);
-
-/**********************************************************************
- * @brief   创建主栈轮询从设备任务
- * @param   *p_arg    
- * @return	none
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo)
-{   
-    OS_ERR               err = OS_ERR_NONE;
-    CPU_STK_SIZE    stk_size = MB_MASTER_SCAN_TASK_STK_SIZE; 
-    
-    sMBMasterTaskInfo* psMBTaskInfo = &(psMBMasterInfo->sMBTaskInfo);
-    
-    OS_PRIO             prio = psMBTaskInfo->ucMasterScanPrio;
-    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sMasterScanTCB);  
-    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usMasterScanStk);
-   
-    OSTaskCreate( p_tcb,
-                  "vMBMasterScanSlaveDevTask",
-                  vMBMasterScanSlaveDevTask,
-                  (void*)psMBMasterInfo,
-                  prio,
-                  p_stk_base ,
-                  stk_size / 10u,
-                  stk_size,
-                  0u,
-                  0u,
-                  0u,
-                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                  &err);
-    return (err == OS_ERR_NONE);              
-}
 
 /**********************************************************************
  * @brief   主栈轮询从设备任务
@@ -69,7 +30,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 	USHORT msReadInterval = MB_SCAN_READ_SLAVE_INTERVAL_MS;
 
     eMBMasterReqErrCode       errorCode = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*       psMBSlaveDev = NULL;
+    sMBSlaveDev*       psMBSlaveDev = NULL;
     
 	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
     sMBMasterDevsInfo*     psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
@@ -102,10 +63,10 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
         
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理      
-        if(psMBMasterInfo->bDTUEnable != FALSE)    //轮询DTU模块
+        if( (psMBMasterInfo->bDTUEnable != FALSE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
         {
-             vDTUScanDev(psMBMasterInfo); 
-        }
+             psMBMasterInfo->pvDTUScanDevCallBack(psMBMasterInfo);
+        }   
 #endif
         
 		/*********************************轮询从设备***********************************/
@@ -152,6 +113,41 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 }
 
 /**********************************************************************
+ * @brief   创建主栈轮询从设备任务
+ * @param   *p_arg    
+ * @return	none
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo)
+{   
+    OS_ERR               err = OS_ERR_NONE;
+    CPU_STK_SIZE    stk_size = MB_MASTER_SCAN_TASK_STK_SIZE; 
+    
+    sMBMasterTask* psMBTask = &(psMBMasterInfo->sMBTask);
+    
+    OS_PRIO             prio = psMBTask->ucMasterScanPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sMasterScanTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usMasterScanStk);
+   
+    OSTaskCreate( p_tcb,
+                  "vMBMasterScanSlaveDevTask",
+                  vMBMasterScanSlaveDevTask,
+                  (void*)psMBMasterInfo,
+                  prio,
+                  p_stk_base ,
+                  stk_size / 10u,
+                  stk_size,
+                  0u,
+                  0u,
+                  0u,
+                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
+                  &err);
+    return (err == OS_ERR_NONE);              
+}
+
+
+/**********************************************************************
  * @brief   主栈轮询某个从设备
  * @param   psMBMasterInfo  主栈信息块 
  * @param   psMBSlaveDev    从设备
@@ -159,7 +155,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev)
+void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
 {
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
@@ -267,10 +263,10 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 	USHORT i, nSlaveTypes;
 	USHORT iIndex, iStartAddr, iLastAddr, iCount;
     
-    eMBMasterReqErrCode             eStatus = MB_MRE_NO_ERR;
-    sMasterRegInData*       psRegInputValue = NULL;
+    eMBMasterReqErrCode            eStatus = MB_MRE_NO_ERR;
+    sMasterRegInData*      psRegInputValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;   //当前从设备
+    sMBSlaveDev*           psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;   //当前从设备
     const sMBDevDataTable*   psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;         //从设备通讯协议表
 
     iLastAddr = 0;
@@ -356,7 +352,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 	eMBMasterReqErrCode            eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData*     psRegHoldValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*           psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*    psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;         //从设备通讯协议表
     
 	iLastAddr = 0;
@@ -456,7 +452,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
 	eMBMasterReqErrCode            eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData*     psRegHoldValue = NULL;
     
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*           psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*    psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;         //从设备通讯协议表
 	
     volatile USHORT  RegHoldValueList[MB_PDU_SIZE_MAX];
@@ -589,7 +585,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
        	    	bStarted = FALSE;
        	    }
        	    
-       	    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
+       	    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
        	    {	
        	    	for( i = nRegs ; i > 0; i--)
        	    	{
@@ -611,7 +607,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
              	iRegs = 0;
              	bStarted = FALSE;
              	
-             	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新当前数据
+             	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新当前数据
              	{	
              		for( i = nRegs ; i > 0; i--)
              		{
@@ -644,7 +640,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
     eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData*      psCoilValue = NULL;
 
-    sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*            psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*        psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
     
 	iLastAddr = 0;
@@ -746,7 +742,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData*      psCoilValue = NULL;
 
-    sMBSlaveDevInfo*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*           psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*       psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;           //从设备通讯协议表
     
     volatile UCHAR  BitCoilByteValueList[MB_PDU_SIZE_MAX];
@@ -813,7 +809,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 			{
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits - 1, 
 														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
-			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
+			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
 			    {	
 			    	for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -857,7 +853,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
 														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 			
-			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
+			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
 			    {	
 			    	for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -894,7 +890,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
 				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
 		    											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 				
-		    	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPortInfo) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据
+		    	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据
 		    	{	
 		    		for( i = iChangedBits; i > 0; i--)
 			    	{
@@ -945,7 +941,7 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
     eMBMasterReqErrCode             eStatus = MB_MRE_NO_ERR;
     sMasterBitDiscData*      pDiscreteValue = NULL;
     
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;  //从设备通讯协议表
 
 	iLastAddr = 0;
