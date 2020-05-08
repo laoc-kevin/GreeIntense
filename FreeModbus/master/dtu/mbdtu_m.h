@@ -27,7 +27,10 @@
 #define TEST_DTU247_PROTOCOL_REG_IN_VALUE       0xFF
 
 void vDTUScanDev(sMBMasterInfo* psMBMasterInfo);
-BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo);
+BOOL xDTUInit(sMBMasterDTUInfo* psDTUInfo);
+
+void vDTURegistCommData(sMBMasterDTUInfo* psDTUInfo, sMBSlaveDevCommData* psDevDataDTU200, 
+                        sMBSlaveDevCommData* psDevDataDTU247);
 
 #endif
 

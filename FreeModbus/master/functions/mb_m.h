@@ -80,9 +80,6 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_SCAN_TASK_STK_SIZE     128
 
 #define MB_MASTER_WAITING_DELAY          50    //主栈等待响应时间
-#define MB_WRITE_SLAVE_DELAY_MS          30    //主栈写操作间隔
-
-#define MB_WRITE_RETRY_TIMES             1     //写入失败重复次数
 
 /* ----------------------- Type definitions ---------------------------------*/
 
@@ -134,6 +131,7 @@ typedef struct                 /* master poll task information */
 }sMBMasterTaskInfo;
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+
 typedef struct                 /* master GPRS of data transmit unit (DTU) information */
 {
     sMBSlaveDevInfo  sDevDTU200;   
@@ -142,9 +140,10 @@ typedef struct                 /* master GPRS of data transmit unit (DTU) inform
     USHORT*          psDTUInitCmd;
     USHORT*          psDTUInitedCmd;
     
-    OS_TMR DTUTimerTimeout;    
-    UCHAR  ucDTUInited;   
+    OS_TMR           DTUTimerTimeout;    
+    UCHAR            ucDTUInited; 
 }sMBMasterDTUInfo;
+
 #endif 
 
 typedef struct sMBMasterInfo  /* master information */
@@ -191,18 +190,23 @@ typedef struct sMBMasterInfo  /* master information */
 
 typedef struct                 /* 主栈节点配置信息 */
 {
-    eMBMode         eMode;
+    eMBMode     eMode;
+                
+    sUART_Def*  psMasterUart;
+    CHAR*       pcMBPortName; 
     
-    sUART_Def*      psMasterUart;
-    CHAR*           pcMBPortName; 
+    USHORT      usMinAddr;    
+    USHORT      usMaxAddr;
+             
+    OS_PRIO     ucMasterPollPrio;
+    OS_PRIO     ucMasterScanPrio;
+
+#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持    
+    BOOL        bDTUEnable;
     
-    USHORT          usMaxAddr;
-    USHORT          usMinAddr;
-    
-    OS_PRIO         ucMasterPollPrio;
-    OS_PRIO         ucMasterScanPrio;
-    
-    BOOL            bDTUEnable;
+    sMBSlaveDevCommData* psDevDataDTU247;      //DTU247数据域
+    sMBSlaveDevCommData* psDevDataDTU200;      //DTU200数据域
+#endif
 }sMBMasterNodeInfo;
 
 

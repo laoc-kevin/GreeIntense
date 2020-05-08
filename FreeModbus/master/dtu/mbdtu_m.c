@@ -5,11 +5,6 @@
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
 
-static UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
-
-static sMBSlaveDevDataInfo* psDevDataDTU247;
-static sMBSlaveDevDataInfo* psDevDataDTU200;
-
 static USHORT usDTUInitCmd[2]={DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
 static USHORT usDTUInitedCmd[2]={DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
 
@@ -24,18 +19,19 @@ static void vDTUTimerTimeoutEnable(sMBMasterDTUInfo* psDTUInfo);
  *********************************************************************/
 void vDTUScanDev(sMBMasterInfo* psMBMasterInfo)
 {
-    eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
-	sMBMasterDevsInfo*    psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
-	sMBMasterDTUInfo*     psDTUInfo     = &psMBMasterInfo->sMBDTUInfo;
+    UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
     
-    sMBSlaveDevInfo* psDevDTU247        = &psDTUInfo->sDevDTU247;
-    sMBSlaveDevInfo* psDevDTU200        = &psDTUInfo->sDevDTU200;
+    eMBMasterReqErrCode  errorCode     = MB_MRE_EILLSTATE;
+	sMBMasterDevsInfo*   psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
+	sMBMasterDTUInfo*    psDTUInfo     = &psMBMasterInfo->sMBDTUInfo;
+                         
+    sMBSlaveDevInfo*     psDevDTU247   = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo*     psDevDTU200   = &psDTUInfo->sDevDTU200;
     
     if(psMBMasterInfo->bDTUEnable == FALSE)
     {
         return;
     }
-    
     if(!psDTUInfo->ucDTUInited || psDevDTU247 == NULL || psDevDTU200 == NULL)  //完成初始化
     {
         return;
@@ -54,6 +50,10 @@ void vDTUScanDev(sMBMasterInfo* psMBMasterInfo)
 	{
         psMBDevsInfo->psMBSlaveDevCur = psDevDTU200;
         
+        if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
+        {
+            return;
+        }
 #if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 		
 		errorCode =eMBMasterScanWriteHoldingRegister(psMBMasterInfo, DTU200_SLAVE_ADDR, FALSE);
 #endif
@@ -62,7 +62,10 @@ void vDTUScanDev(sMBMasterInfo* psMBMasterInfo)
     if( (psDevDTU247->ucOnLine == TRUE) && (psDevDTU247->ucDataReady == TRUE) )   //
     {
         psMBDevsInfo->psMBSlaveDevCur = psDevDTU247;
-        
+        if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
+        {
+            return;
+        }       
 #if MB_FUNC_READ_INPUT_ENABLED > 0				
         errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, DTU247_SLAVE_ADDR);						
 #endif   
@@ -78,6 +81,7 @@ void vDTUScanDev(sMBMasterInfo* psMBMasterInfo)
 void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
 {
     UCHAR n;
+    UCHAR ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
     
 	OS_ERR                      err     = OS_ERR_NONE;
     eMBMasterReqErrCode   errorCode     = MB_MRE_EILLSTATE;
@@ -85,10 +89,10 @@ void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
 	sMBMasterDevsInfo*    psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
 	sMBMasterDTUInfo*     psDTUInfo     = &psMBMasterInfo->sMBDTUInfo;
     
-    sMBSlaveDevInfo* psDevDTU247        = &psDTUInfo->sDevDTU247;
-    sMBSlaveDevInfo* psDevDTU200        = &psDTUInfo->sDevDTU200;
+    sMBSlaveDevInfo*      psDevDTU247   = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo*      psDevDTU200   = &psDTUInfo->sDevDTU200;
     
-   if(psMBMasterInfo->bDTUEnable == FALSE)
+    if(psMBMasterInfo->bDTUEnable == FALSE)
     {
         return;
     }
@@ -142,13 +146,9 @@ void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
         {
             return;
         }
-     
         psDevDTU247->ucOnLine = TRUE;  
-        psDevDTU247->ucProtocolID = DTU247_PROTOCOL_TYPE_ID;  
-        
         psDevDTU200->ucOnLine = TRUE;  
-        psDevDTU200->ucProtocolID = DTU200_PROTOCOL_TYPE_ID;
-        
+  
 #if MB_FUNC_READ_INPUT_ENABLED > 0                          
 		errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, DTU247_SLAVE_ADDR, TEST_DTU247_PROTOCOL_REG_IN_ADDR, 
                                                   1, MB_MASTER_WAITING_DELAY);     //查看GPRS模块参数是否改变	
@@ -168,32 +168,40 @@ void vDTUDevTest(sMBMasterInfo* psMBMasterInfo)
  * @brief   DTU初始化
  * @return	none
  *********************************************************************/
-BOOL vDTUInit(sMBMasterInfo* psMBMasterInfo)
+BOOL xDTUInit(sMBMasterDTUInfo* psDTUInfo)
 {
-    sMBMasterDTUInfo* psDTUInfo = &psMBMasterInfo->sMBDTUInfo;
- 
     sMBSlaveDevInfo* psDevDTU247  = &psDTUInfo->sDevDTU247;
     sMBSlaveDevInfo* psDevDTU200  = &psDTUInfo->sDevDTU200;
-    
-   if(psMBMasterInfo->bDTUEnable == FALSE)
-    {
-        return FALSE;
-    }
     
     psDTUInfo->psDTUInitCmd   = usDTUInitCmd;
     psDTUInfo->psDTUInitedCmd = usDTUInitedCmd;
     
-    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU247);   //注册虚拟设备
-    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU200);
+//    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU247);   //注册虚拟设备
+//    (void)xMBMasterRegistDev(psMBMasterInfo, psDevDTU200);
     
     psDevDTU247->ucDevAddr = DTU247_SLAVE_ADDR;      //DTU247通讯地址
     psDevDTU200->ucDevAddr = DTU200_SLAVE_ADDR;      //DTU200通讯地址
     
-    psDevDTU247->psDevCurData = psDevDataDTU247;     //DTU247当前数据域
-    psDevDTU200->psDevCurData = psDevDataDTU200;     //DTU200当前数据域
+//    psDevDTU247->psDevCurData = psDevDataDTU247;     //DTU247当前数据域
+//    psDevDTU200->psDevCurData = psDevDataDTU200;     //DTU200当前数据域
     
     return xDTUTimerTimeoutInit(psDTUInfo, DTU_TIMEOUT_S);    
 }
+
+/**********************************************************************
+ * @brief   DTU注册通讯数据表
+ * @return	none
+ *********************************************************************/
+void vDTURegistCommData(sMBMasterDTUInfo* psDTUInfo, sMBSlaveDevCommData* psDevDataDTU247, 
+                        sMBSlaveDevCommData* psDevDataDTU200)
+{
+    sMBSlaveDevInfo* psDevDTU247  = &psDTUInfo->sDevDTU247;
+    sMBSlaveDevInfo* psDevDTU200  = &psDTUInfo->sDevDTU200;
+    
+    psDevDTU247->psDevCurData = psDevDataDTU247;     //DTU247当前数据域
+    psDevDTU200->psDevCurData = psDevDataDTU200;     //DTU200当前数据域
+}
+
 
 /********************************************************************
 * @brief    DTU模块初始化定时器
@@ -217,12 +225,7 @@ BOOL xDTUTimerTimeoutInit(sMBMasterDTUInfo* psDTUInfo, USHORT usTimerout)
 			    vDTUTimeoutInd,
 			    (void*)psDTUInfo,
 			    &err);
-	if( err != OS_ERR_NONE )
-	{
-		 return FALSE;
-	}
-	
-	return TRUE;
+	return (err == OS_ERR_NONE);
 }
 
 /********************************************************************
