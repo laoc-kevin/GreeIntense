@@ -78,11 +78,11 @@ eMBSlaveFuncReadInputRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHO
 
     if( *usLen == (MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN) )
     {
-        usRegAddress = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
+        usRegAddress  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
         usRegAddress |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usRegCount = (USHORT)( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF] << 8 );
+        usRegCount  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF] << 8 );
         usRegCount |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
@@ -99,15 +99,15 @@ eMBSlaveFuncReadInputRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHO
             *usLen += 1;
 
             /* Second byte in the response contain the number of bytes. */
-            *pucFrameCur++ = ( UCHAR )( usRegCount * 2 );
+            *pucFrameCur++ = (UCHAR)(usRegCount * 2);
             *usLen += 1;
 
             eRegStatus = eMBSlaveRegInputCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usRegCount);
 
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {

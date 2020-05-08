@@ -18,7 +18,7 @@ eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSnd
 	USHORT i;
 	
     eMBMasterReqErrCode         eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable* psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
 
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
@@ -56,7 +56,7 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR 
 	USHORT i;
     
 	eMBMasterReqErrCode        eStatus  = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable* psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
     
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
@@ -94,7 +94,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndA
 	USHORT iRegIndex, iRegBitIndex, iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*     psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
@@ -131,7 +131,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 	USHORT iRegIndex, iRegBitIndex,iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
-    sMBSlaveDevInfo*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     const sMBDevDataTable*   psDiscInBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备

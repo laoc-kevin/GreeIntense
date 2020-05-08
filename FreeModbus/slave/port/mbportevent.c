@@ -36,9 +36,9 @@
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlavePortEventInit(sMBSlavePortInfo* psMBPortInfo)
+BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort)
 {
-    psMBPortInfo->xEventInQueue = FALSE;
+    psMBPort->xEventInQueue = FALSE;
     return TRUE;
 }
 
@@ -49,13 +49,13 @@ BOOL xMBSlavePortEventInit(sMBSlavePortInfo* psMBPortInfo)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlavePortEventPost(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType eEvent)
+BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
 {
 	OS_ERR err = OS_ERR_NONE;
-    psMBPortInfo->xEventInQueue = TRUE;
-    psMBPortInfo->eQueuedEvent = eEvent;
+    psMBPort->xEventInQueue = TRUE;
+    psMBPort->eQueuedEvent = eEvent;
 	
-    (void)OSSemPost(&psMBPortInfo->sMBEventSem, OS_OPT_POST_ALL, &err);
+    (void)OSSemPost(&psMBPort->sMBEventSem, OS_OPT_POST_ALL, &err);
 	
 //	 (void)OSTaskSemPost(&AppMbSlavePollTaskTCB, OS_OPT_POST_NONE, &err);
     return TRUE;
@@ -68,18 +68,18 @@ BOOL xMBSlavePortEventPost(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType eEv
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlavePortEventGet(sMBSlavePortInfo* psMBPortInfo, eMBSlaveEventType * eEvent)
+BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType * eEvent)
 {
     BOOL xEventHappened = FALSE;
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-	(void)OSSemPend( &psMBPortInfo->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err );
+	(void)OSSemPend(&psMBPort->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err);
 //	(void)OSSemSet(&SlaveEventSem, 0, &err);
-    if( psMBPortInfo->xEventInQueue )
+    if( psMBPort->xEventInQueue )
     {
-        *eEvent = psMBPortInfo->eQueuedEvent;
-        psMBPortInfo->xEventInQueue = FALSE;
+        *eEvent = psMBPort->eQueuedEvent;
+        psMBPort->xEventInQueue = FALSE;
         xEventHappened = TRUE;	
     }
     return xEventHappened;

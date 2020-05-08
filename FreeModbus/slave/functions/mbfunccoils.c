@@ -76,27 +76,26 @@
 eMBException 
 eMBSlaveFuncReadCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
-    USHORT          usRegAddress;
-    USHORT          usCoilCount;
-    UCHAR           ucNBytes;
-    UCHAR          *pucFrameCur;
+    USHORT usRegAddress, usCoilCount;
+    UCHAR  ucNBytes;
+    UCHAR *pucFrameCur;
 
-    eMBException    eStatus = MB_EX_NONE;
-    eMBErrorCode    eRegStatus;
-
+    eMBErrorCode eRegStatus;
+    eMBException eStatus = MB_EX_NONE;
+    
     if( *usLen == (MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usCoilCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_COILCNT_OFF) << 8 );
+        usCoilCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_COILCNT_OFF) << 8 );
         usCoilCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_COILCNT_OFF + 1) );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception. 
          */
-        if( (usCoilCount >= 1 ) && (usCoilCount < MB_PDU_FUNC_READ_COILCNT_MAX) )
+        if( (usCoilCount >= 1) && (usCoilCount < MB_PDU_FUNC_READ_COILCNT_MAX) )
         {
             /* Set the current PDU data pointer to the beginning. */
             pucFrameCur = pucFrame + MB_PDU_FUNC_OFF;
@@ -110,21 +109,21 @@ eMBSlaveFuncReadCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
              * byte is only partially field with unused coils set to zero. */
             if( (usCoilCount & 0x0007) != 0 )
             {
-                ucNBytes = (UCHAR)( usCoilCount/8 + 1 );
+                ucNBytes = (UCHAR)(usCoilCount/8 + 1);
             }
             else
             {
-                ucNBytes = (UCHAR)( usCoilCount/8 );
+                ucNBytes = (UCHAR)(usCoilCount/8);
             }
             *pucFrameCur++ = ucNBytes;
             *usLen += 1;
 
-            eRegStatus = eMBSlaveRegCoilsCB( psMBSlaveInfo, pucFrameCur, usRegAddress, usCoilCount, MB_REG_READ);    //回调函数
+            eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usCoilCount, MB_REG_READ);    //回调函数
                     
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -164,12 +163,12 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
     USHORT          usRegAddress;
     UCHAR           ucBuf[2];
 
-    eMBException    eStatus = MB_EX_NONE;
     eMBErrorCode    eRegStatus;
-
+    eMBException    eStatus = MB_EX_NONE;
+    
     if( *usLen == ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF + 1) );
         usRegAddress++;
 
@@ -188,9 +187,9 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
             eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, &ucBuf[0], usRegAddress, 1, MB_REG_WRITE);
 
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
         }
         else
@@ -230,11 +229,11 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
 
     if( *usLen > ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usCoilCnt = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );
+        usCoilCnt  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );
         usCoilCnt |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF + 1) );
 
         ucByteCount = *(pucFrame + MB_PDU_FUNC_WRITE_MUL_BYTECNT_OFF);
@@ -256,9 +255,9 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
                                             usRegAddress, usCoilCnt, MB_REG_WRITE );
 
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -316,7 +315,7 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
 
     if( (usAddress >= COIL_START) && (usAddress + usNCoils <= COIL_END) )
     {
-		switch ( eMode )
+		switch (eMode)
         {
         /* read current coil values from the protocol stack. */
         case MB_REG_READ:

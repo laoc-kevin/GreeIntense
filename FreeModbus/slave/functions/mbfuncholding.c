@@ -92,7 +92,7 @@ eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, U
     
     if( *usLen == ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF + 1) );
         usRegAddress++;
 
@@ -101,9 +101,9 @@ eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, U
                                       usRegAddress, 1, MB_REG_WRITE );
 
         /* If an error occured convert it into a Modbus exception. */
-        if( eRegStatus != MB_ENOERR )
+        if(eRegStatus != MB_ENOERR)
         {
-            eStatus = prveMBSlaveError2Exception( eRegStatus );
+            eStatus = prveMBSlaveError2Exception(eRegStatus);
         }
     }
     else
@@ -136,27 +136,26 @@ eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* puc
 
     if( *usLen >= ( MB_PDU_FUNC_WRITE_MUL_SIZE_MIN + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usRegCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF) << 8 );
+        usRegCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF) << 8 );
         usRegCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF + 1) );
 
         ucRegByteCount = *(pucFrame + MB_PDU_FUNC_WRITE_MUL_BYTECNT_OFF);
 
-        if( ( usRegCount >= 1 ) &&
-            ( usRegCount <= MB_PDU_FUNC_WRITE_MUL_REGCNT_MAX ) &&
-            ( ucRegByteCount == (UCHAR) ( 2 * usRegCount ) ) )
+        if( (usRegCount >= 1) && (usRegCount <= MB_PDU_FUNC_WRITE_MUL_REGCNT_MAX) &&
+            (ucRegByteCount == (UCHAR)(2 * usRegCount)) )
         {
             /* Make callback to update the register values. */
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_WRITE_MUL_VALUES_OFF,
                                                usRegAddress, usRegCount, MB_REG_WRITE );
 
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -202,7 +201,7 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
     
     if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF + 1) );
         usRegAddress++;
 
@@ -212,7 +211,7 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception. 
          */
-        if( ( usRegCount >= 1 ) && ( usRegCount <= MB_PDU_FUNC_READ_REGCNT_MAX ) )
+        if( (usRegCount >= 1) && (usRegCount <= MB_PDU_FUNC_READ_REGCNT_MAX) )
         {
             /* Set the current PDU data pointer to the beginning. */
             pucFrameCur = pucFrame + MB_PDU_FUNC_OFF;
@@ -223,16 +222,16 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
             *usLen += 1;
 
             /* Second byte in the response contain the number of bytes. */
-            *pucFrameCur++ = (UCHAR) ( usRegCount * 2 );
+            *pucFrameCur++ = (UCHAR)(usRegCount * 2);
             *usLen += 1;
 
             /* Make callback to fill the buffer. */
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usRegCount, MB_REG_READ);
             
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -276,20 +275,20 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
     
     eMBException    eStatus = MB_EX_NONE;
    
-    if( *usLen >= ( MB_PDU_FUNC_READWRITE_SIZE_MIN + MB_PDU_SIZE_MIN ) )
+    if( *usLen >= (MB_PDU_FUNC_READWRITE_SIZE_MIN + MB_PDU_SIZE_MIN) )
     {
         usRegReadAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_ADDR_OFF) << 8U );
         usRegReadAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_ADDR_OFF + 1) );
         usRegReadAddress++;
 
-        usRegReadCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_REGCNT_OFF) << 8U );
+        usRegReadCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_REGCNT_OFF) << 8U );
         usRegReadCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_REGCNT_OFF + 1) );
 
-        usRegWriteAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_ADDR_OFF) << 8U );
+        usRegWriteAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_ADDR_OFF) << 8U );
         usRegWriteAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_ADDR_OFF + 1) );
         usRegWriteAddress++;
 
-        usRegWriteCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_REGCNT_OFF) << 8U );
+        usRegWriteCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_REGCNT_OFF) << 8U );
         usRegWriteCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_WRITE_REGCNT_OFF + 1) );
 
         ucRegWriteByteCount = *(pucFrame + MB_PDU_FUNC_READWRITE_BYTECNT_OFF);
@@ -302,7 +301,7 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_READWRITE_WRITE_VALUES_OFF,
                                               usRegWriteAddress, usRegWriteCount, MB_REG_WRITE);
 
-            if( eRegStatus == MB_ENOERR )
+            if(eRegStatus == MB_ENOERR)
             {
                 /* Set the current PDU data pointer to the beginning. */
                 pucFrameCur = pucFrame + MB_PDU_FUNC_OFF;
@@ -313,20 +312,20 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
                 *usLen += 1;
 
                 /* Second byte in the response contain the number of bytes. */
-                *pucFrameCur++ = (UCHAR) ( usRegReadCount * 2 );
+                *pucFrameCur++ = (UCHAR)(usRegReadCount * 2);
                 *usLen += 1;
 
                 /* Make the read callback. */
                 eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrameCur, usRegReadAddress, usRegReadCount, MB_REG_READ);
                 
-                if( eRegStatus == MB_ENOERR )
+                if(eRegStatus == MB_ENOERR)
                 {
                     *usLen += 2*usRegReadCount;
                 }
             }
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception( eRegStatus );
+                eStatus = prveMBSlaveError2Exception(eRegStatus);
             }
         }
         else
@@ -358,10 +357,8 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
 eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, 
                                   USHORT usAddress, USHORT usNRegs, eMBRegisterMode eMode)
 {
-    
-    USHORT          iRegIndex;
-    USHORT          REG_HOLDING_START, REG_HOLDING_END;
-	
+    USHORT          iRegIndex, REG_HOLDING_START, REG_HOLDING_END;
+
 	USHORT          usRegHoldValue;
 	SHORT           sRegHoldValue;
 	int8_t          cRegHoldValue;
@@ -380,7 +377,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
 
     if( (usAddress >= REG_HOLDING_START) && (usAddress + usNRegs <= REG_HOLDING_END) )
     {
-        iRegIndex = usAddress ;
+        iRegIndex = usAddress;
         switch (eMode)
         {
         /* read current register values from the protocol stack. */
@@ -428,11 +425,11 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
 
         /* write current register values with new values from the protocol stack. */
         case MB_REG_WRITE:
-     		while (usNRegs > 0)
+     		while(usNRegs > 0)
             {
 				(void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue); //扫描保持寄存器字典，取对应的点
 				
-				usRegHoldValue = ((LONG)(*pucRegBuffer++)) << 8;
+				usRegHoldValue  =((LONG)(*pucRegBuffer++)) << 8;
 			    usRegHoldValue |=((LONG)(*pucRegBuffer++)) & 0xFF;
 				
 				if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != RO))

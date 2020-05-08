@@ -3,7 +3,7 @@
 
 #include "mb_m.h"
 
-void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev, UCHAR iSlaveAddr);
-void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev);
+void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR iSlaveAddr);
+void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev);
 
 #endif
