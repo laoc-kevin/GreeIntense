@@ -12,6 +12,7 @@ typedef struct sMonitorInfo /*设备模拟量接口类型*/
     uint16_t   usDataId;    //全局标示
     
     struct sMonitorInfo*  pNext;
+    struct sMonitorInfo*  pLast;    
 }sMonitorInfo;
 
 

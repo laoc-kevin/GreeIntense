@@ -1,23 +1,37 @@
 #include "comm.h"
+#include "md_modbus.h"
 
-void vComm_initCommData(Comm* pt)
+/*通讯映射函数*/
+USHORT usComm_DevDataMapIndex(eDataType eDataType, USHORT usAddr)
 {
-    
+  
+
+   
 }
 
-void vComm_init(Comm* pt, sCommMasterInfo* psMaster, sCommSlaveInfo* psSlave)
+/*系统从栈通讯数据表初始化*/
+void vComm_InitSlaveCommData(Comm* pt)
+{
+    Comm* pThis = (Comm*)pt;
+    
+    
+    
+    pThis->sSlaveCommData.psMBSlaveDataMapIndex = usComm_DevDataMapIndex;    //绑定映射函数
+}
+
+
+void vComm_Init(Comm* pt, sCommInfo* psComm)
 {
     Comm* pThis = (Comm*)pt;   
+
+    pThis->psSystem = psComm->psSystem;
+    pThis->psMBSlaveInfo = psComm->psMBSlaveInfo;
+    pThis->psMBSlaveInfo->sMBCommInfo.psSlaveCurData = &pThis->sSlaveCommData;
     
-    uint8_t ucSlaveAddr = ucGetControllerID();
+    vComm_InitSlaveCommData(pThis);
     
-    (void)xMBMasterRegistNode(&pThis->sMBMasterInfo, psMaster->eMode, psMaster->psMasterUart,
-                               psMaster->pcMBPortName, psMaster->usMaxAddr, psMaster->usMinAddr, 
-                               psSlave->usPrio, psMaster->bDTUEnable);
+    vModbusInit();
     
-    (void)xMBSlaveRegisterNode(&pThis->sMBSlaveInfo, psSlave->eMode, psSlave->psSlaveUart,
-                                psSlave->pcMBPortName, ucSlaveAddr, &pThis->sSlaveCurData, 
-                                psSlave->usPrio);
 }
 
 

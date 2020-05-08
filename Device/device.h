@@ -4,6 +4,7 @@
 #include "lw_oopc.h"
 #include "stdint.h"
 
+#include "mb.h"
 #include "mb_m.h"
 #include "md_output.h"
 #include "md_input.h"
@@ -19,6 +20,7 @@ typedef int16_t SHORT;
 typedef uint32_t ULONG;
 typedef int32_t LONG;
 
+#define MB_DEV_POLL_TASK_STK_SIZE  128
 
 typedef enum   /*频率类型*/
 {
@@ -38,21 +40,18 @@ typedef struct  /*设备模拟量接口类型*/
     uint8_t      ucChannel;       //通道
 }sDigital_IO;
 
-typedef struct                 /* master poll task information */ 
+typedef struct                 /* Dev poll task information */ 
 {
-    OS_TCB                p_tcb;
-    OS_PRIO               prio;
-    CPU_STK              *p_stk_base;
-    CPU_STK_SIZE          stk_size;
-}sDevTaskInfo;
+    OS_TCB              sTCB;
+    OS_PRIO             ucPrio;
+    CPU_STK             usStk[MB_DEV_POLL_TASK_STK_SIZE];
+}sTaskInfo;
 
 INTERFACE(IDevSwitch)    /*设备启停接口*/
 {                                                         
     void     (*switchOpen)(IDevSwitch* pt);        //开启
     void    (*switchClose)(IDevSwitch* pt);        //关闭
     
-//    void   (*registSwitch_IO)(void* pt, uint8_t ucSwitch_DO);                    //注册启停接口
-//    void  (*registSwitch_IOs)(void* pt, uint8_t ucOpen_DO, uint8_t ucClose_DO);  //注册开启和关闭接口，针对双接口
 };
 
 INTERFACE(IDevRunning)    /*设备运行接口*/
@@ -65,14 +64,13 @@ INTERFACE(IDevFreq)      /*设备频率接口*/
     void         (*setFreq)(IDevFreq* pt, uint16_t usFreq);                              //设置频率
     void    (*setFreqRange)(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq);       //设置频率上下限
 
-//    void   (*registFreq_IO)(void* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq); //注册频率接口
 };
 
 INTERFACE(IDevCom)      /*设备通讯接口*/
 {
-    void   (*registCommDev)(IDevCom* pt);     //向通讯主栈中注册设备
-    void   (*initCommDevData)(IDevCom* pt);   //初始化设备通讯数据表
-//    void   (*initCommDevMap)(IDevCom* pt);  //初始化设备通讯映射函数
+    void   (*registDev)(IDevCom* pt);       //向通讯主栈中注册设备
+    void   (*initDevCommData)(IDevCom* pt); //初始化设备通讯数据表
+    
 };
 
 

@@ -3,38 +3,32 @@
 
 #include "mb.h"
 #include "device.h"
+#include "system.h"
 #include "md_monitor.h"
 
-typedef struct   /*风机设备信息*/
+typedef struct   /*系统通讯配置信息*/
 {
-    sUART_Def* psMasterUart;
-    eMBMode    eMode;
-    CHAR*      pcMBPortName;           
-    USHORT     usMaxAddr; 
-    USHORT     usMinAddr;          
-    OS_PRIO    usPrio; 
-    BOOL       bDTUEnable;
-}sCommMasterInfo;
+    sMBMasterInfo*  psMBMasterInfo;      //通讯主栈
+    sMBSlaveInfo*   psMBSlaveInfo;       //系统从栈
+    
+    System*         psSystem;            //系统
 
-typedef struct   /*风机设备信息*/
-{
-    sUART_Def* psSlaveUart;
-    eMBMode    eMode;
-    OS_PRIO    usPrio;  
-    CHAR*      pcMBPortName;  
-}sCommSlaveInfo;
+}sCommInfo;
+
 
 CLASS(Comm)
 {
-    sMBMasterInfo     sMBMasterInfo;
-    sMBSlaveInfo      sMBSlaveInfo;
-    sMBSlaveDataInfo  sSlaveCurData;
+    sMBMasterInfo*   psMBMasterInfo;
 
-    sMonitorInfo*     pMonitorList;
+    sMBSlaveInfo*    psMBSlaveInfo;       //系统从栈
+    sMBSlaveCommData sSlaveCommData;      //系统从栈通讯数据表
     
-    OS_SEM            sMBValChangeSem; 
+    System*          psSystem;            //系统
     
-    void (*init)(Comm* pt, sCommMasterInfo* psMasterInfo, sCommSlaveInfo* psSlaveInfo);
+    OS_SEM           sMBValChangeSem; 
+    
+    void   (*init)(Comm* pt, sCommInfo* psComm);
+
 };
 
 #endif

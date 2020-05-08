@@ -7,24 +7,23 @@
 sMonitorInfo* MonitorList = NULL;
 sMonitorInfo  MonitorBuf[MONITOR_DATA_MAX_NUM];
 
-uint16_t DataID = 0;
+uint16_t MonitorID = 0;
 
-sMonitorInfo* psMonitorRegist(void* pvVal, OS_TCB* psTCB, OS_SEM* psSem)
+sMonitorInfo* psMonitorRegist(void* pvVal, OS_SEM* psSem)
 {
-    sMonitorInfo* psMonitor = NULL;
     sMonitorInfo* psMonitorInfo = NULL;
     
-    if(DataID >= MONITOR_DATA_MAX_NUM)
+    if(MonitorID >= MONITOR_DATA_MAX_NUM)
     {
         return NULL;
     }
-    psMonitorInfo = &MonitorBuf[DataID];
-    DataID++;
+    psMonitorInfo = &MonitorBuf[MonitorID];
+    MonitorID++;
     
     psMonitorInfo->pvVal    = pvVal;
 
     psMonitorInfo->psSem    = psSem;
-    psMonitorInfo->usDataId = DataID + 1;   //全局标示
+    psMonitorInfo->usDataId = MonitorID + 1;   //全局标示
     psMonitorInfo->sDataBuf = *(int32_t*)pvVal;
     psMonitorInfo->pNext    = NULL;
  
@@ -34,15 +33,10 @@ sMonitorInfo* psMonitorRegist(void* pvVal, OS_TCB* psTCB, OS_SEM* psSem)
     }
     else
     {
-        for(psMonitor = MonitorList; psMonitor != NULL; psMonitor = psMonitor->pNext)
-        {
-            if(psMonitor->pNext == NULL)
-            {
-                psMonitor->pNext = psMonitorInfo;
-                break;
-            }
-        }
+        MonitorList->pLast->pNext = psMonitorInfo;
     }
+    MonitorList->pLast = psMonitorInfo;
+    
     return psMonitorInfo;
 }
 

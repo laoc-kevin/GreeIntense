@@ -363,7 +363,7 @@
               <MiscControls></MiscControls>
               <Define>CORE_M4,ARM_MATH_CM4, __CC_ARM</Define>
               <Undefine></Undefine>
-              <IncludePath>.\CMSIS\inc;.\ChipDriver\inc;.\uCOS\uC_BSP;.\uCOS\uC_BSP\OS\uCOS-III;.\uCOS\uC_CFG;.\uCOS\uC_CPU;.\uCOS\uC_CPU\ARM-Cortex-M4;.\uCOS\uC_LIB;.\uCOS\uCOS_III\Source;.\uCOS\uCOS_III\Ports;.\App;.\CANFestival\include;.\CANFestival\include\lpc;.\CANFestival\driver;.\SEGGER_RTT;.\SEGGER_RTT\RTT;.\FreeModbus\config;.\FreeModbus\driver;.\FreeModbus\master\functions;.\FreeModbus\master\rtu;.\FreeModbus\master\port;.\FreeModbus\slave\rtu;.\FreeModbus\slave\functions;.\FreeModbus\slave\port;.\Module;.\OOC;.\Device</IncludePath>
+              <IncludePath>.\CMSIS\inc;.\ChipDriver\inc;.\uCOS\uC_BSP;.\uCOS\uC_BSP\OS\uCOS-III;.\uCOS\uC_CFG;.\uCOS\uC_CPU;.\uCOS\uC_CPU\ARM-Cortex-M4;.\uCOS\uC_LIB;.\uCOS\uCOS_III\Source;.\uCOS\uCOS_III\Ports;.\App;.\CANFestival\include;.\CANFestival\include\lpc;.\CANFestival\driver;.\SEGGER_RTT;.\SEGGER_RTT\RTT;.\FreeModbus\config;.\FreeModbus\driver;.\FreeModbus\master\functions;.\FreeModbus\master\rtu;.\FreeModbus\master\port;.\FreeModbus\slave\rtu;.\FreeModbus\slave\functions;.\FreeModbus\slave\port;.\FreeModbus\master\dtu;.\Module;.\OOC;.\Device</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -551,11 +551,6 @@
         <Group>
           <GroupName>Module</GroupName>
           <Files>
-            <File>
-              <FileName>md_dtu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Module\md_dtu.c</FilePath>
-            </File>
             <File>
               <FileName>md_input.c</FileName>
               <FileType>1</FileType>
@@ -890,6 +885,11 @@
               <FileName>mbtest_m.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\FreeModbus\master\functions\mbtest_m.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbdtu_m.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\FreeModbus\master\dtu\mbdtu_m.c</FilePath>
             </File>
           </Files>
         </Group>

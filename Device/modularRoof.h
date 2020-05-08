@@ -5,14 +5,17 @@
 #include "fan.h"
 #include "compressor.h"
 
-typedef enum   /*频率类型*/
+#define   SUP_AIR_FAN_NUM       2    //机组送风机数量
+#define   COMP_NUM              4    //压缩机数量
+
+typedef enum   /*运行模式*/
 {
    HEAT_MODE = 0,     //
    COOL_MODE = 1      //定频
 }eRunMode;
 
 
-ABS_CLASS(AirUnit)       /*空调机组抽象类*/ 
+ABS_CLASS(Unit)       /*机组抽象类*/ 
 {
     EXTENDS(Device);
     
@@ -27,13 +30,14 @@ ABS_CLASS(AirUnit)       /*空调机组抽象类*/
     uint8_t   ucSwitchMode;          //启停模式 
     uint8_t   ucStopErrFlag;         //停系统故障标志
     
-    void (*setRunningMode)(AirUnit* pt, eRunMode eRunMode);
+    void (*setRunningMode)(Unit* pt, eRunMode eRunMode);
     
 };
 
 CLASS(ModularRoof)   /*屋顶机机组*/
 {
-    EXTENDS(AirUnit);         /*继承机组抽象类*/         
+    EXTENDS(Unit);         /*继承机组抽象类*/         
+    IMPLEMENTS(IDevCom);      //设备通讯接口
     
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度
@@ -57,13 +61,14 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usCO2_PPM;                //CO2平均浓度
     uint16_t      usSysDischarge_T;         //系统排气温度
                   
-    uint8_t       ucSupAirFanNum;           //机组送风机数量
-    SupAirFan**   psSupAirFanList;          //机组送风机列表
+    SupAirFan*   psSupAirFanList[SUP_AIR_FAN_NUM];   //机组送风机列表
+    Compressor*  psCompList     [COMP_NUM];          //压缩机列表
     
-    uint8_t       ucCompNum;                //压缩机数量
-    Compressor**  psCompList;               //压缩机列表
+    sMBMasterInfo*       psMBMasterInfo;      //所属通讯主栈
+    sMBSlaveDevCommData  sDevCommData;        //本设备通讯数据表
+    sMBSlaveDevInfo      sMBDev;              //本通讯设备
     
-    BOOL (*init)(ModularRoof* pt, uint8_t ucSupAirFanNum, uint8_t ucCompNum);
+    void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo);
 };
 
 

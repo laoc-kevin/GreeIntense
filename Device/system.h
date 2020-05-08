@@ -5,27 +5,28 @@
 #include "sensor.h"
 #include "modularRoof.h"
 
+#define EX_AIR_FAN_NUM       3            //排风机数量
+#define MODULAR_ROOF_NUM     2            //屋顶机数量 
+
+#define CO2_SEN_NUM          8            //CO2传感器数量
+#define TEMP_HUMI_SEN_NUM    2            //温湿度传感器数量
+
+
 typedef struct   /*系统信息*/
 {
-    sMBMasterInfo*  psMBMasterInfo;       //通讯主栈
-    
-    uint8_t         ucModularRoofNum;     //屋顶机数量
-    uint8_t         ucExAirFanNum;        //排风机数量
-    uint8_t         ucCO2SenNum;          //CO2传感器数量
-    uint8_t         ucTempHumiSenNum;     //温湿度传感器数量
-    
-    OS_PRIO         ucPrio;               //内部任务优先级   
-    CPU_STK_SIZE    ucStackSize;          //任务堆栈大小 
+    sMBMasterInfo*  psMBMasterInfo;      //通讯主栈
+    sMBSlaveInfo*   psMBSlaveInfo;       //系统从栈
+
+    OS_PRIO         ucPrio;;      //内部任务优先级   
+
 }sSystemInfo;
 
 
 
 CLASS(System)   /*系统*/
 {
-    EXTENDS(AirUnit);         //继承机组抽象类*
-    IMPLEMENTS(IDevSwitch);   //设备启停接口
-    IMPLEMENTS(IDevCom);      //设备通讯接口
-    
+    EXTENDS(Unit);         //继承机组抽象类*
+
     uint16_t             usRetAirSet_Vol;     //回风风量设定
     uint16_t             usFreAirSet_Vol;     //新风风量设定
                                               
@@ -40,29 +41,17 @@ CLASS(System)   /*系统*/
                                               
     uint8_t              ucCO2SenErr;         //CO2传感器故障
     uint8_t              ucTempHumiSenErr;    //温湿度传感器故障
-         
-    uint8_t              ucExAirFanNum;       //排风机数量
-    ExAirFan**           psExAirFanList;      //排风机列表
+    
+    ExAirFan*            psExAirFanList    [EX_AIR_FAN_NUM];     //排风机列表
+    ModularRoof*         psModularRoofList [MODULAR_ROOF_NUM];   //屋顶机列表
+    
+    CO2Sensor*           psCO2SenList      [CO2_SEN_NUM];        //CO2传感器列表
+    TempHumiSensor*      psTempHumiSenList [TEMP_HUMI_SEN_NUM];  //温湿度传感器列表
+    
+    sTaskInfo         sTaskInfo;        //设备内部任务信息 
+    
+    void   (*init)(System* pt, sSystemInfo* psSystemInfo);
 
-    uint8_t              ucModularRoofNum;    //屋顶机数量
-    ModularRoof**        psModularRoofList;   //屋顶机列表
-    
-    uint8_t              ucCO2SenNum;         //CO2传感器数量
-    CO2Sensor**          psCO2SenList;        //CO2传感器列表
-    
-    uint8_t              ucTempHumiSenNum;    //温湿度传感器数量
-    TempHumiSensor**     psTempHumiSenList;   //温湿度传感器列表
-    
-    sMBMasterInfo*       psMBMasterInfo;      //通讯主栈
-    sMBSlaveDevDataInfo* psDevDataInfo;       //通讯数据表
-    sMBSlaveDevInfo      sMBDev;              //本通讯设备
-    
-    sDevTaskInfo*        psTaskInfo;          //设备内部任务信息 
-    
-    BOOL   (*init)(System* pt, sSystemInfo* psSystem);
-    
-    void (*registDev)(System* pt, void* pvDev, uint8_t ucDevNum, const char* pcDevType);
-    
 };
 
 #endif

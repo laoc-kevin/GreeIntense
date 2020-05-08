@@ -73,7 +73,7 @@ typedef struct   /* 主栈字典数据列表结构 */
     const USHORT       usDataCount;           //协议点位总数
 }sMBDevDataTable;
 
-typedef USHORT (*psMBDevDataMap)(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr); //字典映射函数
+typedef USHORT (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr); //字典映射函数
 
 typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */  
 {
@@ -84,7 +84,7 @@ typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */
     sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
     
     const  UCHAR            ucProtocolID;        //协议ID
-    psMBDevDataMap          psMBDevDataMap;      //字典映射函数
+    psMBDevDataMapIndex     psMBDevDataMapIndex; //字典映射函数
     
     struct sMBSlaveDevCommData*   pNext;         //下一个数据表
 }sMBSlaveDevCommData; 

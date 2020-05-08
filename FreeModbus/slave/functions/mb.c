@@ -518,7 +518,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlaveRegistNode( sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
+BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
 {
     sMBSlavePortInfo*   psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;   //从栈硬件接口信息
 	sMBSlaveTaskInfo*   psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;   //从栈状态机任务信息

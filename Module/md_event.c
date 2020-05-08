@@ -1,18 +1,30 @@
 #include "os.h"
 #include "md_event.h"
 
+#define EVENT_MAX_NUM        50     //最大可监控点位数，根据实际情况调整
+
+
 static sEvent* EventList = NULL;
+static sEvent  EventBuf[EVENT_MAX_NUM];
+
+uint16_t EventID = 0;
+
 static OS_TCB EventTCB;
 
 void vEventRegist(OS_SEM* psSem, OS_TCB* psTCB)
 {
-    sEvent* psEvent = calloc(1, sizeof(sEvent));
-    if(psEvent != NULL)
+    sEvent* psEvent = NULL;   
+    if(EventID >= EVENT_MAX_NUM)
     {
-        psEvent->psSem      = psSem;
-        psEvent->psTCB      = psTCB;
-        psEvent->pNext      = NULL;
+        return;
     }
+    psEvent = &EventBuf[EventID];
+    EventID++;
+     
+    psEvent->psSem      = psSem;
+    psEvent->psTCB      = psTCB;
+    psEvent->pNext      = NULL;
+ 
     if(EventList == NULL)
     {
         EventList = psEvent;

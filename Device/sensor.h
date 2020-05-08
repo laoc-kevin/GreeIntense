@@ -18,7 +18,7 @@ ABS_CLASS(Sensor)          /*传感器*/
     eSensorType          eType;            //传感器类型
     
     sMBMasterInfo*       psMBMasterInfo;   //通讯主栈
-    sMBSlaveDevDataInfo* psDevDataInfo;    //通讯数据表
+    sMBSlaveDevCommData  sDevCommData;     //通讯数据表
     sMBSlaveDevInfo      sMBDev;           //本通讯设备
     
     void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo);
