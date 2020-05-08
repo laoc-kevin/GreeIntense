@@ -581,8 +581,8 @@ BOOL xMBMasterCreatePollTask(sMBMasterInfo* psMBMasterInfo)
     sMBMasterTaskInfo* psMBTaskInfo = &(psMBMasterInfo->sMBTaskInfo);
     
     OS_PRIO             prio = psMBTaskInfo->ucMasterPollPrio;
-    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sMasterScanTCB);  
-    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usMasterScanStk);
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sMasterPollTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usMasterPollStk);
     
     OSTaskCreate( p_tcb,
                   "vMBMasterPollTask",

@@ -64,7 +64,7 @@ sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,  
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xModbusInit(void)
+void vModbusInit(void)
 {
     (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);

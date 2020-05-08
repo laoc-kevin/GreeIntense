@@ -49,7 +49,7 @@ typedef struct   /* 从栈字典数据列表结构 */
 
 typedef USHORT (*psMBSlaveDataMapIndex)(eDataType eDataType, USHORT usAddr); //字典映射函数
 
-typedef struct            /* 从栈通讯字典数据结构 */  
+typedef struct            /*从栈通讯字典数据结构*/  
 {
 	sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
 	sMBSlaveDataTable* const psMBRegHoldTable;     //保持寄存器数据表
@@ -63,7 +63,7 @@ typedef struct            /* 从栈通讯字典数据结构 */
     
 }sMBSlaveCommData; 
 
-typedef struct                 /* 从栈通讯参数信息 */   
+typedef struct          /*从栈通讯参数信息*/   
 {
     UCHAR*              pcSlaveAddr;                //从栈通讯地址
 	UCHAR               ucDataReady;                //数据是否准备好
