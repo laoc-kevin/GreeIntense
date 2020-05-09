@@ -32,7 +32,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
     
     for(psMBDevData = psMBSlaveDev->psDevDataInfo;  psMBDevData != NULL; psMBDevData = psMBDevData->pNext)  
     {
-        psMBCmd = psMBDevData->psMBDevCmdTable;
+        psMBCmd = &psMBDevData->sMBDevCmdTable;
         
     	errorCode = vMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);	
         
@@ -84,15 +84,11 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     const sMBTestDevCmd*       psMBCmd = NULL;
     sMBMasterDevsInfo*    psMBDevsInfo = NULL;
     
-    if(psMBSlaveDev == NULL)
+    if( (psMBSlaveDev == NULL) || (psMBSlaveDev->ucDevOnTimeout == TRUE)) //是否处于延时阶段
     {
         return;
     }
-    if(psMBSlaveDev->ucDevOnTimeout == TRUE) //是否处于延时阶段
-    {
-        return;
-    } 
-    psMBCmd = psMBSlaveDev->psDevCurData->psMBDevCmdTable;  //从设备命令列表
+    psMBCmd = &psMBSlaveDev->psDevCurData->sMBDevCmdTable;  //从设备命令列表
 
     /****************************测试设备**********************************/
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //接口处于测试从设备状态

@@ -324,7 +324,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
             psMBMasterInfo->pucMasterPDUCur = ucMBFrame;
         
 			/* Check if the frame is for us. If not ,send an error process event. */
-			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddress(psMBMasterInfo)) )
+			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddr(psMBMasterInfo)) )
 			{
 				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_EXECUTE );
 			}
@@ -394,7 +394,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         	vMBMasterGetPDUSndBuf( psMBMasterInfo, &ucMBFrame );
 		
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0		
-			eStatus = peMBMasterFrameSendCur( psMBMasterInfo,ucMBMasterGetDestAddress(psMBMasterInfo), 
+			eStatus = peMBMasterFrameSendCur( psMBMasterInfo,ucMBMasterGetDestAddr(psMBMasterInfo), 
 		                                      ucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo) );    //发送数据帧     
 #endif
 		break;
@@ -406,19 +406,19 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			switch (errorType) 
 			{
 			    case EV_ERROR_RESPOND_TIMEOUT:    //等待超时
-			    	vMBMasterErrorCBRespondTimeout( psMBPort, ucMBMasterGetDestAddress(psMBMasterInfo),
+			    	vMBMasterErrorCBRespondTimeout( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo),
 			    			                        ucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_RECEIVE_DATA:      //接收数据出错
-			    	vMBMasterErrorCBReceiveData( psMBPort, ucMBMasterGetDestAddress(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBReceiveData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
 			                                     usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_EXECUTE_FUNCTION:   //处理数据出错
-			    	vMBMasterErrorCBExecuteFunction( psMBPort, ucMBMasterGetDestAddress(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBExecuteFunction( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
 			                                         usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_RESPOND_DATA:      //接收响应数据出错
-			    	vMBMasterErrorCBRespondData( psMBPort, ucMBMasterGetDestAddress(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBRespondData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
 			                                     usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    default:break;
@@ -624,7 +624,7 @@ void vMBMasterPollTask(void *p_arg)
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-sMBSlaveDev* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address)
+sMBSlaveDev* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr)
 {
     sMBSlaveDev*  psMBDev = NULL;
     const sMBMasterDevsInfo* psMBDevsInfo = &(psMBMasterInfo->sMBDevsInfo);    //从设备状态信息
@@ -637,7 +637,7 @@ sMBSlaveDev* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR Address
     {
         for(psMBDev = psMBDevsInfo->psMBSlaveDevsList; psMBDev != NULL; psMBDev = psMBDev->pNext)
         {
-            if(psMBDev->ucDevAddr == Address)
+            if(psMBDev->ucDevAddr == ucDevAddr)
             {
                 return psMBDev;
             }
@@ -819,7 +819,7 @@ void vMBMasterSetCBRunInMasterMode( sMBMasterInfo* psMBMasterInfo, BOOL IsMaster
 	psMBMasterInfo->xMBRunInMasterMode = IsMasterMode;
 }
 /* Get Modbus Master send destination address. */
-UCHAR ucMBMasterGetDestAddress( const sMBMasterInfo* psMBMasterInfo )
+UCHAR ucMBMasterGetDestAddr( const sMBMasterInfo* psMBMasterInfo )
 {
 	return psMBMasterInfo->ucMBDestAddr;
 }
