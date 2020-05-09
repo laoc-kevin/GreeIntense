@@ -150,10 +150,10 @@ eMBSlaveRegInputCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAd
     eMBErrorCode           eStatus = MB_ENOERR;
 	sMBSlaveRegData*  pvRegInValue = NULL;
 	
-    const sMBSlaveDataTable* psRegInputBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBRegInTable;  //从栈通讯协议表
+    sMBSlaveDataTable* psMBRegInTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBRegInTable;  //从栈通讯协议表
   
-    REG_INPUT_START = psRegInputBuf->usStartAddr;
-    REG_INPUT_END = psRegInputBuf->usEndAddr;
+    REG_INPUT_START = psMBRegInTable->usStartAddr;
+    REG_INPUT_END = psMBRegInTable->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;

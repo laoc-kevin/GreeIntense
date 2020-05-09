@@ -305,10 +305,10 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
     eMBErrorCode    eStatus = MB_ENOERR;
 	OS_ERR          err = OS_ERR_NONE;
     
-    const sMBSlaveDataTable* psCoilBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBCoilTable;  //从栈通讯协议表
+    sMBSlaveDataTable* psMBCoilTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBCoilTable;  //从栈通讯协议表
     
-    COIL_START = psCoilBuf->usStartAddr;
-    COIL_END = psCoilBuf->usEndAddr;
+    COIL_START = psMBCoilTable->usStartAddr;
+    COIL_END = psMBCoilTable->usEndAddr;
    
     /* it already plus one in modbus function method. */
     usAddress--;

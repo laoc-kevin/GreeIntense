@@ -541,9 +541,8 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
 eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress,
         USHORT usNRegs, eMBRegisterMode eMode)
 {
-    USHORT          iRegIndex, n, m, nSlaveTypes;
+    USHORT          iRegIndex, n, m, nSlaveTypes, usProtocolType;
     USHORT          REG_HOLDING_START, REG_HOLDING_END;
-    USHORT          usProtocolType;
 	
 	USHORT          usRegHoldValue;
     SHORT           sRegHoldValue;
@@ -552,9 +551,9 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     eMBErrorCode               eStatus = MB_ENOERR;
 	sMasterRegHoldData* pvRegHoldValue = NULL;
     
-    sMBSlaveDev*            psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*     psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;   //从设备通讯协议表
-    UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
+    sMBSlaveDev*      psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
+    sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
+    UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
     if(psMBMasterInfo->xMBRunInTestMode)
@@ -562,19 +561,19 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
         return MB_ENOERR;
     }	
     
-    if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
+    if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
-        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
+        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);
         psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegHoldBuf = psMBSlaveDevCur->psDevCurData->psMBRegHoldTable;
+        psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable;
     }
-    if( (psRegHoldBuf->pvDataBuf  == NULL) || (psRegHoldBuf->usDataCount == 0)) //非空且数据点不为0
+    if( (psMBRegHoldTable->pvDataBuf  == NULL) || (psMBRegHoldTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
     
-	REG_HOLDING_START = psRegHoldBuf->usStartAddr;
-    REG_HOLDING_END = psRegHoldBuf->usEndAddr;
+	REG_HOLDING_START = psMBRegHoldTable->usStartAddr;
+    REG_HOLDING_END = psMBRegHoldTable->usEndAddr;
 	
     /* if mode is read, the master will write the received date to buffer. */
 
@@ -588,8 +587,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
         {
         /* read current register values from the protocol stack. */
         case MB_REG_READ:
-           
-           					
+			
             while (usNRegs > 0)          
             {
 				(void)eMBMasterRegHoldingMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegHoldValue);     //扫描字典中变量，找出对应的变量

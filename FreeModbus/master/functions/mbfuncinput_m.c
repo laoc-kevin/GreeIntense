@@ -177,10 +177,9 @@ eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame,
  */
 eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
 {
-    USHORT          iRegIndex, n;
+    USHORT          iRegIndex, n, usProtocolType, nSlaveTypes;
     USHORT          REG_INPUT_START, REG_INPUT_END;
-    USHORT          usProtocolType, nSlaveTypes;
-	
+    
 	USHORT          usRegInValue;
 	SHORT           sRegInValue;
 	CHAR            cRegInValue;
@@ -188,9 +187,9 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 	eMBErrorCode            eStatus = MB_ENOERR;
 	sMasterRegInData*  pvRegInValue = NULL;
     
-	sMBSlaveDev*            psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable*    psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;     //从设备通讯协议表
-    UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
+	sMBSlaveDev*      psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
+    sMBDevDataTable*   psMBRegInTable = &psMBSlaveDevCur->psDevCurData->sMBRegInTable;    //从设备通讯协议表
+    UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);         //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
     if(psMBMasterInfo->xMBRunInTestMode)
@@ -198,19 +197,19 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
         return MB_ENOERR;
     }  
    
-    if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
+    if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
-        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
+        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);
         psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
-        psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;
+        psMBRegInTable = &psMBSlaveDevCur->psDevCurData->sMBRegInTable;
     }
-	if( (psRegInputBuf->pvDataBuf == NULL) || (psRegInputBuf->usDataCount == 0)) //非空且数据点不为0
+	if( (psMBRegInTable->pvDataBuf == NULL) || (psMBRegInTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
 
-	REG_INPUT_START = psRegInputBuf->usStartAddr;
-    REG_INPUT_END = psRegInputBuf->usEndAddr;
+	REG_INPUT_START = psMBRegInTable->usStartAddr;
+    REG_INPUT_END = psMBRegInTable->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;

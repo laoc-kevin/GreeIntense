@@ -151,10 +151,10 @@ eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT u
     USHORT          DISCRETE_INPUT_START,DISCRETE_INPUT_END;
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    const sMBSlaveDataTable* psDiscreteBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBDiscInTable;  //从栈通讯协议表
+    sMBSlaveDataTable* psMBDiscInTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBDiscInTable;  //从栈通讯协议表
     
-    DISCRETE_INPUT_START = psDiscreteBuf->usStartAddr;
-    DISCRETE_INPUT_END = psDiscreteBuf->usEndAddr;
+    DISCRETE_INPUT_START = psMBDiscInTable->usStartAddr;
+    DISCRETE_INPUT_END = psMBDiscInTable->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;

@@ -77,11 +77,11 @@ typedef USHORT (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID,  
 
 typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */  
 {
-	sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
-	sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	sMBDevDataTable* const psMBCoilTable;        //线圈数据表
-	sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
-    sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
+	sMBDevDataTable sMBRegInTable;       //输入寄存器数据表
+	sMBDevDataTable sMBRegHoldTable;     //保持寄存器数据表
+	sMBDevDataTable sMBCoilTable;        //线圈数据表
+	sMBDevDataTable sMBDiscInTable;      //离散量数据表
+    sMBTestDevCmd   sMBDevCmdTable;      //用于测试从设备状态命令表
     
     const  UCHAR            ucProtocolID;        //协议ID
     psMBDevDataMapIndex     psMBDevDataMapIndex; //字典映射函数

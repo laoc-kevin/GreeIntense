@@ -60,17 +60,21 @@
 eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,
                                   USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
-    eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;
     UCHAR*          pucValue; 
 	UCHAR           ucBit;
 	
+    eMBErrorCode                   eStatus = MB_ENOERR;
     sMasterBitCoilData*     pucBitCoilData = NULL;
 	sMasterBitDiscData* pucBitDiscreteData = NULL;
 	
+    UCHAR  ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);        //从设备通讯地址
+    
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
     usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
+
+    
 	while (iNReg > 0)
 	{
 		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
@@ -89,7 +93,7 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0						
                 case CoilData:
                  //扫描，找到对应点位
-                (void)eMBMasterCoilMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitCoilData);     
+                (void)eMBMasterCoilMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitCoilData);     
                 
                 if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO))
                 {
@@ -109,7 +113,7 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 						
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
                 case DiscInData:
-                    (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitDiscreteData);
+                    (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitDiscreteData);
                 
                     if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->pvValue != NULL) && (pucBitDiscreteData->ucAccessMode != WO))
                     {
@@ -148,13 +152,15 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf, 
 	                              USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
-	eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;
     UCHAR*          pucValue; 
 	
+    eMBErrorCode                   eStatus = MB_ENOERR;
     sMasterBitCoilData*     pucBitCoilData = NULL;
 	sMasterBitDiscData* pucBitDiscreteData = NULL;
 
+    UCHAR  ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);        //从设备通讯地址
+    
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;    //8bit为1个reg
     usNPreBits = (USHORT)(ucNBits % BITS_UCHAR); //剩余的bits
 
@@ -178,7 +184,7 @@ eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                 
 				case CoilData:
 				    //通过映射找到对应的点位
-                    (void)eMBMasterCoilMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitCoilData);
+                    (void)eMBMasterCoilMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitCoilData);
 				
                     if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO) )
                     {
@@ -196,7 +202,7 @@ eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 #endif
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
 				case DiscInData:
-				    (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBMasterGetDestAddress(psMBMasterInfo), usAddress, &pucBitDiscreteData);
+				    (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitDiscreteData);
 				
 					if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->pvValue != NULL) && (pucBitDiscreteData->ucAccessMode != WO))
 				    {

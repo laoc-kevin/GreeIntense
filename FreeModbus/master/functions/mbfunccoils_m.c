@@ -147,11 +147,11 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
     {
     	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
 		
-        usRegAddress = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF) << 8 );   //赋值地址
+        usRegAddress  = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF) << 8 );   //赋值地址
         usRegAddress |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usCoilCount = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF) << 8 );  //线圈数量
+        usCoilCount  = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF) << 8 );  //线圈数量
         usCoilCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) );
 
         /* Test if the quantity of coils is a multiple of 8. If not last
@@ -407,11 +407,11 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     {
     	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
 		
-        usRegAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );   //赋值地址
+        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );   //赋值地址
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usCoilCnt = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );  //线圈数量
+        usCoilCnt  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );  //线圈数量
         usCoilCnt |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF + 1) );
 
         ucByteCount = *(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF);
@@ -470,22 +470,23 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
     USHORT          COIL_START, COIL_END;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-	sMBSlaveDev*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
-    const sMBDevDataTable*   psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;    //从设备通讯协议表
-	
-    if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
+	sMBSlaveDev*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;  //当前从设备
+    sMBDevDataTable*       psCoilTable = &psMBSlaveDevCur->psDevCurData->sMBCoilTable; //从设备通讯协议表
+	UCHAR                 ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);        //从设备通讯地址
+    
+    if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
-        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
+        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);
         psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
-        psCoilBuf = psMBSlaveDevCur->psDevCurData->psMBCoilTable;
+        psCoilTable = &psMBSlaveDevCur->psDevCurData->sMBCoilTable;
     }
-	if( (psCoilBuf->pvDataBuf == NULL) || (psCoilBuf->usDataCount == 0)) //非空且数据点不为0
+	if( (psCoilTable->pvDataBuf == NULL) || (psCoilTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
     
-    COIL_START = psCoilBuf->usStartAddr;
-    COIL_END = psCoilBuf->usEndAddr;
+    COIL_START = psCoilTable->usStartAddr;
+    COIL_END = psCoilTable->usEndAddr;
 
     /* if mode is read,the master will write the received date to buffer. */
   
@@ -498,7 +499,7 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
         {
         /* read current register values from the protocol stack. */
         case MB_REG_READ: 
-		    eStatus = eMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
+		    eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
 		break;
 		
 		case MB_REG_WRITE:
