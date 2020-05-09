@@ -68,8 +68,12 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
     
     pThis->Fan.init(pFan, psFan->eFanFreqType);  
     
-    vExAirFan_RegistSwitchIO(pThis, psFan->ucSwitch_DO);
-    vExAirFan_RegistFreqIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
+    vExAirFan_RegistSwitchIO(pThis, psFan->ucSwitch_DO);  //启停接口
+    
+    if(pThis->Fan.eFanFreqType == VARIABLE_FREQ)  //变频接口
+    {
+        vExAirFan_RegistFreqIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
+    } 
 }
 
 /*开启风机*/
@@ -121,6 +125,8 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
 
 CTOR(ExAirFan)     //排风机构造函数
     SUPER_CTOR(Fan);
+   
+    FUNCTION_SETTING(init, vExAirFan_Init);
 
     FUNCTION_SETTING(IDevFreq.setFreq,       vExFan_SetFreq);
     FUNCTION_SETTING(IDevFreq.setFreqRange,  vExFan_SetFreqRange);

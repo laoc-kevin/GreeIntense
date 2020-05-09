@@ -8,11 +8,7 @@
 #define   SUP_AIR_FAN_NUM       2    //机组送风机数量
 #define   COMP_NUM              4    //压缩机数量
 
-typedef enum   /*运行模式*/
-{
-   HEAT_MODE = 0,     //
-   COOL_MODE = 1      //定频
-}eRunMode;
+
 
 
 ABS_CLASS(Unit)       /*机组抽象类*/ 
@@ -30,14 +26,15 @@ ABS_CLASS(Unit)       /*机组抽象类*/
     uint8_t   ucSwitchMode;          //启停模式 
     uint8_t   ucStopErrFlag;         //停系统故障标志
     
-    void (*setRunningMode)(Unit* pt, eRunMode eRunMode);
-    
 };
 
 CLASS(ModularRoof)   /*屋顶机机组*/
 {
-    EXTENDS(Unit);         /*继承机组抽象类*/         
-    IMPLEMENTS(IDevCom);      //设备通讯接口
+    EXTENDS(Unit);         /*继承机组抽象类*/ 
+    
+    IMPLEMENTS(IDevSwitch);     //设备启停接口
+    IMPLEMENTS(IDevCom);        //设备通讯接口
+    IMPLEMENTS(IDevRunning);    //设备运行接口
     
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度
@@ -66,7 +63,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     
     sMBMasterInfo*       psMBMasterInfo;      //所属通讯主栈
     sMBSlaveDevCommData  sDevCommData;        //本设备通讯数据表
-    sMBSlaveDevInfo      sMBDev;              //本通讯设备
+    sMBSlaveDev          sMBSlaveDev;         //本通讯设备
     
     void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo);
 };

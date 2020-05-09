@@ -16,7 +16,11 @@ void vComm_InitSlaveCommData(Comm* pt)
     
     
     
-    pThis->sSlaveCommData.psMBSlaveDataMapIndex = usComm_DevDataMapIndex;    //绑定映射函数
+    
+    
+    
+    pThis->sSlaveCommData.psMBSlaveDataMapIndex = usComm_DevDataMapIndex;         //绑定映射函数
+    pThis->psMBSlaveInfo->sMBCommInfo.psSlaveCurData = &pThis->sSlaveCommData;
 }
 
 
@@ -24,14 +28,12 @@ void vComm_Init(Comm* pt, sCommInfo* psComm)
 {
     Comm* pThis = (Comm*)pt;   
 
-    pThis->psSystem = psComm->psSystem;
+    pThis->psSystem      = psComm->psSystem;
     pThis->psMBSlaveInfo = psComm->psMBSlaveInfo;
-    pThis->psMBSlaveInfo->sMBCommInfo.psSlaveCurData = &pThis->sSlaveCommData;
+
     
     vComm_InitSlaveCommData(pThis);
-    
     vModbusInit();
-    
 }
 
 

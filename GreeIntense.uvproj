@@ -891,11 +891,6 @@
               <FileType>1</FileType>
               <FilePath>.\FreeModbus\master\functions\mbtest_m.c</FilePath>
             </File>
-            <File>
-              <FileName>mbdtu_m.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\FreeModbus\master\dtu\mbdtu_m.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

@@ -5,8 +5,7 @@
 **************************************************************/
 void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
 {
-    IDevCom* pThis = SUPER_PTR(pt, IDevCom);
-    
+    IDevCom* pThis = SUPER_PTR(pt, IDevCom);  
     pt->psMBMasterInfo = psMBMasterInfo; //所属通讯主栈
     
     pThis->initDevCommData(pThis);       //初始化设备通讯数据表   
@@ -16,7 +15,7 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
 void vSensor_RegistDev(IDevCom* pt)
 {
     Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
-    (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBDev);
+    (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
 }
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数
@@ -39,7 +38,7 @@ USHORT usCO2Sensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USH
     
 }
 
-
+/*通讯数据表初始化*/
 void vCO2Sensor_InitDevCommData(IDevCom* pt)
 {
     Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
@@ -47,7 +46,7 @@ void vCO2Sensor_InitDevCommData(IDevCom* pt)
     
     
     pThis->sDevCommData.psMBDevDataMapIndex = usCO2Sensor_DevDataMapIndex;    //绑定映射函数
-    pThis->sMBDev.psDevDataInfo = &(pThis->sDevCommData);
+    pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
@@ -68,14 +67,18 @@ USHORT usTempHumiSensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,
     
 }
 
+/*通讯数据表初始化*/
 void vTempHumiSensor_InitDevCommData(IDevCom* pt)
 {
     Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
     
     
     
+    
+    
+    
     pThis->sDevCommData.psMBDevDataMapIndex = usTempHumiSensor_DevDataMapIndex;    //绑定映射函数
-    pThis->sMBDev.psDevDataInfo = &(pThis->sDevCommData);
+    pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数

@@ -42,6 +42,8 @@ CLASS(ExAirFan)           /*排风风机*/
     sAnalog_IO   sFreq_AI;      //频率输入AI
     sDigital_IO  sSwitch_DO;    //启停DO
 
+    void (*init)(ExAirFan* pt, sFanInfo* psFan);
+    
 };
 
 

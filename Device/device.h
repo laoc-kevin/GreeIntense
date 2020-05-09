@@ -28,6 +28,14 @@ typedef enum   /*频率类型*/
    CONSTANT_FREQ = 1      //定频
 }eFreqType;
 
+typedef enum   /*运行模式*/
+{
+   HEAT_MODE = 0,     //
+   COOL_MODE = 1      //
+}eRunMode;
+
+
+
 typedef struct  /*设备模拟量接口类型*/
 {
     int32_t      lMax;            //量程最大值 = 实际量程最大值*10
@@ -56,7 +64,7 @@ INTERFACE(IDevSwitch)    /*设备启停接口*/
 
 INTERFACE(IDevRunning)    /*设备运行接口*/
 {                                                         
-    void    (*registRunState_IO)(IDevRunning* pt, uint8_t ucRunState_DO);                  //注册运行状态接口
+     void     (*setRunningMode)(IDevRunning* pt, eRunMode eMode);  //设置运行模式
 };
 
 INTERFACE(IDevFreq)      /*设备频率接口*/

@@ -54,7 +54,7 @@ sMBMasterNodeInfo MBMasterNode = {MB_RTU, &MBMasterUart, "UART0",               
                                   TRUE};
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,           /* 从栈配置信息 */
-                                 MB_SLAVE_POLL_TASK_PRIO, &MBSlaveCommData};                                  
+                                 MB_SLAVE_POLL_TASK_PRIO};                                  
                                   
 /**********************************************************************
  * @brief  MODBUS初始化

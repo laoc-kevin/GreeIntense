@@ -5,6 +5,13 @@
 *                         系统                               *
 **************************************************************/
 
+/*系统排风机配置信息*/
+sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 2},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3},
+                                       };
+
+
 
 /*系统开启*/
 void vSystem_SwitchOpen(System* pt)
@@ -75,32 +82,49 @@ BOOL xSystem_CreatePollTask(System* pt)
 /*系统初始化*/
 void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
 {
-    uint8_t n;  
+    uint8_t n;
+    
+    ModularRoof*    pModularRoof    = NULL;
+    ExAirFan*       pExAirFan       = NULL;
+    TempHumiSensor* pTempHumiSensor = NULL;
+    CO2Sensor*      pCO2Sensor      = NULL;
+    
     System* pThis = (System*)pt; 
     
-   
+    pThis->psMBMasterInfo = psSystemInfo->psMBMasterInfo;
     pThis->sTaskInfo.ucPrio = psSystemInfo->ucPrio;
       
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
-        pThis->psExAirFanList[n] = (ExAirFan*)ExAirFan_new();     //实例化对象
+        pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
+        pExAirFan->init(pExAirFan, &ExAirFanSet[ n]);
+        
+        pThis->psExAirFanList[n] = pExAirFan;  
     }
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
-        pThis->psModularRoofList[n] = (ModularRoof*)ModularRoof_new();
+        pModularRoof = (ModularRoof*)ModularRoof_new();
+        pModularRoof->init(pModularRoof, psSystemInfo->psMBMasterInfo); //初始化
+        
+        pThis->psModularRoofList[n] = pModularRoof;
     }
     
     for(n=0; n < CO2_SEN_NUM; n++)
     {
-        pThis->psCO2SenList[n] = (CO2Sensor*)CO2Sensor_new();     //实例化对象
+        pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
+        pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor), psSystemInfo->psMBMasterInfo); //向上转型，由子类转为父类
+        
+        pThis->psCO2SenList[n] = pCO2Sensor;
     }
     for(n=0; n < TEMP_HUMI_SEN_NUM; n++)
     {
-        pThis->psTempHumiSenList[n] = (TempHumiSensor*)TempHumiSensor_new();
+        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
+        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor), psSystemInfo->psMBMasterInfo);
+        
+        pThis->psTempHumiSenList[n] = pTempHumiSensor;
+         
     }
-    
-    xSystem_CreatePollTask(pThis);
-    
+    xSystem_CreatePollTask(pThis); 
 }
 
 CTOR(System)   //系统构造函数

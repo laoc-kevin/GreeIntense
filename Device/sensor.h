@@ -19,7 +19,7 @@ ABS_CLASS(Sensor)          /*传感器*/
     
     sMBMasterInfo*       psMBMasterInfo;   //通讯主栈
     sMBSlaveDevCommData  sDevCommData;     //通讯数据表
-    sMBSlaveDevInfo      sMBDev;           //本通讯设备
+    sMBSlaveDev          sMBSlaveDev;      //本通讯设备
     
     void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo);
 };
@@ -45,7 +45,7 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
     uint16_t     usMinHumi;        //量程下限 = 实际值*10
     uint16_t     usHumi;           //实际值  
 
-    SIGNAL(D){uint16_t A;} G;
+//    SIGNAL(D){uint16_t A;} G;
     
 };
 
