@@ -52,7 +52,6 @@ eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRe
 #endif
 
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-
 /***********************************************************************************
  * @brief  线圈字典映射
  * @param  usCoilAddr    线圈地址
@@ -87,7 +86,6 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-
 eMBErrorCode 
 eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlaveBitData** pvDiscreteValue)
 {
@@ -127,3 +125,63 @@ eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData **
 }
 #endif
 
+/***********************************************************************************
+ * @brief  寄存器数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void vMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+                         LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
+{
+    pData->usAddr            = usAddr;                    
+    pData->ucDataType        = ucDataType;                         
+    pData->lMinVal           = lMinVal;                  
+    pData->lMaxVal           = lMaxVal;                  
+    pData->ucAccessMode      = ucAccessMode;        
+    pData->fTransmitMultiple = fTransmitMultiple;
+    pData->pvValue           = pvValue;                  	
+}
+
+/***********************************************************************************
+ * @brief  线圈和离散量数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void vMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+{
+    pData->usAddr        = usAddr;                            
+    pData->ucAccessMode  = ucAccessMode;        
+    pData->pvValue       = pvValue;                  	
+}
+
+/***********************************************************************************
+ * @brief  CPN数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void vMBSlaveCPNDataInit(sMBSlaveCPNData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+                         LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                   
+{
+    pData->usAddr            = usAddr;                    
+    pData->ucDataType        = ucDataType;                         
+    pData->lMinVal           = lMinVal;                  
+    pData->lMaxVal           = lMaxVal;                  
+    pData->ucAccessMode      = ucAccessMode;        
+    pData->fTransmitMultiple = fTransmitMultiple;
+    pData->pvValue           = pvValue;            	
+}
+
+/***********************************************************************************
+ * @brief 数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void vMBSlaveDevDataTableInit(sMBSlaveDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, 
+                              USHORT usEndAddr, USHORT usDataCount)                                  
+{
+    pDataTable->pvDataBuf   = pvDataBuf;        //协议数据域
+    pDataTable->usStartAddr = usStartAddr;      //起始地址
+    pDataTable->usEndAddr   = usEndAddr;        //末尾地址
+    pDataTable->usDataCount = usDataCount;      //协议点位总数
+    
+}
