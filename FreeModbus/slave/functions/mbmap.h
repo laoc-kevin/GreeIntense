@@ -19,6 +19,10 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
 eMBErrorCode 
 eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCPNName, sMBSlaveCPNData** pvCPNValue);
 
-void eMBSlaveSlaveTableInit( void );
+
+void eMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+                         LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue);                                 
+
+void eMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue);
 
 #endif

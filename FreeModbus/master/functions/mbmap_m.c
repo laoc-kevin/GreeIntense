@@ -153,83 +153,61 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 #endif
 
 /***********************************************************************************
- * @brief  字典初始化,初始化各点位的原始值
- * @return eMBErrorCode 错误码
+ * @brief  保持寄存器数据表初始化
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterTableInit(const sMBMasterInfo* psMBMasterInfo)
+void eMBMasterRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, USHORT usPreVal,
+                              LONG lMinVal, LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
+
 {
-//	USHORT iIndex, iBit, iTable;
-//	eMBMasterReqErrCode    eStatus = MB_MRE_NO_ERR;
-//	
-//	const sMBDevDataTable*  psRegHoldBuf;
-//	sMasterRegHoldData*     psRegHoldValue;
-//	
-//	const sMBDevDataTable*  psCoilBuf;
-//	sMasterBitCoilData*     psCoilValue;
-
-//	sMBMasterDictInfo* psMBDictInfo = psMBMasterInfo->psMBMasterDictInfo;          //通讯字典
-//	sMBMasterDevsInfo* psMBDevsInfo = psMBMasterInfo->psMBDevsInfo;          //从设备状态
-
-//	USHORT nSlaveTypes = psMBDevsInfo->ucSlaveDevTypes;                            //从设备类型数
-//	
-//#if MB_FUNC_WRITE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 \
-//    || MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_READWRITE_HOLDING_ENABLED > 0
-//	
-//	for(iTable = 0; iTable < nSlaveTypes; iTable++)
-//	{
-//		psRegHoldBuf = &(psMBDictInfo->psMBRegHoldTable[iTable]);
-//		
-//		if( (psRegHoldBuf->pvDataBuf != NULL) && (psRegHoldBuf->usDataCount !=0) )
-//		{
-//			for(iIndex = 0; iIndex < psRegHoldBuf->usDataCount; iIndex++)
-//		    {
-//		    	psRegHoldValue = (sMasterRegHoldData*)(psRegHoldBuf->pvDataBuf) + iIndex;
-//		    	if(psRegHoldValue->Value != NULL)
-//		    	{
-//		    		if (psRegHoldValue->DataType == uint16)
-//		    		{
-//		    			psRegHoldValue->PreValue = *(USHORT*)psRegHoldValue->Value;
-//		    		}
-//		    		else if(psRegHoldValue->DataType == uint8)
-//		    		{
-//		    			psRegHoldValue->PreValue = (USHORT)(*(UCHAR*)psRegHoldValue->Value);
-//		    		}
-//		    		else if (psRegHoldValue->DataType == int16)
-//		    		{
-//		    			psRegHoldValue->PreValue = (USHORT)(*(SHORT*)psRegHoldValue->Value);
-//		    		}
-//		    		else if(psRegHoldValue->DataType == int8)
-//		    		{
-//		    			psRegHoldValue->PreValue = (USHORT)(*(int8_t*)psRegHoldValue->Value);
-//		    		}  
-//		    	}
-//		    }
-//		}	
-//	}	
-//#endif
-//	
-//#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-//	
-//	for(iTable = 0; iTable < nSlaveTypes; iTable++)
-//	{
-//		psCoilBuf = &(psMBDictInfo->psMBCoilTable[iTable]);
-//		
-//		if( (psCoilBuf->pvDataBuf != NULL) || (psCoilBuf->usDataCount !=0) )
-//		{
-//			for(iIndex = 0; iIndex < psCoilBuf->usDataCount; iIndex++)
-//		    {
-//		    	psCoilValue = (sMasterBitCoilData*)(psCoilBuf->pvDataBuf) + iIndex;
-//				
-//                if( psCoilValue->Value  != NULL )
-//		    	{
-//		    		psCoilValue->PreValue  = *(UCHAR*)psCoilValue->Value;
-//		    	}
-//		    }
-//		}
-//	}
-//#endif	
-		
+    pData->usAddr            = usAddr;                    
+    pData->ucDataType        = ucDataType;            
+    pData->usPreVal          = usPreVal;                
+    pData->lMinVal           = lMinVal;                  
+    pData->lMaxVal           = lMaxVal;                  
+    pData->ucAccessMode      = ucAccessMode;        
+    pData->fTransmitMultiple = fTransmitMultiple;
+    pData->pvValue           = pvValue;                  	
 }
 
+/***********************************************************************************
+ * @brief  输入寄存器数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBMasterRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+                            LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
+{
+    pData->usAddr            = usAddr;                    
+    pData->ucDataType        = ucDataType;                         
+    pData->lMinVal           = lMinVal;                  
+    pData->lMaxVal           = lMaxVal;                  
+    pData->ucAccessMode      = ucAccessMode;        
+    pData->fTransmitMultiple = fTransmitMultiple;
+    pData->pvValue           = pvValue;                  	
+}
+
+/***********************************************************************************
+ * @brief  线圈数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBMasterCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+{
+    pData->usAddr        = usAddr;                            
+    pData->ucAccessMode  = ucAccessMode;        
+    pData->pvValue       = pvValue;                  	
+}
+
+/***********************************************************************************
+ * @brief  线圈数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBMasterDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+{
+    pData->usAddr       = usAddr;                            
+    pData->ucAccessMode = ucAccessMode;        
+    pData->pvValue      = pvValue;                  	
+}
