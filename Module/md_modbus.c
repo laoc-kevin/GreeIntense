@@ -38,8 +38,7 @@ sMBSlaveInfo      MBSlaveInfo;          //从栈接口
 
 sMBSlaveCommData  MBSlaveCommData;      //从栈数据域
 
-sMBSlaveDevCommData DevDataDTU247;      //DTU247数据域
-sMBSlaveDevCommData DevDataDTU200;      //DTU200数据域
+
 
 sUART_Def MBSlaveUart= { &Uart1Rx, &Uart1Tx, &Uart1DE, &Uart1Inv, UART_1,                /* 从栈串口设置 */
                          {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}        /* 默认串口配置 9600 8n1 */
@@ -52,7 +51,7 @@ sUART_Def MBMasterUart = { &Uart0Rx, &Uart0Tx, &Uart0DE, &Uart0Inv, UART_0,     
 sMBMasterNodeInfo MBMasterNode = {MB_RTU, &MBMasterUart, "UART0",                        /* 主栈配置信息 */
                                   MB_MASTER_MIN_DEV_ADDR, MB_MASTER_MAX_DEV_ADDR,
                                   MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO, 
-                                  TRUE, &DevDataDTU247, &DevDataDTU200};
+                                  TRUE};
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,           /* 从栈配置信息 */
                                  MB_SLAVE_POLL_TASK_PRIO, &MBSlaveCommData};                                  

@@ -81,7 +81,7 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
         {
             iBits = BITS_UCHAR;
         }             
-        for ( i = 0; i < iBits; i++ )
+        for(i = 0; i < iBits; i++)
         {
             switch(eDataType)
             {	
@@ -133,11 +133,11 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
 eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
                                  USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
-	eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usNPreBits, iNReg, iBits, i;
     UCHAR*          pucValue; 
-	
-	sMBSlaveBitData *    pucBitData = NULL;
+    
+	eMBErrorCode      eStatus = MB_ENOERR;
+	sMBSlaveBitData * pucBitData = NULL;
 	
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
     usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
@@ -153,7 +153,7 @@ eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
         {
             iBits = BITS_UCHAR;
         }
-        for ( i = 0; i < iBits; i++ )
+        for(i = 0; i < iBits; i++)
         {
             switch(eDataType)
             {					
@@ -201,7 +201,7 @@ eMBException prveMBSlaveError2Exception( eMBErrorCode eErrorCode )
 {
     eMBException    eStatus;
 
-    switch ( eErrorCode )
+    switch(eErrorCode)
     {
         case MB_ENOERR:
             eStatus = MB_EX_NONE;

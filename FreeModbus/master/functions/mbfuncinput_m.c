@@ -76,7 +76,7 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo
     UCHAR                   *ucMBFrame;
     
     eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+    sMBMasterPort*    psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
 	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
@@ -100,8 +100,8 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
 		
-		(void)xMBMasterPortEventPost(psMBPortInfo, EV_MASTER_FRAME_SENT);
-		eErrStatus = eMBMasterWaitRequestFinish(psMBPortInfo);
+		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
+		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
     return eErrStatus;
 }
@@ -132,12 +132,12 @@ eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame,
 	else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
 		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegAddress = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
+        usRegAddress  = (USHORT)( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
+        usRegAddress |= (USHORT)( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usRegCount = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF] << 8 );
-        usRegCount |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF + 1] );
+        usRegCount  = (USHORT)( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF] << 8 );
+        usRegCount |= (USHORT)( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception.
@@ -188,7 +188,7 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 	eMBErrorCode            eStatus = MB_ENOERR;
 	sMasterRegInData*  pvRegInValue = NULL;
     
-	sMBSlaveDevInfo*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
+	sMBSlaveDev*            psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable*    psRegInputBuf = psMBSlaveDevCur->psDevCurData->psMBRegInTable;     //从设备通讯协议表
     UCHAR                      ucMBDestAddr = ucMBMasterGetDestAddress(psMBMasterInfo);           //从设备通讯地址
     

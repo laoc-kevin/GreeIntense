@@ -71,8 +71,9 @@ eMBMasterReqErrCode
 eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
 {
     UCHAR                   *ucMBFrame;
+    
     eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPortInfo*    psMBPortInfo = &psMBMasterInfo->sMBPortInfo;      //硬件结构
+    sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
 	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
@@ -93,8 +94,9 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF ]    = usNDiscreteIn >> 8;
 		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] = usNDiscreteIn;
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-		( void ) xMBMasterPortEventPost( psMBPortInfo, EV_MASTER_FRAME_SENT );
-		eErrStatus = eMBMasterWaitRequestFinish(psMBPortInfo);
+        
+		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );
+		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
     return eErrStatus;
 }
@@ -110,14 +112,14 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 eMBException
 eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen )
 {
-    USHORT          usRegAddress;
-    USHORT          usDiscreteCnt;
-    UCHAR           ucNBytes;
-    UCHAR          *ucMBFrame;
+    USHORT usRegAddress, usDiscreteCnt;
 
-    eMBException    eStatus = MB_EX_NONE;
+    UCHAR  ucNBytes;
+    UCHAR *ucMBFrame;
+
     eMBErrorCode    eRegStatus;
-
+    eMBException    eStatus = MB_EX_NONE;
+    
     /* If this request is broadcast, and it's read mode. This request don't need execute. */
     if ( xMBMasterRequestIsBroadcast(psMBMasterInfo) )
     {
@@ -186,7 +188,7 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
     USHORT          DISCRETE_INPUT_START, DISCRETE_INPUT_END;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-    sMBSlaveDevInfo*    psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
     const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;          //从设备通讯协议表
 
     if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备

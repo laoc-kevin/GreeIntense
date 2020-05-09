@@ -29,14 +29,7 @@ void vModularRoof_InitDevCommData(IDevCom* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevCom, ModularRoof);
     
-    
-    
-    
-    
-    
-    
-    
-    
+
     
     pThis->sDevCommData.psMBDevDataMapIndex = usModularRoof_DevDataMapIndex;    //绑定映射函数
     pThis->sMBDev.psDevDataInfo = &(pThis->sDevCommData);

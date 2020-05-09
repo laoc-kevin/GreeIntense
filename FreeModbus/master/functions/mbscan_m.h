@@ -4,11 +4,9 @@
 #include "port.h"
 #include "mb_m.h"
 
-
-
 BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo);
 
-void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDevInfo* psMBSlaveDev);
+void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev);
 
 void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr);
 void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr, UCHAR bCheckPreValue); 

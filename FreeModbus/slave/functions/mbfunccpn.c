@@ -68,10 +68,9 @@ eMBException eMBSlaveFuncWriteCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFr
     eMBException    eStatus = MB_EX_NONE;
     eMBErrorCode    eRegStatus;
 	
-	if( (*usLen >= ( MB_CPN_PDU_SIZE_MIN )) 
-		&& (*usLen <= ( MB_CPN_PDU_SIZE_MAX )) )
+	if( (*usLen >= MB_CPN_PDU_SIZE_MIN) && (*usLen <= MB_CPN_PDU_SIZE_MAX) )
     {
-	    ucValCount = ( UCHAR )( *(pucFrame + MB_CPN_PDU_VALUE_COUNT_OFF) );
+	    ucValCount = (UCHAR)( *(pucFrame + MB_CPN_PDU_VALUE_COUNT_OFF) );
        	
 		/* Set the current PDU data pointer to the beginning. */
         pucFrameCur = pucFrame;
@@ -131,17 +130,17 @@ eMBErrorCode
 eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucValCount, USHORT * usLen )
 {
 	float pfNum;
-    UCHAR *pcNum = NULL;
-	
+   
 	USHORT          iValBitIndex, iValDataBitIndex, iNVal;
 	USHORT          VAL_CPN_START, VAL_CPN_NREGS, VAL_CPN_DEFINE_SIZE;
     USHORT          usValCPNStart, usValCPNBytes, usValCPNType;
-    ULONG           ulValCPNName;
-	ULONG           ulValCPNValue;
+    
+    ULONG           ulValCPNName, ulValCPNValue;
 	LONG            lValCPNValue;
 	SHORT           sValCPNValue;
     int8_t          cValCPNValue;
 	
+    UCHAR *pcNum = NULL;
 	eMBErrorCode               eStatus      = MB_ENOERR;
     sMBSlaveCPNData*           pvCPNValue   = NULL;
     const sMBSlaveDataTable*   psCPNBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBCPNTable;  //从栈通讯协议表
@@ -358,13 +357,13 @@ eMBException eMBSlaveFuncReadCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucFr
 	UCHAR          ucValCount; 	
     UCHAR          *pucFrameCur;
     USHORT         usDatabytes;
-    eMBException    eStatus = MB_EX_NONE;
+    
     eMBErrorCode    eRegStatus;
-	
-	if( (*usLen >= ( MB_CPN_PDU_SIZE_MIN )) 
-		&& (*usLen <= ( MB_CPN_PDU_SIZE_MAX )) )
+    eMBException    eStatus = MB_EX_NONE;
+   
+	if( (*usLen >= MB_CPN_PDU_SIZE_MIN) && (*usLen <= MB_CPN_PDU_SIZE_MAX) )
     {
-	    ucValCount = ( UCHAR )( *(pucFrame + MB_CPN_PDU_VALUE_COUNT_OFF) );
+	    ucValCount = (UCHAR)( *(pucFrame + MB_CPN_PDU_VALUE_COUNT_OFF) );
     
 		/* Set the current PDU data pointer to the beginning. */
         pucFrameCur = pucFrame;
@@ -394,7 +393,7 @@ eMBException eMBSlaveFuncReadCPNValue(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucFr
         eRegStatus = eMBSlaveReadCPNCB(psMBSlaveInfo, pucFrameCur, ucValCount, usLen);
 		
          /* If an error occured convert it into a Modbus exception. */
-		if( eRegStatus != MB_ENOERR )
+		if(eRegStatus != MB_ENOERR)
 		{
 			eStatus = prveMBSlaveError2Exception(eRegStatus);
 		}	

@@ -33,7 +33,7 @@
 #define EVENT_SERIAL_TRANS_START    (1<<0)
 
 /* ----------------------- Start implementation -----------------------------*/
-BOOL xMBMasterPortSerialInit( sMBMasterPortInfo* psMBPortInfo )     //初始化
+BOOL xMBMasterPortSerialInit( sMBMasterPort* psMBPort )     //初始化
 {
     /**
      * set 485 mode receive and transmit control IO
@@ -41,15 +41,15 @@ BOOL xMBMasterPortSerialInit( sMBMasterPortInfo* psMBPortInfo )     //初始化
      */
 	BOOL bInitialized = TRUE;
     
-    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+    const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
 	MB_UartInit(psMBMasterUart);
     
     return bInitialized;
 }
 
-void vMBMasterPortSerialEnable( sMBMasterPortInfo* psMBPortInfo, BOOL xRxEnable, BOOL xTxEnable)      
+void vMBMasterPortSerialEnable( sMBMasterPort* psMBPort, BOOL xRxEnable, BOOL xTxEnable)      
 {
-    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+    const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
     
     if(xRxEnable)
@@ -79,14 +79,14 @@ void vMBMasterPortSerialEnable( sMBMasterPortInfo* psMBPortInfo, BOOL xRxEnable,
 	                                                   UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
 }
 
-void vMBMasterPortClose(sMBMasterPortInfo* psMBPortInfo)   //关闭串口
+void vMBMasterPortClose(sMBMasterPort* psMBPort)   //关闭串口
 {
-    const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+    const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE|UART_INTCFG_RBR, DISABLE);
 	UART_TxCmd(psMBMasterUart->ID, DISABLE);
 }
 
-BOOL xMBMasterPortSerialPutByte(sMBMasterPortInfo* psMBPortInfo, CHAR ucByte)   //发送一个字节
+BOOL xMBMasterPortSerialPutByte(sMBMasterPort* psMBPort, CHAR ucByte)   //发送一个字节
 {
 //	UCHAR h;
 //	UCHAR l;
@@ -97,16 +97,16 @@ BOOL xMBMasterPortSerialPutByte(sMBMasterPortInfo* psMBPortInfo, CHAR ucByte)   
 //	l= (l<10)? l+48: l+87;	
 	
 //    myprintf("TX:%c%c\n", h,l);
-	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     UART_SendByte(psMBMasterUart->ID, ucByte);
     return TRUE;
 }
 
-BOOL xMBMasterPortSerialGetByte(const sMBMasterPortInfo* psMBPortInfo, CHAR * pucByte)  //接收一个字节
+BOOL xMBMasterPortSerialGetByte(const sMBMasterPort* psMBPort, CHAR * pucByte)  //接收一个字节
 {
 //	UCHAR h;
 //	UCHAR l;
-	const sUART_Def* psMBMasterUart = psMBPortInfo->psMBMasterUart;
+	const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     *pucByte = UART_ReceiveByte(psMBMasterUart->ID);
 //	
 //	h=(* pucByte )>> 4 ;
@@ -146,7 +146,7 @@ void prvvMasterUARTRxISR(const CHAR* pcMBPortName)
 {
 	sMBMasterInfo* psMBMasterInfo = psMBMasterFindNodeByPort(pcMBPortName);
 
-	if( psMBMasterInfo != NULL )
+	if(psMBMasterInfo != NULL)
 	{
 		(void)pxMBMasterFrameCBByteReceivedCur(psMBMasterInfo);
 	} 

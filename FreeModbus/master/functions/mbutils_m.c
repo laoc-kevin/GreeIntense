@@ -68,8 +68,8 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
     sMasterBitCoilData*     pucBitCoilData = NULL;
 	sMasterBitDiscData* pucBitDiscreteData = NULL;
 	
-	iNReg = ( USHORT )(ucNBits / BITS_UCHAR) + 1;
-    usNPreBits = ( USHORT )(ucNBits % BITS_UCHAR);
+	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
 	while (iNReg > 0)
 	{
@@ -82,7 +82,7 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 			iBits = BITS_UCHAR;
 		}
 		
-        for ( i = 0; i < iBits; i++ )
+        for( i = 0; i < iBits; i++ )
         {
         	switch(eDataType)
         	{
@@ -156,12 +156,12 @@ eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 	sMasterBitDiscData* pucBitDiscreteData = NULL;
 
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;    //8bit为1个reg
-    usNPreBits = ( USHORT )(ucNBits % BITS_UCHAR); //剩余的bits
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR); //剩余的bits
 
 	while (iNReg > 0)
 	{
 		*ucByteBuf = 0;
-		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
+		if( (iNReg == 1) && (usNPreBits > 0) ) //未满8个bit
 		{
 			iBits = usNPreBits;
 		}
@@ -233,7 +233,7 @@ eMBException prveMBMasterError2Exception( eMBErrorCode eErrorCode )
 {
     eMBException    eStatus;
 
-    switch ( eErrorCode )
+    switch (eErrorCode)
     {
         case MB_ENOERR:
             eStatus = MB_EX_NONE;

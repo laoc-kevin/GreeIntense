@@ -158,9 +158,8 @@ static xMBSlaveFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
  *********************************************************************/
 eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
 {
-    eMBErrorCode    eStatus = MB_ENOERR;
-    
-    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
+    eMBErrorCode           eStatus = MB_ENOERR;
+    sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
     UCHAR ucSlaveAddr = *psMBCommInfo->pcSlaveAddr;
@@ -233,7 +232,7 @@ eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
 
         if( eStatus == MB_ENOERR )
         {
-            if(!xMBSlavePortEventInit(psMBPortInfo))
+            if(!xMBSlavePortEventInit(psMBPort))
             {
                 /* port dependent event module initalization failed. */
                 eStatus = MB_EPORTERR;
@@ -288,14 +287,14 @@ eMBErrorCode eMBSlaveTCPInit( USHORT ucTCPPort )
  *********************************************************************/
 eMBErrorCode eMBSlaveClose( sMBSlaveInfo* psMBSlaveInfo )
 {
-    eMBErrorCode      eStatus      = MB_ENOERR;
-    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
+    eMBErrorCode   eStatus = MB_ENOERR;
+    sMBSlavePort* psMBPort = &psMBSlaveInfo->sMBPort;
     
     if(psMBSlaveInfo->eMBState == STATE_DISABLED)
     {
         if(pvMBSlaveFrameCloseCur != NULL)
         {
-            pvMBSlaveFrameCloseCur(psMBPortInfo);
+            pvMBSlaveFrameCloseCur(psMBPort);
         }
     }
     else
@@ -377,7 +376,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
 
 	eMBSlaveEventType      eEvent;              //错误码
     eMBErrorCode           eStatus = MB_ENOERR;
-    sMBSlavePortInfo* psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;
+    sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
 	CPU_SR_ALLOC();
@@ -389,7 +388,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
     }
 
      /* 检查是否有事件发生。 若没有事件发生，将控制权交还主调函数. 否则，将处理该事件 */
-    if( xMBSlavePortEventGet(psMBPortInfo, &eEvent) == TRUE )              
+    if( xMBSlavePortEventGet(psMBPort, &eEvent) == TRUE )              
     {
 
         switch (eEvent)
@@ -410,7 +409,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 /* Check if the frame is for us. If not ignore the frame. */
                 if( (ucRcvAddress == *(psMBCommInfo->pcSlaveAddr)) || (ucRcvAddress == MB_ADDRESS_BROADCAST) )
                 {
-                    (void)xMBSlavePortEventPost(psMBPortInfo, EV_EXECUTE);      //修改事件标志为EV_EXECUTE执行事件
+                    (void)xMBSlavePortEventPost(psMBPort, EV_EXECUTE);      //修改事件标志为EV_EXECUTE执行事件
                 }
             }
 #endif  
@@ -423,7 +422,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 /* Check if the frame is for us. If not ignore the frame. */
                 if( (psMBSlaveInfo->ucDestAddr == psMBCommInfo->pcSlaveAddr) || (psMBSlaveInfo->ucDestAddr == MB_CPN_ADDRESS_BROADCAST) )
                 {
-                    (void)xMBSlavePortEventPost(psMBPortInfo, EV_EXECUTE );      //修改事件标志为EV_EXECUTE执行事件
+                    (void)xMBSlavePortEventPost(psMBPort, EV_EXECUTE );      //修改事件标志为EV_EXECUTE执行事件
                 }
             }     
 #endif  
@@ -501,7 +500,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
         break;
 
         case EV_FRAME_SENT:
-			vMBSlavePortSerialEnable(psMBPortInfo, TRUE, FALSE);      //使能接收，禁止发送
+			vMBSlavePortSerialEnable(psMBPort, TRUE, FALSE);      //使能接收，禁止发送
 		    vLedOff(&LedModbus2);
         break;
 		
@@ -520,10 +519,10 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
  *********************************************************************/
 BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNode)
 {
-    sMBSlavePortInfo*   psMBPortInfo = &psMBSlaveInfo->sMBPortInfo;   //从栈硬件接口信息
-	sMBSlaveTaskInfo*   psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;   //从栈状态机任务信息
-    sMBSlaveCommInfo*   psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;   //从栈通讯信息
-    sMBSlaveInfo*       psMBInfo     = NULL;
+    sMBSlaveInfo*         psMBInfo = NULL;
+    sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;   //从栈硬件接口信息
+	sMBSlaveTask*         psMBTask = &psMBSlaveInfo->sMBTask;   //从栈状态机任务信息
+    sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;   //从栈通讯信息
     
     if(psMBSlaveInfo != NULL)
     {
@@ -535,11 +534,11 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         psMBSlaveInfo->eMode = psSlaveNode->eMode;
         
         /***************************硬件接口设置***************************/
-        psMBPortInfo = (sMBSlavePortInfo*)(&psMBSlaveInfo->sMBPortInfo);
-        if(psMBPortInfo != NULL)
+        psMBPort = (sMBSlavePort*)(&psMBSlaveInfo->sMBPort);
+        if(psMBPort != NULL)
         {
-            psMBPortInfo->psMBSlaveUart = psSlaveNode->psSlaveUart;
-            psMBPortInfo->pcMBPortName  = psSlaveNode->pcMBPortName;
+            psMBPort->psMBSlaveUart = psSlaveNode->psSlaveUart;
+            psMBPort->pcMBPortName  = psSlaveNode->pcMBPortName;
         }
         
         /***************************通讯参数信息设置***************************/
@@ -551,10 +550,10 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         }
   
         /***************************从栈状态机任务块设置***************************/
-        psMBTaskInfo   = (sMBSlaveTaskInfo*)(&psMBSlaveInfo->sMBTaskInfo);
-        if(psMBTaskInfo != NULL)
+        psMBTask   = (sMBSlaveTask*)(&psMBSlaveInfo->sMBTask);
+        if(psMBTask != NULL)
         {
-            psMBTaskInfo->ucSlavePollPrio = psSlaveNode->ucSlavePollPrio;
+            psMBTask->ucSlavePollPrio = psSlaveNode->ucSlavePollPrio;
         }
 
         /*******************************创建从栈状态机任务*************************/
@@ -604,7 +603,7 @@ sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName)
 
 	for( psMBSlaveInfo = psMBSlaveList; psMBSlaveInfo != NULL; psMBSlaveInfo = psMBSlaveInfo->pNext )
 	{
-        strcpy(pcPortName, psMBSlaveInfo->sMBPortInfo.pcMBPortName);
+        strcpy(pcPortName, psMBSlaveInfo->sMBPort.pcMBPortName);
            
         if( strcmp(pcPortName,pcMBPortName) == 0 )
         {
@@ -625,12 +624,12 @@ BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
 {
     OS_ERR err = OS_ERR_NONE;
     
-    CPU_STK_SIZE          stk_size = MB_SLAVE_POLL_TASK_STK_SIZE; 
-    sMBSlaveTaskInfo* psMBTaskInfo = &psMBSlaveInfo->sMBTaskInfo;
+    CPU_STK_SIZE  stk_size = MB_SLAVE_POLL_TASK_STK_SIZE; 
+    sMBSlaveTask* psMBTask = &psMBSlaveInfo->sMBTask;
     
-    OS_PRIO             prio = psMBTaskInfo->ucSlavePollPrio;
-    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTaskInfo->sSlavePollTCB);  
-    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTaskInfo->usSlavePollStk);
+    OS_PRIO             prio = psMBTask->ucSlavePollPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sSlavePollTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usSlavePollStk);
     
     OSTaskCreate( p_tcb,
                   "vMBSlavePollTask",
