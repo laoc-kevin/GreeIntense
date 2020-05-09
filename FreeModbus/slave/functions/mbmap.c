@@ -130,7 +130,7 @@ eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData **
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+void vMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
                          LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 {
     pData->usAddr            = usAddr;                    
@@ -147,7 +147,7 @@ void eMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+void vMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
 {
     pData->usAddr        = usAddr;                            
     pData->ucAccessMode  = ucAccessMode;        
@@ -159,7 +159,7 @@ void eMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMo
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBSlaveCPNDataInit(sMBSlaveCPNData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+void vMBSlaveCPNDataInit(sMBSlaveCPNData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
                          LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                   
 {
     pData->usAddr            = usAddr;                    
@@ -176,7 +176,7 @@ void eMBSlaveCPNDataInit(sMBSlaveCPNData* pData, USHORT usAddr, UCHAR ucDataType
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBSlaveDevDataTableInit(sMBSlaveDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, 
+void vMBSlaveDevDataTableInit(sMBSlaveDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, 
                               USHORT usEndAddr, USHORT usDataCount)                                  
 {
     pDataTable->pvDataBuf   = pvDataBuf;        //协议数据域
