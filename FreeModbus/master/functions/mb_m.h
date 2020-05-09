@@ -494,7 +494,7 @@ void vMBMasterGetPDUSndBuf( const sMBMasterInfo* psMBMasterInfo, UCHAR ** pucFra
 USHORT usMBMasterGetPDUSndLength( const sMBMasterInfo* psMBMasterInfo );
 void vMBMasterSetPDUSndLength( sMBMasterInfo* psMBMasterInfo, USHORT SendPDULength );
 
-UCHAR ucMBMasterGetDestAddress( const sMBMasterInfo* psMBMasterInfo );
+UCHAR ucMBMasterGetDestAddr( const sMBMasterInfo* psMBMasterInfo );
 void vMBMasterSetDestAddress( sMBMasterInfo* psMBMasterInfo, UCHAR Address );
 
 BOOL xMBMasterGetCBRunInMasterMode( const sMBMasterInfo* psMBMasterInfo );

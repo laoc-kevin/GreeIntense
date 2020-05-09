@@ -455,7 +455,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
 	eMBMasterReqErrCode        eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData* psRegHoldValue = NULL;
     
-    sMBSlaveDev*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable;         //从设备通讯协议表
 	
 	iLastAddr = 0;

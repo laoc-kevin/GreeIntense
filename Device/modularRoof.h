@@ -5,11 +5,11 @@
 #include "fan.h"
 #include "compressor.h"
 
-#define   SUP_AIR_FAN_NUM       2    //机组送风机数量
-#define   COMP_NUM              4    //压缩机数量
+#define   SUP_AIR_FAN_NUM             2    //机组送风机数量
+#define   COMP_NUM                    4    //压缩机数量
 
-
-
+#define   MODULAR_ROOF_REG_HOLD_NUM   30    //机组通讯数据表保持寄存器数量
+#define   MODULAR_ROOF_COIL_BIT_NUM   50    //机组通讯数据表线圈数量
 
 ABS_CLASS(Unit)       /*机组抽象类*/ 
 {
@@ -64,6 +64,11 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     sMBMasterInfo*       psMBMasterInfo;      //所属通讯主栈
     sMBSlaveDevCommData  sDevCommData;        //本设备通讯数据表
     sMBSlaveDev          sMBSlaveDev;         //本通讯设备
+    
+    sMasterRegHoldData   ModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
+    sMasterBitCoilData   ModularRoof_CoilBuf   [MODULAR_ROOF_COIL_BIT_NUM];  //保持寄存器数据域
+    
+    
     
     void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo);
 };

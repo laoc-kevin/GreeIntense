@@ -6,8 +6,6 @@
 #include "port.h"
 
 /* -----------------------Master Defines -------------------------------------*/
-#define DTU_PROTOCOL_VERSIPON     0x0B    //DTU通讯协议版本号 V1.1
-
 #define MB_MASTER_MIN_DEV_ADDR    1     //主栈从设备最小通讯地址
 #define MB_MASTER_MAX_DEV_ADDR    20    //主栈从设备最大通讯地址
 
@@ -21,48 +19,48 @@ typedef enum      /* 测试模式 */
 
 typedef struct        /* 主栈保持寄存器数据结构 */
 {
-	const USHORT                      usAddr;            //地址
-    const UCHAR                       ucDataType;        //数据类型
-    volatile USHORT                   usPreVal;          //先前值
-    const LONG                        lMinVal;           //最小值
-    const LONG                        lMaxVal;           //最大值
-    const UCHAR                       ucAccessMode;      //访问权限
-    const float                       fTransmitMultiple; //传输因子
-    void * const                      pvValue;           //变量指针    
+	const USHORT      usAddr;            //地址
+    const UCHAR       ucDataType;        //数据类型
+    volatile USHORT   usPreVal;          //先前值
+    const LONG        lMinVal;           //最小值
+    const LONG        lMaxVal;           //最大值
+    const UCHAR       ucAccessMode;      //访问权限
+    const float       fTransmitMultiple; //传输因子
+    void * const      pvValue;           //变量指针    
 }sMasterRegHoldData;     		
 
 typedef struct        /* 主栈字典保持寄存器数据结构 */
 {
-	const USHORT                      usAddr;             //地址
-    const UCHAR                       ucDataType;         //数据类型
-    const LONG                        lMinVal;            //最小值
-    const LONG                        lMaxVal;            //最大值
-    const UCHAR                       ucAccessMode;       //访问权限
-    const float                       fTransmitMultiple;  //传输因子
-    void * const                      pvValue;            //变量指针    
+	const USHORT    usAddr;             //地址
+    const UCHAR     ucDataType;         //数据类型
+    const LONG      lMinVal;            //最小值
+    const LONG      lMaxVal;            //最大值
+    const UCHAR     ucAccessMode;       //访问权限
+    const float     fTransmitMultiple;  //传输因子
+    void * const    pvValue;            //变量指针    
 }sMasterRegInData; 
 
 typedef struct       /* 主栈字典线圈数据结构 */
 {
-    const USHORT                      usAddr;           //地址
-    volatile UCHAR                    ucPreVal;         //先前值
-    const UCHAR                       ucAccessMode;     //访问权限
-	UCHAR* const                      pvValue;          //变量指针   
+    const USHORT    usAddr;           //地址
+    volatile UCHAR  ucPreVal;         //先前值
+    const UCHAR     ucAccessMode;     //访问权限
+	UCHAR* const    pvValue;          //变量指针   
 }sMasterBitCoilData;  
 
 typedef struct       /* 主栈字典离散量数据结构 */
 {
-    const USHORT                      usAddr;           //地址
-    const UCHAR                       ucAccessMode;     //访问权限
-	UCHAR* const                      pvValue;          //变量指针      
+    const USHORT   usAddr;           //地址
+    const UCHAR    ucAccessMode;     //访问权限
+	UCHAR* const   pvValue;          //变量指针      
 }sMasterBitDiscData;  
 
 
 typedef struct   /* 用于测试从栈的指令数据结构 */       
 {
-	const USHORT              usValue;       //数值
-	const eMasterCmdMode      eCmdMode;      //测试模式
-	const UCHAR               ucAddr;        //测试点位通讯地址
+	const USHORT          usValue;       //数值
+	const eMasterCmdMode  eCmdMode;      //测试模式
+	const UCHAR           ucAddr;        //测试点位通讯地址
 }sMBTestDevCmd; 
 
 typedef struct   /* 主栈字典数据列表结构 */
@@ -77,14 +75,14 @@ typedef USHORT (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID,  
 
 typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */  
 {
-	sMBDevDataTable sMBRegInTable;       //输入寄存器数据表
-	sMBDevDataTable sMBRegHoldTable;     //保持寄存器数据表
-	sMBDevDataTable sMBCoilTable;        //线圈数据表
-	sMBDevDataTable sMBDiscInTable;      //离散量数据表
-    sMBTestDevCmd   sMBDevCmdTable;      //用于测试从设备状态命令表
+	sMBDevDataTable      sMBRegInTable;       //输入寄存器数据表
+	sMBDevDataTable      sMBRegHoldTable;     //保持寄存器数据表
+	sMBDevDataTable      sMBCoilTable;        //线圈数据表
+	sMBDevDataTable      sMBDiscInTable;      //离散量数据表
+    sMBTestDevCmd        sMBDevCmdTable;      //用于测试从设备状态命令表
     
-    const  UCHAR            ucProtocolID;        //协议ID
-    psMBDevDataMapIndex     psMBDevDataMapIndex; //字典映射函数
+    const  UCHAR         ucProtocolID;        //协议ID
+    psMBDevDataMapIndex  psMBDevDataMapIndex; //字典映射函数
     
     struct sMBSlaveDevCommData*   pNext;         //下一个数据表
 }sMBSlaveDevCommData; 

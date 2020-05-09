@@ -4,8 +4,30 @@
 
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
 
-static USHORT usDTUInitCmd[2]={DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
+#define DTU_PROTOCOL_VERSIPON                   0x0B    //DTU通讯协议版本号 V1.1
+
+#define DTU_TIMEOUT_S                           30
+#define TMR_TICK_PER_SECOND                     OS_CFG_TMR_TASK_RATE_HZ
+
+#define DTU247_INIT_START_REG_HOLD_ADDR         0x00
+#define INIT_DTU247_REG_HOLD_VALUE              0xF0
+#define INITED_DTU247_REG_HOLD_VALUE            0x0F
+
+#define DTU200_SLAVE_ADDR                       200
+#define DTU247_SLAVE_ADDR                       247
+
+#define TEST_DTU200_PROTOCOL_REG_HOLD_ADDR      0
+#define TEST_DTU200_PROTOCOL_REG_HOLD_VALUE     0x5601
+
+#define TEST_DTU247_PROTOCOL_REG_HOLD_ADDR      1
+#define TEST_DTU247_PROTOCOL_REG_HOLD_VALUE     0x0F
+
+#define TEST_DTU247_PROTOCOL_REG_IN_ADDR        12
+#define TEST_DTU247_PROTOCOL_REG_IN_VALUE       0xFF
+
+static USHORT usDTUInitCmd[2]  ={DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
 static USHORT usDTUInitedCmd[2]={DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
+
 
 /*DTU模块定时器中断*/
 void vDTU_TimeoutInd(void * p_tmr, void * p_arg)

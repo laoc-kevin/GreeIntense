@@ -44,7 +44,7 @@ eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRe
     sMBSlaveCommData*              psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBRegHoldTable = &psCurData->sMBRegHoldTable;
 
-	UCHAR i = psCurData->psMBSlaveDataMapIndex(RegInputData, usRegHoldAddr);    //从栈字典映射函数
+	UCHAR i = psCurData->psMBSlaveDataMapIndex(RegHoldData, usRegHoldAddr);    //从栈字典映射函数
 
 	*pvRegHoldValue = (sMBSlaveRegData*)psMBRegHoldTable->pvDataBuf + i;
     return eStatus;
@@ -69,7 +69,7 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 	sMBSlaveCommData*           psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBCoilTable = &psCurData->sMBCoilTable;
     
-	UCHAR i = psCurData->psMBSlaveDataMapIndex(RegInputData, usCoilAddr);    //从栈字典映射函数
+	UCHAR i = psCurData->psMBSlaveDataMapIndex(CoilData, usCoilAddr);    //从栈字典映射函数
     
 	*pvCoilValue = (sMBSlaveBitData*)psMBCoilTable->pvDataBuf + i ;
     return eStatus;
@@ -96,7 +96,7 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
 	sMBSlaveCommData*             psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBDiscInTable = &psCurData->sMBDiscInTable;
 
-	UCHAR i = psCurData->psMBSlaveDataMapIndex(RegInputData, usDiscreteAddr);    //从栈字典映射函数
+	UCHAR i = psCurData->psMBSlaveDataMapIndex(DiscInData, usDiscreteAddr);    //从栈字典映射函数
     
 	*pvDiscreteValue = (sMBSlaveBitData*)psMBDiscInTable->pvDataBuf + i ;
     return eStatus;
