@@ -54,7 +54,6 @@ typedef struct       /* 主栈字典离散量数据结构 */
 	UCHAR*   pvValue;          //变量指针      
 }sMasterBitDiscData;  
 
-
 typedef struct   /* 用于测试从栈的指令数据结构 */       
 {
     USHORT          usValue;       //数值
@@ -83,7 +82,7 @@ typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */
     UCHAR                ucProtocolID;        //协议ID
     psMBDevDataMapIndex  psMBDevDataMapIndex; //字典映射函数
     
-    struct sMBSlaveDevCommData*   pNext;         //下一个数据表
+    struct sMBSlaveDevCommData*   pNext;      //下一个数据表
 }sMBSlaveDevCommData; 
 
 typedef struct sMBSlaveDev   /* 从设备信息列表 */   
