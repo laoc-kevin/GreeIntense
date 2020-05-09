@@ -154,4 +154,34 @@ void eMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMo
     pData->pvValue       = pvValue;                  	
 }
 
+/***********************************************************************************
+ * @brief  CPN数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBSlaveCPNDataInit(sMBSlaveCPNData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+                         LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                   
+{
+    pData->usAddr            = usAddr;                    
+    pData->ucDataType        = ucDataType;                         
+    pData->lMinVal           = lMinVal;                  
+    pData->lMaxVal           = lMaxVal;                  
+    pData->ucAccessMode      = ucAccessMode;        
+    pData->fTransmitMultiple = fTransmitMultiple;
+    pData->pvValue           = pvValue;            	
+}
 
+/***********************************************************************************
+ * @brief 数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBSlaveDevDataTableInit(sMBSlaveDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, 
+                              USHORT usEndAddr, USHORT usDataCount)                                  
+{
+    pDataTable->pvDataBuf   = pvDataBuf;        //协议数据域
+    pDataTable->usStartAddr = usStartAddr;      //起始地址
+    pDataTable->usEndAddr   = usEndAddr;        //末尾地址
+    pDataTable->usDataCount = usDataCount;      //协议点位总数
+    
+}

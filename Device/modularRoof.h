@@ -65,8 +65,8 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     sMBSlaveDevCommData  sDevCommData;        //本设备通讯数据表
     sMBSlaveDev          sMBSlaveDev;         //本通讯设备
     
-    sMasterRegHoldData   ModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
-    sMasterBitCoilData   ModularRoof_CoilBuf   [MODULAR_ROOF_COIL_BIT_NUM];  //保持寄存器数据域
+    sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
+    sMasterBitCoilData   sModularRoof_CoilBuf   [MODULAR_ROOF_COIL_BIT_NUM];  //保持寄存器数据域
     
     
     

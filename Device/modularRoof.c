@@ -53,11 +53,33 @@ void vModularRoof_InitDevCommData(IDevCom* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevCom, ModularRoof);
     
-
+    sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
+    sMBDevDataTable*    psMBCoilTable = &pThis->sDevCommData.sMBCoilTable; 
+    
+    /******************************保持寄存器数据域*************************/
+    (*psMBRegHoldTable) = {
+                             .pvDataBuf  = &pThis->sModularRoof_RegHoldBuf;
+                          }
+    
+    psMBRegHoldTable->pvDataBuf   = &pThis->sModularRoof_RegHoldBuf;   //绑定保持寄存器数据域
+    psMBRegHoldTable->usDataCount = MODULAR_ROOF_REG_HOLD_NUM;         //保持寄存器点位数
+    psMBRegHoldTable->usStartAddr = 1;                                 //起始地址
+    psMBRegHoldTable->usEndAddr   = MODULAR_ROOF_REG_HOLD_NUM;         //终止地址
+    
+    pThis->sModularRoof_RegHoldBuf = {{0, uint16, 0, 65535, 0, WO, 1, (void*)pt}};
     
     
     
-    pThis->sDevCommData.psMBDevDataMapIndex = usModularRoof_DevDataMapIndex;    //绑定映射函数
+    
+    /******************************线圈数据域*************************/
+    psMBCoilTable->pvDataBuf   = &pThis->sModularRoof_CoilBuf;      //绑定线圈数据域
+    psMBCoilTable->usDataCount = MODULAR_ROOF_COIL_BIT_NUM;         //线圈点位数
+    psMBCoilTable->usStartAddr = 1;                                 //起始地址
+    psMBCoilTable->usEndAddr   = MODULAR_ROOF_COIL_BIT_NUM;         //终止地址
+    
+    
+    
+    pThis->sDevCommData.psMBDevDataMapIndex = usModularRoof_DevDataMapIndex;         //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 

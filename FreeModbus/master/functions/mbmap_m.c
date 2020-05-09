@@ -153,7 +153,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 #endif
 
 /***********************************************************************************
- * @brief  保持寄存器数据表初始化
+ * @brief  保持寄存器数据点初始化
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
@@ -161,53 +161,80 @@ void eMBMasterRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR uc
                               LONG lMinVal, LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 
 {
-    pData->usAddr            = usAddr;                    
-    pData->ucDataType        = ucDataType;            
-    pData->usPreVal          = usPreVal;                
-    pData->lMinVal           = lMinVal;                  
-    pData->lMaxVal           = lMaxVal;                  
-    pData->ucAccessMode      = ucAccessMode;        
-    pData->fTransmitMultiple = fTransmitMultiple;
-    pData->pvValue           = pvValue;                  	
+    pData->usAddr            = usAddr;              //地址
+    pData->ucDataType        = ucDataType;          //数据类型
+    pData->usPreVal          = usPreVal;            //先前值
+    pData->lMinVal           = lMinVal;             //最小值
+    pData->lMaxVal           = lMaxVal;             //最大值
+    pData->ucAccessMode      = ucAccessMode;        //访问权限
+    pData->fTransmitMultiple = fTransmitMultiple;   //传输因子
+    pData->pvValue           = pvValue;             //变量指针 	
 }
 
 /***********************************************************************************
- * @brief  输入寄存器数据表初始化
+ * @brief  输入寄存器数据点初始化
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
 void eMBMasterRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
                             LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 {
-    pData->usAddr            = usAddr;                    
-    pData->ucDataType        = ucDataType;                         
-    pData->lMinVal           = lMinVal;                  
-    pData->lMaxVal           = lMaxVal;                  
-    pData->ucAccessMode      = ucAccessMode;        
-    pData->fTransmitMultiple = fTransmitMultiple;
-    pData->pvValue           = pvValue;                  	
+    pData->usAddr            = usAddr;              //地址  
+    pData->ucDataType        = ucDataType;          //数据类型         
+    pData->lMinVal           = lMinVal;             //最小值
+    pData->lMaxVal           = lMaxVal;             //最大值
+    pData->ucAccessMode      = ucAccessMode;        //访问权限
+    pData->fTransmitMultiple = fTransmitMultiple;   //传输因子
+    pData->pvValue           = pvValue;             //变量指针	
 }
 
 /***********************************************************************************
- * @brief  线圈数据表初始化
+ * @brief  线圈数据点初始化
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+void eMBMasterCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucPreVal, UCHAR ucAccessMode, void* pvValue)                                  
 {
-    pData->usAddr        = usAddr;                            
-    pData->ucAccessMode  = ucAccessMode;        
-    pData->pvValue       = pvValue;                  	
-}
+    pData->usAddr        = usAddr;           //地址
+    pData->ucPreVal      = ucPreVal;         //先前值
+    pData->ucAccessMode  = ucAccessMode;     //访问权限
+    pData->pvValue       = pvValue;          //变量指针
+}                                                        
 
 /***********************************************************************************
- * @brief  线圈数据表初始化
+ * @brief  离散量数据点初始化
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
 void eMBMasterDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
 {
-    pData->usAddr       = usAddr;                            
-    pData->ucAccessMode = ucAccessMode;        
-    pData->pvValue      = pvValue;                  	
+    pData->usAddr       = usAddr;            //地址        
+    pData->ucAccessMode = ucAccessMode;      //访问权限
+    pData->pvValue      = pvValue;           //变量指针 	
+}
+
+/***********************************************************************************
+ * @brief  测试命令点初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBMasterTestCmdDaInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
+{
+    pCmd->usValue   = usValue;       //数值
+    pCmd->eCmdMode  = eCmdMode;      //测试模式
+    pCmd->ucAddr    = ucAddr;        //测试点位通讯地址
+}
+
+/***********************************************************************************
+ * @brief 数据表初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void eMBMasterDevDataTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount)                                  
+{
+    pDataTable->pvDataBuf   = pvDataBuf;        //协议数据域
+    pDataTable->usStartAddr = usStartAddr;      //起始地址
+    pDataTable->usEndAddr   = usEndAddr;        //末尾地址
+    pDataTable->usDataCount = usDataCount;      //协议点位总数
+    
 }
