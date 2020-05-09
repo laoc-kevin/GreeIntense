@@ -7,7 +7,6 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
-
 #define MB_SCAN_SLAVE_DELAY_MS                  20    //主栈扫描从设备
 
 #define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
@@ -22,14 +21,14 @@
  *********************************************************************/
 void vMBMasterScanSlaveDevTask(void *p_arg)
 {
-	UCHAR iSlaveAddr;
-	UCHAR n, iIndex;
+	UCHAR n, iIndex, iSlaveAddr;
+    
 	OS_ERR err = OS_ERR_NONE;
-	CPU_TS ts = 0;
+	CPU_TS  ts = 0;
   
 	USHORT msReadInterval = MB_SCAN_READ_SLAVE_INTERVAL_MS;
 
-    eMBMasterReqErrCode       errorCode = MB_MRE_NO_ERR;
+    eMBMasterReqErrCode   errorCode = MB_MRE_NO_ERR;
     sMBSlaveDev*       psMBSlaveDev = NULL;
     
 	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
@@ -146,7 +145,6 @@ BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo)
     return (err == OS_ERR_NONE);              
 }
 
-
 /**********************************************************************
  * @brief   主栈轮询某个从设备
  * @param   psMBMasterInfo  主栈信息块 
@@ -166,7 +164,6 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     {
         return;
     }
-    
     if( (psMBSlaveDev != NULL) && (psMBSlaveDev->ucOnLine == TRUE) )   //如果设备在线则进行轮询
     {
         if( psMBSlaveDev->ucDataReady == TRUE)   //从栈数据准备好了才同步上来
@@ -260,8 +257,7 @@ void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR iSlaveAddr,
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr )
 {
-	USHORT i, nSlaveTypes;
-	USHORT iIndex, iStartAddr, iLastAddr, iCount;
+	USHORT nSlaveTypes, iIndex, iStartAddr, iLastAddr, iCount;
     
     eMBMasterReqErrCode         eStatus = MB_MRE_NO_ERR;
     sMasterRegInData*   psRegInputValue = NULL;
@@ -340,8 +336,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr )
 {
-	USHORT i, nRegs, nSlaveTypes;
-	USHORT iIndex, iStartAddr, iStartReg, iLastAddr, iCount;
+	USHORT nSlaveTypes, iIndex, iStartAddr, iStartReg, iLastAddr, iCount;
 	
     USHORT          usRegHoldValue;
 	ULONG			ulRegHoldValue;
@@ -587,7 +582,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
        	    
        	    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
        	    {	
-       	    	for( i = nRegs ; i > 0; i--)
+       	    	for(i = nRegs ; i > 0; i--)
        	    	{
        	    		*pRegHoldPreValueList[i-1] = RegHoldValueList[i-1];
        	    	}
@@ -635,8 +630,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
 eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr)
 {
 	UCHAR  iBitInByte, cByteValue;
-	USHORT i, nBits, bStarted, nSlaveTypes;
-	USHORT iIndex, iLastAddr, iStartAddr, iStartBit, iCount, iChangedBytes, iChangedBits, iBits;
+	USHORT nSlaveTypes, iIndex, iLastAddr, iStartAddr, iStartBit, iCount;
    
     eMBMasterReqErrCode     eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData* psCoilValue = NULL;
@@ -647,9 +641,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 	iLastAddr = 0;
 	iStartAddr = 0;
 	iCount = 0;
-	iChangedBits = 0;
-	iBits = 0;
-	bStarted = FALSE;
+
 	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
@@ -936,7 +928,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils( sMBMasterInfo* psMBMasterInfo, UCHA
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr )
 {
-	UCHAR i;
+	UCHAR  i;
 	USHORT iIndex, iLastAddr, iStartAddr, iCount, iBit, nSlaveTypes;
    
     eMBMasterReqErrCode             eStatus = MB_MRE_NO_ERR;
