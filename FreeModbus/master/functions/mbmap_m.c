@@ -157,7 +157,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, USHORT usPreVal,
+void eMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, USHORT usPreVal,
                               LONG lMinVal, LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 
 {
@@ -176,7 +176,7 @@ void eMBMasterRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
+void eMBMasterDevRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
                             LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 {
     pData->usAddr            = usAddr;              //地址  
@@ -193,7 +193,7 @@ void eMBMasterRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucData
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucPreVal, UCHAR ucAccessMode, void* pvValue)                                  
+void eMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucPreVal, UCHAR ucAccessMode, void* pvValue)                                  
 {
     pData->usAddr        = usAddr;           //地址
     pData->ucPreVal      = ucPreVal;         //先前值
@@ -206,7 +206,7 @@ void eMBMasterCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucPre
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
+void eMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue)                                  
 {
     pData->usAddr       = usAddr;            //地址        
     pData->ucAccessMode = ucAccessMode;      //访问权限
@@ -218,7 +218,7 @@ void eMBMasterDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAcc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void eMBMasterTestCmdDaInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
+void eMBMasterDevTestCmdDaInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
 {
     pCmd->usValue   = usValue;       //数值
     pCmd->eCmdMode  = eCmdMode;      //测试模式
