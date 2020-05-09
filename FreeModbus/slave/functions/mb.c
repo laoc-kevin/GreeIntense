@@ -546,7 +546,6 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         if(psMBCommInfo != NULL)
         {
             psMBCommInfo->pcSlaveAddr    = psSlaveNode->pcSlaveAddr;
-            psMBCommInfo->psSlaveCurData = psSlaveNode->psSlaveCurData;
         }
   
         /***************************从栈状态机任务块设置***************************/

@@ -77,11 +77,11 @@ typedef USHORT (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID,  
 
 typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */  
 {
-	sMBDevDataTable* const psMBRegInTable;       //输入寄存器数据表
-	sMBDevDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	sMBDevDataTable* const psMBCoilTable;        //线圈数据表
-	sMBDevDataTable* const psMBDiscInTable;      //离散量数据表
-    sMBTestDevCmd*   const psMBDevCmdTable;      //用于测试从设备状态命令表
+	sMBDevDataTable sMBRegInTable;       //输入寄存器数据表
+	sMBDevDataTable sMBRegHoldTable;     //保持寄存器数据表
+	sMBDevDataTable sMBCoilTable;        //线圈数据表
+	sMBDevDataTable sMBDiscInTable;      //离散量数据表
+    sMBTestDevCmd   sMBDevCmdTable;      //用于测试从设备状态命令表
     
     const  UCHAR            ucProtocolID;        //协议ID
     psMBDevDataMapIndex     psMBDevDataMapIndex; //字典映射函数
@@ -101,11 +101,11 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     UCHAR   ucDevOnTimeout;        //是否处于延时
     OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
-    sMBSlaveDevCommData*     psDevDataInfo;         //从设备数据域
-    sMBSlaveDevCommData*     psDevCurData;          //从设备当前数据域   
+    sMBSlaveDevCommData* psDevDataInfo;     //从设备数据域
+    sMBSlaveDevCommData* psDevCurData;      //从设备当前数据域   
     
-    struct sMBSlaveDev*  pNext;                 //下一个设备节点
-    struct sMBSlaveDev*  pLast;                 //尾设备节点
+    struct sMBSlaveDev*  pNext;             //下一个设备节点
+    struct sMBSlaveDev*  pLast;             //尾设备节点
 }sMBSlaveDev; 
 
 typedef struct    /* 主栈从设备状态结构  */

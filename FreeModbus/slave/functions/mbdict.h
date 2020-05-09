@@ -51,15 +51,15 @@ typedef USHORT (*psMBSlaveDataMapIndex)(eDataType eDataType, USHORT usAddr); //�
 
 typedef struct            /*从栈通讯字典数据结构*/  
 {
-	sMBSlaveDataTable* const psMBRegInTable;       //输入寄存器数据表
-	sMBSlaveDataTable* const psMBRegHoldTable;     //保持寄存器数据表
-	sMBSlaveDataTable* const psMBCoilTable;        //线圈数据表
-	sMBSlaveDataTable* const psMBDiscInTable;      //离散量数据表
+	sMBSlaveDataTable      sMBRegInTable;       //输入寄存器数据表
+	sMBSlaveDataTable      sMBRegHoldTable;     //保持寄存器数据表
+	sMBSlaveDataTable      sMBCoilTable;        //线圈数据表
+	sMBSlaveDataTable      sMBDiscInTable;      //离散量数据表
                             
 #if MB_SLAVE_CPN_ENABLED > 0 
-    sMBSlaveDataTable* const psMBCPNTable;         //CPN数据表 
+    sMBSlaveDataTable sMBCPNTable;         //CPN数据表 
 #endif   
-    psMBSlaveDataMapIndex    psMBSlaveDataMapIndex; //从栈字典映射函数
+    psMBSlaveDataMapIndex  psMBSlaveDataMapIndex; //从栈字典映射函数
     
 }sMBSlaveCommData; 
 

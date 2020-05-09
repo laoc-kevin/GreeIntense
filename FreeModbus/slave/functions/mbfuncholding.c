@@ -366,11 +366,11 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     OS_ERR            err = OS_ERR_NONE;
     eMBErrorCode  eStatus = MB_ENOERR;
     
-    sMBSlaveRegData *        pvRegHoldValue = NULL;
-	const sMBSlaveDataTable*   psRegHoldBuf = psMBSlaveInfo->sMBCommInfo.psSlaveCurData->psMBRegHoldTable;  //从栈通讯协议表
+    sMBSlaveRegData *      pvRegHoldValue = NULL;
+	sMBSlaveDataTable*   psMBRegHoldTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBRegHoldTable;  //从栈通讯协议表
     
-    REG_HOLDING_START = psRegHoldBuf->usStartAddr;
-    REG_HOLDING_END = psRegHoldBuf->usEndAddr;
+    REG_HOLDING_START = psMBRegHoldTable->usStartAddr;
+    REG_HOLDING_END = psMBRegHoldTable->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;

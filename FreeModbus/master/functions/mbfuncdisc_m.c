@@ -188,29 +188,30 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
     USHORT          DISCRETE_INPUT_START, DISCRETE_INPUT_END;
     eMBErrorCode    eStatus = MB_ENOERR;
    
-    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;     //当前从设备
-    const sMBDevDataTable* psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;          //从设备通讯协议表
-
-    if(psMBSlaveDevCur->ucDevAddr != usAddress) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
+    sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
+    sMBDevDataTable*     psMBDiscInTable = &psMBSlaveDevCur->psDevCurData->sMBDiscInTable;  //从设备通讯协议表
+    UCHAR                   ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
+    
+    if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
-        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, usAddress);
+        psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);
         psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
-        psDiscreteBuf = psMBSlaveDevCur->psDevCurData->psMBDiscInTable;
+        psMBDiscInTable = &psMBSlaveDevCur->psDevCurData->sMBDiscInTable;
     } 
-    if( (psDiscreteBuf->pvDataBuf == NULL) || (psDiscreteBuf->usDataCount == 0)) //非空且数据点不为0
+    if( (psMBDiscInTable->pvDataBuf == NULL) || (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	}
     
-    DISCRETE_INPUT_START = psDiscreteBuf->usStartAddr;
-    DISCRETE_INPUT_END = psDiscreteBuf->usEndAddr;
+    DISCRETE_INPUT_START = psMBDiscInTable->usStartAddr;
+    DISCRETE_INPUT_END   = psMBDiscInTable->usEndAddr;
 
     /* it already plus one in modbus function method. */
     usAddress--;
 
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
     {
-		eStatus = eMBMasterUtilSetBits( psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+		eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
 	}   
     else
     {
