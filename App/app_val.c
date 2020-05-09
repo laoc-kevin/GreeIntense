@@ -111,7 +111,7 @@ uint8_t  DTU_Changed = 0;
 uint16_t DTU_Inited = 0;
 uint16_t QK_ProductID = 0x5601;
 
-uint16_t DTUProtocolVer = DTU_PROTOCOL_VERSIPON;
+uint16_t DTUProtocolVer;
 uint16_t HexVer = 10;
 
 uint8_t SysSwitchEN = 0;
