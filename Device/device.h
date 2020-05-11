@@ -6,6 +6,7 @@
 
 #include "mb.h"
 #include "mb_m.h"
+#include "mbmap_m.h"
 #include "md_output.h"
 #include "md_input.h"
 

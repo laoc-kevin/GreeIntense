@@ -97,7 +97,7 @@ void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
-        pExAirFan->init(pExAirFan, &ExAirFanSet[ n]);
+        pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
         
         pThis->psExAirFanList[n] = pExAirFan;  
     }

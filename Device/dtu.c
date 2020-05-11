@@ -178,8 +178,7 @@ void vDTU247_InitCommData(DTU* pt)
     
     
     pThis->sDevDataDTU247.psMBDevDataMapIndex = usDTU247_DevDataMapIndex;    //绑定映射函数
-    pThis->sDevDTU247.psDevDataInfo = &(pThis->sDevDataDTU247);
-    
+    pThis->sDevDTU247.psDevDataInfo = &(pThis->sDevDataDTU247);  
 }
 
 
@@ -187,6 +186,9 @@ void vDTU247_InitCommData(DTU* pt)
 void vDTU200_InitCommData(DTU* pt)
 {
     DTU* pThis = (DTU*)pt;
+    
+    
+    
     
     
     
