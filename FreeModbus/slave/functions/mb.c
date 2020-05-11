@@ -46,6 +46,7 @@
 #include "mbport.h"
 #include "mbmap.h"
 #include "md_led.h"
+#include "md_input.h"
 
 #if MB_SLAVE_RTU_ENABLED == 1
 #include "mbrtu.h"
@@ -545,7 +546,7 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         psMBCommInfo = (sMBSlaveCommInfo*)(&psMBSlaveInfo->sMBCommInfo);
         if(psMBCommInfo != NULL)
         {
-            psMBCommInfo->pcSlaveAddr    = psSlaveNode->pcSlaveAddr;
+            psMBCommInfo->pcSlaveAddr = psSlaveNode->pcSlaveAddr;
         }
   
         /***************************从栈状态机任务块设置***************************/
