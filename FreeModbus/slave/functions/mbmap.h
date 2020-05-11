@@ -4,6 +4,42 @@
 #include "mb.h"
 #include "mbdict.h"
 
+//主栈从设备字典申请 
+#ifndef SLAVE_DEV_DICT_ALLOC
+#define SLAVE_DEV_DICT_ALLOC
+
+#define SLAVE_PBUF_INDEX_ALLOC() \
+        void*               pvDataBuf   = NULL; \
+        sMBSlaveDataTable*  psDataTable = NULL;  \
+        uint16_t            usIndex     = 0;
+        
+//开始数据表申请 
+#define SLAVE_BEGIN_DATA_BUF(BUF, TABLE) \
+        usIndex = 0; \
+        pvDataBuf   = (void*)BUF; \
+        psDataTable = (sMBSlaveDataTable*)TABLE;
+  
+//寄存器数据申请  
+#define SLAVE_REG_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+        vMBSlaveRegDataInit((sMBSlaveRegData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4, arg5, arg6, arg7); \
+        usIndex++;
+                
+//线圈数据申请  
+#define SLAVE_BIT_DATA(arg1, arg2, arg3, arg4) \
+        vMBSlaveBitDataInit((sMBSlaveBitData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4); \
+        usIndex++;
+
+//CPN数据申请  
+#define SLAVE_CPN_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+        vMBSlaveCPNDataInit((sMBSlaveBitData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4, arg5, arg6, arg7); \
+
+//结束数据表申请  
+#define SLAVE_END_DATA_BUF(usStartAddr, usEndAddr)\
+        vMBSlaveDevDataTableInit(psDataTable, &pvDataBuf, usStartAddr, \
+                                  usEndAddr, usIndex);     \
+        usIndex = 0;     
+#endif
+
 eMBErrorCode 
 eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usAddress, sMBSlaveRegData** pvRegInValue);
 

@@ -71,7 +71,7 @@ void vModbusInit(void)
 /******************************************************************
 *@brief 获取主栈地址								
 ******************************************************************/
-sMBMasterInfo*  psGetMBMasterInfo(void)
+sMBMasterInfo*  psMBGetMasterInfo(void)
 {
     return &MBMasterInfo;
 }
@@ -79,7 +79,7 @@ sMBMasterInfo*  psGetMBMasterInfo(void)
 /******************************************************************
 *@brief 获取从栈栈地址								
 ******************************************************************/
-sMBSlaveInfo*  psGetMBSlaveInfo(void)
+sMBSlaveInfo*  psMBGetSlaveInfo(void)
 {
     return &MBSlaveInfo;
 }
