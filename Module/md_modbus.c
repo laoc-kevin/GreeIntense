@@ -50,8 +50,8 @@ sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",              
                                    TRUE
                                  };
 
-sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,           /* 从栈配置信息 */
-                                 MB_SLAVE_POLL_TASK_PRIO};                                  
+sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_SLAVE_POLL_TASK_PRIO}; /* 从栈配置信息 */
+                                                                   
                                   
 /**********************************************************************
  * @brief  MODBUS初始化
@@ -63,9 +63,28 @@ sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", &ControllerID,  
 void vModbusInit(void)
 {
     (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
+    
+    MBSlaveNode.pcSlaveAddr = pcGetControllerID();
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
 }
-                     
+   
+/******************************************************************
+*@brief 获取主栈地址								
+******************************************************************/
+sMBMasterInfo*  psGetMBMasterInfo(void)
+{
+    return &MBMasterInfo;
+}
+
+/******************************************************************
+*@brief 获取从栈栈地址								
+******************************************************************/
+sMBSlaveInfo*  psGetMBSlaveInfo(void)
+{
+    return &MBSlaveInfo;
+}
+
+
 /**********************************************************************
  * @brief   UART1中断响应函数
  * @return	none

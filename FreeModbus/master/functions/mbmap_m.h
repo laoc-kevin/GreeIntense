@@ -48,7 +48,6 @@
 //测试命令初始化申请  
 #define TEST_CMD_INIT(pCmd, arg1, arg2, arg3) \
         vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3);    
-
 #endif
 
 
@@ -72,12 +71,14 @@ void vMBMasterDevRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucD
                             LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue);   
                               
                               
-void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR ucPreVal, UCHAR ucAccessMode, void* pvValue);
+void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, 
+                              UCHAR ucPreVal, UCHAR ucAccessMode, void* pvValue);
 
 void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue);
 
 void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr); 
 
-void vMBMasterDevTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount); 
+void vMBMasterDevDataTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, 
+                               USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount); 
 
 #endif
