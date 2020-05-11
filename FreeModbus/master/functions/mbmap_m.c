@@ -218,7 +218,7 @@ void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void vMBMasterDevTestCmdDaInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
+void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
 {
     pCmd->usValue   = usValue;       //数值
     pCmd->eCmdMode  = eCmdMode;      //测试模式
