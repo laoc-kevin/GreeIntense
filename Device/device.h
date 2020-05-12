@@ -83,6 +83,8 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 };
 
 
+
+
 ABS_CLASS(Device)        /*设备抽象类*/
 {
     uint16_t usRunTime;         //运行时间

@@ -51,24 +51,44 @@ USHORT usModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  U
     
     switch(ucProtocolID)
 	{
-		 case DTU247_PROTOCOL_TYPE_ID:	
-			    switch(usAddr)
-			    {
-			        case 12	:   i = 0 ;  break;
-                    case 59	:   i = 1 ;  break;
-                    case 60	:   i = 2 ;  break;
-                    case 61	:   i = 3 ;  break;
-                    case 62	:   i = 4 ;  break;
-                    case 63	:   i = 5 ;  break;
-         	
-	                default:
-			    		return MB_MRE_NO_REG;
-			    	break;
-			    }
-		break;
-		default: break;
+        case DTU247_PROTOCOL_TYPE_ID:
+            if(eDataType == RegHoldData)
+            {
+                switch(usAddr)
+                {
+                    case 12	:  i = 0 ;  break;
+                    case 59	:  i = 1 ;  break;
+                    case 60	:  i = 2 ;  break;
+                    case 61	:  i = 3 ;  break;
+                    case 62	:  i = 4 ;  break;
+                    case 63	:  i = 5 ;  break;
+                       
+                    default:
+                		return FALSE;
+                	break;
+                }
+            }
+            else if(eDataType == CoilData)
+            {
+                switch(usAddr)
+                {
+                    case 12	:  i = 0 ;  break;
+                    case 59	:  i = 1 ;  break;
+                    case 60	:  i = 2 ;  break;
+                    case 61	:  i = 3 ;  break;
+                    case 62	:  i = 4 ;  break;
+                    case 63	:  i = 5 ;  break;
+                       
+                    default:
+                		return MB_MRE_NO_REG;
+                	break;
+                }
+            }                
+            
+        break;
+        default: break;
 	}
-     
+
 }
 
 
@@ -83,24 +103,24 @@ void vModularRoof_InitDevCommData(IDevCom* pt)
     
     uint8_t CHID = 0x13;		        //机型ID
 
-PBUF_INDEX_ALLOC()
-TEST_CMD_INIT(psMBCmd, 1, READ_REG_HOLD, 1)  
+MASTER_PBUF_INDEX_ALLOC()
+MASTER_TEST_CMD_INIT(psMBCmd, 1, READ_REG_HOLD, 1)  
     
     /******************************保持寄存器数据域*************************/
-BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBCoilTable)      
-    REG_HOLD_DATA(1, uint8, 0, 65535, 0, WO, 1, (void*)&CHID);
-    REG_HOLD_DATA(5, uint8, 0, 65535, 0, RO, 1, (void*)&CHID)
-    REG_HOLD_DATA(7, uint8, 0, 65535, 0, RW, 1, (void*)&CHID)
-    REG_HOLD_DATA(8, uint8, 0, 65535, 0, WO, 1, (void*)&CHID)  
-END_DATA_BUF(1, 8)
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBCoilTable)      
+    MASTER_REG_HOLD_DATA(1, uint8, 0, 65535, 0, WO, 1, (void*)&CHID);
+    MASTER_REG_HOLD_DATA(5, uint8, 0, 65535, 0, RO, 1, (void*)&CHID)
+    MASTER_REG_HOLD_DATA(7, uint8, 0, 65535, 0, RW, 1, (void*)&CHID)
+    MASTER_REG_HOLD_DATA(8, uint8, 0, 65535, 0, WO, 1, (void*)&CHID)  
+MASTER_END_DATA_BUF(1, 8)
     
     /******************************线圈数据域*************************/ 
-BEGIN_DATA_BUF(pThis->sModularRoof_CoilBuf, psMBRegHoldTable)    
-    COIL_BIT_DATA(1,  0, WO, (void*)&CHID);
-    COIL_BIT_DATA(5,  0, RO, (void*)&CHID);
-    COIL_BIT_DATA(7,  0, RW, (void*)&CHID);
-    COIL_BIT_DATA(10, 0, WO, (void*)&CHID);    
-END_DATA_BUF(1, 10)  
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBRegHoldTable)    
+    MASTER_COIL_BIT_DATA(1,  0, WO, (void*)&CHID);
+    MASTER_COIL_BIT_DATA(5,  0, RO, (void*)&CHID);
+    MASTER_COIL_BIT_DATA(7,  0, RW, (void*)&CHID);
+    MASTER_COIL_BIT_DATA(10, 0, WO, (void*)&CHID);    
+MASTER_END_DATA_BUF(1, 10)  
     
     pThis->sDevCommData.ucProtocolID = DTU247_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.psMBDevDataMapIndex = usModularRoof_DevDataMapIndex;  //绑定映射函数
@@ -116,7 +136,7 @@ void vModularRoof_RegistDev(IDevCom* pt)
 }
 
 /*机组初始化*/
-void vModularRoof_init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
+void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
 {
     uint8_t n;
     ModularRoof* pThis = (ModularRoof*)pt;
@@ -139,7 +159,7 @@ void vModularRoof_init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
 
 CTOR(ModularRoof)   //屋顶机构造函数
     SUPER_CTOR(Unit);
-    FUNCTION_SETTING(init,                       vModularRoof_init);
+    FUNCTION_SETTING(init,                       vModularRoof_Init);
 
     FUNCTION_SETTING(IDevSwitch.switchOpen,      vModularRoof_SwitchOpen);
     FUNCTION_SETTING(IDevSwitch.switchClose,     vModularRoof_SwitchClose);

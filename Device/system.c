@@ -83,17 +83,22 @@ BOOL xSystem_CreatePollTask(System* pt)
 void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
 {
     uint8_t n;
+    System* pThis = (System*)pt;
     
     ModularRoof*    pModularRoof    = NULL;
     ExAirFan*       pExAirFan       = NULL;
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
-    
-    System* pThis = (System*)pt; 
+    BMS*            psSystemBms     = NULL;
     
     pThis->psMBMasterInfo = psSystemInfo->psMBMasterInfo;
     pThis->sTaskInfo.ucPrio = psSystemInfo->ucPrio;
       
+    psSystemBms = (BMS*)BMS_new();
+    psSystemBms->init(psSystemBms, psSystemInfo->psMBSlaveInfo, (void*)pThis);
+    
+    pThis->psSystemBms = psSystemBms;
+    
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
@@ -121,9 +126,11 @@ void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor), psSystemInfo->psMBMasterInfo);
         
-        pThis->psTempHumiSenList[n] = pTempHumiSensor;
-         
+        pThis->psTempHumiSenList[n] = pTempHumiSensor; 
     }
+    
+   
+    
     xSystem_CreatePollTask(pThis); 
 }
 

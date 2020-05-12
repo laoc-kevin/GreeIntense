@@ -542,14 +542,14 @@
               <FilePath>.\Device\system.c</FilePath>
             </File>
             <File>
-              <FileName>comm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\comm.c</FilePath>
-            </File>
-            <File>
               <FileName>dtu.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Device\dtu.c</FilePath>
+            </File>
+            <File>
+              <FileName>bms.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\bms.c</FilePath>
             </File>
           </Files>
         </Group>

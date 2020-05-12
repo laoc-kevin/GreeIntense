@@ -9,7 +9,7 @@
 #define   COMP_NUM                    4    //压缩机数量
 
 #define   MODULAR_ROOF_REG_HOLD_NUM   30    //机组通讯数据表保持寄存器数量
-#define   MODULAR_ROOF_COIL_BIT_NUM   50    //机组通讯数据表线圈数量
+#define   MODULAR_ROOF_BIT_COIL_NUM   50    //机组通讯数据表线圈数量
 
 ABS_CLASS(Unit)       /*机组抽象类*/ 
 {
@@ -66,7 +66,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     sMBSlaveDev          sMBSlaveDev;         //本通讯设备
     
     sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
-    sMasterBitCoilData   sModularRoof_CoilBuf   [MODULAR_ROOF_COIL_BIT_NUM];  //保持寄存器数据域
+    sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域
     
     
     
