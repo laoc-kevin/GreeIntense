@@ -8,45 +8,45 @@
 #ifndef MASTER_DEV_DICT_ALLOC
 #define MASTER_DEV_DICT_ALLOC
 
-#define PBUF_INDEX_ALLOC() \
+#define MASTER_PBUF_INDEX_ALLOC() \
         void*             pvDataBuf   = NULL; \
         sMBDevDataTable*  psDataTable = NULL;  \
         uint16_t          usIndex     = 0;
         
 //开始数据表申请 
-#define BEGIN_DATA_BUF(BUF, TABLE) \
+#define MASTER_BEGIN_DATA_BUF(BUF, TABLE) \
         usIndex = 0; \
         pvDataBuf   = (void*)BUF; \
         psDataTable = (sMBDevDataTable*)TABLE;
   
 //保持寄存器数据申请  
-#define REG_HOLD_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
+#define MASTER_REG_HOLD_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) \
         vMBMasterDevRegHoldDataInit((sMasterRegHoldData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8); \
         usIndex++;
         
 //输入寄存器数据申请  
-#define REG_IN_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+#define MASTER_REG_IN_DATA(arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
         vMBMasterDevRegInDataInit((sMasterRegInData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4, arg5, arg6, arg7); \
         usIndex++;
         
 //线圈数据申请  
-#define COIL_BIT_DATA(arg1, arg2, arg3, arg4) \
+#define MASTER_COIL_BIT_DATA(arg1, arg2, arg3, arg4) \
         vMBMasterDevCoilDataInit((sMasterBitCoilData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4); \
         usIndex++;
         
 //离散量数据申请  
-#define DISC_BIT_DATA(arg1, arg2, arg3) \
+#define MASTER_DISC_BIT_DATA(arg1, arg2, arg3) \
         vMBMasterDevDiscDataInit((sMasterBitCoilData*)pvDataBuf + usIndex, arg1, arg2, arg3); \
         usIndex++;
         
 //结束数据表申请  
-#define END_DATA_BUF(usStartAddr, usEndAddr)\
+#define MASTER_END_DATA_BUF(usStartAddr, usEndAddr)\
         vMBMasterDevDataTableInit(psDataTable, &pvDataBuf, usStartAddr, \
                                   usEndAddr, usIndex);     \
         usIndex = 0; 
  
 //测试命令初始化申请  
-#define TEST_CMD_INIT(pCmd, arg1, arg2, arg3) \
+#define MASTER_TEST_CMD_INIT(pCmd, arg1, arg2, arg3) \
         vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3);    
 #endif
 

@@ -6,7 +6,7 @@
 
 void vModbusInit(void);
 
-sMBMasterInfo* psGetMBMasterInfo(void);
-sMBSlaveInfo*  psGetMBSlaveInfo(void);
+sMBMasterInfo* psMBGetMasterInfo(void);
+sMBSlaveInfo*  psMBGetSlaveInfo(void);
 
 #endif
