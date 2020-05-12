@@ -50,6 +50,8 @@
         vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3);    
 #endif
 
+typedef eMBMasterReqErrCode (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex); //字典映射函数
+
 
 eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                       USHORT usRegAddr, sMasterRegInData ** pvRegInValue);

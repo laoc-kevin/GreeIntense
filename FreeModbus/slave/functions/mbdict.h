@@ -47,7 +47,7 @@ typedef struct   /* 从栈字典数据列表结构 */
     USHORT   usDataCount;           //协议点位总数
 }sMBSlaveDataTable;
 
-typedef USHORT (*psMBSlaveDataMapIndex)(eDataType eDataType, USHORT usAddr); //字典映射函数
+typedef BOOL (*pxMBSlaveDataMapIndex)(eDataType eDataType, USHORT usAddr, USHORT* psIndex); //字典映射函数
 
 typedef struct            /*从栈通讯字典数据结构*/  
 {
@@ -59,7 +59,7 @@ typedef struct            /*从栈通讯字典数据结构*/
 #if MB_SLAVE_CPN_ENABLED > 0 
     sMBSlaveDataTable   sMBCPNTable;         //CPN数据表 
 #endif   
-    psMBSlaveDataMapIndex  psMBSlaveDataMapIndex; //从栈字典映射函数
+    pxMBSlaveDataMapIndex  pxSlaveDataMapIndex; //从栈字典映射函数
     
 }sMBSlaveCommData; 
 

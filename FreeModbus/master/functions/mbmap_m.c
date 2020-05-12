@@ -15,7 +15,7 @@
 eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                       USHORT usRegAddr, sMasterRegInData ** pvRegInValue)
 {
-	USHORT i;
+	USHORT usIndex;
 	
     eMBMasterReqErrCode        eStatus  = MB_MRE_NO_ERR;
     sMBSlaveDev*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
@@ -31,10 +31,14 @@ eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSnd
 	{
 		return MB_MRE_ILL_ARG;
 	}
-    i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(RegInputData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
-    
-	*pvRegInValue = (sMasterRegInData*)(psMBRegInTable->pvDataBuf) + i; //指针赋值，这里传递的是个地址，指向目标寄存器所在数组位置
-	return eStatus;
+    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(RegInputData, psMBSlaveDevCur->ucProtocolID, usRegAddr, &usIndex))  //字典映射函数
+    {
+        *pvRegInValue = (sMasterRegInData*)(psMBRegInTable->pvDataBuf) + usIndex; //指针赋值，这里传递的是个地址，指向目标寄存器所在数组位置
+    }
+	else
+	{
+        return MB_MRE_NO_REG;
+    }	
 }
 #endif
 
@@ -53,7 +57,7 @@ eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSnd
 eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                            USHORT usRegAddr, sMasterRegHoldData ** pvRegHoldValue)
 {
-	USHORT i;
+	USHORT usIndex;
     
 	eMBMasterReqErrCode        eStatus  = MB_MRE_NO_ERR;
     sMBSlaveDev*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
@@ -69,10 +73,15 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR 
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(RegHoldData, psMBSlaveDevCur->ucProtocolID, usRegAddr);  //字典映射函数
-    
-	*pvRegHoldValue = (sMasterRegHoldData*)(psMBRegHoldTable->pvDataBuf) + i ;
-	return eStatus;
+	if( psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(RegHoldData, psMBSlaveDevCur->ucProtocolID, usRegAddr, &usIndex))  //字典映射函数
+    {
+        *pvRegHoldValue = (sMasterRegHoldData*)(psMBRegHoldTable->pvDataBuf) + usIndex;
+    }
+	else
+	{
+        return MB_MRE_NO_REG;
+    }
+    return eStatus;		
 } 
 #endif
 
@@ -90,8 +99,7 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR 
 eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                      USHORT usCoilAddr, sMasterBitCoilData ** pvCoilValue)
 {
-	UCHAR i;
-	USHORT iRegIndex, iRegBitIndex, iBit;
+	USHORT usIndex, iRegIndex, iRegBitIndex, iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
     sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
@@ -107,10 +115,15 @@ eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndA
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(CoilData, psMBSlaveDevCur->ucProtocolID, usCoilAddr);  //字典映射函数
-	
-	*pvCoilValue = (sMasterBitCoilData*)(psMBCoilTable->pvDataBuf) + i ; 	
-	return eStatus;
+	if( psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(CoilData, psMBSlaveDevCur->ucProtocolID, usCoilAddr, &usIndex) )  //字典映射函数
+	{
+        *pvCoilValue = (sMasterBitCoilData*)(psMBCoilTable->pvDataBuf) + usIndex;
+    }
+	else
+	{
+        return MB_MRE_NO_REG;
+    }
+    return eStatus;		
 }    
 #endif
 
@@ -127,8 +140,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndA
 eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
                                          USHORT usDiscreteAddr, sMasterBitDiscData ** pvDiscreteValue)
 {
-	UCHAR i;
-	USHORT iRegIndex, iRegBitIndex,iBit;
+	USHORT usIndex, iRegIndex, iRegBitIndex,iBit;
 	
 	eMBMasterReqErrCode          eStatus = MB_MRE_NO_ERR;
     sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
@@ -144,10 +156,15 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	i = psMBSlaveDevCur->psDevCurData->psMBDevDataMapIndex(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr);  //字典映射函数
-    
-	*pvDiscreteValue = (sMasterBitDiscData*)(psMBDiscInTable->pvDataBuf)  + i;
-	return eStatus;
+	if( psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr, &usIndex) )  //字典映射函数
+    {
+        *pvDiscreteValue = (sMasterBitDiscData*)(psMBDiscInTable->pvDataBuf)  + usIndex;
+    }
+    else
+	{
+        return MB_MRE_NO_REG;
+    }
+    return eStatus;		
 }    
 
 #endif
