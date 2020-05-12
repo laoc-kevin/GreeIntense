@@ -1,9 +1,14 @@
+#include "bms.h"
 #include "system.h"
 #include "md_event.h"
+#include "md_modbus.h"
 
 /*************************************************************
 *                         系统                               *
 **************************************************************/
+#define SYSTEM_POLL_TASK_PRIO    9
+
+static System* psSystem = NULL;
 
 /*系统排风机配置信息*/
 sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1},
@@ -80,7 +85,7 @@ BOOL xSystem_CreatePollTask(System* pt)
 }
 
 /*系统初始化*/
-void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
+void vSystem_Init(System* pt)
 {
     uint8_t n;
     System* pThis = (System*)pt;
@@ -89,16 +94,11 @@ void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
     ExAirFan*       pExAirFan       = NULL;
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
-    BMS*            psSystemBms     = NULL;
+
     
-    pThis->psMBMasterInfo = psSystemInfo->psMBMasterInfo;
-    pThis->sTaskInfo.ucPrio = psSystemInfo->ucPrio;
-      
-    psSystemBms = (BMS*)BMS_new();
-    psSystemBms->init(psSystemBms, psSystemInfo->psMBSlaveInfo, (void*)pThis);
-    
-    pThis->psSystemBms = psSystemBms;
-    
+    pThis->psMBMasterInfo   = psMBGetMasterInfo();
+    pThis->sTaskInfo.ucPrio = SYSTEM_POLL_TASK_PRIO;
+  
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
@@ -109,7 +109,7 @@ void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = (ModularRoof*)ModularRoof_new();
-        pModularRoof->init(pModularRoof, psSystemInfo->psMBMasterInfo); //初始化
+        pModularRoof->init(pModularRoof,  pThis->psMBMasterInfo); //初始化
         
         pThis->psModularRoofList[n] = pModularRoof;
     }
@@ -117,19 +117,19 @@ void vSystem_Init(System* pt, sSystemInfo* psSystemInfo)
     for(n=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
-        pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor), psSystemInfo->psMBMasterInfo); //向上转型，由子类转为父类
+        pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo); //向上转型，由子类转为父类
         
         pThis->psCO2SenList[n] = pCO2Sensor;
     }
     for(n=0; n < TEMP_HUMI_SEN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
-        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor), psSystemInfo->psMBMasterInfo);
+        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
         
         pThis->psTempHumiSenList[n] = pTempHumiSensor; 
     }
     
-   
+    CONNECT( &(BMS_Core()->sBMSValChange), &pThis->sTaskInfo.sTCB);  //绑定BMS变量变化事件
     
     xSystem_CreatePollTask(pThis); 
 }
@@ -138,3 +138,16 @@ CTOR(System)   //系统构造函数
     SUPER_CTOR(Unit);
     FUNCTION_SETTING(init, vSystem_Init);
 END_CTOR
+
+
+System* System_Core()
+{
+    if(psSystem == NULL)
+    {
+        psSystem = (System*)System_new();
+        psSystem->init(psSystem);
+    }
+    return psSystem;
+}
+
+

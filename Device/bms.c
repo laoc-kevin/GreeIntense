@@ -3,8 +3,13 @@
 #include "md_modbus.h"
 #include "mbmap.h"
 
+/*************************************************************
+*                         BMS接口                            *
+**************************************************************/
+static BMS* psBMS = NULL;
+
 /*通讯映射函数*/
-USHORT usBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr)
+BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
 {
     USHORT i = 0;
    
@@ -18,51 +23,65 @@ USHORT usBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr)
         case 63	:  i = 5 ;  break;
            
         default:
-    		return MB_MRE_NO_REG;
+    		return FALSE;
     	break;
     }
-    return i;  
+    *psIndex = i;
+    return TRUE;  
 }
 
-/*系统从栈通讯数据表初始化*/
-void vBMS_InitBMSData(BMS* pt, void* pSysData)
+/*BMS通讯数据表初始化*/
+void vBMS_InitBMSCommData(BMS* pt)
 {
     BMS*    pThis   = (BMS*)pt;
-    System* pSystem = (System*)pSysData;
+    System* pSystem = (System*)System_Core;
     
     
 SLAVE_PBUF_INDEX_ALLOC()    
     
 SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable)    
     
-    SLAVE_REG_DATA(0,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
-    SLAVE_REG_DATA(2,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
-    SLAVE_REG_DATA(10, uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
+    SLAVE_REG_HOLD_DATA(0,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
+    SLAVE_REG_HOLD_DATA(2,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
+    SLAVE_REG_HOLD_DATA(10, uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
     
 SLAVE_END_DATA_BUF(0, 10)    
     
     
-    pThis->sBMSCommData.psMBSlaveDataMapIndex = usBMS_DevDataMapIndex;         //绑定映射函数
+    pThis->sBMSCommData.pxSlaveDataMapIndex = xBMS_DevDataMapIndex;         //绑定映射函数
     pThis->psBMSInfo->sMBCommInfo.psSlaveCurData = &pThis->sBMSCommData;
 }
 
 
-void vBMS_Init(BMS* pt, sMBSlaveInfo* psBMSInfo, void* pSysData)
+void vBMS_Init(BMS* pt)
 {
     BMS* pThis = (BMS*)pt;   
-    pThis->psBMSInfo = psBMSInfo;
+    pThis->psBMSInfo = psMBGetSlaveInfo();
     
-    vBMS_InitBMSData(pThis, pSysData);
+    vBMS_InitBMSCommData(pThis);
     vModbusInit();
 }
 
-void vBMS_RegistMonitor(BMS* pt)
+void vBMS_MonitorRegist(BMS* pt)
 {
+    BMS* pThis = (BMS*)pt;
 
+    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
+    
+         
 }
 
 CTOR(BMS)   //BMS构造函数
-
       FUNCTION_SETTING(init, vBMS_Init);
-
 END_CTOR
+
+BMS* BMS_Core()
+{
+    if(psBMS == NULL)
+    {
+        psBMS = (BMS*)BMS_new();
+        psBMS->init(psBMS);
+    }
+    return psBMS;
+}
+

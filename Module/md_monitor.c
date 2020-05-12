@@ -2,20 +2,20 @@
 #include "md_event.h"
 
 #define MONITOR_DATA_MAX_NUM        50     //最大可监控点位数，根据实际情况调整
-#define MONITOR_POLL_INTERVAL_MS    50     //
+#define MONITOR_POLL_INTERVAL_MS    20     //
 
 sMonitorInfo* MonitorList = NULL;
 sMonitorInfo  MonitorBuf[MONITOR_DATA_MAX_NUM];
 
 uint16_t MonitorID = 0;
 
-sMonitorInfo* psMonitorRegist(void* pvVal, OS_SEM* psSem)
+void vMonitorRegist(void* pvVal, OS_SEM* psSem)
 {
     sMonitorInfo* psMonitorInfo = NULL;
     
     if(MonitorID >= MONITOR_DATA_MAX_NUM)
     {
-        return NULL;
+        return ;
     }
     psMonitorInfo = &MonitorBuf[MonitorID];
     MonitorID++;
@@ -36,8 +36,6 @@ sMonitorInfo* psMonitorRegist(void* pvVal, OS_SEM* psSem)
         MonitorList->pLast->pNext = psMonitorInfo;
     }
     MonitorList->pLast = psMonitorInfo;
-    
-    return psMonitorInfo;
 }
 
 void vMonitorPollTask(void *p_arg)

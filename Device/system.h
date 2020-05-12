@@ -1,7 +1,6 @@
 #ifndef _SYSTEM_H_
 #define _SYSTEM_H_
 
-#include "bms.h"
 #include "device.h"
 #include "sensor.h"
 #include "modularRoof.h"
@@ -43,19 +42,19 @@ CLASS(System)   /*系统*/
     uint8_t          ucCO2SenErr;         //CO2传感器故障
     uint8_t          ucTempHumiSenErr;    //温湿度传感器故障
     
-    ExAirFan*        psExAirFanList    [EX_AIR_FAN_NUM];     //排风机列表
-    ModularRoof*     psModularRoofList [MODULAR_ROOF_NUM];   //屋顶机列表
+    ExAirFan*        psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
+    CO2Sensor*       psCO2SenList  [CO2_SEN_NUM];        //CO2传感器列表
     
-    CO2Sensor*       psCO2SenList      [CO2_SEN_NUM];        //CO2传感器列表
-    TempHumiSensor*  psTempHumiSenList [TEMP_HUMI_SEN_NUM];  //温湿度传感器列表
-    
-    BMS*             psSystemBms;
-    
+    ModularRoof*     psModularRoofList[MODULAR_ROOF_NUM];   //屋顶机列表
+    TempHumiSensor*  psTempHumiSenList[TEMP_HUMI_SEN_NUM];  //温湿度传感器列表
+
     sMBMasterInfo*   psMBMasterInfo;   //通讯主栈
     sTaskInfo        sTaskInfo;        //设备内部任务信息 
     
-    void   (*init)(System* pt, sSystemInfo* psSystemInfo);
+    void   (*init)(System* pt);
 
 };
+
+System* System_Core();    //获取全局唯一对象，单例设计模式
 
 #endif

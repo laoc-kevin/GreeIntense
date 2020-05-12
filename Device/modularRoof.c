@@ -45,10 +45,9 @@ void vModularRoof_SetRunningMode(IDevRunning* pt, eRunMode eMode)
 
 
 /*通讯映射函数*/
-USHORT usModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr)
+BOOL xModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex)
 {
     USHORT i = 0;
-    
     switch(ucProtocolID)
 	{
         case DTU247_PROTOCOL_TYPE_ID:
@@ -80,7 +79,7 @@ USHORT usModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  U
                     case 63	:  i = 5 ;  break;
                        
                     default:
-                		return MB_MRE_NO_REG;
+                		return FALSE;
                 	break;
                 }
             }                
@@ -88,7 +87,8 @@ USHORT usModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  U
         break;
         default: break;
 	}
-
+    *psIndex = i;
+    return TRUE;
 }
 
 
@@ -123,7 +123,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBRegHoldTable)
 MASTER_END_DATA_BUF(1, 10)  
     
     pThis->sDevCommData.ucProtocolID = DTU247_PROTOCOL_TYPE_ID;
-    pThis->sDevCommData.psMBDevDataMapIndex = usModularRoof_DevDataMapIndex;  //绑定映射函数
+    pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 

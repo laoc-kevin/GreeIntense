@@ -152,7 +152,7 @@ void vDTU_DevTest(DTU* pt)
 }
 
 /*通讯映射函数*/
-USHORT usDTU247_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr)
+BOOL xDTU247_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex)
 {
 
     
@@ -161,7 +161,7 @@ USHORT usDTU247_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT
 }
 
 /*通讯映射函数*/
-USHORT usDTU200_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr)
+BOOL xDTU200_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex)
 {
 
     
@@ -177,7 +177,7 @@ void vDTU247_InitCommData(DTU* pt)
     
     
     
-    pThis->sDevDataDTU247.psMBDevDataMapIndex = usDTU247_DevDataMapIndex;    //绑定映射函数
+    pThis->sDevDataDTU247.pxDevDataMapIndex = xDTU247_DevDataMapIndex;    //绑定映射函数
     pThis->sDevDTU247.psDevDataInfo = &(pThis->sDevDataDTU247);  
 }
 
@@ -193,7 +193,7 @@ void vDTU200_InitCommData(DTU* pt)
     
     
    
-    pThis->sDevDataDTU200.psMBDevDataMapIndex = usDTU200_DevDataMapIndex;    //绑定映射函数
+    pThis->sDevDataDTU200.pxDevDataMapIndex = xDTU200_DevDataMapIndex;    //绑定映射函数
     pThis->sDevDTU200.psDevDataInfo = &(pThis->sDevDataDTU200);
 }
 

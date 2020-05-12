@@ -3,6 +3,9 @@
 
 #include "includes.h"
 
+#define MONITOR(pvVal, psSem) \
+       vMonitorRegist((void*)pvVal, (OS_SEM*)psSem);
+
 typedef struct sMonitorInfo /*设备模拟量接口类型*/
 {
     void*      pvVal;    
@@ -15,5 +18,6 @@ typedef struct sMonitorInfo /*设备模拟量接口类型*/
     struct sMonitorInfo*  pLast;    
 }sMonitorInfo;
 
-
+void vMonitorRegist(void* pvVal, OS_SEM* psSem);
+ 
 #endif

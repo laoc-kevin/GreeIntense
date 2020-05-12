@@ -30,7 +30,7 @@ END_CTOR
 **************************************************************/
 
 /*通讯映射函数*/
-USHORT usCO2Sensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr)
+BOOL xCO2Sensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex)
 {
 
     
@@ -45,7 +45,7 @@ void vCO2Sensor_InitDevCommData(IDevCom* pt)
     
     
     
-    pThis->sDevCommData.psMBDevDataMapIndex = usCO2Sensor_DevDataMapIndex;    //绑定映射函数
+    pThis->sDevCommData.pxDevDataMapIndex = xCO2Sensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 
@@ -60,7 +60,7 @@ END_CTOR
 **************************************************************/
 
 /*通讯映射函数*/
-USHORT usTempHumiSensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID,  USHORT usAddr)
+BOOL xTempHumiSensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex)
 {
 
     
@@ -77,7 +77,7 @@ void vTempHumiSensor_InitDevCommData(IDevCom* pt)
     
     
     
-    pThis->sDevCommData.psMBDevDataMapIndex = usTempHumiSensor_DevDataMapIndex;    //绑定映射函数
+    pThis->sDevCommData.pxDevDataMapIndex = xTempHumiSensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
 
