@@ -8,7 +8,7 @@
        vEventRegist((OS_SEM*)psSem, (OS_TCB*)psTCB);
 
 
-typedef struct sEvent /*设备模拟量接口类型*/
+typedef struct sEvent /*事件类型*/
 {
     OS_SEM*         psSem;     
     OS_TCB*         psTCB; 
@@ -16,7 +16,7 @@ typedef struct sEvent /*设备模拟量接口类型*/
     struct sEvent*  pLast;    
 }sEvent;
 
-typedef struct  /*设备模拟量接口类型*/
+typedef struct  /*消息结构封装*/
 {
     OS_SEM*        psSem; 
     void*          pvArg;     

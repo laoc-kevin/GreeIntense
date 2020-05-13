@@ -40,11 +40,9 @@ void vDTU_TimeoutInd(void * p_tmr, void * p_arg)
 BOOL xDTU_TmrTimeoutInit(DTU* pt, USHORT usTimerout)
 {
 	OS_ERR err = OS_ERR_NONE;
-
 	DTU* pThis = (DTU*)pt;
     
 	ULONG i = usTimerout  * TMR_TICK_PER_SECOND; 
-    ULONG n = 2 * TMR_TICK_PER_SECOND;
 	
 	OSTmrCreate(&pThis->DTUTimerTimeout,       //主定时器
 			    "DTUTimerTimeout",
@@ -178,7 +176,8 @@ void vDTU247_InitCommData(DTU* pt)
     
     
     pThis->sDevDataDTU247.pxDevDataMapIndex = xDTU247_DevDataMapIndex;    //绑定映射函数
-    pThis->sDevDTU247.psDevDataInfo = &(pThis->sDevDataDTU247);  
+    pThis->sDevDTU247.psDevDataInfo = &(pThis->sDevDataDTU247); 
+    pThis->sDevDTU247.psDevCurData  = &(pThis->sDevDataDTU247);    
 }
 
 
@@ -195,6 +194,7 @@ void vDTU200_InitCommData(DTU* pt)
    
     pThis->sDevDataDTU200.pxDevDataMapIndex = xDTU200_DevDataMapIndex;    //绑定映射函数
     pThis->sDevDTU200.psDevDataInfo = &(pThis->sDevDataDTU200);
+    pThis->sDevDTU200.psDevCurData  = &(pThis->sDevDataDTU200);
 }
 
 
@@ -251,10 +251,12 @@ void vDTU_ScanDev(void* pt)
 }
 
 /*DTU初始化*/
-BOOL xDTU_Init(DTU* pt)
+BOOL xDTU_Init(DTU* pt, sMBMasterInfo* psMBMasterInfo)
 {
     DTU* pThis = (DTU*)pt;
    
+    pThis->psMBMasterInfo = psMBMasterInfo;
+    
     pThis->psDTUInitCmd   = usDTUInitCmd;
     pThis->psDTUInitedCmd = usDTUInitedCmd;
      
@@ -264,17 +266,16 @@ BOOL xDTU_Init(DTU* pt)
     vDTU247_InitCommData(pThis);
     vDTU200_InitCommData(pThis);
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    pThis->psMBMasterInfo->pvDTUScanDevCallBack = vDTU_ScanDev;  //绑定DTU轮询回调函数
     
     return xDTU_TmrTimeoutInit(pThis, DTU_TIMEOUT_S);    
 }
+
+CTOR(DTU)   //BMS构造函数
+
+    FUNCTION_SETTING(init, xDTU_Init);
+
+END_CTOR
+
 
 #endif

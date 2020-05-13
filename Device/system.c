@@ -38,20 +38,19 @@ void vSystem_PollTask(void *p_arg)
 {
     CPU_TS            ts = 0;
     OS_MSG_SIZE  msgSize = 0;
+
     OS_ERR           err = OS_ERR_NONE;
+    
+    BMS* psBMS = BMS_Core();
     
     while(DEF_TRUE)
 	{
         sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
-
-        
-        
-        
-        
-        
-        
-        
-       
+        if( (USHORT*)psMsg->pvArg == (USHORT*)(&psBMS->System.sAmbientIn_T) )  //查看是哪个变量发生变化
+        {
+            
+        }
+      
     }
 }
 
@@ -90,28 +89,34 @@ void vSystem_Init(System* pt)
     uint8_t n;
     System* pThis = (System*)pt;
     
+
     ModularRoof*    pModularRoof    = NULL;
     ExAirFan*       pExAirFan       = NULL;
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
-
+    DTU*            psDTU           = NULL;
+    
+    vModbusInit();
     
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
     pThis->sTaskInfo.ucPrio = SYSTEM_POLL_TASK_PRIO;
   
+    psDTU = DTU_new(psDTU);
+    psDTU->init(psDTU, pThis->psMBMasterInfo);
+    
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = (ModularRoof*)ModularRoof_new();
+        pModularRoof->init(pModularRoof, pThis->psMBMasterInfo); //初始化
+        
+        pThis->psModularRoofList[n] = pModularRoof;
+    }
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
         pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
         
         pThis->psExAirFanList[n] = pExAirFan;  
-    }
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = (ModularRoof*)ModularRoof_new();
-        pModularRoof->init(pModularRoof,  pThis->psMBMasterInfo); //初始化
-        
-        pThis->psModularRoofList[n] = pModularRoof;
     }
     
     for(n=0; n < CO2_SEN_NUM; n++)
@@ -121,13 +126,21 @@ void vSystem_Init(System* pt)
         
         pThis->psCO2SenList[n] = pCO2Sensor;
     }
-    for(n=0; n < TEMP_HUMI_SEN_NUM; n++)
+    for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
         
-        pThis->psTempHumiSenList[n] = pTempHumiSensor; 
+        pThis->psTempHumiSenOutList[n] = pTempHumiSensor; 
     }
+    for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
+    {
+        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
+        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
+        
+        pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
+    }
+    
     
     CONNECT( &(BMS_Core()->sBMSValChange), &pThis->sTaskInfo.sTCB);  //绑定BMS变量变化事件
     

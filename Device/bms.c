@@ -59,7 +59,7 @@ void vBMS_Init(BMS* pt)
     pThis->psBMSInfo = psMBGetSlaveInfo();
     
     vBMS_InitBMSCommData(pThis);
-    vModbusInit();
+    
 }
 
 void vBMS_MonitorRegist(BMS* pt)
@@ -67,12 +67,13 @@ void vBMS_MonitorRegist(BMS* pt)
     BMS* pThis = (BMS*)pt;
 
     MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
-    
+    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
          
 }
 
 CTOR(BMS)   //BMS构造函数
-      FUNCTION_SETTING(init, vBMS_Init);
+    FUNCTION_SETTING(init, vBMS_Init);
 END_CTOR
 
 BMS* BMS_Core()

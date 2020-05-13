@@ -2,7 +2,7 @@
 #include "md_event.h"
 
 #define MONITOR_DATA_MAX_NUM        50     //最大可监控点位数，根据实际情况调整
-#define MONITOR_POLL_INTERVAL_MS    20     //
+#define MONITOR_POLL_INTERVAL_MS    10     //
 
 sMonitorInfo* MonitorList = NULL;
 sMonitorInfo  MonitorBuf[MONITOR_DATA_MAX_NUM];
@@ -42,6 +42,8 @@ void vMonitorPollTask(void *p_arg)
 {
     CPU_TS  ts = 0;
     OS_ERR err = OS_ERR_NONE;
+    
+    sMsg*            psMsg  = NULL;
     sMonitorInfo* psMonitor = NULL;
     
     OS_TCB* psEventTCB = psEventGetTCB();
@@ -53,7 +55,10 @@ void vMonitorPollTask(void *p_arg)
         {
             if(psMonitor->sDataBuf != *(int32_t*)psMonitor->pvVal)
             {
-                (void)OSTaskQPost(psEventTCB, (void*)psMonitor, sizeof(sMonitorInfo), OS_OPT_POST_ALL, &err);  //转发到特定的Task
+                psMsg->psSem = psMonitor->psSem;
+                psMsg->pvArg = psMonitor->pvVal;
+                
+                (void)OSTaskQPost(psEventTCB, (void*)psMsg, sizeof(sMsg), OS_OPT_POST_ALL, &err);  //转发到特定的Task
                 psMonitor->sDataBuf = *(int32_t*)psMonitor->pvVal;                
             }
         }

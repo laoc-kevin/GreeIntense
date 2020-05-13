@@ -24,7 +24,9 @@ CLASS(DTU)   /*DTU模块*/
     sMBSlaveDevCommData sDevDataDTU247;    //DTU247数据域
     sMBSlaveDevCommData sDevDataDTU200;    //DTU200数据域
     
-    BOOL (*xDTUInit)(sMBMasterInfo* psMBMasterInfo);
+    BOOL (*init)(DTU* pt, sMBMasterInfo* psMBMasterInfo);
+    
+    void (*scanDev)(void* pt);
 };
 
 

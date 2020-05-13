@@ -107,7 +107,7 @@ MASTER_PBUF_INDEX_ALLOC()
 MASTER_TEST_CMD_INIT(psMBCmd, 1, READ_REG_HOLD, 1)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBCoilTable)      
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBRegHoldTable)      
     MASTER_REG_HOLD_DATA(1, uint8, 0, 65535, 0, WO, 1, (void*)&CHID);
     MASTER_REG_HOLD_DATA(5, uint8, 0, 65535, 0, RO, 1, (void*)&CHID)
     MASTER_REG_HOLD_DATA(7, uint8, 0, 65535, 0, RW, 1, (void*)&CHID)
@@ -115,7 +115,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBCoilTable)
 MASTER_END_DATA_BUF(1, 8)
     
     /******************************线圈数据域*************************/ 
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBRegHoldTable)    
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable)    
     MASTER_COIL_BIT_DATA(1,  0, WO, (void*)&CHID);
     MASTER_COIL_BIT_DATA(5,  0, RO, (void*)&CHID);
     MASTER_COIL_BIT_DATA(7,  0, RW, (void*)&CHID);
