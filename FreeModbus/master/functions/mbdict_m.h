@@ -59,6 +59,7 @@ typedef struct   /* 用于测试从栈的指令数据结构 */
     USHORT          usValue;       //数值
     eMasterCmdMode  eCmdMode;      //测试模式
     UCHAR           ucAddr;        //测试点位通讯地址
+    BOOL            xCheckVal;     //测试时比较数值
 }sMBTestDevCmd; 
 
 typedef struct   /* 主栈字典数据列表结构 */

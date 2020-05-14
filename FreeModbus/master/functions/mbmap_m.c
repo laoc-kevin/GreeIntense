@@ -156,7 +156,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	if( psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr, &usIndex) )  //字典映射函数
+	if( psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex(DiscInData, psMBSlaveDevCur->ucProtocolID, usDiscreteAddr, &usIndex))  //字典映射函数
     {
         *pvDiscreteValue = (sMasterBitDiscData*)(psMBDiscInTable->pvDataBuf)  + usIndex;
     }
@@ -235,11 +235,12 @@ void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr)                                  
+void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr, BOOL xCheckVal)                                  
 {
     pCmd->usValue   = usValue;       //数值
     pCmd->eCmdMode  = eCmdMode;      //测试模式
     pCmd->ucAddr    = ucAddr;        //测试点位通讯地址
+    pCmd->xCheckVal = xCheckVal;     //测试时比较数值
 }
 
 /***********************************************************************************

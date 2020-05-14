@@ -33,61 +33,8 @@
 
 #define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
 
-/* ----------------------- static functions ---------------------------------*/
-static void TIMERExpiredISR(void * p_arg);
-static void vMasterTimeoutInd(void * p_tmr, void * p_arg);
-
-/* ----------------------- Variables ----------------------------------------*/
 
 /* ----------------------- Start implementation -----------------------------*/
-BOOL xMBsMasterPortTmrsInit(sMBMasterPort* psMBPort, USHORT usTim1Timerout50us)
-{
-	OS_ERR err = OS_ERR_NONE;
-	ULONG i = (ULONG)( (usTim1Timerout50us*80) / (1000000/TMR_TICK_PER_SECOND) );
-	
-	OSTmrCreate( &(psMBPort->sMasterPortTmr),       //主定时器
-			      "sMasterPortTmr",
-			      i,      
-			      0,
-			      OS_OPT_TMR_ONE_SHOT,
-			      vMasterTimeoutInd,
-			      (void*)psMBPort,
-			      &err);
-	if( err != OS_ERR_NONE )
-	{
-        return FALSE;
-	}
-    
-	i = MB_MASTER_DELAY_MS_CONVERT * TMR_TICK_PER_SECOND / 1000  ; 
-	OSTmrCreate( &(psMBPort->sConvertDelayTmr),
-			      "sConvertDelayTmr",
-			      i ,
-			      0,
-			      OS_OPT_TMR_ONE_SHOT,
-			      vMasterTimeoutInd,
-			      (void*)psMBPort,
-			      &err);
-	if( err != OS_ERR_NONE )
-	{
-        return FALSE;
-	}
-	
-	i = MB_MASTER_TIMEOUT_MS_RESPOND * TMR_TICK_PER_SECOND / 1000  ;    //主栈等待从栈响应定时器
-	OSTmrCreate( &(psMBPort->sRespondTimeoutTmr),
-			      "sRespondTimeoutTmr",
-			      i,
-			      0,
-			      OS_OPT_TMR_ONE_SHOT,
-			      vMasterTimeoutInd,
-			      (void*)psMBPort,
-			      &err);
-   
-	if( err != OS_ERR_NONE )
-	{
-		 return FALSE;
-	}
-	return TRUE;
-}
 
 void vMBsMasterPortTmrsEnable(sMBMasterPort* psMBPort)
 {
@@ -182,6 +129,55 @@ static void TIMERExpiredISR(void * p_arg)    //定时器中断服务函数
 static void vMasterTimeoutInd(void * p_tmr, void * p_arg)
 {
     TIMERExpiredISR(p_arg);
+}
+
+BOOL xMBsMasterPortTmrsInit(sMBMasterPort* psMBPort, USHORT usTim1Timerout50us)
+{
+	OS_ERR err = OS_ERR_NONE;
+	ULONG i = (ULONG)( (usTim1Timerout50us*80) / (1000000/TMR_TICK_PER_SECOND) );
+	
+	OSTmrCreate( &(psMBPort->sMasterPortTmr),       //主定时器
+			      "sMasterPortTmr",
+			      i,      
+			      0,
+			      OS_OPT_TMR_ONE_SHOT,
+			      vMasterTimeoutInd,
+			      (void*)psMBPort,
+			      &err);
+	if( err != OS_ERR_NONE )
+	{
+        return FALSE;
+	}
+    
+	i = MB_MASTER_DELAY_MS_CONVERT * TMR_TICK_PER_SECOND / 1000  ; 
+	OSTmrCreate( &(psMBPort->sConvertDelayTmr),
+			      "sConvertDelayTmr",
+			      i ,
+			      0,
+			      OS_OPT_TMR_ONE_SHOT,
+			      vMasterTimeoutInd,
+			      (void*)psMBPort,
+			      &err);
+	if( err != OS_ERR_NONE )
+	{
+        return FALSE;
+	}
+	
+	i = MB_MASTER_TIMEOUT_MS_RESPOND * TMR_TICK_PER_SECOND / 1000  ;    //主栈等待从栈响应定时器
+	OSTmrCreate( &(psMBPort->sRespondTimeoutTmr),
+			      "sRespondTimeoutTmr",
+			      i,
+			      0,
+			      OS_OPT_TMR_ONE_SHOT,
+			      vMasterTimeoutInd,
+			      (void*)psMBPort,
+			      &err);
+   
+	if( err != OS_ERR_NONE )
+	{
+		 return FALSE;
+	}
+	return TRUE;
 }
 
 #endif
