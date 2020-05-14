@@ -31,11 +31,12 @@ typedef enum   /*频率类型*/
 
 typedef enum   /*运行模式*/
 {
-   HEAT_MODE = 0,     //
-   COOL_MODE = 1      //
-}eRunMode;
-
-
+    MODE_MANUAL    = 1,     
+    MODE_AUTO      = 2,
+    MODE_CLOSE     = 3,
+    MODE_EMERGENCY = 4, 
+    
+}eSystemMode;
 
 typedef struct  /*设备模拟量接口类型*/
 {
@@ -65,7 +66,7 @@ INTERFACE(IDevSwitch)    /*设备启停接口*/
 
 INTERFACE(IDevRunning)    /*设备运行接口*/
 {                                                         
-     void     (*setRunningMode)(IDevRunning* pt, eRunMode eMode);  //设置运行模式
+     void     (*setRunningMode)(IDevRunning* pt, eSystemMode eMode);  //设置系统模式
 };
 
 INTERFACE(IDevFreq)      /*设备频率接口*/

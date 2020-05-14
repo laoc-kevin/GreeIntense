@@ -26,8 +26,24 @@ typedef struct   /*系统信息*/
 
 CLASS(System)   /*系统*/
 {
-    EXTENDS(Unit);         //继承机组抽象类*
+    EXTENDS(Device);         /*继承设备抽象类*/ 
 
+    eSystemMode      eSystemMode;         //系统模式
+    
+    eSystemState     eSystemState;        //系统状态
+    eRunningMode     eRunningMode;        //运行模式设定
+                                          
+    uint8_t          ucSwitchCmd;         //启停命令 
+    uint8_t          ucSwitchMode;        //启停模式 
+    uint8_t          ucStopErrFlag;       //停系统故障标志
+    
+    int16_t          sTempSet;            //目标温度值设定
+    int16_t          sTempGrowUp;         //小鸡适宜生长温度值
+    int16_t          sTempAdjustMode;     //模式调节温度
+    
+    uint16_t         usCO2PPM;            //CO2平均浓度
+    uint16_t         usCO2PPMSet;         //CO2平均浓度设定
+    
     uint16_t         usRetAirSet_Vol;     //回风风量设定
     uint16_t         usFreAirSet_Vol;     //新风风量设定
                                           
@@ -38,7 +54,10 @@ CLASS(System)   /*系统*/
     uint16_t         usHumidityMin;       //设定湿度min
                                           
     int16_t          sAmbientIn_T;        //室内环境温度
+    int16_t          sAmbientOut_T;       //室外环境温度
+                                          
     uint16_t         usAmbientIn_H;       //室内环境湿度
+    uint16_t         usAmbientOut_H;      //室外环境湿度
                                           
     uint8_t          ucCO2SenErr;         //CO2传感器故障
     uint8_t          ucTempHumiSenErr;    //温湿度传感器故障

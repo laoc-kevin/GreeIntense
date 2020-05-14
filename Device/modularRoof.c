@@ -4,14 +4,6 @@
 
 
 /*************************************************************
-*                         机组                               *
-**************************************************************/
-ABS_CTOR(Unit)  //机组构造函数
-    SUPER_CTOR(Device);
-END_CTOR
-
-
-/*************************************************************
 *                         屋顶机机组                         *
 **************************************************************/
 
@@ -19,28 +11,40 @@ END_CTOR
 void vModularRoof_SwitchOpen(IDevSwitch* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
-    pThis->Unit.ucSwitchCmd = ON;
-
     
+    
+    
+    
+    
+    
+    pThis->ucSwitchCmd = ON;  
 }
 
 /*机组关闭*/
 void vModularRoof_SwitchClose(IDevSwitch* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
-    pThis->Unit.ucSwitchCmd = OFF;
-
-
     
+    
+    
+    
+    
+    
+    
+    pThis->ucSwitchCmd = OFF; 
 }
 
 
 /*机组运行状态设置*/
-void vModularRoof_SetRunningMode(IDevRunning* pt, eRunMode eMode)
+void vModularRoof_SetRunningMode(IDevRunning* pt, eRunningMode eMode)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevRunning, ModularRoof);
-    pThis->Unit.ucRunningMode = eMode;
     
+    
+    
+    
+    
+    pThis->eRunningMode = eMode;    
 }
 
 
@@ -122,7 +126,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable)
     MASTER_COIL_BIT_DATA(10, 0, WO, (void*)&CHID);    
 MASTER_END_DATA_BUF(1, 10)  
     
-    pThis->sDevCommData.ucProtocolID = DTU247_PROTOCOL_TYPE_ID;
+    pThis->sDevCommData.ucProtocolID = 0;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
