@@ -46,8 +46,8 @@
         usIndex = 0; 
  
 //测试命令初始化申请  
-#define MASTER_TEST_CMD_INIT(pCmd, arg1, arg2, arg3) \
-        vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3);    
+#define MASTER_TEST_CMD_INIT(pCmd, arg1, arg2, arg3, arg4) \
+        vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3, arg4);    
 #endif
 
 typedef eMBMasterReqErrCode (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex); //字典映射函数
@@ -78,7 +78,7 @@ void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr,
 
 void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue);
 
-void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr); 
+void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr, BOOL xCheckVal); 
 
 void vMBMasterDevDataTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, 
                                USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount); 
