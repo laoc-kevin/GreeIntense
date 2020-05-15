@@ -37,9 +37,18 @@ CLASS(System)   /*系统*/
     uint8_t          ucSwitchMode;        //启停模式 
     uint8_t          ucStopErrFlag;       //停系统故障标志
     
-    int16_t          sTempSet;            //目标温度值设定
-    int16_t          sTempGrowUp;         //小鸡适宜生长温度值
-    int16_t          sTempAdjustMode;     //模式调节温度
+    int16_t          sTargetTemp;         //目标温度值设定
+    int16_t          sGrowUpTemp;         //小鸡适宜生长温度值
+    int16_t          sAdjustModeTemp;     //模式调节温度
+    
+    uint16_t         usChickenNum;        //小鸡数量
+    
+    uint8_t          ucModeChangeTime_1;  //模式切换时间t1(min)
+    uint8_t          ucModeChangeTime_2;  //模式切换时间t2(min)
+    uint8_t          ucModeChangeTime_3;  //模式切换时间t3(min)
+    uint8_t          ucModeChangeTime_4;  //模式切换时间t4(min)
+    uint8_t          ucModeChangeTime_5;  //模式切换时间t5(min)
+    uint8_t          ucModeChangeTime_6;  //模式切换时间t6(min)
     
     uint16_t         usCO2PPM;            //CO2平均浓度
     uint16_t         usCO2PPMSet;         //CO2平均浓度设定
@@ -53,9 +62,12 @@ CLASS(System)   /*系统*/
     uint16_t         usHumidityMax;       //设定湿度max
     uint16_t         usHumidityMin;       //设定湿度min
                                           
-    int16_t          sAmbientIn_T;        //室内环境温度
-    int16_t          sAmbientOut_T;       //室外环境温度
-                                          
+    int16_t          sAmbientIn_T;        //室内环境干球温度
+    int16_t          sAmbientOut_T;       //室外环境干球温度
+     
+    int16_t          sAmbientIn_Ts;       //室内环境湿球温度
+    int16_t          sAmbientOut_Ts;      //室外环境湿球温度
+
     uint16_t         usAmbientIn_H;       //室内环境湿度
     uint16_t         usAmbientOut_H;      //室外环境湿度
                                           

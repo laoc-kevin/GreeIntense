@@ -2,6 +2,7 @@
 #include "system.h"
 #include "md_event.h"
 #include "md_modbus.h"
+#include "md_timer.h"
 
 /*************************************************************
 *                         系统                               *
@@ -50,63 +51,109 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->eRunningMode = eRunMode; 
     
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    if(pThis->eRunningMode != eRunMode)
     {
-        pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->eRunningMode = pThis->eRunningMode;
+        pThis->eRunningMode = eRunMode;  
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n]; 
+            pModularRoof->eRunningMode = pThis->eRunningMode;
+        }
     }
 }
 
-/*调整系统模式*/
-eRunningMode eSystem_AdjustRunningMode(System* pt)
+/*/调整系统模式*/
+void vSystem_AdjustRunningMode(void* p_arg)
 {
-    uint8_t  n = 0; 
+    System* pThis = (System*)p_arg;
+    
+    //若t2(默认5分钟)内温度没有达到目标温度t(ng1)±1.5℃
+    if(pThis->sAmbientIn_T > pThis->sTargetTemp + 15)  
+    {
+        if(pThis->eRunningMode == RUN_MODE_FAN)
+        {
+            vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //切换为湿膜降温模式
+        }
+        else if(pThis->eRunningMode == RUN_MODE_WET)
+        {
+            vSystem_SetRunningMode(pThis, RUN_MODE_COOL);    //切换为降温模式
+        }
+    }
+}
+
+
+/*切换系统模式*/
+void vSystem_ChangeRunningMode(System* pt)
+{
     System* pThis = (System*)pt;
     
-    if(pThis->sAmbientIn_T > pThis->sTempSet)   //室内干球温度t(ng2)＞舍内温度目标要求温度t(ng1)，开启制冷工况
+    /*注：室外干球温度: t(wg)   室外湿球温度: t(ws)      室内目标干球温度: t(ng1)   室内实际干球温度: t(ng2)
+          养殖鸡数量：n         运行当天目标新风量:G
+    */
+
+     //制冷工况:  室内干球温度t(ng2)＞舍内温度目标要求温度t(ng1)，开启制冷工况
+    if(pThis->sAmbientIn_T > pThis->sTargetTemp)  
     {
-        pThis->eRunningMode = RUN_MODE_COOL;
-    }
-    else
-    {
-        pThis->eRunningMode = RUN_MODE_HEAT;    //反之，开启制热工况
-    }
-    
-    switch(pThis->eRunningMode)
-    {
-        case RUN_MODE_COOL:     /* 制冷工况*/
-            if(pThis->sTempSet >= pThis->sTempGrowUp) //舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
+        //A. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
+        if(pThis->sTargetTemp >= pThis->sGrowUpTemp) 
+        {
+            //(1)室外干球温度t(wg)≤模式调节温度（默认23℃）
+            if(pThis->sAmbientOut_T <= pThis->sAdjustModeTemp)  
             {
-                if(pThis->sAmbientOut_T <= pThis->sTempAdjustMode)  //室外干球温度t(wg)≤模式调节温度（默认23℃）
-                {
-                    
-                }
+                vSystem_SetRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式
+                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_1 * 60, vSystem_AdjustRunningMode, pThis);
             }
-        
-        
-            break;
-        default:break;
+            
+            //(2)室外干球温度t(wg)＞模式调节温度（默认23℃） 且t（ws）+3 <= t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
+            if( (pThis->sAmbientOut_T > pThis->sAdjustModeTemp) &&  
+                (pThis->sAmbientOut_Ts + 30) <= pThis->sTargetTemp-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
+            {
+                vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //开启湿膜降温模式
+                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_2 * 60, vSystem_AdjustRunningMode, pThis);
+            }
+            
+            //(3)室外干球温度t(wg)＞模式调节温度（默认23℃），且t（ws）+3＞t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
+            if( (pThis->sAmbientOut_T > pThis->sAdjustModeTemp) &&  
+                (pThis->sAmbientOut_Ts + 30) > pThis->sTargetTemp-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
+            {
+                vSystem_SetRunningMode(pThis, RUN_MODE_COOL);    //开启降温模式
+                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_3 * 60, vSystem_AdjustRunningMode, pThis);
+            }
+        } 
+
+        //B. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
+        if(pThis->sTargetTemp < pThis->sGrowUpTemp) 
+        {
+            
+            
+        }  
     }
     
     
+    //制热工况:  室内干球温度t(ng2) <= 舍内温度目标要求温度t(ng1)，开启制热工况
+    if(pThis->sAmbientIn_T <= pThis->sTargetTemp)     
+    {
+        pThis->eRunningMode = RUN_MODE_HEAT;    
+    }  
 }
+
+
 
 
 /*设定系统目标温度值*/
-void vSystem_SetTemp(System* pt, int16_t sTempSet)
+void vSystem_SetTemp(System* pt, int16_t sTargetTemp)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->sTempSet = sTempSet;
+    pThis->sTargetTemp = sTargetTemp;
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->sTempSet = pThis->sTempSet;
+        pModularRoof->sTargetTemp = pThis->sTargetTemp;
     }
 }
 

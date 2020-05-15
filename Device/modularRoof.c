@@ -162,13 +162,12 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数
-    SUPER_CTOR(Unit);
     FUNCTION_SETTING(init,                       vModularRoof_Init);
 
     FUNCTION_SETTING(IDevSwitch.switchOpen,      vModularRoof_SwitchOpen);
     FUNCTION_SETTING(IDevSwitch.switchClose,     vModularRoof_SwitchClose);
 
-    FUNCTION_SETTING(IDevRunning.setRunningMode, vModularRoof_SetRunningMode);
+//    FUNCTION_SETTING(IDevRunning.setRunningMode, vModularRoof_SetRunningMode);
 END_CTOR
 
 
