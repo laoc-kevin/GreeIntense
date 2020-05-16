@@ -96,7 +96,7 @@ void vCO2Sensor_InitDevCommData(IDevCom* pt)
     
     
 MASTER_PBUF_INDEX_ALLOC()
-MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr)  
+MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)      
@@ -197,7 +197,7 @@ void vTempHumiSensor_InitDevCommData(IDevCom* pt)
   
     
 MASTER_PBUF_INDEX_ALLOC()
-MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr)  
+MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)      

@@ -12,9 +12,10 @@
 static System* psSystem = NULL;
 
 /*系统排风机配置信息*/
-sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 2},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3},
+sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 25, 50, 1, 1, 1},
+                                         {CONSTANT_FREQ, 0,   0, 0, 0, 2},
+                                         {CONSTANT_FREQ, 0,   0, 0, 0, 3},
+                                         {CONSTANT_FREQ, 0,   0, 0, 0, 4},
                                        };
 
 
@@ -130,7 +131,6 @@ void vSystem_ChangeRunningMode(System* pt)
         }  
     }
     
-    
     //制热工况:  室内干球温度t(ng2) <= 舍内温度目标要求温度t(ng1)，开启制热工况
     if(pThis->sAmbientIn_T <= pThis->sTargetTemp)     
     {
@@ -173,7 +173,6 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol)
     }
 }
 
-;
 /*设定系统湿度阈值*/
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax)
 {
@@ -192,7 +191,6 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
     }
 }
 
-
 /*设定系统目标CO2浓度值*/
 void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
 {
@@ -205,7 +203,7 @@ void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2PPM = pThis->usCO2PPMSet;
+        pModularRoof->usCO2PPMSet = pThis->usCO2PPMSet;
     }
 }
 
@@ -323,6 +321,160 @@ void vSystem_TempHumiIn(System* pt)
     }
 }
 
+/*系统排风风机调节*/
+void vSystem_ExAirFanAdjust(System* pt)
+{
+    uint8_t   n, m  = 0;
+    System*   pThis = (System*)pt;
+    
+    ExAirFan* pExAirFan        = NULL;   
+    ExAirFan* pExAirFanVariate = NULL;    //变频风机
+    ExAirFan* pFanByRunTimeList[EX_AIR_FAN_NUM] = {NULL,};  
+    
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pFanByRunTimeList[n] = pThis->psExAirFanList[n];
+        if(pThis->psExAirFanList[n]->eFanFreqType == VARIABLE_FREQ)  
+        {
+             pExAirFanVariate = pThis->psExAirFanList[n];
+        } 
+    }
+    
+    //排风机运行时间排序
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {          
+        for(m=0; m< EX_AIR_FAN_NUM-n; m++)
+        {
+            if(pFanByRunTimeList[n]->Device.usRunTime > pFanByRunTimeList[n+1]->Device.usRunTime)
+            {
+                           pExAirFan       = pFanByRunTimeList[n];
+                pFanByRunTimeList[n]       = pThis->psExAirFanList[n+1]; 
+                pThis->psExAirFanList[n+1] = pExAirFan;
+            }
+        }
+    }
+    
+    if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
+    {
+        
+    }
+    
+    
+}
+
+
+
+/*系统排风风机控制*/
+void vSystem_ExAirFanCtrl(System* pt)
+{
+    uint8_t   n, m  = 0;
+    System*   pThis = (System*)pt;
+    
+    ExAirFan* pExAirFan        = NULL;   
+    ExAirFan* pExAirFanVariate = NULL;    //变频风机
+    ExAirFan* pFanByRunTimeList[EX_AIR_FAN_NUM] = {NULL,};  
+    
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pFanByRunTimeList[n] = pThis->psExAirFanList[n];
+        if(pThis->psExAirFanList[n]->eFanFreqType == VARIABLE_FREQ)  
+        {
+             pExAirFanVariate = pThis->psExAirFanList[n];
+        } 
+    }
+    
+    //排风机运行时间排序
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {          
+        for(m=0; m< EX_AIR_FAN_NUM-n; m++)
+        {
+            if(pFanByRunTimeList[n]->Device.usRunTime > pFanByRunTimeList[n+1]->Device.usRunTime)
+            {
+                           pExAirFan       = pFanByRunTimeList[n];
+                pFanByRunTimeList[n]       = pThis->psExAirFanList[n+1]; 
+                pThis->psExAirFanList[n+1] = pExAirFan;
+            }
+        }
+    }
+    
+    if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
+    {
+        
+    }
+    
+    
+}
+
+
+/*系统新风量变化*/
+void vSystem_FreAir(System* pt)
+{
+    uint8_t  n = 0; 
+    uint16_t usTotalFreAir_Vol = 0; 
+    BOOL     xCommErr          = 0;         
+    
+    System* pThis = (System*)pt;
+    ModularRoof*       pModularRoof = NULL;
+ 
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
+        
+        if(pThis->psModularRoofList[n]->sMBSlaveDev.ucOnLine != TRUE) //机组不在线
+        {
+            xCommErr = TRUE;    //机组通讯故障
+        }
+    }
+    
+    //【排风机控制模式】为实时新风量时
+    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
+    {
+        if(xCommErr == FALSE)    //通讯正常
+        {
+            //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
+            pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
+        }
+        if(xCommErr == TRUE)    //通讯故障
+        {
+            //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
+            pThis->usExAirSet_Vol = pThis->usTargetFreAir_Vol * pThis->ucExAirRatio_1 / 100;
+        } 
+    }
+    
+    //【排风机控制模式】为目标新风量时
+    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
+    {
+         //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
+         pThis->usExAirSet_Vol = pThis->usTargetFreAir_Vol * pThis->ucExAirRatio_1 / 100;
+    }
+        
+}
+
+/*设置变频风机频率范围*/
+void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
+{
+    uint8_t  n = 0; 
+    
+    System*   pThis     = (System*)pt;
+    ExAirFan* pExAirFan = NULL;
+    IDevFreq* pDevFreq  = NULL;
+    
+    pThis->usExAirFanMinFreq = usMinFreq;
+    pThis->usExAirFanMaxFreq = usMaxFreq;
+    
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pExAirFan = pThis->psExAirFanList[n];       //实例化对象 
+        if(pExAirFan->Fan.eFanFreqType == VARIABLE_FREQ)  
+        {
+            pDevFreq = SUPER_PTR(pExAirFan, IDevFreq);  //向上转型
+            pExAirFan->IDevFreq.setFreqRange(pDevFreq, usMinFreq, usMaxFreq);   
+        } 
+    }
+}
+
+
 /*系统内部消息轮询*/
 void vSystem_PollTask(void *p_arg)
 {
@@ -340,8 +492,7 @@ void vSystem_PollTask(void *p_arg)
         {
             
             
-        }
-      
+        }  
     }
 }
 

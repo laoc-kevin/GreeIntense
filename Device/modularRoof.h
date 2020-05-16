@@ -46,45 +46,41 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint8_t       ucSwitchCmd;              //启停命令 
     uint8_t       ucSwitchMode;             //启停模式 
     uint8_t       ucStopErrFlag;            //停系统故障标志
-     
+    
     int16_t       sRetAir_T;                //回风温度
-    int16_t       sSupAir_T;                //送风温度
-                                            
+    int16_t       sSupAir_T;                //送风温度  
+    
     uint16_t      usRetAir_Vol;             //回风风量
     uint16_t      usSupAir_Vol;             //送风风量
     uint16_t      usFreAir_Vol;             //新风风量
-                                            
-    int16_t       sAmbientIn_T;             //室内环境温度
-    int16_t       sAmbientOut_T;            //室外环境温度
-                                            
-    uint16_t      usAmbientIn_H;            //室内环境湿度
-    uint16_t      usAmbientOut_H;           //室外环境湿度
-                                            
-    uint16_t      usRetAirDamper;           //回风阀开度设定
-    uint16_t      usFreAirDamper;           //新风阀开度设定
-                                            
+                                       
+//    uint16_t      usRetAirDamper;           //回风阀开度设定
+//    uint16_t      usFreAirDamper;           //新风阀开度设定                                           
     uint16_t      usRetAirDamper_Ang;       //回风阀当前开度
     uint16_t      usFreAirDamper_Ang;       //新风阀当前开度
       
     int16_t       sTargetTemp;              //目标温度值设定
     uint16_t      usFreAirSet_Vol;          //目标新风风量设定
 
+    int16_t       sAmbientIn_T;             //室内环境温度
+    int16_t       sAmbientOut_T;            //室外环境温度                                       
+    uint16_t      usAmbientIn_H;            //室内环境湿度
+    uint16_t      usAmbientOut_H;           //室外环境湿度
+
     uint16_t      usCO2PPM;                 //CO2平均浓度
-    uint16_t      usSysDischarge_T;         //系统排气温度
-    
+    uint16_t      usCO2PPMSet;              //CO2浓度设定
     uint16_t      usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
                                             
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
-
-
+    
     SupAirFan*   psSupAirFanList[SUP_AIR_FAN_NUM];   //机组送风机列表
     Compressor*  psCompList     [COMP_NUM];          //压缩机列表
     
-    sMBMasterInfo*       psMBMasterInfo;      //所属通讯主栈
-    sMBSlaveDevCommData  sDevCommData;        //本设备通讯数据表
-    sMBSlaveDev          sMBSlaveDev;         //本通讯设备
+    sMBMasterInfo*       psMBMasterInfo;             //所属通讯主栈
+    sMBSlaveDevCommData  sDevCommData;               //本设备通讯数据表
+    sMBSlaveDev          sMBSlaveDev;                //本通讯设备
     
     sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
     sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域
