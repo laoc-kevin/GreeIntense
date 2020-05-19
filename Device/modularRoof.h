@@ -20,7 +20,7 @@ typedef enum   /*系统状态*/
     STATE_DEFROST = 4,        //化霜
 }eSystemState;
 
-typedef enum   /*系统状态*/
+typedef enum   /*运行模式*/
 {
     RUN_MODE_COOL    = 1,      //制冷
     RUN_MODE_HEAT    = 2,      //制热

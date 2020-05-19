@@ -4,8 +4,9 @@
 #include "includes.h"
 #include "LPC407x_8x_177x_8x.h"
 #include "lpc_timer.h"
+#include "lpc_types.h"
 
-#define TIMER_HANDLE int16_t
+#define TIMER_HANDLE uint16_t
 
 typedef enum   /*定时器状态*/
 {
@@ -38,5 +39,7 @@ typedef struct {
 TIMER_HANDLE sTimerRegist(eTimerType eTimerType, uint16_t usTrigTime, pTimerCallback_t callback, void* p_arg);
 
 void vTimerRemove(TIMER_HANDLE usTimerIndex);
+
+int16_t sTimerGetElapsedTime(TIMER_HANDLE usTimerIndex);
 
 #endif

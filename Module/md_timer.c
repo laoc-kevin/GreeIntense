@@ -1,10 +1,8 @@
 #include "md_timer.h"
 
-#define MD_TIMER_USED 			(LPC_TIM2)
-
-#define MAX_TIMER_NUM   50
-
-#define TIMER_NONE -1
+#define MD_TIMER_USED       (LPC_TIM2)
+#define MAX_TIMER_NUM       50
+#define TIMER_NONE          0
 
 sTimerEntity Timers[MAX_TIMER_NUM] = {{TIMER_FREE, NULL, 0, 0},};
 
@@ -58,7 +56,6 @@ void vTimerDispatch(void)
                 psTimer->eTimerState  = TIMER_FREE;
             } 
         }
-        
     }
 }
 
@@ -78,7 +75,7 @@ TIMER_HANDLE sTimerRegist(eTimerType eTimerType, uint16_t usTrigTime, pTimerCall
             psTimer->usRemainTime = usTrigTime;
             psTimer->pTimerCallback = callback;
             
-            return usTimerIndex;
+            return usTimerIndex + 1;
         }
     }
     return TIMER_NONE; 
@@ -86,10 +83,23 @@ TIMER_HANDLE sTimerRegist(eTimerType eTimerType, uint16_t usTrigTime, pTimerCall
 
 void vTimerRemove(TIMER_HANDLE usTimerIndex)
 {
-    sTimerEntity* psTimer = &Timers[usTimerIndex];;
+    sTimerEntity* psTimer = NULL;
+    if( (usTimerIndex > MAX_TIMER_NUM) || (usTimerIndex < 1))
+    {
+        return;
+    }
+    psTimer = &Timers[usTimerIndex-1];
     psTimer->eTimerState = TIMER_FREE;
 }
 
+int16_t sTimerGetElapsedTime(TIMER_HANDLE usTimerIndex)
+{
+    if( (usTimerIndex > MAX_TIMER_NUM) || (usTimerIndex < 1))
+    {
+        return -1;
+    }
+	return Timers[usTimerIndex-1].usRemainTime;
+}
 
 void TIMER3_IRQHandler(void)
 {

@@ -18,21 +18,14 @@ sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 25, 50, 1, 1, 1},
                                          {CONSTANT_FREQ, 0,   0, 0, 0, 4},
                                        };
 
-
-
 /*系统开启*/
 void vSystem_SwitchOpen(System* pt)
 {
-    System* pThis = (System*)pt;
-    
+    System* pThis = (System*)pt;   
     if(pThis->eSystemMode)
     {
         
     }
-    
-    
-    
-    
     
     
     pThis->ucSwitchCmd = ON; 
@@ -70,7 +63,7 @@ void vSystem_AdjustRunningMode(void* p_arg)
     System* pThis = (System*)p_arg;
     
     //若t2(默认5分钟)内温度没有达到目标温度t(ng1)±1.5℃
-    if(pThis->sAmbientIn_T > pThis->sTargetTemp + 15)  
+    if(pThis->sAmbientIn_T > pThis->sTargetTemp + pThis->ucAmbientInDeviat_T)  
     {
         if(pThis->eRunningMode == RUN_MODE_FAN)
         {
@@ -82,7 +75,6 @@ void vSystem_AdjustRunningMode(void* p_arg)
         }
     }
 }
-
 
 /*切换系统模式*/
 void vSystem_ChangeRunningMode(System* pt)
@@ -122,7 +114,6 @@ void vSystem_ChangeRunningMode(System* pt)
                 (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_3 * 60, vSystem_AdjustRunningMode, pThis);
             }
         } 
-
         //B. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
         if(pThis->sTargetTemp < pThis->sGrowUpTemp) 
         {
@@ -284,6 +275,7 @@ void vSystem_TempHumiOut(System* pt)
         pModularRoof->sAmbientOut_T  = pThis->sAmbientOut_T;
         pModularRoof->usAmbientOut_H = pThis->usAmbientOut_H;
     }
+    vSystem_ChangeRunningMode(pThis);  //模式切换逻辑
 }
 
 /*系统室内温湿度变化*/
@@ -319,92 +311,172 @@ void vSystem_TempHumiIn(System* pt)
         pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
         pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
     }
+    
+    vSystem_ChangeRunningMode(pThis);  //模式切换逻辑
 }
 
-/*系统排风风机调节*/
-void vSystem_ExAirFanAdjust(System* pt)
+void vSystem_ExAirFanPreventTmrCallback(void* p_arg)
+{
+    System*   pThis = (System*)p_arg;
+    pThis->sExAirFanPreventTmr = 0;
+}
+
+/*系统排风风机台数控制*/
+void vSystem_CtrlExAirFan(System* pt)
 {
     uint8_t   n, m  = 0;
     System*   pThis = (System*)pt;
     
     ExAirFan* pExAirFan        = NULL;   
-    ExAirFan* pExAirFanVariate = NULL;    //变频风机
-    ExAirFan* pFanByRunTimeList[EX_AIR_FAN_NUM] = {NULL,};  
+    ExAirFan* pFanByRunTimeList[EX_AIR_FAN_NUM - 1] = {NULL,};  
     
-    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    //不同工况切换至少满足【排风机防频繁调节时间】（默认1800s）
+    if(pThis->sExAirFanPreventTmr !=0)
     {
-        pFanByRunTimeList[n] = pThis->psExAirFanList[n];
-        if(pThis->psExAirFanList[n]->eFanFreqType == VARIABLE_FREQ)  
-        {
-             pExAirFanVariate = pThis->psExAirFanList[n];
-        } 
+        return;
     }
-    
-    //排风机运行时间排序
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
-    {          
-        for(m=0; m< EX_AIR_FAN_NUM-n; m++)
+    {
+        if(pThis->psExAirFanList[n]->eFanFreqType != VARIABLE_FREQ)
         {
-            if(pFanByRunTimeList[n]->Device.usRunTime > pFanByRunTimeList[n+1]->Device.usRunTime)
+            pFanByRunTimeList[m] = pThis->psExAirFanList[n];   //所有定频风机
+            m++;
+        }
+        
+    }
+    //定频风机排风机运行时间排序
+    for(n=0; n < EX_AIR_FAN_NUM-1; n++)  
+    {          
+        for(m=0; m< EX_AIR_FAN_NUM-n-1; m++)
+        {
+            if(pFanByRunTimeList[m]->Device.usRunTime > pFanByRunTimeList[m+1]->Device.usRunTime)
             {
-                           pExAirFan       = pFanByRunTimeList[n];
-                pFanByRunTimeList[n]       = pThis->psExAirFanList[n+1]; 
-                pThis->psExAirFanList[n+1] = pExAirFan;
+                           pExAirFan   = pFanByRunTimeList[m];
+                pFanByRunTimeList[m]   = pFanByRunTimeList[m+1]; 
+                pFanByRunTimeList[m+1] = pExAirFan;
             }
         }
     }
-    
-    if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
+    for(n=0; n < pThis->ucExAirFanRequstNum; n++)
     {
-        
+        pExAirFan = pFanByRunTimeList[n];
+        pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));
     }
     
+    pThis->sExAirFanPreventTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime, 
+                                  vSystem_ExAirFanPreventTmrCallback, pThis);
     
 }
 
-
-
-/*系统排风风机控制*/
-void vSystem_ExAirFanCtrl(System* pt)
+/*系统排风需求量变化*/
+void vSystem_ExAirFanTestTmrCallback(void* p_arg)
 {
-    uint8_t   n, m  = 0;
-    System*   pThis = (System*)pt;
+    System*   pThis = (System*)p_arg;
+    uint8_t   ucExAirFanRequstNum = 0;
     
-    ExAirFan* pExAirFan        = NULL;   
-    ExAirFan* pExAirFanVariate = NULL;    //变频风机
-    ExAirFan* pFanByRunTimeList[EX_AIR_FAN_NUM] = {NULL,};  
+    pThis->sExAirFanTestTmr = 0;
     
-    for(n=0; n < EX_AIR_FAN_NUM; n++)
-    {
-        pFanByRunTimeList[n] = pThis->psExAirFanList[n];
-        if(pThis->psExAirFanList[n]->eFanFreqType == VARIABLE_FREQ)  
-        {
-             pExAirFanVariate = pThis->psExAirFanList[n];
-        } 
-    }
-    
-    //排风机运行时间排序
-    for(n=0; n < EX_AIR_FAN_NUM; n++)  
-    {          
-        for(m=0; m< EX_AIR_FAN_NUM-n; m++)
-        {
-            if(pFanByRunTimeList[n]->Device.usRunTime > pFanByRunTimeList[n+1]->Device.usRunTime)
-            {
-                           pExAirFan       = pFanByRunTimeList[n];
-                pFanByRunTimeList[n]       = pThis->psExAirFanList[n+1]; 
-                pThis->psExAirFanList[n+1] = pExAirFan;
-            }
-        }
-    }
-    
+    //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）
     if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
     {
-        
+        ucExAirFanRequstNum = 0;
     }
-    
-    
+    //当【排风机额定风量】<系统排风需求量<=【排风机额定风量】*2
+    if( (pThis->ulExAirFanRated_Vol > pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*2) )
+    {
+        ucExAirFanRequstNum = 1;
+    }
+    //当【排风机额定风量】*2<系统排风需求量<=【排风机额定风量】*3
+    if( (pThis->ulExAirFanRated_Vol*2 < pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*3) )
+    {
+        ucExAirFanRequstNum = 2;
+    }
+    //当【排风机额定风量】*3<系统排风需求量
+    if(pThis->ulExAirFanRated_Vol*3 < pThis->usExAirSet_Vol) 
+    {
+        ucExAirFanRequstNum = 3;
+    }
+    //工况不一致
+    if(pThis->ucExAirFanRequstNum != ucExAirFanRequstNum)
+    {
+        pThis->ucExAirFanRequstNum = ucExAirFanRequstNum;
+         
+        //重启风量检测稳定时间定时器
+        pThis->sExAirFanTestTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime, 
+                                               vSystem_ExAirFanTestTmrCallback, pThis);
+    }
+    //工况一致
+    if(pThis->ucExAirFanRequstNum == ucExAirFanRequstNum)
+    {
+        vSystem_CtrlExAirFan(pThis);  //开始风机台数控制
+    }
 }
 
+/*系统排风风机频率调节*/
+void vSystem_AdjustExAirFanFreq(void* p_arg)
+{
+    uint8_t   n      = 0;
+    uint16_t  usFreq = 0;
+    
+    System*   pThis = (System*)p_arg;
+    ExAirFan* pExAirFanVariate = pThis->pExAirFanVariate;    //变频风机
+    
+    pThis->sExAirFanFreqAdjustTmr = 0;
+    
+    usFreq = ( (pThis->usExAirSet_Vol)-(pThis->ulExAirFanRated_Vol)*(pThis->ucExAirFanRequstNum) ) / 
+               (pThis->ulExAirFanRated_Vol)*50;
+
+    if(pExAirFanVariate->Device.eRunningState == RUN_STATE_STOP) //如果变频风机未开启，则先开启
+    {
+        pExAirFanVariate->IDevSwitch.switchOpen(SUPER_PTR(pExAirFanVariate, IDevSwitch));
+    }
+    pExAirFanVariate->IDevFreq.setFreq(SUPER_PTR(pExAirFanVariate, IDevFreq), usFreq);  //设置频率 
+}
+
+/*系统排风需求量变化*/
+void vSystem_ExAirSet_Vol(System* pt)
+{
+    System*   pThis = (System*)pt;
+    uint8_t   ucExAirFanRequstNum = 0;
+    
+     //开启排风机频率调节时间定时器
+    if(pThis->sExAirFanFreqAdjustTmr == 0)
+    {
+        pThis->sExAirFanFreqAdjustTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime,
+                                                     vSystem_AdjustExAirFanFreq, pThis);    //风机频率调节 
+    }
+    
+    //首次检测
+    if( pThis->sExAirFanTestTmr == 0)
+    {
+        //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）
+        if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
+        {
+            pThis->ucExAirFanRequstNum = 0;
+        }
+        
+        //当【排风机额定风量】<系统排风需求量<=【排风机额定风量】*2
+        if( (pThis->ulExAirFanRated_Vol > pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*2) )
+        {
+            pThis->ucExAirFanRequstNum = 1;
+        }
+        
+        //当【排风机额定风量】*2<系统排风需求量<=【排风机额定风量】*3
+        if( (pThis->ulExAirFanRated_Vol*2 < pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*3) )
+        {
+            pThis->ucExAirFanRequstNum = 2;
+        }
+        
+        //当【排风机额定风量】*3<系统排风需求量
+        if(pThis->ulExAirFanRated_Vol*3 < pThis->usExAirSet_Vol) 
+        {
+            pThis->ucExAirFanRequstNum = 3;
+        }
+        //开启风量检测稳定时间定时器
+        pThis->sExAirFanTestTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime,
+                                                vSystem_ExAirFanTestTmrCallback, pThis); 
+    }      
+}
 
 /*系统新风量变化*/
 void vSystem_FreAir(System* pt)
@@ -447,9 +519,9 @@ void vSystem_FreAir(System* pt)
     {
          //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
          pThis->usExAirSet_Vol = pThis->usTargetFreAir_Vol * pThis->ucExAirRatio_1 / 100;
-    }
-        
+    }    
 }
+
 
 /*设置变频风机频率范围*/
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
@@ -466,7 +538,7 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = pThis->psExAirFanList[n];       //实例化对象 
-        if(pExAirFan->Fan.eFanFreqType == VARIABLE_FREQ)  
+        if(pExAirFan->eFanFreqType == VARIABLE_FREQ)  
         {
             pDevFreq = SUPER_PTR(pExAirFan, IDevFreq);  //向上转型
             pExAirFan->IDevFreq.setFreqRange(pDevFreq, usMinFreq, usMaxFreq);   
@@ -557,7 +629,11 @@ void vSystem_Init(System* pt)
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
         pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
         
-        pThis->psExAirFanList[n] = pExAirFan;  
+        if(pExAirFan->eFanFreqType == VARIABLE_FREQ)  
+        {
+            pThis->pExAirFanVariate = pExAirFan;
+        }
+        pThis->psExAirFanList[n] = pExAirFan;        
     }
     
     for(n=0; n < CO2_SEN_NUM; n++)

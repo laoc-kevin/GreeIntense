@@ -6,6 +6,8 @@
 #include "sensor.h"
 #include "modularRoof.h"
 
+#include "md_timer.h"
+
 #define EX_AIR_FAN_NUM       4            //排风机数量
 #define MODULAR_ROOF_NUM     2            //屋顶机数量 
 
@@ -87,6 +89,12 @@ CLASS(System)   /*系统*/
     uint16_t         usExAirFanCtrlTime;       //排风机控制周期 
     uint8_t          ucExAirRatio_1;           //排风百分比
     
+    TIMER_HANDLE     sExAirFanFreqAdjustTmr;  //排风机频率调节时间定时器
+    TIMER_HANDLE     sExAirFanPreventTmr;     //排风机防频繁调节时间定时器
+    TIMER_HANDLE     sExAirFanTestTmr;        //风量检测稳定时间定时器
+    
+    uint8_t          ucExAirFanRequstNum;      //排风机需求个数
+    
     eExAirFanCtrlMode eExAirFanCtrlMode;       //排风机控制模式
                                                
     uint8_t          ucAlarmEnable;            //声光报警使能                                                                        
@@ -95,6 +103,7 @@ CLASS(System)   /*系统*/
                                                
     DTU*             psDTU;                    //DTU模块        
     
+    ExAirFan*        pExAirFanVariate;                   //变频风机
     ExAirFan*        psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
     CO2Sensor*       psCO2SenList  [CO2_SEN_NUM];        //CO2传感器列表
     
