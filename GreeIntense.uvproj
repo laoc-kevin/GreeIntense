@@ -551,6 +551,11 @@
               <FileType>1</FileType>
               <FilePath>.\Device\bms.c</FilePath>
             </File>
+            <File>
+              <FileName>systemctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\systemctrl.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

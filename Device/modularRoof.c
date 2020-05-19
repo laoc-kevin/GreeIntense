@@ -17,7 +17,7 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
     
     
     
-    pThis->ucSwitchCmd = ON;  
+    pThis->eSwitchCmd = ON;  
 }
 
 /*机组关闭*/
@@ -31,7 +31,7 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
     
     
     
-    pThis->ucSwitchCmd = OFF; 
+    pThis->eSwitchCmd = OFF; 
 }
 
 
@@ -87,7 +87,6 @@ BOOL xModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHOR
                 	break;
                 }
             }                
-            
         break;
         default: break;
 	}

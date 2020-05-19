@@ -29,8 +29,6 @@ ABS_CLASS(Sensor)          /*传感器*/
     
     sMasterRegHoldData   sSensor_RegHoldBuf[SENSOR_REG_HOLD_NUM];  //保持寄存器数据域
     
-    
-    
     void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo);
     void (*timeoutInd)(void * p_tmr, void * p_arg);  //定时器中断服务函数
 };

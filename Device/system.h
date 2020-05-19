@@ -33,9 +33,9 @@ CLASS(System)   /*系统*/
     eSystemMode      eSystemMode;              //系统模式
                                                
     eSystemState     eSystemState;             //系统状态
-    eRunningMode     eRunningMode;             //运行模式设定
+    eRunningMode     eRunningMode;             //运行模式
                                                
-    uint8_t          ucSwitchCmd;              //启停命令 
+    eCtrlEn          eSwitchCmd;               //启停命令 
     uint8_t          ucSwitchMode;             //启停模式 
     uint8_t          ucStopErrFlag;            //停系统故障标志
     

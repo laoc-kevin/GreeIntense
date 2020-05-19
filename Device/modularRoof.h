@@ -43,7 +43,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     eSystemState  eSystemState;             //系统状态
     eRunningMode  eRunningMode;             //运行模式设定
                                             
-    uint8_t       ucSwitchCmd;              //启停命令 
+    eCtrlEn       eSwitchCmd;               //启停命令 
     uint8_t       ucSwitchMode;             //启停模式 
     uint8_t       ucStopErrFlag;            //停系统故障标志
     
@@ -54,8 +54,8 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usSupAir_Vol;             //送风风量
     uint16_t      usFreAir_Vol;             //新风风量
                                        
-//    uint16_t      usRetAirDamper;           //回风阀开度设定
-//    uint16_t      usFreAirDamper;           //新风阀开度设定                                           
+//    uint16_t      usRetAirDamper;         //回风阀开度设定
+//    uint16_t      usFreAirDamper;         //新风阀开度设定                                           
     uint16_t      usRetAirDamper_Ang;       //回风阀当前开度
     uint16_t      usFreAirDamper_Ang;       //新风阀当前开度
       

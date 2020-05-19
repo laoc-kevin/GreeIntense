@@ -121,6 +121,7 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     
     uint8_t*        pcSampleIndex = &pThis->ucSampleIndex;
     
+    //对传感器参数进行采样
     if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
     {
         psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
@@ -133,9 +134,11 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     {
         *pcSampleIndex = 0;
     }
-    psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;
+    psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
     
-    if( (psCO2Sen->usAvgCO2PPM < psCO2Sen->usMinPPM) || (psCO2Sen->usAvgCO2PPM > psCO2Sen->usMaxPPM))
+    //判断传感器是否故障
+    if( (psCO2Sen->usAvgCO2PPM < psCO2Sen->usMinPPM) || (psCO2Sen->usAvgCO2PPM > psCO2Sen->usMaxPPM) ||
+        (psCO2Sen->Sensor.sMBSlaveDev.ucOnLine == FALSE) )
     {
         psCO2Sen->xCO2Error = TRUE;
     }
@@ -230,6 +233,7 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     
     uint8_t*        pcSampleIndex = &pThis->ucSampleIndex;
     
+    //对传感器参数进行采样
     if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
     {
         pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp - pTempHumiSen->sSampleTemp[*pcSampleIndex];
@@ -246,10 +250,12 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     {
         *pcSampleIndex = 0;
     }
-    pTempHumiSen->sAvgTemp  = pTempHumiSen->sTotalTemp  / SENSOR_SAMPLE_NUM;
+    pTempHumiSen->sAvgTemp  = pTempHumiSen->sTotalTemp  / SENSOR_SAMPLE_NUM;  //取平均值
     pTempHumiSen->usAvgHumi = pTempHumiSen->usTotalHumi / SENSOR_SAMPLE_NUM;
     
-    if( (pTempHumiSen->sAvgTemp < pTempHumiSen->sMinTemp) || (pTempHumiSen->sAvgTemp > pTempHumiSen->sMaxTemp))
+    //判断传感器是否故障
+    if( (pTempHumiSen->sAvgTemp < pTempHumiSen->sMinTemp) || (pTempHumiSen->sAvgTemp > pTempHumiSen->sMaxTemp) ||
+        (pTempHumiSen->Sensor.sMBSlaveDev.ucOnLine == FALSE) ) 
     {
         pTempHumiSen->xTempError = TRUE;
     }
@@ -257,7 +263,10 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     {
         pTempHumiSen->xTempError = FALSE;
     }
-    if( (pTempHumiSen->usAvgHumi < pTempHumiSen->usMinHumi) || (pTempHumiSen->usAvgHumi > pTempHumiSen->usMaxHumi))
+    
+     //判断传感器是否故障
+    if( (pTempHumiSen->usAvgHumi < pTempHumiSen->usMinHumi) || (pTempHumiSen->usAvgHumi > pTempHumiSen->usMaxHumi) ||
+        (pTempHumiSen->Sensor.sMBSlaveDev.ucOnLine == FALSE) )
     {
         pTempHumiSen->xHumiError = TRUE;
     }

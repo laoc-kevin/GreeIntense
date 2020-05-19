@@ -45,6 +45,7 @@ CLASS(ExAirFan)           /*排风风机*/
     sAnalog_IO   sFreq_AI;      //频率输入AI
     sDigital_IO  sSwitch_DO;    //启停DO
     
+    eCtrlEn      eSwitchCmd;    //启停命令
     uint32_t     ulRated_Vol;   //额定风量
 
     void (*init)(ExAirFan* pt, sFanInfo* psFan); 

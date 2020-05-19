@@ -29,19 +29,18 @@ typedef enum   /*频率类型*/
    CONSTANT_FREQ = 1      //定频
 }eFreqType;
 
-typedef enum   /*运行模式*/
+typedef enum   /*系统模式*/
 {
     MODE_MANUAL    = 1,     
     MODE_AUTO      = 2,
     MODE_CLOSE     = 3,
     MODE_EMERGENCY = 4, 
-    
 }eSystemMode;
 
 typedef enum   /*启停状态*/
 {
-    RUN_STATE_STOP   = 0,      //停止
-    RUN_STATE_RUN    = 1,      //运行
+    STATE_STOP   = 0,      //停止
+    STATE_RUN    = 1,      //运行
 
 }eRunningState;
 

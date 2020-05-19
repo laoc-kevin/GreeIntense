@@ -41,7 +41,8 @@ void vExAirFan_RegistFreqIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, 
         pThis->sFreq_AI.lMax = usMaxFreq;
         pThis->sFreq_AI.lMin = usMinFreq;
         
-        vAnalogInputRegister(ucFreq_AI, usMinFreq, usMaxFreq, &(pThis->usRunningFreq));  
+        vAnalogInputRegister(ucFreq_AI, usMinFreq, usMaxFreq, &(pThis->usRunningFreq)); 
+        vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq);         
     }   
 }
 
@@ -49,22 +50,18 @@ void vExAirFan_RegistFreqIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, 
 void vExAirFan_SwitchOpen(IDevSwitch* pt)    
 {
     ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
+    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, ON);  //输出开启,继电器闭合
     
-    if(pThis->Device.eRunningState == RUN_STATE_STOP)
-    {
-        vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, ON);  //输出开启,继电器闭合
-    } 
+    pThis->Device.eRunningState = STATE_RUN;
 }
 
 /*关闭风机*/
 void vExAirFan_SwitchClose(IDevSwitch* pt)   
 {
     ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
+    vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, OFF); //输出关闭，继电器断开
     
-    if(pThis->Device.eRunningState == RUN_STATE_RUN)
-    {
-        vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, OFF); //输出关闭，继电器断开
-    }
+    pThis->Device.eRunningState = STATE_STOP;
 }
 
 
