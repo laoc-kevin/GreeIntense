@@ -38,6 +38,10 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
+    if(pThis->eSystemMode == eSystemMode)
+    {
+        return;
+    }
     pThis->eSystemMode = eSystemMode;
     
     //手动模式
@@ -64,18 +68,18 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
 }
 
 /*设定系统目标温度值*/
-void vSystem_SetTemp(System* pt, int16_t sTargetTemp)
+void vSystem_SetTemp(System* pt, int16_t sTempSet)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->sTargetTemp = sTargetTemp;
     
+    pThis->sTempSet = sTempSet;
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->sTargetTemp = pThis->sTargetTemp;
+        pModularRoof->sTempSet = pThis->sTempSet;
     }
 }
 
@@ -90,7 +94,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol)
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
-        pModularRoof = pThis->psModularRoofList[n];     
+        pModularRoof = pThis->psModularRoofList[n];        
         pModularRoof->usFreAirSet_Vol = pThis->usFreAirSet_Vol / MODULAR_ROOF_NUM;
     }
 }
@@ -144,7 +148,6 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
         pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
     }
 }
-
 
 /*注册声光报警启停接口*/
 void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO)

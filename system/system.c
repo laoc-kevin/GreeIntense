@@ -36,13 +36,21 @@ void vSystem_PollTask(void *p_arg)
 	{
         sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
         
-        HANDLE(psBMS->System.eSystemMode,  vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
-        HANDLE(psBMS->System.eRunningMode, vSystem_SetRunningMode(psSystem, psBMS->System.eRunningMode)) 
-        HANDLE(psBMS->System.sTargetTemp,  vSystem_SetTemp(psSystem, psBMS->System.sTargetTemp))
-        HANDLE(psBMS->System.sTargetTemp,  vSystem_SetTemp(psSystem, psBMS->System.sTargetTemp))
+        HANDLE(psBMS->System.eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
+        HANDLE(psBMS->System.eRunningMode,     vSystem_SetRunningMode(psSystem, psBMS->System.eRunningMode)) 
+        
+        HANDLE(psBMS->System.sTempSet,         vSystem_SetTemp(psSystem, psBMS->System.sTempSet))
+        HANDLE(psBMS->System.usFreAirSet_Vol,  vSystem_SetFreAir(psSystem, psBMS->System.usFreAirSet_Vol))
+        
+        HANDLE(psBMS->System.usHumidityMin, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin, psBMS->System.usHumidityMax))
+        HANDLE(psBMS->System.usHumidityMax, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin, psBMS->System.usHumidityMax))
+        
+        HANDLE(psBMS->System.usCO2PPMSet,       vSystem_SetCO2PPM(psSystem, psBMS->System.usCO2PPMSet))
+        HANDLE(psBMS->System.usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->System.usCO2AdjustDeviat))
+        
+        
     }
     
-    vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode);
 }
 
 /*创建系统内部消息轮询任务*/

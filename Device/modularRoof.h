@@ -60,7 +60,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usRetAirDamper_Ang;       //回风阀当前开度
     uint16_t      usFreAirDamper_Ang;       //新风阀当前开度
       
-    int16_t       sTargetTemp;              //目标温度值设定
+    int16_t       sTempSet;                 //目标温度值设定
     uint16_t      usFreAirSet_Vol;          //目标新风风量设定
 
     int16_t       sAmbientIn_T;             //室内环境温度

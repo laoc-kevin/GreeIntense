@@ -16,7 +16,6 @@ void vSystem_CloseExAirFans(System* pt)
     }
 }
 
-
 void vSystem_ExAirFanPreventTmrCallback(void* p_arg)
 {
     System*   pThis = (System*)p_arg;
@@ -117,7 +116,6 @@ void vSystem_CtrlExAirFan(System* pt)
         }
     }  
 }
-
 
 /*系统风量检测稳定时间*/
 void vSystem_ExAirFanTestTmrCallback(void* p_arg)
@@ -256,10 +254,11 @@ void vSystem_FreAir(System* pt)
         }
         usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
     }
+    
     //【排风机控制模式】为实时新风量时
     if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
     {
-        if(xCommErr == FALSE)    //通讯正常
+        if(xCommErr == FALSE)    //机组均通讯正常
         {
             //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
             pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
@@ -267,14 +266,14 @@ void vSystem_FreAir(System* pt)
         if(xCommErr == TRUE)    //通讯故障
         {
             //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-            pThis->usExAirSet_Vol = pThis->usTargetFreAir_Vol * pThis->ucExAirRatio_1 / 100;
+            pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
         } 
     }
     //【排风机控制模式】为目标新风量时
     if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
     {
          //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-         pThis->usExAirSet_Vol = pThis->usTargetFreAir_Vol * pThis->ucExAirRatio_1 / 100;
+         pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
     }    
 }
 

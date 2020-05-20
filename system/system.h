@@ -46,7 +46,7 @@ CLASS(System)   /*系统*/
     uint8_t           ucModeChangeTime_5;       //模式切换时间t5(min)
     uint8_t           ucModeChangeTime_6;       //模式切换时间t6(min)
                                                 
-    int16_t           sTargetTemp;              //目标温度值设定
+    int16_t           sTempSet;                 //目标温度值设定
     int16_t           sGrowUpTemp;              //小鸡适宜生长温度值
     int16_t           sAdjustModeTemp;          //模式调节温度
     int16_t           sSupAirMax_T;             //送风最大温度  
@@ -57,10 +57,9 @@ CLASS(System)   /*系统*/
     uint16_t          usCO2AdjustDeviat;        //CO2浓度调节偏差
     uint16_t          usCO2PPMDeviat;           //CO2浓度偏差
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
-                      
-    uint16_t          usTargetFreAir_Vol;       //目标新风风量    
+                        
     uint16_t          usExAirSet_Vol;           //系统排风风量设定 
-    uint16_t          usFreAirSet_Vol;          //系统新风风量设定
+    uint16_t          usFreAirSet_Vol;          //系统目标新风风量设定
                                                                                            
     uint16_t          usHumidityMax;            //设定湿度max
     uint16_t          usHumidityMin;            //设定湿度min

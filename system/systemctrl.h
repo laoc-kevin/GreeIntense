@@ -10,7 +10,7 @@ void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO);
 
 void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode);
 
-void vSystem_SetTemp(System* pt, int16_t sTargetTemp);
+void vSystem_SetTemp(System* pt, int16_t sTempSet);
 void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol);
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax);
 
