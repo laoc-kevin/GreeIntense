@@ -80,7 +80,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
             usDataVal |=( (USHORT)(*pcPDUCur++) ) & 0xFF;
             
             psMBSlaveDev->ucDevAddr       = iSlaveAddr;                 //从设备通讯地址
-            psMBSlaveDev->ucOnLine        = TRUE;                       //从设备反馈正确，则设备在线
+            psMBSlaveDev->xOnLine        = TRUE;                       //从设备反馈正确，则设备在线
             psMBSlaveDev->psDevCurData    = psMBDevData;                //从设备当前数据域
             psMBSlaveDev->ucProtocolID    = psMBDevData->ucProtocolID;  //从设备协议ID
             
@@ -90,21 +90,21 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
                 {
                      if(usDataVal == psMBCmd->usValue)
                      {
-                          psMBSlaveDev->ucDataReady = TRUE;   //从设备数据准备好
+                          psMBSlaveDev->xDataReady = TRUE;   //从设备数据准备好
                      }
                      else                                                           
                      { 
-                         psMBSlaveDev->ucDataReady = FALSE;  //反馈正确，但测试值不一致
+                         psMBSlaveDev->xDataReady = FALSE;  //反馈正确，但测试值不一致
                      }                                    
                 }
                 else
                 {
-                     psMBSlaveDev->ucDataReady = TRUE; 
+                     psMBSlaveDev->xDataReady = TRUE; 
                 }
             }
             else
             {
-                psMBSlaveDev->ucDataReady = FALSE;
+                psMBSlaveDev->xDataReady = FALSE;
             }
             break; 				
         }
@@ -131,7 +131,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     const sMBTestDevCmd*       psMBCmd = NULL;
     sMBMasterDevsInfo*    psMBDevsInfo = NULL;
     
-    if( (psMBSlaveDev == NULL) || (psMBSlaveDev->ucDevOnTimeout == TRUE)) //是否处于延时阶段
+    if( (psMBSlaveDev == NULL) || (psMBSlaveDev->xDevOnTimeout == TRUE)) //是否处于延时阶段
     {
         return;
     }
@@ -158,7 +158,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
             usDataVal = ( (USHORT)(*pcPDUCur++) ) << 8;   //数据
             usDataVal |=( (USHORT)(*pcPDUCur++) ) & 0xFF;
             
-            psMBSlaveDev->ucOnLine        = TRUE;                      //从设备反馈正确，则设备在线
+            psMBSlaveDev->xOnLine        = TRUE;                      //从设备反馈正确，则设备在线
             psMBSlaveDev->ucRetryTimes    = 0;                         //测试次数清零
             
             if(usAddr == psMBCmd->ucAddr)  //地址一致
@@ -167,32 +167,32 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
                 {
                      if(usDataVal == psMBCmd->usValue)
                      {
-                          psMBSlaveDev->ucDataReady = TRUE;   //从设备数据准备好
+                          psMBSlaveDev->xDataReady = TRUE;   //从设备数据准备好
                      }
                      else                                                           
                      { 
-                         psMBSlaveDev->ucDataReady = FALSE;  //反馈正确，但测试值不一致
+                         psMBSlaveDev->xDataReady = FALSE;  //反馈正确，但测试值不一致
                      }                                    
                 }
                 else
                 {
-                     psMBSlaveDev->ucDataReady = TRUE; 
+                     psMBSlaveDev->xDataReady = TRUE; 
                 }
             }
             else
             {
-                psMBSlaveDev->ucDataReady = FALSE;
+                psMBSlaveDev->xDataReady = FALSE;
             }
             break;
         }			
     }
     if(errorCode != MB_MRE_NO_ERR)  //多次测试仍返回错误
     {
-        psMBSlaveDev->ucDataReady = FALSE;
+        psMBSlaveDev->xDataReady = FALSE;
         
         if(psMBSlaveDev->ucRetryTimes == MB_TEST_RETRY_TIMES)  //前两周期测试都报故障
         {
-            psMBSlaveDev->ucOnLine           = FALSE;                   //从设备掉线
+            psMBSlaveDev->xOnLine           = FALSE;                   //从设备掉线
             psMBSlaveDev->ucDevCurTestAddr   = 0;                       //从设备当前测试通讯地址置零
         }
         else

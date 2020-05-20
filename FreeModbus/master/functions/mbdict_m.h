@@ -91,11 +91,11 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     UCHAR   ucDevAddr;             //设备通讯地址
     UCHAR   ucDevCurTestAddr;      //设备当前测试地址
 	UCHAR   ucRetryTimes;          //测试间隔
-	UCHAR   ucOnLine;              //是否在线
-	UCHAR   ucDataReady;           //数据是否准备好
+	BOOL    xOnLine;               //是否在线
+	BOOL    xDataReady;           //数据是否准备好
     UCHAR   ucProtocolID;          //协议ID
-	UCHAR   ucSynchronized;        //是否同步
-    UCHAR   ucDevOnTimeout;        //是否处于延时
+	BOOL    xSynchronized;         //是否同步
+    BOOL    xDevOnTimeout;         //是否处于延时
     OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
     sMBSlaveDevCommData* psDevDataInfo;     //从设备数据域
