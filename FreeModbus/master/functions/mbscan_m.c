@@ -49,7 +49,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
             if(pcDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
             {
                 vMBDevTest(psMBMasterInfo, psMBSlaveDev, iSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
-                if(psMBSlaveDev->ucOnLine == TRUE)
+                if(psMBSlaveDev->xOnLine == TRUE)
                 {
                     pcDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
                     break;
@@ -71,7 +71,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 		/*********************************轮询从设备***********************************/
 		for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
-            if(psMBSlaveDev->ucOnLine == FALSE)   //如果设备不在线
+            if(psMBSlaveDev->xOnLine == FALSE)   //如果设备不在线
             {
                 if(psMBSlaveDev->ucDevCurTestAddr == 0)  //刚掉线
                 {
@@ -84,7 +84,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 if(pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
                 {
                     vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
-                    if(psMBSlaveDev->ucOnLine == TRUE)
+                    if(psMBSlaveDev->xOnLine == TRUE)
                     {
                         pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
                         break;
@@ -95,14 +95,14 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         }
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
-            if(psMBSlaveDev->ucOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
+            if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
-                if( (psMBSlaveDev->ucOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
+                if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
                 {
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
                 }
-                else if(psMBSlaveDev->ucOnLine == FALSE)
+                else if(psMBSlaveDev->xOnLine == FALSE)
                 {
                     pcDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
                 }                    
@@ -164,15 +164,15 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     {
         return;
     }
-    if( (psMBSlaveDev != NULL) && (psMBSlaveDev->ucOnLine == TRUE) )   //如果设备在线则进行轮询
+    if( (psMBSlaveDev != NULL) && (psMBSlaveDev->xOnLine == TRUE) )   //如果设备在线则进行轮询
     {
-        if( psMBSlaveDev->ucDataReady == TRUE)   //从栈数据准备好了才同步上来
+        if( psMBSlaveDev->xDataReady == TRUE)   //从栈数据准备好了才同步上来
         {	 	    
-            if(psMBSlaveDev->ucSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
+            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
             {
                 vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
-                psMBSlaveDev->ucSynchronized = TRUE;                     //同步完成
+                psMBSlaveDev->xSynchronized = TRUE;                     //同步完成
             }
             else   //同步完成后，先写后读
             {
@@ -182,10 +182,10 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
         }
         else  //从栈数据未好，则只进行写不读
         {
-            if(psMBSlaveDev->ucSynchronized == FALSE) 
+            if(psMBSlaveDev->xSynchronized == FALSE) 
             {
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
-                psMBSlaveDev->ucSynchronized = TRUE;  //同步完成
+                psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
             else    
             {

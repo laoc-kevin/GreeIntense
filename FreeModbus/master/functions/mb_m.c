@@ -777,7 +777,7 @@ void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
 	OS_TICK i = (OS_TICK)(MB_MASTER_DEV_OFFLINE_TMR_S / TMR_TICK_PER_SECOND);
     
     sMBSlaveDev* psMBDev = (sMBSlaveDev*)p_arg;
-    psMBDev->ucDevOnTimeout = FALSE;    
+    psMBDev->xDevOnTimeout = FALSE;    
 }
 
 /**********************************************************************
@@ -789,7 +789,7 @@ void vMBMastersDevOfflineTmrEnable(sMBSlaveDev* psMBDev)
 {
     OS_ERR err = OS_ERR_NONE;
     (void)OSTmrStart( &(psMBDev->sDevOfflineTmr), &err);
-    psMBDev->ucDevOnTimeout = TRUE;
+    psMBDev->xDevOnTimeout = TRUE;
 }
 
 /**********************************************************************
