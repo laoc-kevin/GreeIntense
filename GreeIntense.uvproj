@@ -363,7 +363,7 @@
               <MiscControls></MiscControls>
               <Define>CORE_M4,ARM_MATH_CM4, __CC_ARM</Define>
               <Undefine></Undefine>
-              <IncludePath>.\CMSIS\inc;.\ChipDriver\inc;.\uCOS\uC_BSP;.\uCOS\uC_BSP\OS\uCOS-III;.\uCOS\uC_CFG;.\uCOS\uC_CPU;.\uCOS\uC_CPU\ARM-Cortex-M4;.\uCOS\uC_LIB;.\uCOS\uCOS_III\Source;.\uCOS\uCOS_III\Ports;.\App;.\CANFestival\include;.\CANFestival\include\lpc;.\CANFestival\driver;.\SEGGER_RTT;.\SEGGER_RTT\RTT;.\FreeModbus\config;.\FreeModbus\driver;.\FreeModbus\master\functions;.\FreeModbus\master\rtu;.\FreeModbus\master\port;.\FreeModbus\slave\rtu;.\FreeModbus\slave\functions;.\FreeModbus\slave\port;.\FreeModbus\master\dtu;.\Module;.\OOC;.\Device</IncludePath>
+              <IncludePath>.\CMSIS\inc;.\ChipDriver\inc;.\uCOS\uC_BSP;.\uCOS\uC_BSP\OS\uCOS-III;.\uCOS\uC_CFG;.\uCOS\uC_CPU;.\uCOS\uC_CPU\ARM-Cortex-M4;.\uCOS\uC_LIB;.\uCOS\uCOS_III\Source;.\uCOS\uCOS_III\Ports;.\App;.\CANFestival\include;.\CANFestival\include\lpc;.\CANFestival\driver;.\SEGGER_RTT;.\SEGGER_RTT\RTT;.\FreeModbus\config;.\FreeModbus\driver;.\FreeModbus\master\functions;.\FreeModbus\master\rtu;.\FreeModbus\master\port;.\FreeModbus\slave\rtu;.\FreeModbus\slave\functions;.\FreeModbus\slave\port;.\FreeModbus\master\dtu;.\Module;.\OOC;.\Device;.\system</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -509,6 +509,36 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>System</GroupName>
+          <Files>
+            <File>
+              <FileName>fanctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\fanctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>sensorctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\sensorctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\system.c</FilePath>
+            </File>
+            <File>
+              <FileName>systemctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\systemctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>unitctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system\unitctrl.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Device</GroupName>
           <Files>
             <File>
@@ -537,11 +567,6 @@
               <FilePath>.\Device\sensor.c</FilePath>
             </File>
             <File>
-              <FileName>system.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\system.c</FilePath>
-            </File>
-            <File>
               <FileName>dtu.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Device\dtu.c</FilePath>
@@ -550,11 +575,6 @@
               <FileName>bms.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Device\bms.c</FilePath>
-            </File>
-            <File>
-              <FileName>systemctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Device\systemctrl.c</FilePath>
             </File>
           </Files>
         </Group>

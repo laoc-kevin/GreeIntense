@@ -120,18 +120,18 @@ void vDTU_DevTest(DTU* pt)
                                                              2, pThis->psDTUInitCmd, 
                                                              MB_MASTER_WAITING_DELAY);	//进行初始化
 #endif
-        pThis->sDevDTU247.ucOnLine = FALSE;
-        pThis->sDevDTU200.ucOnLine = FALSE;
+        pThis->sDevDTU247.xOnLine = FALSE;
+        pThis->sDevDTU200.xOnLine = FALSE;
                       
-        pThis->sDevDTU247.ucDataReady = FALSE;
-        pThis->sDevDTU200.ucDataReady = FALSE;
+        pThis->sDevDTU247.xDataReady = FALSE;
+        pThis->sDevDTU200.xDataReady = FALSE;
         
         vDTU_TmrTimeoutEnable(pThis);
     }
     else   //GPRS模块已经初始化
     {
-        pThis->sDevDTU247.ucOnLine = TRUE;  
-        pThis->sDevDTU200.ucOnLine = TRUE;  
+        pThis->sDevDTU247.xOnLine = TRUE;  
+        pThis->sDevDTU200.xOnLine = TRUE;  
   
 #if MB_FUNC_READ_INPUT_ENABLED > 0                          
 		errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, DTU247_SLAVE_ADDR, 
@@ -140,7 +140,7 @@ void vDTU_DevTest(DTU* pt)
 #endif               
         if (errorCode == MB_MRE_NO_ERR)  //GPRS模块参数改变完毕
         {   
-             pThis->sDevDTU247.ucDataReady = TRUE;  					
+             pThis->sDevDTU247.xDataReady = TRUE;  					
         }    
     }
     psMBMasterInfo->xMBRunInTestMode = FALSE;  //退出测试从设备状态 
@@ -223,7 +223,7 @@ void vDTU_ScanDev(void* pt)
     vDTU_DevTest(pThis);
     
     /***********************开始轮询DTU*************************************/
-	if( pThis->sDevDTU200.ucOnLine == TRUE)   //轮询DTU模块数据表
+	if( pThis->sDevDTU200.xOnLine == TRUE)   //轮询DTU模块数据表
 	{
         psMBDevsInfo->psMBSlaveDevCur = &pThis->sDevDTU200;
         if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
@@ -235,7 +235,7 @@ void vDTU_ScanDev(void* pt)
 #endif
 	}
     
-    if( (pThis->sDevDTU247.ucOnLine == TRUE) && (pThis->sDevDTU247.ucDataReady == TRUE) )   //
+    if( (pThis->sDevDTU247.xOnLine == TRUE) && (pThis->sDevDTU247.xDataReady == TRUE) )   //
     {
         psMBDevsInfo->psMBSlaveDevCur = &pThis->sDevDTU247;
         if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询

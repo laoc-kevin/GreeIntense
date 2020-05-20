@@ -1,5 +1,6 @@
 #include "bms.h"
 #include "system.h"
+#include "systemctrl.h"
 #include "md_event.h"
 #include "md_modbus.h"
 #include "md_timer.h"
@@ -7,7 +8,10 @@
 /*************************************************************
 *                         系统                               *
 **************************************************************/
-#define SYSTEM_POLL_TASK_PRIO    9
+#define SYSTEM_POLL_TASK_PRIO    9       //系统内部循环任务优先级
+#define SYSTEM_ALARM_DO          5       //系统声光报警DO接口
+
+#define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;}
 
 static System* psSystem = NULL;
 
@@ -17,13 +21,12 @@ sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 25, 50, 1, 1, 1},
                                          {CONSTANT_FREQ, 0,   0, 0, 0, 3},
                                          {CONSTANT_FREQ, 0,   0, 0, 0, 4},
                                        };
-
+                                                                       
 /*系统内部消息轮询*/
 void vSystem_PollTask(void *p_arg)
 {
     CPU_TS            ts = 0;
     OS_MSG_SIZE  msgSize = 0;
-
     OS_ERR           err = OS_ERR_NONE;
     
     BMS* psBMS = BMS_Core();
@@ -32,12 +35,14 @@ void vSystem_PollTask(void *p_arg)
     while(DEF_TRUE)
 	{
         sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
-        if( (USHORT*)psMsg->pvArg == (USHORT*)(&psBMS->System.sAmbientIn_T) )  //查看是哪个变量发生变化
-        {
-            
-            
-        }  
+        
+        HANDLE(psBMS->System.eSystemMode,  vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
+        HANDLE(psBMS->System.eRunningMode, vSystem_SetRunningMode(psSystem, psBMS->System.eRunningMode)) 
+        HANDLE(psBMS->System.sTargetTemp,  vSystem_SetTemp(psSystem, psBMS->System.sTargetTemp))
+        HANDLE(psBMS->System.sTargetTemp,  vSystem_SetTemp(psSystem, psBMS->System.sTargetTemp))
     }
+    
+    vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode);
 }
 
 /*创建系统内部消息轮询任务*/
@@ -81,15 +86,18 @@ void vSystem_Init(System* pt)
     CO2Sensor*      pCO2Sensor      = NULL;
     DTU*            psDTU           = NULL;
     
-    vModbusInit();
+    vModbusInit();                                  //Modbus初始化
+    vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
     
     pThis->eSystemMode      = MODE_CLOSE;
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
     pThis->sTaskInfo.ucPrio = SYSTEM_POLL_TASK_PRIO;
   
+    /*********************DTU模块*************************/
     psDTU = DTU_new(psDTU);
     psDTU->init(psDTU, pThis->psMBMasterInfo);
     
+    /*********************主机*************************/
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = (ModularRoof*)ModularRoof_new();
@@ -97,6 +105,8 @@ void vSystem_Init(System* pt)
         
         pThis->psModularRoofList[n] = pModularRoof;
     }
+    
+    /*********************排风风机*************************/
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
@@ -109,6 +119,7 @@ void vSystem_Init(System* pt)
         pThis->psExAirFanList[n] = pExAirFan;        
     }
     
+    /***********************CO2传感器***********************/
     for(n=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
@@ -116,6 +127,8 @@ void vSystem_Init(System* pt)
         
         pThis->psCO2SenList[n] = pCO2Sensor;
     }
+    
+    /***********************室外温湿度传感器***********************/
     for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
@@ -123,6 +136,8 @@ void vSystem_Init(System* pt)
         
         pThis->psTempHumiSenOutList[n] = pTempHumiSensor; 
     }
+    
+    /***********************室内温湿度传感器***********************/
     for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
@@ -131,7 +146,7 @@ void vSystem_Init(System* pt)
         pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
     }
     
-    
+    /***********************消息绑定***********************/
     CONNECT( &(BMS_Core()->sBMSValChange), &pThis->sTaskInfo.sTCB);  //绑定BMS变量变化事件
     
     xSystem_CreatePollTask(pThis); 

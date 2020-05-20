@@ -67,11 +67,7 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
     
     int16_t      sSampleTemp[SENSOR_SAMPLE_NUM];
     uint16_t     usSampleHumi[SENSOR_SAMPLE_NUM];
-    
 
-    
-    
 };
-
 
 #endif

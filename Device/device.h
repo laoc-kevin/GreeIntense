@@ -96,8 +96,8 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 ABS_CLASS(Device)        /*设备抽象类*/
 {
     uint16_t        usRunTime;        //运行时间
-    uint8_t         ucErrFlag;        //总故障标志
-    uint8_t         ucAlarmFlag;      //总报警标志
+    BOOL            xErrFlag;        //总故障标志
+    BOOL            xAlarmFlag;      //总报警标志
     
     eRunningState   eRunningState;    //运行状态标志
 };

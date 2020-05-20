@@ -101,8 +101,8 @@ void vModularRoof_InitDevCommData(IDevCom* pt)
     ModularRoof* pThis = SUB_PTR(pt, IDevCom, ModularRoof);
     
     sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
-    sMBDevDataTable*    psMBCoilTable = &pThis->sDevCommData.sMBCoilTable; 
-    sMBTestDevCmd*            psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
+    sMBDevDataTable* psMBCoilTable    = &pThis->sDevCommData.sMBCoilTable; 
+    sMBTestDevCmd*   psMBCmd          = &pThis->sDevCommData.sMBDevCmdTable;
     
     uint8_t CHID = 0x13;		        //机型ID
 

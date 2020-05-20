@@ -44,8 +44,9 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     eRunningMode  eRunningMode;             //运行模式设定
                                             
     eCtrlEn       eSwitchCmd;               //启停命令 
-    uint8_t       ucSwitchMode;             //启停模式 
-    uint8_t       ucStopErrFlag;            //停系统故障标志
+    uint8_t       ucSwitchMode;             //启停模式
+       
+    BOOL          xStopErrFlag;             //停整机故障标志
     
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度  
@@ -71,7 +72,14 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usCO2PPMSet;              //CO2浓度设定
     uint16_t      usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
-                                            
+    
+    BOOL          xCO2SenErr;               //CO2传感器故障
+    BOOL          xTempSenInErr;            //室内温度传感器故障
+    BOOL          xHumiSenInErr;            //室内湿度传感器故障
+    BOOL          xTempSenOutErr;           //室外温度传感器故障
+    BOOL          xHumiSenOutErr;           //室外湿度传感器故障
+    BOOL          xFreAirSenErr;            //新风量传感器故障
+    
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
     
