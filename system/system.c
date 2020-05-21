@@ -11,23 +11,32 @@
 #define SYSTEM_POLL_TASK_PRIO    9       //系统内部循环任务优先级
 #define SYSTEM_ALARM_DO          5       //系统声光报警DO接口
 
-#define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;}
+#define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;continue;}
 
 static System* psSystem = NULL;
 
 /*系统排风机配置信息*/
-sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 25, 50, 1, 1, 1},
-                                         {CONSTANT_FREQ, 0,   0, 0, 0, 2},
-                                         {CONSTANT_FREQ, 0,   0, 0, 0, 3},
-                                         {CONSTANT_FREQ, 0,   0, 0, 0, 4},
+sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 250, 500, 1, 1, 1},
+                                         {CONSTANT_FREQ, 0,   0,   0, 0, 2},
+                                         {CONSTANT_FREQ, 0,   0,   0, 0, 3},
+                                         {CONSTANT_FREQ, 0,   0,   0, 0, 4},
                                        };
                                                                        
 /*系统内部消息轮询*/
 void vSystem_PollTask(void *p_arg)
 {
+    uint8_t n;
+    
     CPU_TS            ts = 0;
     OS_MSG_SIZE  msgSize = 0;
     OS_ERR           err = OS_ERR_NONE;
+    
+    System* pThis = (System*)p_arg;
+    
+    ModularRoof*    pModularRoof    = NULL;
+    ExAirFan*       pExAirFan       = NULL;
+    TempHumiSensor* pTempHumiSensor = NULL;
+    CO2Sensor*      pCO2Sensor      = NULL;
     
     BMS* psBMS = BMS_Core();
     psSystem = System_Core();
@@ -36,6 +45,7 @@ void vSystem_PollTask(void *p_arg)
 	{
         sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
         
+        /***********************BMS事件响应***********************/
         HANDLE(psBMS->System.eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
         HANDLE(psBMS->System.eRunningMode,     vSystem_SetRunningMode(psSystem, psBMS->System.eRunningMode)) 
         
@@ -48,9 +58,56 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->System.usCO2PPMSet,       vSystem_SetCO2PPM(psSystem, psBMS->System.usCO2PPMSet))
         HANDLE(psBMS->System.usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->System.usCO2AdjustDeviat))
         
+        HANDLE(psBMS->System.usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
+                                                                             psBMS->System.usExAirFanMaxFreq))
+        HANDLE(psBMS->System.usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
+                                                                             psBMS->System.usExAirFanMaxFreq))
         
+        /***********************主机事件响应***********************/
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n]; 
+            
+            HANDLE(pModularRoof->sSupAir_T,    vSystem_SupAirTemp(psSystem);break) 
+            HANDLE(pModularRoof->usFreAir_Vol, vSystem_FreAir(psSystem);break) 
+            HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem);break)
+            
+            HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem);break)
+        }
+        
+        /***********************CO2传感器事件响应***********************/
+        for(n=0; n < CO2_SEN_NUM; n++)
+        {
+            pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
+            
+            HANDLE(pCO2Sensor->usAvgCO2PPM, vSystem_CO2PPM(psSystem);break) 
+            HANDLE(pCO2Sensor->xCO2Error,   vSystem_CO2SensorErr(psSystem);break)
+        }
+        
+        /***********************室外温湿度传感器事件响应***********************/
+        for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
+        {
+            pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
+            
+            HANDLE(pTempHumiSensor->sAvgTemp,   vSystem_TempHumiOut(psSystem);break) 
+            HANDLE(pTempHumiSensor->xTempError, vSystem_TempHumiOutErr(psSystem);break)
+            
+            HANDLE(pTempHumiSensor->usAvgHumi,  vSystem_TempHumiOut(psSystem);break) 
+            HANDLE(pTempHumiSensor->xHumiError, vSystem_TempHumiOutErr(psSystem);break)
+        }
+        
+         /***********************室内温湿度传感器事件响应***********************/
+        for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
+        {
+            pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
+            
+            HANDLE(pTempHumiSensor->sAvgTemp,   vSystem_TempHumiIn(psSystem);break) 
+            HANDLE(pTempHumiSensor->xTempError, vSystem_TempHumiInErr(psSystem);break)
+            
+            HANDLE(pTempHumiSensor->usAvgHumi,  vSystem_TempHumiIn(psSystem);break) 
+            HANDLE(pTempHumiSensor->xHumiError, vSystem_TempHumiInErr(psSystem);break)
+        }
     }
-    
 }
 
 /*创建系统内部消息轮询任务*/
@@ -101,6 +158,9 @@ void vSystem_Init(System* pt)
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
     pThis->sTaskInfo.ucPrio = SYSTEM_POLL_TASK_PRIO;
   
+    /***********************绑定BMS变量变化事件***********************/
+    CONNECT( &(BMS_Core()->sBMSValChange), &pThis->sTaskInfo.sTCB);  
+    
     /*********************DTU模块*************************/
     psDTU = DTU_new(psDTU);
     psDTU->init(psDTU, pThis->psMBMasterInfo);
@@ -110,8 +170,9 @@ void vSystem_Init(System* pt)
     {
         pModularRoof = (ModularRoof*)ModularRoof_new();
         pModularRoof->init(pModularRoof, pThis->psMBMasterInfo); //初始化
-        
         pThis->psModularRoofList[n] = pModularRoof;
+        
+        CONNECT( &(pModularRoof->sModularRoofValChange), &pThis->sTaskInfo.sTCB);  //绑定主机变量变化事件
     }
     
     /*********************排风风机*************************/
@@ -132,8 +193,9 @@ void vSystem_Init(System* pt)
     {
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
         pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo); //向上转型，由子类转为父类
-        
         pThis->psCO2SenList[n] = pCO2Sensor;
+        
+        CONNECT( &(pCO2Sensor->Sensor.sSensorValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件
     }
     
     /***********************室外温湿度传感器***********************/
@@ -141,8 +203,9 @@ void vSystem_Init(System* pt)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
+        pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
         
-        pThis->psTempHumiSenOutList[n] = pTempHumiSensor; 
+        CONNECT( &(pTempHumiSensor->Sensor.sSensorValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件        
     }
     
     /***********************室内温湿度传感器***********************/
@@ -150,12 +213,10 @@ void vSystem_Init(System* pt)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
-        
         pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
+        
+        CONNECT( &(pTempHumiSensor->Sensor.sSensorValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件
     }
-    
-    /***********************消息绑定***********************/
-    CONNECT( &(BMS_Core()->sBMSValChange), &pThis->sTaskInfo.sTCB);  //绑定BMS变量变化事件
     
     xSystem_CreatePollTask(pThis); 
 }

@@ -37,7 +37,7 @@ CLASS(ExAirFan)           /*排风风机*/
     
     eFreqType  eFanFreqType;    //风机频率类型
     
-    uint16_t  usRunningFreq;    //运行频率
+    uint16_t  usRunningFreq;    //运行频率 = 实际值*10
     uint16_t  usMaxFreq;        //频率上限 = 实际值*10
     uint16_t  usMinFreq;        //频率下限 = 实际值*10
     

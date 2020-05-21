@@ -47,9 +47,9 @@ CLASS(System)   /*系统*/
     uint8_t           ucModeChangeTime_6;       //模式切换时间t6(min)
                                                 
     int16_t           sTempSet;                 //目标温度值设定
-    int16_t           sGrowUpTemp;              //小鸡适宜生长温度值
-    int16_t           sAdjustModeTemp;          //模式调节温度
-    int16_t           sSupAirMax_T;             //送风最大温度  
+    uint16_t          usGrowUpTemp;             //小鸡适宜生长温度值
+    uint16_t          usAdjustModeTemp;         //模式调节温度
+    uint16_t          usSupAirMax_T;             //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
     uint16_t          usCO2PPMSet;              //CO2平均浓度设定

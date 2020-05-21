@@ -12,7 +12,7 @@ void vSystem_OpenUnits(System* pt)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); //开启所有机组
+        pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); //开启机组
     }
 }
 
@@ -27,7 +27,7 @@ void vSystem_CloseUnits(System* pt)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); //关闭所有机组
+        pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); //关闭机组
     }
 }
 
@@ -40,17 +40,17 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
-    if(pThis->eRunningMode == eRunMode)
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];    
+        pModularRoof->IDevRunning.setRunningMode(SUPER_PTR(pModularRoof, IDevRunning), eRunMode);
+    }
+    
+    if(pThis->eRunningMode == eRunMode) //防止制热工况下反复关风机
     {
         return;
     }
     pThis->eRunningMode = eRunMode; 
-    
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];               
-        pModularRoof->eRunningMode = pThis->eRunningMode;
-    }
     if(pThis->eRunningMode == RUN_MODE_HEAT)    //制热工况下，排风机不开启
     {
         vSystem_CloseExAirFans(pThis);
@@ -101,17 +101,17 @@ void vSystem_ChangeRunningMode(System* pt)
     if(pThis->sAmbientIn_T > pThis->sTempSet)  
     {
         //A. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
-        if(pThis->sTempSet >= pThis->sGrowUpTemp) 
+        if(pThis->sTempSet >= pThis->usGrowUpTemp) 
         {
             //(1)室外干球温度t(wg)≤模式调节温度（默认23℃）
-            if(pThis->sAmbientOut_T <= pThis->sAdjustModeTemp)  
+            if(pThis->sAmbientOut_T <= pThis->usAdjustModeTemp)  
             {
                 vSystem_SetRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式
                 (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_1 * 60, vSystem_AdjustRunningMode, pThis);
             }
             
             //(2)室外干球温度t(wg)＞模式调节温度（默认23℃） 且t（ws）+3 <= t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
-            if( (pThis->sAmbientOut_T > pThis->sAdjustModeTemp) &&  
+            if( (pThis->sAmbientOut_T > pThis->usAdjustModeTemp) &&  
                 (pThis->sAmbientOut_Ts + 30) <= pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
                 vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //开启湿膜降温模式
@@ -119,7 +119,7 @@ void vSystem_ChangeRunningMode(System* pt)
             }
             
             //(3)室外干球温度t(wg)＞模式调节温度（默认23℃），且t（ws）+3＞t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
-            if( (pThis->sAmbientOut_T > pThis->sAdjustModeTemp) &&  
+            if( (pThis->sAmbientOut_T > pThis->usAdjustModeTemp) &&  
                 (pThis->sAmbientOut_Ts + 30) > pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
                 vSystem_SetRunningMode(pThis, RUN_MODE_COOL);    //开启降温模式
@@ -127,7 +127,7 @@ void vSystem_ChangeRunningMode(System* pt)
             }
         } 
         //B. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
-        if(pThis->sTempSet < pThis->sGrowUpTemp) 
+        if(pThis->sTempSet < pThis->usGrowUpTemp) 
         {
               
         }  
@@ -151,19 +151,63 @@ void vSystem_SupAirTemp(System* pt)
         pModularRoof = pThis->psModularRoofList[n];
         
         //(3)当送风温度大于【送风温度最大值】（默认45℃）,声光报警
-        if(pModularRoof->sSupAir_T > pThis->sSupAirMax_T)
+        if(pModularRoof->sSupAir_T > pThis->usSupAirMax_T)
         {
             vSystem_SetAlarm(pThis);
             return;            
         }         
     }
-    vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
+    vSystem_DelAlarmRequst(pThis); //所有机组送风温度恢复正常，申请消除声光报警
+}
+
+/*机组新风量变化*/
+void vSystem_FreAir(System* pt)
+{
+    uint8_t  n = 0; 
+    BOOL     xCommErr          = 0;  
+    uint16_t usTotalFreAir_Vol = 0; 
+           
+    System* pThis = (System*)pt;
+    ModularRoof* pModularRoof = NULL;
+ 
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pThis->psModularRoofList[n]->sMBSlaveDev.xOnLine != TRUE) //机组不在线
+        {
+            xCommErr = TRUE;    //机组通讯故障
+            break;
+        }
+        usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
+    }
+    
+    //【排风机控制模式】为实时新风量时
+    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
+    {
+        if(xCommErr == FALSE)    //机组均通讯正常
+        {
+            //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
+            pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
+        }
+        if(xCommErr == TRUE)    //通讯故障
+        {
+            //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
+            pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
+        } 
+    }
+    //【排风机控制模式】为目标新风量时
+    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
+    {
+         //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
+         pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
+    }  
+    vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化   
 }
 
 /*机组故障处理*/
 void vSystem_UnitErr(System* pt)
 {
-    uint8_t  n = 0; 
+    uint8_t  n, m; 
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
@@ -171,13 +215,26 @@ void vSystem_UnitErr(System* pt)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
 
-       //(1)群控控制器与空调机组通讯故障,  (8)空调机组停机保护。声光报警        
+        if(pModularRoof->xStopErrFlag) //这个标志位不包含可恢复的故障。群控收到这个标志位就要下发关机命令
+        {
+            pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); 
+        }
+
+        //(1)群控控制器与空调机组通讯故障,  (8)空调机组停机保护。声光报警        
         if( (pModularRoof->sMBSlaveDev.xOnLine == FALSE) || (pModularRoof->xStopErrFlag) ) 
         {
-            vSystem_SetAlarm(pThis); 
-            return;            
-        }          
+            vSystem_SetAlarm(pThis);
+            m++;            
+        }
+        else
+        {
+            //机组故障恢复，在非手动和关闭模式下，需重开机组
+            if( (pThis->eSystemMode != MODE_MANUAL) && (pThis->eSystemMode != MODE_CLOSE) )
+            {
+                pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); 
+            }
+        }            
     }
-    vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
+    if(m==0){vSystem_DelAlarmRequst(pThis);}//所有机组无故障申请消除声光报警
 }
 

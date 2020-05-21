@@ -39,19 +39,38 @@ void vBMS_InitBMSCommData(BMS* pt)
     
 SLAVE_PBUF_INDEX_ALLOC()    
     
-SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable)    
+SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable) 
     
     SLAVE_REG_HOLD_DATA(0,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
     SLAVE_REG_HOLD_DATA(2,  uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
     SLAVE_REG_HOLD_DATA(10, uint16,  0,  65535, 0, RO,  (void*)&pSystem->usFreAirSet_Vol)
-    
+        
 SLAVE_END_DATA_BUF(0, 10)    
-    
     
     pThis->sBMSCommData.pxSlaveDataMapIndex = xBMS_DevDataMapIndex;         //绑定映射函数
     pThis->psBMSInfo->sMBCommInfo.psSlaveCurData = &pThis->sBMSCommData;
 }
 
+/*BMS数据监控*/
+void vBMS_MonitorRegist(BMS* pt)
+{
+    BMS* pThis = (BMS*)pt;
+
+    MONITOR(&pThis->System.eSystemMode,  &pThis->sBMSValChange)
+    MONITOR(&pThis->System.eRunningMode, &pThis->sBMSValChange)
+    
+    MONITOR(&pThis->System.sTempSet,        &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usFreAirSet_Vol, &pThis->sBMSValChange)
+    
+    MONITOR(&pThis->System.usHumidityMin, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usHumidityMax, &pThis->sBMSValChange)
+    
+    MONITOR(&pThis->System.usCO2PPMSet,       &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usCO2AdjustDeviat, &pThis->sBMSValChange)
+    
+    MONITOR(&pThis->System.usExAirFanMinFreq, &pThis->sBMSValChange) 
+    MONITOR(&pThis->System.usExAirFanMaxFreq, &pThis->sBMSValChange)
+}
 
 void vBMS_Init(BMS* pt)
 {
@@ -59,17 +78,7 @@ void vBMS_Init(BMS* pt)
     pThis->psBMSInfo = psMBGetSlaveInfo();
     
     vBMS_InitBMSCommData(pThis);
-    
-}
-
-void vBMS_MonitorRegist(BMS* pt)
-{
-    BMS* pThis = (BMS*)pt;
-
-    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
-    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
-    MONITOR(&pThis->System.usAmbientIn_H, &pThis->sBMSValChange)
-         
+    vBMS_MonitorRegist(pThis); 
 }
 
 CTOR(BMS)   //BMS构造函数

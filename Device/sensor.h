@@ -27,9 +27,13 @@ ABS_CLASS(Sensor)          /*传感器*/
     sMBSlaveDevCommData  sDevCommData;     //通讯数据表
     sMBSlaveDev          sMBSlaveDev;      //本通讯设备
     
+    OS_SEM               sSensorValChange; //变量变化事件
+    
     sMasterRegHoldData   sSensor_RegHoldBuf[SENSOR_REG_HOLD_NUM];  //保持寄存器数据域
     
     void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo);
+    void (*monitorRegist)(Sensor* pt);
+    
     void (*timeoutInd)(void * p_tmr, void * p_arg);  //定时器中断服务函数
 };
 

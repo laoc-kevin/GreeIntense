@@ -234,48 +234,7 @@ void vSystem_ExAirSet_Vol(System* pt)
 }
 
 
-/*系统新风量变化*/
-void vSystem_FreAir(System* pt)
-{
-    uint8_t  n = 0; 
-    BOOL     xCommErr          = 0;  
-    uint16_t usTotalFreAir_Vol = 0; 
-           
-    System* pThis = (System*)pt;
-    ModularRoof* pModularRoof = NULL;
- 
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        if(pThis->psModularRoofList[n]->sMBSlaveDev.xOnLine != TRUE) //机组不在线
-        {
-            xCommErr = TRUE;    //机组通讯故障
-            break;
-        }
-        usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
-    }
-    
-    //【排风机控制模式】为实时新风量时
-    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
-    {
-        if(xCommErr == FALSE)    //机组均通讯正常
-        {
-            //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
-            pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
-        }
-        if(xCommErr == TRUE)    //通讯故障
-        {
-            //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-            pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
-        } 
-    }
-    //【排风机控制模式】为目标新风量时
-    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
-    {
-         //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-         pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
-    }    
-}
+
 
 /*设置变频风机频率范围*/
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
@@ -290,7 +249,7 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
-        pExAirFan = pThis->psExAirFanList[n];       //实例化对象 
+        pExAirFan = pThis->psExAirFanList[n];       
         if(pExAirFan->eFanFreqType == VARIABLE_FREQ)  
         {
             pExAirFan->IDevFreq.setFreqRange(SUPER_PTR(pExAirFan, IDevFreq), usMinFreq, usMaxFreq);   

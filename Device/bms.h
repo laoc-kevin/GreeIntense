@@ -9,13 +9,11 @@
 #define   BMS_REG_HOLD_NUM   30    //机组通讯数据表保持寄存器数量
 #define   BMS_BIT_COIL_NUM   50    //机组通讯数据表线圈数量
 
-
 CLASS(BMS)
 {
     EXTENDS(System);
     
     sMBSlaveInfo*     psBMSInfo;          //从栈接口
-    
     sMBSlaveCommData  sBMSCommData;       //系统从栈通讯数据表
     
     sMBSlaveRegData   sBMS_RegHoldBuf[BMS_REG_HOLD_NUM];  //保持寄存器数据域

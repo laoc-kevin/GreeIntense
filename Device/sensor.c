@@ -18,9 +18,9 @@
 **************************************************************/
 
 /*向通讯主栈中注册设备*/
-void vSensor_RegistDev(IDevCom* pt)
+void vSensor_RegistDev(Sensor* pt)
 {
-    Sensor* pThis = SUB_PTR(pt, IDevCom, Sensor);
+    Sensor* pThis = (Sensor*)pt;
     (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
 }
 
@@ -35,8 +35,10 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
     
     pThis->psMBMasterInfo = psMBMasterInfo; //所属通讯主栈
     
-    pDevCom->initDevCommData(pDevCom);
-    pDevCom->registDev(pDevCom);            //向通讯主栈中注册设备
+    pDevCom->initDevCommData(pDevCom);     //通讯数据初始化
+    
+    vSensor_RegistDev(pThis);            //向通讯主栈中注册设备
+    pThis->monitorRegist(pThis);           //注册监控数据
     
     OSTmrCreate(&pThis->sSensorTmr,
 			    "sSensorTmr",
@@ -51,7 +53,7 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数
     SUPER_CTOR(Device);
-    FUNCTION_SETTING(IDevCom.registDev, vSensor_RegistDev);
+    FUNCTION_SETTING(init, vSensor_Init);
 END_CTOR
 
 
@@ -99,12 +101,12 @@ MASTER_PBUF_INDEX_ALLOC()
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)      
-    MASTER_REG_HOLD_DATA(1, int16,  MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 0, (void*)&pCO2Sen->usCO2PPM)
-
-    MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
-MASTER_END_DATA_BUF(1, 0x30)
+MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
     
+    MASTER_REG_HOLD_DATA(1, int16,  MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 0, (void*)&pCO2Sen->usCO2PPM)
+    MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
+        
+MASTER_END_DATA_BUF(1, 0x30)
     
     pCO2Sen->usMaxPPM = MAX_CO2_PPM;
     pCO2Sen->usMinPPM = MIN_CO2_PPM;
@@ -148,9 +150,18 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     }
 }
 
+/* CO2传感器数据监控*/
+void vCO2Sensor_MonitorRegist(Sensor* pt)
+{
+    CO2Sensor* pThis = SUB_PTR(pThis, Sensor, CO2Sensor);
+
+    MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->xCO2Error,   &pThis->Sensor.sSensorValChange)
+}
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
     SUPER_CTOR(Sensor);
+    FUNCTION_SETTING(Sensor.monitorRegist, vCO2Sensor_MonitorRegist);
     FUNCTION_SETTING(Sensor.IDevCom.initDevCommData, vCO2Sensor_InitDevCommData);
     FUNCTION_SETTING(Sensor.timeoutInd, vCO2Sensor_TimeoutInd);
 END_CTOR
@@ -184,9 +195,7 @@ BOOL xTempHumiSensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, US
         default: break;
 	}
     *psIndex = i;
-    return TRUE;
-    
-    
+    return TRUE; 
 }
 
 /*通讯数据表初始化*/
@@ -209,11 +218,6 @@ MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
 
     MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
 MASTER_END_DATA_BUF(1, 0x30)
-    
-
-
-
-
     
     pTempHumiSen->sMaxTemp = MAX_TEMP;
     pTempHumiSen->sMinTemp = MIN_TEMP; 
@@ -276,9 +280,21 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     }
 }
 
+/*温湿度传感器数据监控*/
+void vTempHumiSensor_MonitorRegist(Sensor* pt)
+{
+    TempHumiSensor* pThis = SUB_PTR(pThis, Sensor, TempHumiSensor);
+
+    MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->xTempError, &pThis->Sensor.sSensorValChange)
+    
+    MONITOR(&pThis->usAvgHumi,  &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->xHumiError, &pThis->Sensor.sSensorValChange)
+}
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数
     SUPER_CTOR(Sensor);
+    FUNCTION_SETTING(Sensor.monitorRegist, vTempHumiSensor_MonitorRegist);
     FUNCTION_SETTING(Sensor.IDevCom.initDevCommData, vTempHumiSensor_InitDevCommData);
     FUNCTION_SETTING(Sensor.timeoutInd, vTempHumiSensor_TimeoutInd);
 END_CTOR

@@ -7,6 +7,7 @@
 #include "mb.h"
 #include "mb_m.h"
 #include "mbmap_m.h"
+#include "md_monitor.h"
 #include "md_output.h"
 #include "md_input.h"
 
@@ -44,6 +45,15 @@ typedef enum   /*启停状态*/
 
 }eRunningState;
 
+typedef enum   /*运行模式*/
+{
+    RUN_MODE_COOL    = 1,      //制冷
+    RUN_MODE_HEAT    = 2,      //制热
+    RUN_MODE_FAN     = 3,      //送风   
+    RUN_MODE_WET     = 4,      //湿膜
+}eRunningMode;
+
+
 
 typedef struct  /*设备模拟量接口类型*/
 {
@@ -73,7 +83,7 @@ INTERFACE(IDevSwitch)    /*设备启停接口*/
 
 INTERFACE(IDevRunning)    /*设备运行接口*/
 {                                                         
-     void     (*setRunningMode)(IDevRunning* pt, eSystemMode eMode);  //设置系统模式
+     void     (*setRunningMode)(IDevRunning* pt, eRunningMode eMode);  //设置系统模式
 };
 
 INTERFACE(IDevFreq)      /*设备频率接口*/
@@ -85,9 +95,8 @@ INTERFACE(IDevFreq)      /*设备频率接口*/
 
 INTERFACE(IDevCom)      /*设备通讯接口*/
 {
-    void   (*registDev)(IDevCom* pt);       //向通讯主栈中注册设备
+//    void   (*registDev)(IDevCom* pt);       //向通讯主栈中注册设备
     void   (*initDevCommData)(IDevCom* pt); //初始化设备通讯数据表
-    
 };
 
 

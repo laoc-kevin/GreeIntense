@@ -78,8 +78,9 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet)
     pThis->sTempSet = sTempSet;
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
-        pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->sTempSet = pThis->sTempSet;
+        pModularRoof = pThis->psModularRoofList[n];
+        pModularRoof->usCoolTempSet = pThis->sTempSet;
+        pModularRoof->usHeatTempSet = pThis->sTempSet;
     }
 }
 
@@ -186,7 +187,6 @@ void vSystem_DelAlarmRequst(System* pt)
     {
         vSystem_DelAlarm(pThis); //【声光报警使能】关闭。
     }
-   
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
@@ -197,7 +197,7 @@ void vSystem_DelAlarmRequst(System* pt)
             return;
         } 
         //(3)当送风温度大于【送风温度最大值】（默认45℃）,声光报警
-        if(pModularRoof->sSupAir_T > pThis->sSupAirMax_T)
+        if(pModularRoof->sSupAir_T > pThis->usSupAirMax_T)
         {
             return;            
         }         
