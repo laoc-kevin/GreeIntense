@@ -61,7 +61,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usAmbientOut_H;           //室外环境湿度
 
     uint16_t      usCO2PPM;                 //CO2平均浓度
-    uint16_t      usCO2PPMSet;              //CO2浓度调节阈值
+    uint16_t      usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
     
     BOOL          xCO2SenErr;               //CO2传感器故障(群控下发)
@@ -74,8 +74,8 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
     
-    SupAirFan*     psSupAirFanList[SUP_AIR_FAN_NUM]; //机组送风机列表
-    Compressor*    psCompList     [COMP_NUM];        //压缩机列表
+//    SupAirFan*     psSupAirFanList[SUP_AIR_FAN_NUM]; //机组送风机列表
+//    Compressor*    psCompList     [COMP_NUM];        //压缩机列表
     
     sMBMasterInfo*       psMBMasterInfo;             //所属通讯主栈
     sMBSlaveDevCommData  sDevCommData;               //本设备通讯数据表

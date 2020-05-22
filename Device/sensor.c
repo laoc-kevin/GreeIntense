@@ -1,4 +1,5 @@
 #include "sensor.h"
+#include "md_timer.h"
 
 #define TMR_TICK_PER_SECOND     OS_CFG_TMR_TASK_RATE_HZ
 #define SENSOR_TIME_OUT_S       1
@@ -31,31 +32,21 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
     Sensor*  pThis   = (Sensor*)pt;
     IDevCom* pDevCom = SUPER_PTR(pThis, IDevCom);
     
-    ULONG i = SENSOR_TIME_OUT_S * TMR_TICK_PER_SECOND; 
-    
     pThis->psMBMasterInfo = psMBMasterInfo; //所属通讯主栈
     
-    pDevCom->initDevCommData(pDevCom);     //通讯数据初始化
+    pDevCom->initDevCommData(pDevCom);      //通讯数据初始化
     
-    vSensor_RegistDev(pThis);            //向通讯主栈中注册设备
-    pThis->monitorRegist(pThis);           //注册监控数据
+    vSensor_RegistDev(pThis);               //向通讯主栈中注册设备
+    pThis->registMonitor(pThis);            //注册监控数据
     
-    OSTmrCreate(&pThis->sSensorTmr,
-			    "sSensorTmr",
-		        0,   
-			    i,
-			    OS_OPT_TMR_PERIODIC,
-			    pThis->timeoutInd,
-			    (void*)pThis,
-			    &err);
+    //传感器1s周期定时器
+    (void)xTimerRegist(&pThis->sSensorTmr, 0, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis); 
 }
-
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数
     SUPER_CTOR(Device);
     FUNCTION_SETTING(init, vSensor_Init);
 END_CTOR
-
 
 /*************************************************************
 *                         CO2传感器                          *
@@ -151,7 +142,7 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
 }
 
 /* CO2传感器数据监控*/
-void vCO2Sensor_MonitorRegist(Sensor* pt)
+void vCO2Sensor_RegistMonitor(Sensor* pt)
 {
     CO2Sensor* pThis = SUB_PTR(pThis, Sensor, CO2Sensor);
 
@@ -161,7 +152,7 @@ void vCO2Sensor_MonitorRegist(Sensor* pt)
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
     SUPER_CTOR(Sensor);
-    FUNCTION_SETTING(Sensor.monitorRegist, vCO2Sensor_MonitorRegist);
+    FUNCTION_SETTING(Sensor.registMonitor, vCO2Sensor_RegistMonitor);
     FUNCTION_SETTING(Sensor.IDevCom.initDevCommData, vCO2Sensor_InitDevCommData);
     FUNCTION_SETTING(Sensor.timeoutInd, vCO2Sensor_TimeoutInd);
 END_CTOR
@@ -294,7 +285,7 @@ void vTempHumiSensor_MonitorRegist(Sensor* pt)
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数
     SUPER_CTOR(Sensor);
-    FUNCTION_SETTING(Sensor.monitorRegist, vTempHumiSensor_MonitorRegist);
+    FUNCTION_SETTING(Sensor.registMonitor, vTempHumiSensor_MonitorRegist);
     FUNCTION_SETTING(Sensor.IDevCom.initDevCommData, vTempHumiSensor_InitDevCommData);
     FUNCTION_SETTING(Sensor.timeoutInd, vTempHumiSensor_TimeoutInd);
 END_CTOR

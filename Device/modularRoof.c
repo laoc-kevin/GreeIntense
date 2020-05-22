@@ -128,7 +128,7 @@ void vModularRoof_RegistDev(ModularRoof* pt)
 }
 
 /*机组数据监控*/
-void vModularRoof_MonitorRegist(ModularRoof* pt)
+void vModularRoof_RegistMonitor(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
 
@@ -136,6 +136,14 @@ void vModularRoof_MonitorRegist(ModularRoof* pt)
     MONITOR(&pThis->sSupAir_T,           &pThis->sModularRoofValChange)
     MONITOR(&pThis->usFreAir_Vol,        &pThis->sModularRoofValChange)
     MONITOR(&pThis->sMBSlaveDev.xOnLine, &pThis->sModularRoofValChange)
+}
+
+/*机组EEPROM数据注册*/
+void vModularRoof_RegistEEPROMData(ModularRoof* pt)
+{
+    ModularRoof* pThis = (ModularRoof*)pt;
+    
+    EEPROM_DATA(TYPE_UINT_32, pThis->Device.ulRunTime)
 }
 
 
@@ -147,9 +155,11 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
 
     pThis->psMBMasterInfo = psMBMasterInfo;
 
+    vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
+    vModularRoof_RegistMonitor(pThis);      //注册监控数据
+    
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表   
     vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
-    vModularRoof_MonitorRegist(pThis);      //注册监控数据
     
 //    for(n=0; n < SUP_AIR_FAN_NUM; n++)
 //    {
@@ -159,8 +169,7 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
 //    {
 //        pThis->psCompList[n] = (Compressor*)Compressor_new();
 //    }
-    
-    
+   
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数

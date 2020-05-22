@@ -636,6 +636,11 @@
               <FileType>1</FileType>
               <FilePath>.\Module\md_timer.c</FilePath>
             </File>
+            <File>
+              <FileName>md_eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Module\md_eeprom.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

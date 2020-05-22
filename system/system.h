@@ -52,10 +52,9 @@ CLASS(System)   /*系统*/
     uint16_t          usSupAirMax_T;             //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
-    uint16_t          usCO2PPMSet;              //CO2平均浓度设定
-    uint16_t          usCO2AdjustThr_V;         //CO2浓度调节阈值
+    
+    uint16_t          usCO2PPMSet;              //CO2浓度设定
     uint16_t          usCO2AdjustDeviat;        //CO2浓度调节偏差
-    uint16_t          usCO2PPMDeviat;           //CO2浓度偏差
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
                         
     uint16_t          usExAirSet_Vol;           //系统排风风量设定 
@@ -84,15 +83,22 @@ CLASS(System)   /*系统*/
     uint16_t          usExAirFanPreventTime;    //排风机防频繁调节时间
     uint16_t          usExAirFanTestTime;       //风量检测稳定时间
                       
-    uint16_t          usExAirFanCtrlTime;       //排风机控制周期 
+//    uint16_t          usExAirFanCtrlTime;       //排风机控制周期 
     uint8_t           ucExAirRatio_1;           //排风百分比
     uint8_t           ucExAirFanRequstNum;      //排风机需求个数
     eExAirFanCtrlMode eExAirFanCtrlMode;        //排风机控制模式
     
-    TIMER_HANDLE      sExAirFanFreqAdjustTmr;   //排风机频率调节时间定时器
-    TIMER_HANDLE      sExAirFanPreventTmr;      //排风机防频繁调节时间定时器
-    TIMER_HANDLE      sExAirFanTestTmr;         //风量检测稳定时间定时器
-                                                               
+    OS_TMR            sExAirFanFreqAdjustTmr;   //排风机频率调节时间定时器
+    OS_TMR            sExAirFanPreventTmr;      //排风机防频繁调节时间定时器
+    OS_TMR            sExAirFanTestTmr;         //风量检测稳定时间定时器
+    
+    OS_TMR            sModeChangeTmr_1;         //模式切换时间t1(min)定时器
+    OS_TMR            sModeChangeTmr_2;         //模式切换时间t2(min)定时器
+    OS_TMR            sModeChangeTmr_3;         //模式切换时间t3(min)定时器
+    OS_TMR            sModeChangeTmr_4;         //模式切换时间t4(min)定时器
+    OS_TMR            sModeChangeTmr_5;         //模式切换时间t5(min)定时器
+    OS_TMR            sModeChangeTmr_6;         //模式切换时间t6(min)定时器
+    
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
     BOOL              xTempHumiSenOutErr;       //室外温湿度传感器故障
@@ -100,7 +106,8 @@ CLASS(System)   /*系统*/
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        
-                      
+    OS_TMR            sRuntimeTmr;              //系统运行时间定时器  
+    
     ExAirFan*         pExAirFanVariate;                   //变频风机
     ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
     CO2Sensor*        psCO2SenList  [CO2_SEN_NUM];        //CO2传感器列表

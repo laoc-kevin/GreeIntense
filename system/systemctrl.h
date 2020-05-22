@@ -32,7 +32,8 @@ void vSystem_FreAir(System* pt);
 void vSystem_CloseExAirFans(System* pt);
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq);
 void vSystem_ExAirSet_Vol(System* pt);
-  
+void vSystem_AdjustExAirFanFreq(void* p_tmr, void* p_arg);
+
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

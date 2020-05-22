@@ -8,38 +8,9 @@
 
 #define TIMER_HANDLE uint16_t
 
-typedef enum   /*定时器状态*/
-{
-    TIMER_FREE   =  0,
-    TIMER_ARMED  =  1,
-}eTimerState;
-
-typedef enum   /*系统状态*/
-{
-    TIMER_ONE_SHOT = 0,
-    TIMER_PERIODIC = 1,
-}eTimerType;
-
-typedef void (*pTimerCallback_t)(void* p_arg);
-
-
-typedef struct {
-    
-	eTimerState       eTimerState;
-    eTimerType        eTimerType;
+BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_OPT opt, 
+                  OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg);
+                      
+uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr);
  
-    uint16_t          usTrigTime;
-    uint16_t          usRemainTime;
-    void*             p_arg;
-    
-    pTimerCallback_t  pTimerCallback;
-    
-}sTimerEntity;
-
-TIMER_HANDLE sTimerRegist(eTimerType eTimerType, uint16_t usTrigTime, pTimerCallback_t callback, void* p_arg);
-
-void vTimerRemove(TIMER_HANDLE usTimerIndex);
-
-int16_t sTimerGetElapsedTime(TIMER_HANDLE usTimerIndex);
-
 #endif

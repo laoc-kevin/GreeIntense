@@ -1,111 +1,34 @@
 #include "md_timer.h"
 
-#define MD_TIMER_USED       (LPC_TIM2)
-#define MAX_TIMER_NUM       50
-#define TIMER_NONE          0
+//#define MAX_TIMER_NUM  10
 
-sTimerEntity Timers[MAX_TIMER_NUM] = {{TIMER_FREE, NULL, 0, 0},};
+//OS_TMR TimerPool[MAX_TIMER_NUM];
 
-void TIM2_Configuration(void)
+//uint8_t TimerIndex = 0;
+
+BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_OPT opt, 
+                  OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg)
 {
-	TIM_TIMERCFG_Type TIM_ConfigStruct = {TIM_PRESCALE_USVAL, {0,0,0}, 500};
-	TIM_MATCHCFG_Type TIM_MatchConfigStruct = {0, TRUE, TRUE, FALSE, TIM_EXTMATCH_NOTHING, {0,0,0}, 1};
-
-	TIM_Init(MD_TIMER_USED, TIM_TIMER_MODE, &TIM_ConfigStruct);
-	TIM_ConfigMatch(MD_TIMER_USED, &TIM_MatchConfigStruct);
-
-//	/* preemption = 1, sub-priority = 1 */
-//	NVIC_SetPriority(CNAOPEN_TIMER_INTR_USED, ((0x01<<3)|0x01));
-
-	/* Enable interrupt for timer 2 */
-	//NVIC_EnableIRQ(CNAOPEN_TIMER_INTR_USED);
-	BSP_IntEn(BSP_INT_ID_TIMER2);
-
-	// To start timer
-	TIM_Cmd(MD_TIMER_USED, ENABLE);
-}
-
-void vTimerInit(void)
-{
-	TIM2_Configuration();
-}
-
-void vTimerDispatch(void)
-{
-    TIMER_HANDLE  usTimerIndex = 0;
-    sTimerEntity* psTimer      = NULL;
+    OS_ERR err     = OS_ERR_NONE;
     
-    for(usTimerIndex=0; usTimerIndex < MAX_TIMER_NUM; usTimerIndex++)
-    {
-        psTimer = &Timers[usTimerIndex];
-        psTimer->usRemainTime--;
-        
-        if(psTimer->usRemainTime == 0)
-        {
-            if(psTimer->pTimerCallback != NULL)
-            {
-                psTimer->pTimerCallback(psTimer->p_arg);
-            }
-            
-            if(psTimer->eTimerType == TIMER_PERIODIC)
-            {
-                psTimer->usRemainTime = psTimer->usTrigTime;
-            }
-            else if(psTimer->eTimerType == TIMER_ONE_SHOT)
-            {
-                psTimer->eTimerState  = TIMER_FREE;
-            } 
-        }
-    }
-}
-
-TIMER_HANDLE sTimerRegist(eTimerType eTimerType, uint16_t usTrigTime, pTimerCallback_t callback, void* p_arg)
-{
-    TIMER_HANDLE  usTimerIndex = 0;
-    sTimerEntity* psTimer      = NULL;
+    OS_TICK dly    = usDlyTime_s * TMR_TICK_PER_SECOND;
+    OS_TICK period = usPeriod_s * TMR_TICK_PER_SECOND;
     
-    for(usTimerIndex=0; usTimerIndex < MAX_TIMER_NUM; usTimerIndex++)
+    OS_STATE  sTmrState = OSTmrStateGet(p_tmr, &err);
+    
+    if(sTmrState == OS_TMR_STATE_UNUSED)
     {
-        psTimer = &Timers[usTimerIndex];
-        if( (callback != NULL) && (psTimer->eTimerState == TIMER_FREE) )
-        {
-            psTimer->eTimerState  = TIMER_ARMED;
-            psTimer->eTimerType   = eTimerType;
-            psTimer->usTrigTime   = usTrigTime;
-            psTimer->usRemainTime = usTrigTime;
-            psTimer->pTimerCallback = callback;
-            
-            return usTimerIndex + 1;
-        }
+        OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err);
     }
-    return TIMER_NONE; 
+    if( (sTmrState == OS_TMR_STATE_STOPPED) || (sTmrState == OS_TMR_STATE_COMPLETED) )
+    {
+        OSTmrStart(p_tmr, &err);
+    }
+    return err == OS_ERR_NONE;
 }
 
-void vTimerRemove(TIMER_HANDLE usTimerIndex)
+uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr)
 {
-    sTimerEntity* psTimer = NULL;
-    if( (usTimerIndex > MAX_TIMER_NUM) || (usTimerIndex < 1))
-    {
-        return;
-    }
-    psTimer = &Timers[usTimerIndex-1];
-    psTimer->eTimerState = TIMER_FREE;
-}
-
-int16_t sTimerGetElapsedTime(TIMER_HANDLE usTimerIndex)
-{
-    if( (usTimerIndex > MAX_TIMER_NUM) || (usTimerIndex < 1))
-    {
-        return -1;
-    }
-	return Timers[usTimerIndex-1].usRemainTime;
-}
-
-void TIMER3_IRQHandler(void)
-{
-	if(TIM_GetIntStatus(MD_TIMER_USED, TIM_MR0_INT) != RESET)
-	{
-		TIM_ClearIntPending(MD_TIMER_USED, TIM_MR0_INT);
-		vTimerDispatch();
-	}
+    OS_ERR err     = OS_ERR_NONE;
+    return  OSTmrRemainGet(p_tmr, &err) / TMR_TICK_PER_SECOND;
 }

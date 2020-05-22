@@ -10,6 +10,7 @@
 #include "md_monitor.h"
 #include "md_output.h"
 #include "md_input.h"
+#include "md_eeprom.h"
 
 typedef uint8_t BOOL;
 
@@ -104,7 +105,7 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 
 ABS_CLASS(Device)        /*设备抽象类*/
 {
-    uint16_t        usRunTime;        //运行时间
+    uint32_t        ulRunTime;       //运行时间(s)
     BOOL            xErrFlag;        //总故障标志
     BOOL            xAlarmFlag;      //总报警标志
     

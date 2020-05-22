@@ -105,6 +105,15 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
     }
 }
 
+/*排风机EEPROM数据注册*/
+void vExAirFan_RegistEEPROMData(ExAirFan* pt)
+{
+    ExAirFan* pThis = (ExAirFan*)pt;
+    
+    EEPROM_DATA(TYPE_UINT_32, pThis->Device.ulRunTime)
+}
+
+
 /*排风机初始化*/
 void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
 {
@@ -112,6 +121,7 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
     pThis->eFanFreqType = psFan->eFanFreqType;  
     
     vExAirFan_RegistSwitchIO(pThis, psFan->ucSwitch_DO);  //启停接口
+    vExAirFan_RegistEEPROMData(pThis);                    //EEPROM数据注册
     
     if(pThis->eFanFreqType == VARIABLE_FREQ)  //变频接口
     {

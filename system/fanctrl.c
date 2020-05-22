@@ -1,5 +1,6 @@
 #include "system.h"
 #include "systemctrl.h"
+#include "md_timer.h"
 
 /*系统关闭所有排风机*/
 void vSystem_CloseExAirFans(System* pt)
@@ -14,12 +15,6 @@ void vSystem_CloseExAirFans(System* pt)
         pExAirFan = pThis->psExAirFanList[n];
         pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭所有排风机
     }
-}
-
-void vSystem_ExAirFanPreventTmrCallback(void* p_arg)
-{
-    System*   pThis = (System*)p_arg;
-    pThis->sExAirFanPreventTmr = 0;
 }
 
 /*系统排风风机控制*/
@@ -50,8 +45,8 @@ void vSystem_CtrlExAirFan(System* pt)
     //非手动模式
     if(pThis->eSystemMode != MODE_MANUAL)
     {
-         //不同工况切换至少满足【排风机防频繁调节时间】（默认1800s）
-        if(pThis->sExAirFanPreventTmr !=0)
+        //不同工况切换至少满足【排风机防频繁调节时间】（默认1800s）
+        if( usGetTmrElapsedTime(&pThis->sExAirFanPreventTmr) !=0 )
         {
             return;
         }
@@ -74,7 +69,7 @@ void vSystem_CtrlExAirFan(System* pt)
         {          
             for(i=0; i< m-n; i++)
             {
-                if(pFanByRunTimeList[i]->Device.usRunTime > pFanByRunTimeList[m+1]->Device.usRunTime)
+                if(pFanByRunTimeList[i]->Device.ulRunTime > pFanByRunTimeList[i+1]->Device.ulRunTime)
                 {
                                pExAirFan   = pFanByRunTimeList[i];
                     pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
@@ -95,8 +90,8 @@ void vSystem_CtrlExAirFan(System* pt)
                 }
             }
             //开启排风机防频繁调节定时器
-            pThis->sExAirFanPreventTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime, 
-                                                      vSystem_ExAirFanPreventTmrCallback, pThis);
+            (void)xTimerRegist(&pThis->sExAirFanPreventTmr, pThis->usExAirFanPreventTime, 0, 
+                               OS_OPT_TMR_ONE_SHOT, NULL, pThis);
         }
         //系统需求排风机个数 > 运行的定频排风机个数
         if(pThis->ucExAirFanRequstNum > ucRunningNum)
@@ -111,19 +106,17 @@ void vSystem_CtrlExAirFan(System* pt)
                 }
             }
             //开启排风机防频繁调节定时器
-            pThis->sExAirFanPreventTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime, 
-                                                      vSystem_ExAirFanPreventTmrCallback, pThis);
+           (void)xTimerRegist(&pThis->sExAirFanPreventTmr, pThis->usExAirFanPreventTime, 0, 
+                              OS_OPT_TMR_ONE_SHOT, NULL, pThis);
         }
     }  
 }
 
 /*系统风量检测稳定时间*/
-void vSystem_ExAirFanTestTmrCallback(void* p_arg)
+void vSystem_ExAirFanTestTmrCallback(void* p_tmr, void* p_arg)
 {
     System*   pThis = (System*)p_arg;
     uint8_t   ucExAirFanRequstNum = 0;
-    
-    pThis->sExAirFanTestTmr = 0;
     
     //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）
     if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
@@ -150,8 +143,8 @@ void vSystem_ExAirFanTestTmrCallback(void* p_arg)
     {
         pThis->ucExAirFanRequstNum = ucExAirFanRequstNum; 
         //重启风量检测稳定时间定时器
-        pThis->sExAirFanTestTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime, 
-                                               vSystem_ExAirFanTestTmrCallback, pThis);
+        (void)xTimerRegist(&pThis->sExAirFanTestTmr, pThis->usExAirFanTestTime, 0, 
+                           OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanTestTmrCallback, pThis);
     }
     //工况一致
     if(pThis->ucExAirFanRequstNum == ucExAirFanRequstNum)
@@ -161,7 +154,7 @@ void vSystem_ExAirFanTestTmrCallback(void* p_arg)
 }
 
 /*系统排风风机频率调节*/
-void vSystem_AdjustExAirFanFreq(void* p_arg)
+void vSystem_AdjustExAirFanFreq(void* p_tmr, void* p_arg)
 {
     uint8_t   n      = 0;
     uint16_t  usFreq = 0;
@@ -179,12 +172,10 @@ void vSystem_AdjustExAirFanFreq(void* p_arg)
     //非手动模式
     if(pThis->eSystemMode != MODE_MANUAL)
     {
-        pThis->sExAirFanFreqAdjustTmr = 0;
-    
         usFreq = ( (pThis->usExAirSet_Vol)-(pThis->ulExAirFanRated_Vol)*(pThis->ucExAirFanRequstNum) ) / 
                    (pThis->ulExAirFanRated_Vol)*50;
         
-        if(pExAirFanVariate->Device.eRunningState == STATE_STOP) //如果变频风机未开启，则先开启
+        if( (pExAirFanVariate->Device.eRunningState == STATE_STOP) && (usFreq > 0) ) //如果变频风机未开启，则先开启
         {
             pExAirFanVariate->IDevSwitch.switchOpen(SUPER_PTR(pExAirFanVariate, IDevSwitch));
         }
@@ -198,43 +189,31 @@ void vSystem_ExAirSet_Vol(System* pt)
     System*   pThis = (System*)pt;
     uint8_t   ucExAirFanRequstNum = 0;
     
-    //开启排风机频率调节时间定时器
-    if(pThis->sExAirFanFreqAdjustTmr == 0)
+    //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）
+    if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
     {
-        pThis->sExAirFanFreqAdjustTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime,
-                                                     vSystem_AdjustExAirFanFreq, pThis);    //风机频率调节 
+        pThis->ucExAirFanRequstNum = 0;
     }
-    //首次检测
-    if( pThis->sExAirFanTestTmr == 0)
+    //当【排风机额定风量】<系统排风需求量<=【排风机额定风量】*2
+    if( (pThis->ulExAirFanRated_Vol > pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*2) )
     {
-        //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）
-        if(pThis->usExAirSet_Vol <= pThis->ulExAirFanRated_Vol)
-        {
-            pThis->ucExAirFanRequstNum = 0;
-        }
-        //当【排风机额定风量】<系统排风需求量<=【排风机额定风量】*2
-        if( (pThis->ulExAirFanRated_Vol > pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*2) )
-        {
-            pThis->ucExAirFanRequstNum = 1;
-        }
-        //当【排风机额定风量】*2<系统排风需求量<=【排风机额定风量】*3
-        if( (pThis->ulExAirFanRated_Vol*2 < pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*3) )
-        {
-            pThis->ucExAirFanRequstNum = 2;
-        }
-        //当【排风机额定风量】*3<系统排风需求量
-        if(pThis->ulExAirFanRated_Vol*3 < pThis->usExAirSet_Vol) 
-        {
-            pThis->ucExAirFanRequstNum = 3;
-        }
-        //开启风量检测稳定时间定时器
-        pThis->sExAirFanTestTmr = sTimerRegist(TIMER_ONE_SHOT, pThis->usExAirFanTestTime,
-                                                vSystem_ExAirFanTestTmrCallback, pThis); 
-    }      
+        pThis->ucExAirFanRequstNum = 1;
+    }
+    //当【排风机额定风量】*2<系统排风需求量<=【排风机额定风量】*3
+    if( (pThis->ulExAirFanRated_Vol*2 < pThis->usExAirSet_Vol) && (pThis->usExAirSet_Vol<= pThis->ulExAirFanRated_Vol*3) )
+    {
+        pThis->ucExAirFanRequstNum = 2;
+    }
+    //当【排风机额定风量】*3<系统排风需求量
+    if(pThis->ulExAirFanRated_Vol*3 < pThis->usExAirSet_Vol) 
+    {
+        pThis->ucExAirFanRequstNum = 3;
+    }
+    //开启风量检测稳定时间定时器
+    (void)xTimerRegist(&pThis->sExAirFanTestTmr, pThis->usExAirFanTestTime, 0, 
+                           OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanTestTmrCallback, pThis);
+    
 }
-
-
-
 
 /*设置变频风机频率范围*/
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq)

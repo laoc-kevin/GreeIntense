@@ -11,6 +11,11 @@ void vSystem_SwitchOpen(System* pt)
     System* pThis = (System*)pt;
 
     vSystem_OpenUnits(pThis);
+    
+    //开启排风机频率调节时间定时器,频率每【排风机频率调节时间】（默认30s）更新一次  
+   (void)xTimerRegist(&pThis->sExAirFanFreqAdjustTmr, 0, pThis->usExAirFanFreqAdjustTime, 
+                      OS_OPT_TMR_PERIODIC, vSystem_AdjustExAirFanFreq, pThis);    //风机频率调节
+   
     pThis->eSwitchCmd = ON; 
 }
 
@@ -130,7 +135,7 @@ void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2PPMSet = pThis->usCO2PPMSet;
+        pModularRoof->usCO2AdjustThr_V = pThis->usCO2PPMSet;
     }
 }
 

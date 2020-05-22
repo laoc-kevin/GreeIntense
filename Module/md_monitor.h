@@ -1,5 +1,5 @@
-#ifndef _MD_DATA_MONITOR_H_
-#define _MD_DATA_MONITOR_H_
+#ifndef _MD_MONITOR_H_
+#define _MD_MONITOR_H_
 
 #include "includes.h"
 

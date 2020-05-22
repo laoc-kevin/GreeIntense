@@ -58,7 +58,7 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
 }
 
 /*/调整机组运行模式*/
-void vSystem_AdjustRunningMode(void* p_arg)
+void vSystem_AdjustRunningMode(void* p_tmr, void* p_arg)
 {
     System* pThis = (System*)p_arg;
     
@@ -67,7 +67,7 @@ void vSystem_AdjustRunningMode(void* p_arg)
     {
         return;
     }
-    //若t2(默认5分钟)内温度没有达到目标温度t(ng1)±1.5℃
+    //若规定时间内温度没有达到目标温度t(ng1)±1.5℃
     if(pThis->sAmbientIn_T > pThis->sTempSet + pThis->ucAmbientInDeviat_T)  
     {
         if(pThis->eRunningMode == RUN_MODE_FAN)
@@ -106,8 +106,9 @@ void vSystem_ChangeRunningMode(System* pt)
             //(1)室外干球温度t(wg)≤模式调节温度（默认23℃）
             if(pThis->sAmbientOut_T <= pThis->usAdjustModeTemp)  
             {
-                vSystem_SetRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式
-                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_1 * 60, vSystem_AdjustRunningMode, pThis);
+                vSystem_SetRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式 
+                (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->ucModeChangeTime_1 * 60, 0, 
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
             }
             
             //(2)室外干球温度t(wg)＞模式调节温度（默认23℃） 且t（ws）+3 <= t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
@@ -115,7 +116,8 @@ void vSystem_ChangeRunningMode(System* pt)
                 (pThis->sAmbientOut_Ts + 30) <= pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
                 vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //开启湿膜降温模式
-                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_2 * 60, vSystem_AdjustRunningMode, pThis);
+                (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->ucModeChangeTime_2 * 60, 0, 
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
             }
             
             //(3)室外干球温度t(wg)＞模式调节温度（默认23℃），且t（ws）+3＞t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
@@ -123,13 +125,18 @@ void vSystem_ChangeRunningMode(System* pt)
                 (pThis->sAmbientOut_Ts + 30) > pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
                 vSystem_SetRunningMode(pThis, RUN_MODE_COOL);    //开启降温模式
-                (void)sTimerRegist(TIMER_ONE_SHOT, pThis->ucModeChangeTime_3 * 60, vSystem_AdjustRunningMode, pThis);
+                (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->ucModeChangeTime_3 * 60, 0, 
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
             }
         } 
         //B. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
         if(pThis->sTempSet < pThis->usGrowUpTemp) 
         {
               
+            
+            
+            
+            
         }  
     }
     //制热工况:  室内干球温度t(ng2) <= 舍内温度目标要求温度t(ng1)，开启制热工况
