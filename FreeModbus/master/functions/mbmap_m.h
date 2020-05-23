@@ -47,7 +47,14 @@
  
 //测试命令初始化申请  
 #define MASTER_TEST_CMD_INIT(pCmd, arg1, arg2, arg3, arg4) \
-        vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3, arg4);    
+        vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3, arg4); 
+
+#if MB_MASTER_HEART_BEAT_ENABLED
+//心跳帧初始化申请  
+#define MASTER_HEART_BEAT_INIT(psDevHeartBeat, arg1, arg2, arg3) \
+        vMBMasterDevHeartBeatInit((sMBDevHeartBeat*)psDevHeartBeat, arg1, arg2, arg3);         
+#endif  
+
 #endif
 
 typedef eMBMasterReqErrCode (*psMBDevDataMapIndex)(eDataType eDataType, UCHAR ucProtocolID, USHORT usAddr, USHORT* psIndex); //字典映射函数
@@ -79,6 +86,8 @@ void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr,
 void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue);
 
 void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr, BOOL xCheckVal); 
+
+void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usValue, eDataType eDataType, UCHAR ucAddr);
 
 void vMBMasterDevDataTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, 
                                USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount); 

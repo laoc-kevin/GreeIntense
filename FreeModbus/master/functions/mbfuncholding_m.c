@@ -88,7 +88,6 @@
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
-
  /***********************************************************************************
  * @brief  主栈写单个保持寄存器
  * @param  ucSndAddr      从栈地址

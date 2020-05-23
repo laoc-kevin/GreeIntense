@@ -244,6 +244,18 @@ void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode
 }
 
 /***********************************************************************************
+ * @brief  测试命令点初始化
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usValue, eDataType eDataType, UCHAR ucAddr)                                  
+{
+    psDevHeartBeat->usValue   = usValue;       //数值
+    psDevHeartBeat->eDataType = eDataType;     //测试模式
+    psDevHeartBeat->ucAddr    = ucAddr;        //测试点位通讯地址
+}
+
+/***********************************************************************************
  * @brief 数据表初始化
  * @author laoc
  * @date 2019.01.22

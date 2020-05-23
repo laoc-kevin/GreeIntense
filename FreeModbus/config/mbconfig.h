@@ -55,6 +55,9 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_TCP_ENABLED                   (  0 )
 /*! \brief If Modbus Master DTU support is enabled. */
 #define MB_MASTER_DTU_ENABLED                   (  1 )
+/*! \brief If Modbus Master Heart beat support is enabled. */
+#define MB_MASTER_HEART_BEAT_ENABLED            (  1 )
+
 
 /*! \brief If Modbus Slave ASCII support is enabled. */
 #define MB_SLAVE_ASCII_ENABLED                  (  0 )

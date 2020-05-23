@@ -145,7 +145,12 @@ typedef struct sMBMasterInfo  /* master information */
     BOOL                bDTUEnable;    
     pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块
 #endif                                                              
-                                                                    
+
+#ifdef MB_MASTER_HEART_BEAT_ENABLED
+    
+    
+#endif        
+    
 	eMBMode             eMode;                         //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
 	eMBState            eMBState;                      //主栈状态
     eMBMasterSndState   eSndState;                     //发送状态

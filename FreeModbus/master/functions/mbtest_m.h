@@ -5,5 +5,5 @@
 
 void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR iSlaveAddr);
 void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev);
-
+eMBMasterReqErrCode eMBDevHeartBeat(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev);
 #endif

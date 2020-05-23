@@ -57,10 +57,19 @@ typedef struct       /* 主栈字典离散量数据结构 */
 typedef struct   /* 用于测试从栈的指令数据结构 */       
 {
     USHORT          usValue;       //数值
-    eMasterCmdMode  eCmdMode;      //测试模式
-    UCHAR           ucAddr;        //测试点位通讯地址
+    eMasterCmdMode  eCmdMode;      //模式
+    UCHAR           ucAddr;        //测试点位地址
     BOOL            xCheckVal;     //测试时比较数值
 }sMBTestDevCmd; 
+
+#ifdef MB_MASTER_HEART_BEAT_ENABLED
+typedef struct   /* 从设备心跳帧数据结构 */       
+{
+    USHORT          usValue;       //数值
+    eDataType       eDataType;     //数据类型
+    UCHAR           ucAddr;        //点位地址
+}sMBDevHeartBeat;   
+#endif 
 
 typedef struct   /* 主栈字典数据列表结构 */
 {
@@ -80,6 +89,10 @@ typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */
 	sMBDevDataTable      sMBDiscInTable;      //离散量数据表
     sMBTestDevCmd        sMBDevCmdTable;      //用于测试从设备状态命令表
     
+#ifdef MB_MASTER_HEART_BEAT_ENABLED
+    BOOL                 xHeartBeatEnable;
+    sMBDevHeartBeat      sMBDevHeartBeat;     //心跳帧
+#endif     
     UCHAR                ucProtocolID;        //协议ID
     pxMBDevDataMapIndex  pxDevDataMapIndex;   //字典映射函数
     
@@ -111,7 +124,7 @@ typedef struct    /* 主栈从设备状态结构  */
     UCHAR         ucSlaveDevMinAddr;  //从设备最小通讯地址
 	UCHAR         ucSlaveDevMaxAddr;  //从设备最大通讯地址
     
-    UCHAR         ucDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR + 1];
+    BOOL          xDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR + 1];
     
 	sMBSlaveDev*  psMBSlaveDevsList;  //当前在线从设备列表
     sMBSlaveDev*  psMBSlaveDevCur;    //当前活动的设备
