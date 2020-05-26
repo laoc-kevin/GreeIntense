@@ -168,7 +168,7 @@ void vSystem_SupAirTemp(System* pt)
 void vSystem_FreAir(System* pt)
 {
     uint8_t  n = 0; 
-    BOOL     xCommErr          = 0;  
+    BOOL     xUnitErr          = 0;  
     uint16_t usTotalFreAir_Vol = 0; 
            
     System* pThis = (System*)pt;
@@ -177,9 +177,9 @@ void vSystem_FreAir(System* pt)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pThis->psModularRoofList[n]->sMBSlaveDev.xOnLine != TRUE) //机组不在线
+        if( (pModularRoof->sMBSlaveDev.xOnLine == FALSE) || (pModularRoof->xStopErrFlag == TRUE) )  //机组故障
         {
-            xCommErr = TRUE;    //机组通讯故障
+            xUnitErr = TRUE;    //机组通讯故障
             break;
         }
         usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
@@ -188,12 +188,12 @@ void vSystem_FreAir(System* pt)
     //【排风机控制模式】为实时新风量时
     if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
     {
-        if(xCommErr == FALSE)    //机组均通讯正常
+        if(xUnitErr == FALSE)    //机组均正常
         {
             //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
             pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
         }
-        if(xCommErr == TRUE)    //通讯故障
+        if(xUnitErr == TRUE)    //故障
         {
             //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
             pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
@@ -206,6 +206,121 @@ void vSystem_FreAir(System* pt)
          pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
     }  
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化   
+}
+
+/*机组CO2浓度变化*/
+void vSystem_UnitCO2PPM(System* pt)
+{
+    
+    uint8_t  n, ucNum; 
+    uint16_t usTotalCO2PPM = 0;   
+    
+    System* pThis = (System*)pt;
+    
+    ModularRoof* pModularRoof = NULL;
+    CO2Sensor*   pCO2Sensor   = NULL;
+    
+    if(pThis->xCO2SenErr == TRUE)   //系统传感器故障，采用机组参数
+    {
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            {
+                usTotalCO2PPM  +=  pModularRoof->usCO2PPMSelf;
+                ucNum++;
+            }
+            
+        }
+        if(ucNum != 0) 
+        {
+            pThis->usCO2PPM  = usTotalCO2PPM / ucNum;    //机组CO2平均浓度
+        }
+        
+        //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
+        if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
+        {
+            vSystem_SetAlarm(pThis);
+        }
+        else
+        {
+            vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
+        }
+    }
+}
+
+/*机组室外温湿度变化*/
+void vSystem_UnitTempHumiOut(System* pt)
+{
+    uint8_t  n, ucNum;
+ 
+    int16_t  sTotalTemp = 0; 
+    uint16_t usTotalHumi = 0;  
+    
+    System* pThis = (System*)pt;
+    ModularRoof* pModularRoof = NULL;
+ 
+    if( (pThis->xTempSenOutErr == TRUE) || (pThis->xHumiSenOutErr == TRUE) )   //系统传感器故障，采用机组参数
+    {
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            {
+                sTotalTemp  +=  pModularRoof->sAmbientOutSelf_T;
+                usTotalHumi += pModularRoof->usAmbientOutSelf_H;
+                ucNum++;
+            }
+        }
+        if(ucNum != 0) 
+        {
+            if( pThis->xTempSenOutErr == TRUE)              
+            {
+                pThis->sAmbientOut_T  = sTotalTemp / ucNum;    //机组室外平均环境温度
+            }
+            if( pThis->xHumiSenOutErr == TRUE)      
+            {
+                pThis->usAmbientOut_H  = usTotalHumi / ucNum;  //机组室外平均环境湿度
+            }
+        }
+    }
+}
+
+/*机组室内温湿度变化*/
+void vSystem_UnitTempHumiIn(System* pt)
+{
+    uint8_t  n, ucNum;
+ 
+    int16_t  sTotalTemp = 0; 
+    uint16_t usTotalHumi = 0;  
+    
+    System* pThis = (System*)pt;
+    ModularRoof* pModularRoof = NULL;
+ 
+    if( (pThis->xTempSenInErr == TRUE) || (pThis->xHumiSenInErr == TRUE) )   //系统传感器故障，采用机组参数
+    {
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            {
+                sTotalTemp  +=  pModularRoof->sAmbientInSelf_T;
+                usTotalHumi += pModularRoof->usAmbientInSelf_H;
+                ucNum++;;
+            }   
+        }
+        if(ucNum != 0) 
+        {
+            if( pThis->xTempSenInErr == TRUE)              
+            {
+                pThis->sAmbientIn_T  = sTotalTemp / ucNum;     //机组室内平均环境温度
+            }
+            if( pThis->xHumiSenInErr == TRUE)      
+            {
+                pThis->usAmbientOut_H  = usTotalHumi / ucNum;  //机组室内平均环境湿度
+            }
+        }
+    }
 }
 
 /*机组故障处理*/
@@ -232,11 +347,11 @@ void vSystem_UnitErr(System* pt)
         }
         else
         {
-            //机组故障恢复，在非手动和关闭模式下，需重开机组
-            if( (pThis->eSystemMode != MODE_MANUAL) && (pThis->eSystemMode != MODE_CLOSE) )
-            {
-                pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); 
-            }
+//            //机组故障恢复，在非手动和关闭模式下，需重开机组
+//            if( (pThis->eSystemMode != MODE_MANUAL) && (pThis->eSystemMode != MODE_CLOSE) )
+//            {
+//                pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); 
+//            }
         }            
     }
     if(m==0){vSystem_DelAlarmRequst(pThis);}//所有机组无故障申请消除声光报警

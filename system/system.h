@@ -52,7 +52,6 @@ CLASS(System)   /*系统*/
     uint16_t          usSupAirMax_T;             //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
-    
     uint16_t          usCO2PPMSet;              //CO2浓度设定
     uint16_t          usCO2AdjustDeviat;        //CO2浓度调节偏差
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
@@ -104,6 +103,12 @@ CLASS(System)   /*系统*/
     
     BOOL              xTempHumiSenOutErr;       //室外温湿度传感器故障
     BOOL              xTempHumiSenInErr;        //室内温湿度传感器故障
+    
+    BOOL              xTempSenOutErr;           //室外温度传感器故障
+    BOOL              xTempSenInErr;            //室内温度传感器故障
+    
+    BOOL              xHumiSenOutErr;           //室外湿度传感器故障
+    BOOL              xHumiSenInErr;            //室内湿度传感器故障
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        

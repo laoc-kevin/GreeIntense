@@ -76,9 +76,17 @@ void vSystem_PollTask(void *p_arg)
             
             HANDLE(pModularRoof->sSupAir_T,    vSystem_SupAirTemp(psSystem);break) 
             HANDLE(pModularRoof->usFreAir_Vol, vSystem_FreAir(psSystem);break) 
-            HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem);break)
             
+            HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem);break)
             HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem);break)
+            
+            HANDLE(pModularRoof->sAmbientInSelf_T,  vSystem_UnitTempHumiIn(psSystem);break)
+            HANDLE(pModularRoof->usAmbientInSelf_H, vSystem_UnitTempHumiIn(psSystem);break)
+            
+            HANDLE(pModularRoof->sAmbientOutSelf_T,  vSystem_UnitTempHumiOut(psSystem);break)
+            HANDLE(pModularRoof->usAmbientOutSelf_H, vSystem_UnitTempHumiOut(psSystem);break)
+            
+            HANDLE(pModularRoof->usCO2PPMSelf, vSystem_UnitCO2PPM(psSystem);break)
         }
         
         /***********************CO2传感器事件响应***********************/

@@ -35,6 +35,7 @@ void vSystem_CO2PPM(System* pt)
         pModularRoof = pThis->psModularRoofList[n];
         pModularRoof->usCO2PPM = pThis->usCO2PPM;
     }
+    
     //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
     if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
     {
@@ -64,7 +65,8 @@ void vSystem_CO2SensorErr(System* pt)
         }  
     }
     //所有二氧化碳传感器均故障，下发一个总故障标志给空调机组
-    pThis->xCO2SenErr = (ucCO2Num == 0)? TRUE:FALSE;
+    pThis->xCO2SenErr = (ucCO2Num == 0) ? TRUE:FALSE;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
@@ -108,32 +110,6 @@ void vSystem_TempHumiOut(System* pt)
             ucHumiNum++;
         }           
     }
-    //传感器全部故障,采用机组温度
-    if(ucTempNum == 0)
-    {
-        for(n=0; n < MODULAR_ROOF_NUM; n++)
-        {
-            pModularRoof = pThis->psModularRoofList[n]; 
-            if(pModularRoof->sMBSlaveDev.xOnLine == TRUE)
-            {
-                usTotalHumi = usTotalHumi + pModularRoof->sAmbientOut_T;
-                ucTempNum++;
-            }             
-        }
-    }
-    //传感器全部故障,采用机组湿度
-    if(ucHumiNum == 0)
-    {
-        for(n=0; n < MODULAR_ROOF_NUM; n++)
-        {
-            pModularRoof = pThis->psModularRoofList[n]; 
-            if(pModularRoof->sMBSlaveDev.xOnLine == TRUE)
-            {
-                sTotalTemp = sTotalTemp + pModularRoof->usAmbientOut_H;
-                ucHumiNum++;
-            }             
-        }
-    }
     if(ucTempNum != 0)
     {
         pThis->sAmbientOut_T  = sTotalTemp / ucTempNum;  //室外平均环境温度
@@ -142,19 +118,20 @@ void vSystem_TempHumiOut(System* pt)
     {
         pThis->usAmbientOut_H = usTotalHumi / ucHumiNum;  //室外平均环境湿度
     }
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        pModularRoof->sAmbientOut_T  = pThis->sAmbientOut_T;
-        pModularRoof->usAmbientOut_H = pThis->usAmbientOut_H;
-    }
     
-    T = pThis->sAmbientOut_T;
-    H = pThis->usAmbientOut_H;
+//    for(n=0; n < MODULAR_ROOF_NUM; n++)
+//    {
+//        pModularRoof = pThis->psModularRoofList[n];
+//        pModularRoof->sAmbientOut_T  = pThis->sAmbientOut_T;
+//        pModularRoof->usAmbientOut_H = pThis->usAmbientOut_H;
+//    }
     
-    pThis->sAmbientOut_Ts = HumiFactor[0] + HumiFactor[1]*T + HumiFactor[2]*H + HumiFactor[3]*T*T +
-                            HumiFactor[4]*H*H + HumiFactor[5]*T*H + HumiFactor[6]*T*T*T + HumiFactor[7]*H*H*H +
-                            HumiFactor[8]*T*H*H +  HumiFactor[9]*T*T*H;
+//    T = pThis->sAmbientOut_T;
+//    H = pThis->usAmbientOut_H;
+//    
+//    pThis->sAmbientOut_Ts = HumiFactor[0] + HumiFactor[1]*T + HumiFactor[2]*H + HumiFactor[3]*T*T +
+//                            HumiFactor[4]*H*H + HumiFactor[5]*T*H + HumiFactor[6]*T*T*T + HumiFactor[7]*H*H*H +
+//                            HumiFactor[8]*T*H*H +  HumiFactor[9]*T*T*H;
     
     vSystem_ChangeRunningMode(pThis);  //模式切换逻辑
 }
@@ -162,7 +139,7 @@ void vSystem_TempHumiOut(System* pt)
 /*系统室外温湿度传感器故障*/
 void vSystem_TempHumiOutErr(System* pt)
 {
-    uint8_t  n, ucTempNum, ucHumiNum;   
+    uint8_t  n, ucTempNum, ucHumiNum;
     System* pThis = (System*)pt;
     
     TempHumiSensor* pTempHumiSensor = NULL;
@@ -179,7 +156,12 @@ void vSystem_TempHumiOutErr(System* pt)
             ucHumiNum++;
         }           
     }
-    if(ucTempNum == 0 && ucHumiNum == 0)
+
+    //传感器全部故障
+    pThis->xTempSenOutErr = (ucTempNum == 0) ? TRUE:FALSE;
+    pThis->xHumiSenOutErr = (ucHumiNum == 0) ? TRUE:FALSE;
+    
+    if(pThis->xTempSenOutErr == TRUE && pThis->xHumiSenOutErr == FALSE)
     {
         pThis->xTempHumiSenOutErr = TRUE;
         vSystem_SetAlarm(pThis);   //同类全部传感器通讯故障,声光报警
@@ -217,6 +199,7 @@ void vSystem_TempHumiIn(System* pt)
             ucHumiNum++;
         }            
     }
+
     if(ucTempNum != 0)
     {
          pThis->sAmbientIn_T  = sTotalTemp / ucTempNum;  //室内平均环境温度
@@ -237,8 +220,11 @@ void vSystem_TempHumiIn(System* pt)
 /*系统室内温湿度传感器故障*/
 void vSystem_TempHumiInErr(System* pt)
 {
-    BOOL     xTempSenErr, xHumiSenErr;
     uint8_t  n, ucTempNum, ucHumiNum;   
+    
+    int16_t  sTotalTemp = 0;
+    uint16_t usTotalHumi = 0;  
+    
     System* pThis = (System*)pt;
     
     ModularRoof*       pModularRoof = NULL;
@@ -256,18 +242,19 @@ void vSystem_TempHumiInErr(System* pt)
             ucHumiNum++;
         }            
     }
-    //所有温度传感器均故障，下发一个总故障标志给空调机组
-    xTempSenErr = (ucTempNum == 0)? TRUE:FALSE;
-    xHumiSenErr = (ucHumiNum == 0)? TRUE:FALSE;
- 
+    
+    //传感器全部故障
+    pThis->xTempSenInErr = (ucTempNum == 0) ? TRUE:FALSE;
+    pThis->xHumiSenInErr = (ucHumiNum == 0) ? TRUE:FALSE;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        pModularRoof->xTempSenInErr = xTempSenErr;
-        pModularRoof->xHumiSenInErr = xHumiSenErr;
+        pModularRoof->xTempSenInErr = pThis->xTempSenInErr;
+        pModularRoof->xHumiSenInErr = pThis->xHumiSenInErr; 
     }
     
-    if(ucTempNum == 0 && ucHumiNum == 0)
+    if(pThis->xTempSenInErr == TRUE && pThis->xHumiSenInErr == TRUE)
     {
         pThis->xTempHumiSenInErr = TRUE;
         vSystem_SetAlarm(pThis);   //同类全部传感器通讯故障,声光报警

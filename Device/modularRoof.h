@@ -55,12 +55,16 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usHeatTempSet;            //制热温度值设定
     uint16_t      usFreAirSet_Vol;          //目标新风风量设定
 
-    int16_t       sAmbientIn_T;             //室内环境温度
-    int16_t       sAmbientOut_T;            //室外环境温度                                       
-    uint16_t      usAmbientIn_H;            //室内环境湿度
-    uint16_t      usAmbientOut_H;           //室外环境湿度
+    int16_t       sAmbientIn_T;             //室内环境温度(群控检测)
+    int16_t       sAmbientInSelf_T;         //室内环境温度
+    uint16_t      usAmbientIn_H;            //室内环境湿度(群控检测)
+     uint16_t     usAmbientInSelf_H;        //室内环境湿度
+     
+    int16_t       sAmbientOutSelf_T;        //室外环境温度  
+    uint16_t      usAmbientOutSelf_H;       //室外环境湿度
 
-    uint16_t      usCO2PPM;                 //CO2平均浓度
+    uint16_t      usCO2PPM;                 //CO2平均浓度(群控检测)
+    uint16_t      usCO2PPMSelf;             //CO2平均浓度
     uint16_t      usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
     
@@ -74,6 +78,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
     OS_SEM        sValChange;               //变量变化事件
+    
 //    SupAirFan*     psSupAirFanList[SUP_AIR_FAN_NUM]; //机组送风机列表
 //    Compressor*    psCompList     [COMP_NUM];        //压缩机列表
    

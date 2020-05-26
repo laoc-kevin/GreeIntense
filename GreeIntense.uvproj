@@ -501,11 +501,6 @@
               <FileType>1</FileType>
               <FilePath>.\App\app.c</FilePath>
             </File>
-            <File>
-              <FileName>app_val.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\App\app_val.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
