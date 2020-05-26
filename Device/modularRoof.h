@@ -73,15 +73,16 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
-    
+    OS_SEM        sValChange;               //变量变化事件
 //    SupAirFan*     psSupAirFanList[SUP_AIR_FAN_NUM]; //机组送风机列表
 //    Compressor*    psCompList     [COMP_NUM];        //压缩机列表
+   
     
     sMBMasterInfo*       psMBMasterInfo;             //所属通讯主栈
     sMBSlaveDevCommData  sDevCommData;               //本设备通讯数据表
     sMBSlaveDev          sMBSlaveDev;                //本通讯设备
     
-    OS_SEM         sModularRoofValChange;            //变量变化事件
+    
     
     sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
     sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域

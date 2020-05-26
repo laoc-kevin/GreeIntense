@@ -43,33 +43,47 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
-    if(pThis->eSystemMode == eSystemMode)
-    {
-        return;
-    }
-    pThis->eSystemMode = eSystemMode;
-    
     //手动模式
-    if(pThis->eSystemMode == MODE_MANUAL)
+    if(eSystemMode == MODE_MANUAL)
     {
         
     }
     //自动模式
-    if(pThis->eSystemMode == MODE_AUTO)
+    if(eSystemMode == MODE_AUTO)
     {
+        //群控温湿度传感器故障，且群控与机组通信故障无法获取机组正常室外温度、正常室外湿度，禁止从其他模式切换到自动模式
+        if(pThis->xTempHumiSenOutErr == TRUE) 
+        {
+            for(n=0; n < MODULAR_ROOF_NUM; n++)
+            {
+                pModularRoof = pThis->psModularRoofList[n]; 
+            
+               //(1)群控控制器与空调机组通讯故障        
+                if(pModularRoof->sMBSlaveDev.xOnLine == FALSE) 
+                {
+                    return;
+                }
+                //群控控制器与空调机组通讯正常, 但室外温度或湿度传感器故障
+                else if( (pModularRoof->xHumiSenOutErr) || (pModularRoof->xTempSenOutErr) )  
+                {
+                    return;
+                }                    
+            }
+        }   
         vSystem_SwitchOpen(pThis);  //开启系统
     }
     //关闭模式
-    if(pThis->eSystemMode == MODE_CLOSE)
+    if(eSystemMode == MODE_CLOSE)
     {
         vSystem_SwitchClose(pThis);
     }
     //紧急模式
-    if(pThis->eSystemMode == MODE_EMERGENCY)
+    if(eSystemMode == MODE_EMERGENCY)
     {
         vSystem_SwitchOpen(pThis);  //开启系统
         vSystem_SetRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
+    pThis->eSystemMode = eSystemMode;
 }
 
 /*设定系统目标温度值*/
@@ -80,13 +94,13 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet)
     
     ModularRoof* pModularRoof = NULL;
     
-    pThis->sTempSet = sTempSet;
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        pModularRoof->usCoolTempSet = pThis->sTempSet;
-        pModularRoof->usHeatTempSet = pThis->sTempSet;
+        pModularRoof->usCoolTempSet = sTempSet;
+        pModularRoof->usHeatTempSet = sTempSet;
     }
+    pThis->sTempSet = sTempSet;
 }
 
 /*设定系统目标新风量*/
@@ -96,13 +110,12 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->usFreAirSet_Vol = usFreAirSet_Vol;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];        
-        pModularRoof->usFreAirSet_Vol = pThis->usFreAirSet_Vol / MODULAR_ROOF_NUM;
+        pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol / MODULAR_ROOF_NUM;
     }
+    pThis->usFreAirSet_Vol = usFreAirSet_Vol;
 }
 
 /*设定系统湿度阈值*/
@@ -112,15 +125,14 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->usHumidityMin = usHumidityMin;
-    pThis->usHumidityMax = usHumidityMax;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usHumidityMin = pThis->usHumidityMin;
-        pModularRoof->usHumidityMax = pThis->usHumidityMax;
+        pModularRoof->usHumidityMin = usHumidityMin;
+        pModularRoof->usHumidityMax = usHumidityMax;
     }
+    pThis->usHumidityMin = usHumidityMin;
+    pThis->usHumidityMax = usHumidityMax;
 }
 
 /*设定系统目标CO2浓度值*/
@@ -130,13 +142,12 @@ void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->usCO2PPMSet = usCO2PPMSet;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2AdjustThr_V = pThis->usCO2PPMSet;
+        pModularRoof->usCO2AdjustThr_V = usCO2PPMSet;
     }
+    pThis->usCO2PPMSet = usCO2PPMSet;
 }
 
 /*设定系统CO2浓度偏差*/
@@ -146,13 +157,12 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->usCO2AdjustDeviat = usCO2AdjustDeviat;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
+        pModularRoof->usCO2AdjustDeviat = usCO2AdjustDeviat;
     }
+    pThis->usCO2AdjustDeviat = usCO2AdjustDeviat;
 }
 
 /*注册声光报警启停接口*/

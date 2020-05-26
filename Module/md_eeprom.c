@@ -1,5 +1,6 @@
-#include "md_eeprom.h"
 #include "lpc_eeprom.h"
+#include "md_eeprom.h"
+#include "md_event.h"
 
 #define EEPROM_READ_DATA_DELAY_MS       50
 #define EEPROM_WRITE_DATA_DELAY_MS      200
@@ -445,4 +446,9 @@ void vEEPROMDataTask(void * p_arg)
         OSTimeDlyHMSM(0, 0, EEPROM_WRITE_DATA_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
         vWriteEEPROMData();
     }
+}
+
+void vEEPROMInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
+{
+     (void)eTaskCreate(p_tcb, vEEPROMDataTask, NULL, prio, p_stk_base, stk_size);
 }

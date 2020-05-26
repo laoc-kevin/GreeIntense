@@ -19,7 +19,7 @@ CLASS(BMS)
     sMBSlaveRegData   sBMS_RegHoldBuf[BMS_REG_HOLD_NUM];  //保持寄存器数据域
     sMBSlaveBitData   sBMS_BitCoilBuf[BMS_BIT_COIL_NUM];  //线圈数据域
     
-    OS_SEM            sBMSValChange; 
+    OS_SEM            sValChange; 
     
     void   (*init)(BMS* pt);
 };

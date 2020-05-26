@@ -8,7 +8,6 @@ void vSystem_OpenUnits(System* pt)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
@@ -23,7 +22,6 @@ void vSystem_CloseUnits(System* pt)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
@@ -45,16 +43,15 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
         pModularRoof = pThis->psModularRoofList[n];    
         pModularRoof->IDevRunning.setRunningMode(SUPER_PTR(pModularRoof, IDevRunning), eRunMode);
     }
-    
-    if(pThis->eRunningMode == eRunMode) //防止制热工况下反复关风机
+    if(pThis->eRunningMode == eRunMode)      //防止制热工况下反复关风机
     {
         return;
     }
-    pThis->eRunningMode = eRunMode; 
-    if(pThis->eRunningMode == RUN_MODE_HEAT)    //制热工况下，排风机不开启
+    if(pThis->eRunningMode == RUN_MODE_HEAT) //制热工况下，排风机不开启
     {
         vSystem_CloseExAirFans(pThis);
     }
+    pThis->eRunningMode = eRunMode; 
 }
 
 /*/调整机组运行模式*/

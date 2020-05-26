@@ -19,8 +19,7 @@ typedef struct        /**DI数据结构**/
 }sDIData; 
 
 void     vDigitalInputRegister(uint8_t ucChannel, uint8_t* pvVal);
-void     vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);
-         
+void     vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);       
 void     vAnalogInputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax);
 
 uint32_t ulAnalogInputGetRealVal(uint8_t ucChannel);
@@ -30,6 +29,5 @@ uint8_t  ucGetControllerID(void);
 uint8_t* pcGetControllerID(void);
 uint8_t  ucGetSaInput(void);
 
-void     vInputReceiveTask(void *p_arg);
-
+void vInputInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
 #endif

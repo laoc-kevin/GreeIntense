@@ -9,6 +9,9 @@ sMonitorInfo  MonitorBuf[MONITOR_DATA_MAX_NUM];
 
 uint16_t MonitorID = 0;
 
+/**************************************************************
+*@brief 数据监控注册
+***************************************************************/
 void vMonitorRegist(void* pvVal, OS_SEM* psSem)
 {
     sMonitorInfo* psMonitorInfo = NULL;
@@ -21,7 +24,6 @@ void vMonitorRegist(void* pvVal, OS_SEM* psSem)
     MonitorID++;
     
     psMonitorInfo->pvVal    = pvVal;
-
     psMonitorInfo->psSem    = psSem;
     psMonitorInfo->usDataId = MonitorID + 1;   //全局标示
     psMonitorInfo->sDataBuf = *(int32_t*)pvVal;
@@ -38,6 +40,9 @@ void vMonitorRegist(void* pvVal, OS_SEM* psSem)
     MonitorList->pLast = psMonitorInfo;
 }
 
+/**************************************************************
+*@brief 数据监控轮询
+***************************************************************/
 void vMonitorPollTask(void *p_arg)
 {
     CPU_TS  ts = 0;
@@ -46,7 +51,7 @@ void vMonitorPollTask(void *p_arg)
     sMsg*            psMsg  = NULL;
     sMonitorInfo* psMonitor = NULL;
     
-    OS_TCB* psEventTCB = psEventGetTCB();
+    OS_TCB* psEventTCB = psGetEventTCB();
     
     while(DEF_TRUE)
 	{
@@ -65,3 +70,7 @@ void vMonitorPollTask(void *p_arg)
     }
 }
 
+void vMonitorInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
+{
+    (void)eTaskCreate(p_tcb, vMonitorPollTask, NULL, prio, p_stk_base, stk_size);
+}

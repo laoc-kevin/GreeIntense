@@ -22,8 +22,11 @@ typedef struct  /*消息结构封装*/
     void*          pvArg;     
 }sMsg;
 
-void vEventRegist(OS_SEM* psSem, OS_TCB* psTCB);
 
-OS_TCB* psEventGetTCB(void);
+void vEventRegist(OS_SEM* psSem, OS_TCB* psTCB);
+void vEventInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
+
+OS_ERR eTaskCreate(OS_TCB *p_tcb, OS_TASK_PTR p_task, void *p_arg, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
+OS_TCB* psGetEventTCB(void);
 
 #endif

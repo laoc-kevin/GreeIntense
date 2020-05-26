@@ -56,20 +56,20 @@ void vBMS_MonitorRegist(BMS* pt)
 {
     BMS* pThis = (BMS*)pt;
 
-    MONITOR(&pThis->System.eSystemMode,  &pThis->sBMSValChange)
-    MONITOR(&pThis->System.eRunningMode, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.eSystemMode,  &pThis->sValChange)
+    MONITOR(&pThis->System.eRunningMode, &pThis->sValChange)
     
-    MONITOR(&pThis->System.sTempSet,        &pThis->sBMSValChange)
-    MONITOR(&pThis->System.usFreAirSet_Vol, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.sTempSet,        &pThis->sValChange)
+    MONITOR(&pThis->System.usFreAirSet_Vol, &pThis->sValChange)
     
-    MONITOR(&pThis->System.usHumidityMin, &pThis->sBMSValChange)
-    MONITOR(&pThis->System.usHumidityMax, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usHumidityMin, &pThis->sValChange)
+    MONITOR(&pThis->System.usHumidityMax, &pThis->sValChange)
     
-    MONITOR(&pThis->System.usCO2PPMSet,       &pThis->sBMSValChange)
-    MONITOR(&pThis->System.usCO2AdjustDeviat, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usCO2PPMSet,       &pThis->sValChange)
+    MONITOR(&pThis->System.usCO2AdjustDeviat, &pThis->sValChange)
     
-    MONITOR(&pThis->System.usExAirFanMinFreq, &pThis->sBMSValChange) 
-    MONITOR(&pThis->System.usExAirFanMaxFreq, &pThis->sBMSValChange)
+    MONITOR(&pThis->System.usExAirFanMinFreq, &pThis->sValChange) 
+    MONITOR(&pThis->System.usExAirFanMaxFreq, &pThis->sValChange)
 }
 
 void vBMS_Init(BMS* pt)

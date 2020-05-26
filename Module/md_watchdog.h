@@ -2,8 +2,6 @@
 #define MD_WATCHDOG_H
 #include "includes.h"
 
-#define WATCHDOG_ENABLE 1
-
-void vWatchDogFeedTask(void * p_arg);
+void vWatchDogInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
 
 #endif

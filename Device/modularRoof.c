@@ -132,10 +132,10 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
 
-    MONITOR(&pThis->xStopErrFlag,        &pThis->sModularRoofValChange)
-    MONITOR(&pThis->sSupAir_T,           &pThis->sModularRoofValChange)
-    MONITOR(&pThis->usFreAir_Vol,        &pThis->sModularRoofValChange)
-    MONITOR(&pThis->sMBSlaveDev.xOnLine, &pThis->sModularRoofValChange)
+    MONITOR(&pThis->xStopErrFlag,        &pThis->sValChange)
+    MONITOR(&pThis->sSupAir_T,           &pThis->sValChange)
+    MONITOR(&pThis->usFreAir_Vol,        &pThis->sValChange)
+    MONITOR(&pThis->sMBSlaveDev.xOnLine, &pThis->sValChange)
 }
 
 /*机组EEPROM数据注册*/
@@ -143,7 +143,7 @@ void vModularRoof_RegistEEPROMData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
     
-    EEPROM_DATA(TYPE_UINT_32, pThis->Device.ulRunTime)
+    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime)
 }
 
 

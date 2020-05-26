@@ -101,8 +101,9 @@ CLASS(System)   /*系统*/
     
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
+    
     BOOL              xTempHumiSenOutErr;       //室外温湿度传感器故障
-    BOOL              xTempHumiSenInErr;        //室外温湿度传感器故障
+    BOOL              xTempHumiSenInErr;        //室内温湿度传感器故障
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        
@@ -124,6 +125,7 @@ CLASS(System)   /*系统*/
 
 };
 
+void vSystemInit(OS_PRIO prio);
 System* System_Core();    //获取全局唯一对象，单例设计模式
 
 #endif

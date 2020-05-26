@@ -110,7 +110,7 @@ void vExAirFan_RegistEEPROMData(ExAirFan* pt)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
     
-    EEPROM_DATA(TYPE_UINT_32, pThis->Device.ulRunTime)
+    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime)
 }
 
 

@@ -1,6 +1,11 @@
 #include "system.h"
 #include "systemctrl.h"
 
+/*湿球温度*/
+float HumiFactor[10] = {-6.569910081f, 0.63758824f, 9.240366999f, -0.00279f,     -5.159058621f,
+                         0.579769533f, 0.0000134f,  2.601427878f, -0.234920132f,  0.00256f};
+
+
 /*系统CO2浓度变化*/
 void vSystem_CO2PPM(System* pt)
 {
@@ -81,8 +86,8 @@ void vSystem_CO2SensorErr(System* pt)
 void vSystem_TempHumiOut(System* pt)
 {
     uint8_t  n, ucTempNum, ucHumiNum; 
-    int16_t  sTotalTemp = 0;
-    uint16_t usTotalHumi = 0;  
+    int16_t  T, sTotalTemp = 0;
+    uint16_t H, usTotalHumi = 0;  
     
     System* pThis = (System*)pt;
     
@@ -143,6 +148,14 @@ void vSystem_TempHumiOut(System* pt)
         pModularRoof->sAmbientOut_T  = pThis->sAmbientOut_T;
         pModularRoof->usAmbientOut_H = pThis->usAmbientOut_H;
     }
+    
+    T = pThis->sAmbientOut_T;
+    H = pThis->usAmbientOut_H;
+    
+    pThis->sAmbientOut_Ts = HumiFactor[0] + HumiFactor[1]*T + HumiFactor[2]*H + HumiFactor[3]*T*T +
+                            HumiFactor[4]*H*H + HumiFactor[5]*T*H + HumiFactor[6]*T*T*T + HumiFactor[7]*H*H*H +
+                            HumiFactor[8]*T*H*H +  HumiFactor[9]*T*T*H;
+    
     vSystem_ChangeRunningMode(pThis);  //模式切换逻辑
 }
 

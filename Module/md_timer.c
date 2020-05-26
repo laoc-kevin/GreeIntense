@@ -6,6 +6,9 @@
 
 //uint8_t TimerIndex = 0;
 
+/**************************************************************
+*@brief 定时器注册
+***************************************************************/
 BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_OPT opt, 
                   OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg)
 {
@@ -27,6 +30,9 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_O
     return err == OS_ERR_NONE;
 }
 
+/**************************************************************
+*@brief 定时器剩余计时
+***************************************************************/
 uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr)
 {
     OS_ERR err     = OS_ERR_NONE;

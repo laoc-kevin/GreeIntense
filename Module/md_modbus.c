@@ -5,10 +5,7 @@
 #include "lpc_gpio.h"
 #include "lpc_clkpwr.h"
 
-#include "app_val.h"
-
 #include "md_led.h"
-
 #include "md_modbus.h"
 #include "md_output.h"
 #include "md_input.h"
@@ -52,24 +49,29 @@ sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",              
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_SLAVE_POLL_TASK_PRIO}; /* 从栈配置信息 */
                                                                    
-                                  
 /**********************************************************************
- * @brief  MODBUS初始化
- * @param  psMBSlaveInfo  从栈信息块   
- * @return BOOL   
- * @author laoc
- * @date 2019.01.22
+ * @brief  MODBUS主栈初始化
  *********************************************************************/
-void vModbusInit(void)
+void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
 {
+    MBMasterNode.ucMasterPollPrio = ucPollPrio;
+    MBMasterNode.ucMasterScanPrio = ucScanPrio;
     (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
-    
+}
+
+/**********************************************************************
+ * @brief  MODBUS从栈初始化
+ *********************************************************************/
+void vModbusSlaveInit(OS_PRIO prio)
+{
     MBSlaveNode.pcSlaveAddr = pcGetControllerID();
+    MBSlaveNode.ucSlavePollPrio = prio;
+    
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
 }
    
 /******************************************************************
-*@brief 获取主栈地址								
+*@brief 获取主栈								
 ******************************************************************/
 sMBMasterInfo*  psMBGetMasterInfo(void)
 {
@@ -77,13 +79,12 @@ sMBMasterInfo*  psMBGetMasterInfo(void)
 }
 
 /******************************************************************
-*@brief 获取从栈栈地址								
+*@brief 获取从栈							
 ******************************************************************/
 sMBSlaveInfo*  psMBGetSlaveInfo(void)
 {
     return &MBSlaveInfo;
 }
-
 
 /**********************************************************************
  * @brief   UART1中断响应函数

@@ -13,7 +13,6 @@ typedef enum
 
 void vLedStateChange(const IODef* ledName,uint8_t state);
 void vLedInit(void);
-void vLedTask(void * p_arg);
 void vLedOn(const IODef* led);
 void vLedOff(const IODef* led);
 

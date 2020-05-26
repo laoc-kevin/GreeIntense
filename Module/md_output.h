@@ -37,5 +37,5 @@ void vDigitalOutputDataToggle(uint8_t ucChannel);
 void vAnalogOutputSetRealVal(uint8_t ucChannel, uint32_t ulRealData);
 void vAnalogOutputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax);
 
-void vOutputSetTask(void *p_arg);
+void vOutputInit(void);
 #endif

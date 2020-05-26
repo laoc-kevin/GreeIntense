@@ -94,7 +94,7 @@ MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr,
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
     
-    MASTER_REG_HOLD_DATA(1, int16,  MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 0, (void*)&pCO2Sen->usCO2PPM)
+    MASTER_REG_HOLD_DATA(1,   uint16, MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 0, (void*)&pCO2Sen->usCO2PPM)
     MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
         
 MASTER_END_DATA_BUF(1, 0x30)
@@ -146,8 +146,8 @@ void vCO2Sensor_RegistMonitor(Sensor* pt)
 {
     CO2Sensor* pThis = SUB_PTR(pThis, Sensor, CO2Sensor);
 
-    MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sSensorValChange)
-    MONITOR(&pThis->xCO2Error,   &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xCO2Error,   &pThis->Sensor.sValChange)
 }
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
@@ -276,11 +276,11 @@ void vTempHumiSensor_MonitorRegist(Sensor* pt)
 {
     TempHumiSensor* pThis = SUB_PTR(pThis, Sensor, TempHumiSensor);
 
-    MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sSensorValChange)
-    MONITOR(&pThis->xTempError, &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xTempError, &pThis->Sensor.sValChange)
     
-    MONITOR(&pThis->usAvgHumi,  &pThis->Sensor.sSensorValChange)
-    MONITOR(&pThis->xHumiError, &pThis->Sensor.sSensorValChange)
+    MONITOR(&pThis->usAvgHumi,  &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xHumiError, &pThis->Sensor.sValChange)
 }
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数

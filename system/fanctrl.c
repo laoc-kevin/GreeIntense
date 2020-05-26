@@ -9,7 +9,6 @@ void vSystem_CloseExAirFans(System* pt)
     System* pThis = (System*)pt;
     
     ExAirFan*    pExAirFan    = NULL;
-    
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];

@@ -20,4 +20,5 @@ typedef struct sMonitorInfo /*设备模拟量接口类型*/
 
 void vMonitorRegist(void* pvVal, OS_SEM* psSem);
  
+void vMonitorInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
 #endif
