@@ -13,15 +13,18 @@ END_CTOR
 /*************************************************************
 *                         排风机                             *
 **************************************************************/
-/*注册风机启停接口*/
-void vExAirFan_RegistSwitchIO(ExAirFan* pt, uint8_t ucSwitch_DO)
+/*注册风机数字量接口*/
+void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucErr_DI)
 {
     ExAirFan* pThis    = (ExAirFan*)pt;  
     pThis->sSwitch_DO.ucChannel = ucSwitch_DO;
+    pThis->sErr_DI.ucChannel = ucErr_DI;
+    
+    vDigitalInputRegister(ucErr_DI, &pThis->xExAirFanErr);
 }
 
-/*注册风机频率接口*/
-void vExAirFan_RegistFreqIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq)
+/*注册风机模拟量接口*/
+void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
 
@@ -120,12 +123,12 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
     ExAirFan* pThis     = (ExAirFan*)pt;
     pThis->eFanFreqType = psFan->eFanFreqType;  
     
-    vExAirFan_RegistSwitchIO(pThis, psFan->ucSwitch_DO);  //启停接口
+    vExAirFan_RegistDigitalIO(pThis, psFan->ucSwitch_DO, psFan->ucErr_DI);  //启停接口
     vExAirFan_RegistEEPROMData(pThis);                    //EEPROM数据注册
     
     if(pThis->eFanFreqType == VARIABLE_FREQ)  //变频接口
     {
-        vExAirFan_RegistFreqIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
+        vExAirFan_RegistAnalogIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
     } 
 }
 

@@ -16,16 +16,41 @@
 
 #define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;continue;}
 
-static System* psSystem = NULL;
-static uint8_t SystemTaskPrio = 10;
+static System*   psSystem = NULL;
+
+static OS_PRIO         SystemTaskPrio = 10;
+static CPU_STK_SIZE    SystemTaskStkSize = 128;
+
+static OS_TCB*   psSystemTaskTCB = NULL;
+static CPU_STK*  psSystemTaskStk = NULL;
 
 /*系统排风机配置信息*/
-sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {VARIABLE_FREQ, 250, 500, 1, 1, 1},
-                                         {CONSTANT_FREQ, 0,   0,   0, 0, 2},
-                                         {CONSTANT_FREQ, 0,   0,   0, 0, 3},
-                                         {CONSTANT_FREQ, 0,   0,   0, 0, 4},
+sFanInfo ExAirFanVariate = {VARIABLE_FREQ, 250, 500, 1, 1, 1, 1};
+
+sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 2, 0},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3, 0},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 4, 0},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 5, 0},
                                        };
-                                                                       
+/*系统排风机类型切换*/
+void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
+{
+    System* pThis = (System*)pt; 
+    ExAirFan* pExAirFan = pThis->psExAirFanList[0];
+
+    if(eExAirFanType == Type_CONSTANT_VARIABLE)     //定频 + 变频
+    {
+        pExAirFan->init(pExAirFan, &ExAirFanVariate);
+        pThis->pExAirFanVariate = pExAirFan;
+    }
+    else   //定频
+    {
+        pExAirFan->init(pExAirFan, &ExAirFanSet[0]);
+        pThis->pExAirFanVariate = NULL;
+    }  
+    pThis->eExAirFanType = eExAirFanType;   
+}
+                                                                            
 /*系统内部消息轮询*/
 void vSystem_PollTask(void *p_arg)
 {
@@ -61,7 +86,7 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->System.usHumidityMax, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin,
                                                                 psBMS->System.usHumidityMax))
         
-        HANDLE(psBMS->System.usCO2PPMSet,       vSystem_SetCO2PPM(psSystem, psBMS->System.usCO2PPMSet))
+        HANDLE(psBMS->System.usCO2AdjustThr_V,  vSystem_SetCO2PPM(psSystem, psBMS->System.usCO2AdjustThr_V))
         HANDLE(psBMS->System.usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->System.usCO2AdjustDeviat))
         
         HANDLE(psBMS->System.usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
@@ -69,14 +94,16 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->System.usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
                                                                              psBMS->System.usExAirFanMaxFreq))
         
+        HANDLE(psBMS->System.eExAirFanType, vSystem_ChangeExAirFanType(psSystem, psBMS->System.eExAirFanType))
+                                                                             
+                                                                             
         /***********************主机事件响应***********************/
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n]; 
             
             HANDLE(pModularRoof->sSupAir_T,    vSystem_SupAirTemp(psSystem);break) 
-            HANDLE(pModularRoof->usFreAir_Vol, vSystem_FreAir(psSystem);break) 
-            
+ 
             HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem);break)
             HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem);break)
             
@@ -129,27 +156,8 @@ BOOL xSystem_CreatePollTask(System* pt)
 {
     OS_ERR    err = OS_ERR_NONE;
     System* pThis = (System*)pt;
-    
-    sTaskInfo*  psTaskInfo = &pThis->sTaskInfo;
-   
-    OS_PRIO             prio = psTaskInfo->ucPrio;
-    OS_TCB*            p_tcb = (OS_TCB*)(&psTaskInfo->sTCB);  
-    CPU_STK*      p_stk_base = (CPU_STK*)(psTaskInfo->usStk);
-    CPU_STK_SIZE    stk_size = MB_DEV_POLL_TASK_STK_SIZE; 
-    
-    OSTaskCreate(&psTaskInfo->sTCB,
-                  "vSystem_PollTask",
-                  vSystem_PollTask,
-                  (void*)pThis,
-                  prio,
-                  p_stk_base ,
-                  stk_size / 10u,
-                  stk_size,
-                  0u,
-                  0u,
-                  0u,
-                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                  &err);
+
+    err = eTaskCreate(psSystemTaskTCB, vSystem_PollTask, pThis, SystemTaskPrio, psSystemTaskStk, SystemTaskStkSize);
     return (err == OS_ERR_NONE);              
 }
 
@@ -208,8 +216,9 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientOutDeviat_H)
     
     EEPROM_DATA(TYPE_UINT_8, pThis->ucChickenGrowDays)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirRatio_1)
-    EEPROM_DATA(TYPE_UINT_8, pThis->eExAirFanCtrlMode)
+    EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirCoolRatio)
+    EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirHeatRatio)
+    EEPROM_DATA(TYPE_UINT_8, pThis->eExAirFanType)
     EEPROM_DATA(TYPE_UINT_8, pThis->xAlarmEnable)
     
     
@@ -218,7 +227,7 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usAdjustModeTemp)
     EEPROM_DATA(TYPE_UINT_16, pThis->usSupAirMax_T)
     
-    EEPROM_DATA(TYPE_UINT_16, pThis->usCO2PPMSet)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustThr_V)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustDeviat)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2PPMAlarm)
     EEPROM_DATA(TYPE_UINT_16, pThis->usFreAirSet_Vol)
@@ -228,11 +237,9 @@ void vSystem_RegistEEPROMData(System* pt)
     
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanMinFreq)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanMaxFreq)
-    
-    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanFreqAdjustTime)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanPreventTime)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanTestTime)
-    
+    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanRunTimeLeast)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanCtrlTime)
+   
     
     EEPROM_DATA(TYPE_INT_16, pThis->sTempSet)
     
@@ -259,10 +266,9 @@ void vSystem_Init(System* pt)
     
     pThis->eSystemMode      = MODE_CLOSE;
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
-    pThis->sTaskInfo.ucPrio = SystemTaskPrio;
-  
+
     /***********************绑定BMS变量变化事件***********************/
-    CONNECT( &(BMS_Core()->sValChange), &pThis->sTaskInfo.sTCB);  
+    CONNECT( &(BMS_Core()->sValChange), psSystemTaskTCB);  
     
     /*********************DTU模块*************************/
     psDTU = DTU_new(psDTU);
@@ -275,7 +281,7 @@ void vSystem_Init(System* pt)
         pModularRoof->init(pModularRoof, pThis->psMBMasterInfo); //初始化
         pThis->psModularRoofList[n] = pModularRoof;
         
-        CONNECT( &(pModularRoof->sValChange), &pThis->sTaskInfo.sTCB);  //绑定主机变量变化事件
+        CONNECT( &(pModularRoof->sValChange), psSystemTaskTCB);  //绑定主机变量变化事件
     }
     
     /*********************排风风机*************************/
@@ -283,11 +289,6 @@ void vSystem_Init(System* pt)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
         pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
-        
-        if(pExAirFan->eFanFreqType == VARIABLE_FREQ)  
-        {
-            pThis->pExAirFanVariate = pExAirFan;
-        }
         pThis->psExAirFanList[n] = pExAirFan;        
     }
     
@@ -298,7 +299,7 @@ void vSystem_Init(System* pt)
         pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo); //向上转型，由子类转为父类
         pThis->psCO2SenList[n] = pCO2Sensor;
         
-        CONNECT( &(pCO2Sensor->Sensor.sValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件
+        CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
     }
     
     /***********************室外温湿度传感器***********************/
@@ -308,7 +309,7 @@ void vSystem_Init(System* pt)
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
         pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
         
-        CONNECT( &(pTempHumiSensor->Sensor.sValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件        
+        CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件        
     }
     
     /***********************室内温湿度传感器***********************/
@@ -318,11 +319,13 @@ void vSystem_Init(System* pt)
         pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
         pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
         
-        CONNECT( &(pTempHumiSensor->Sensor.sValChange), &pThis->sTaskInfo.sTCB);  //绑定传感器变量变化事件
+        CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
     }
     
     xSystem_CreatePollTask(pThis);
-    vReadEEPROMData();                 //同步记忆参数   
+    vReadEEPROMData();                 //同步记忆参数
+
+    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);   //切换风机类型                  
 }
 
 CTOR(System)   //系统构造函数
@@ -331,9 +334,14 @@ CTOR(System)   //系统构造函数
 END_CTOR
 
 
-void vSystemInit(OS_PRIO prio)
+void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
 {
     SystemTaskPrio = prio;
+    SystemTaskStkSize = stk_size;
+
+    psSystemTaskTCB = p_tcb;
+    psSystemTaskStk = p_stk_base;
+   
     System_Core();
 }
 

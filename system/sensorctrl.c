@@ -45,6 +45,7 @@ void vSystem_CO2PPM(System* pt)
     {
         vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
     }
+    vSystem_ExAirFanCtrl(pThis);
 }
 
 /*系统CO2传感器故障*/

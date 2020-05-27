@@ -159,10 +159,10 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
     MONITOR(&pThis->sAmbientInSelf_T,    &pThis->sValChange)
     MONITOR(&pThis->usAmbientInSelf_H,   &pThis->sValChange)
     
-    MONITOR(&pThis->sAmbientOutSelf_T,    &pThis->sValChange)
-    MONITOR(&pThis->usAmbientOutSelf_H,   &pThis->sValChange)
+    MONITOR(&pThis->sAmbientOutSelf_T,   &pThis->sValChange)
+    MONITOR(&pThis->usAmbientOutSelf_H,  &pThis->sValChange)
     
-    MONITOR(&pThis->usCO2PPMSelf,         &pThis->sValChange)
+    MONITOR(&pThis->usCO2PPMSelf,        &pThis->sValChange)
     
     MONITOR(&pThis->xStopErrFlag,        &pThis->sValChange)
     MONITOR(&pThis->sMBSlaveDev.xOnLine, &pThis->sValChange)  

@@ -293,7 +293,7 @@ static  void  AppTaskCreate (void)
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 
-    vSystemInit(SYSTEM_MAIN_CTRL_TASK_PRIO); 
+    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlSTK, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
 #endif	
 
 #if WATCHDOG_FEED_TASK_EN >0     //喂狗功能

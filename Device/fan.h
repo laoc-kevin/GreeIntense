@@ -18,7 +18,8 @@ typedef struct   /*风机设备信息*/
 
     uint8_t    ucFreq_AO;      //频率输出AO通道   
     uint8_t    ucFreq_AI;      //频率输入AI通道
-    uint8_t    ucSwitch_DO;    //启停DO通道 
+    uint8_t    ucSwitch_DO;    //启停DO通道
+    uint8_t    ucErr_DI;       //故障DI通道    
     
 }sFanInfo;
 
@@ -43,9 +44,14 @@ CLASS(ExAirFan)           /*排风风机*/
     
     sAnalog_IO   sFreq_AO;      //频率输出AO   
     sAnalog_IO   sFreq_AI;      //频率输入AI
+    
     sDigital_IO  sSwitch_DO;    //启停DO
+    sDigital_IO  sErr_DI;       //故障DI通道 
     
     eCtrlEn      eSwitchCmd;    //启停命令
+    BOOL         xExAirFanErr;  //风机故障
+    
+    
     uint32_t     ulRated_Vol;   //额定风量
 
     void (*init)(ExAirFan* pt, sFanInfo* psFan); 

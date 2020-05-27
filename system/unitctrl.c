@@ -164,50 +164,6 @@ void vSystem_SupAirTemp(System* pt)
     vSystem_DelAlarmRequst(pThis); //所有机组送风温度恢复正常，申请消除声光报警
 }
 
-/*机组新风量变化*/
-void vSystem_FreAir(System* pt)
-{
-    uint8_t  n = 0; 
-    BOOL     xUnitErr          = 0;  
-    uint16_t usTotalFreAir_Vol = 0; 
-           
-    System* pThis = (System*)pt;
-    ModularRoof* pModularRoof = NULL;
- 
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        if( (pModularRoof->sMBSlaveDev.xOnLine == FALSE) || (pModularRoof->xStopErrFlag == TRUE) )  //机组故障
-        {
-            xUnitErr = TRUE;    //机组通讯故障
-            break;
-        }
-        usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
-    }
-    
-    //【排风机控制模式】为实时新风量时
-    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
-    {
-        if(xUnitErr == FALSE)    //机组均正常
-        {
-            //系统排风需求量=（机组一新风量+机组二新风量）*【排风百分比】（默认90）/100
-            pThis->usExAirSet_Vol = usTotalFreAir_Vol * pThis->ucExAirRatio_1 / 100; 
-        }
-        if(xUnitErr == TRUE)    //故障
-        {
-            //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-            pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
-        } 
-    }
-    //【排风机控制模式】为目标新风量时
-    if(pThis->eExAirFanCtrlMode == MODE_REAL_TIME)
-    {
-         //系统排风需求量=当天目标新风量*【排风百分比1】（默认90）/100
-         pThis->usExAirSet_Vol = pThis->usFreAirSet_Vol * pThis->ucExAirRatio_1 / 100;
-    }  
-    vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化   
-}
-
 /*机组CO2浓度变化*/
 void vSystem_UnitCO2PPM(System* pt)
 {
@@ -246,6 +202,7 @@ void vSystem_UnitCO2PPM(System* pt)
         {
             vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
         }
+        vSystem_ExAirFanCtrl(pThis);
     }
 }
 

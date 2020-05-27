@@ -26,17 +26,20 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode);
 
 void vSystem_SupAirTemp(System* pt);
 void vSystem_UnitErr(System* pt);
-void vSystem_FreAir(System* pt);
 
 void vSystem_UnitTempHumiOut(System* pt);
 void vSystem_UnitTempHumiIn(System* pt);
 
 void vSystem_UnitCO2PPM(System* pt);
+
 /*********************排风风机*************************/
 void vSystem_CloseExAirFans(System* pt);
+
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq);
 void vSystem_ExAirSet_Vol(System* pt);
-void vSystem_AdjustExAirFanFreq(void* p_tmr, void* p_arg);
+
+void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
+void vSystem_ExAirFanCtrl(System* pt);
 
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);

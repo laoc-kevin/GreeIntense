@@ -23,8 +23,6 @@ typedef int16_t SHORT;
 typedef uint32_t ULONG;
 typedef int32_t LONG;
 
-#define MB_DEV_POLL_TASK_STK_SIZE  128
-
 typedef enum   /*频率类型*/
 {
    VARIABLE_FREQ = 0,     //变频
@@ -68,16 +66,10 @@ typedef struct  /*设备模拟量接口类型*/
     uint8_t      ucChannel;       //通道
 }sDigital_IO;
 
-typedef struct                 /* Dev poll task information */ 
-{
-    OS_TCB              sTCB;
-    OS_PRIO             ucPrio;
-    CPU_STK             usStk[MB_DEV_POLL_TASK_STK_SIZE];
-}sTaskInfo;
 
 INTERFACE(IDevSwitch)    /*设备启停接口*/
 {                                                         
-    void     (*switchOpen)(IDevSwitch* pt);        //开启
+    void    (*switchOpen)(IDevSwitch* pt);        //开启
     void    (*switchClose)(IDevSwitch* pt);        //关闭
     
 };

@@ -21,6 +21,11 @@ typedef struct   /*系统信息*/
 
 }sSystemInfo;
 
+typedef enum   /*系统状态*/
+{
+    Type_CONSTANT = 0,              //定频
+    Type_CONSTANT_VARIABLE = 1      //定频 + 变频
+}eExAirFanType;
 
 
 CLASS(System)   /*系统*/
@@ -49,14 +54,14 @@ CLASS(System)   /*系统*/
     int16_t           sTempSet;                 //目标温度值设定
     uint16_t          usGrowUpTemp;             //小鸡适宜生长温度值
     uint16_t          usAdjustModeTemp;         //模式调节温度
-    uint16_t          usSupAirMax_T;             //送风最大温度  
+    uint16_t          usSupAirMax_T;            //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
-    uint16_t          usCO2PPMSet;              //CO2浓度设定
+    uint16_t          usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t          usCO2AdjustDeviat;        //CO2浓度调节偏差
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
                         
-    uint16_t          usExAirSet_Vol;           //系统排风风量设定 
+    uint16_t          usExAirRequest_Vol;       //系统排风需求量
     uint16_t          usFreAirSet_Vol;          //系统目标新风风量设定
                                                                                            
     uint16_t          usHumidityMax;            //设定湿度max
@@ -77,19 +82,19 @@ CLASS(System)   /*系统*/
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
     uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
-                      
-    uint16_t          usExAirFanFreqAdjustTime; //排风机频率调节时间
-    uint16_t          usExAirFanPreventTime;    //排风机防频繁调节时间
-    uint16_t          usExAirFanTestTime;       //风量检测稳定时间
-                      
-//    uint16_t          usExAirFanCtrlTime;       //排风机控制周期 
-    uint8_t           ucExAirRatio_1;           //排风百分比
-    uint8_t           ucExAirFanRequstNum;      //排风机需求个数
-    eExAirFanCtrlMode eExAirFanCtrlMode;        //排风机控制模式
     
-    OS_TMR            sExAirFanFreqAdjustTmr;   //排风机频率调节时间定时器
-    OS_TMR            sExAirFanPreventTmr;      //排风机防频繁调节时间定时器
-    OS_TMR            sExAirFanTestTmr;         //风量检测稳定时间定时器
+    uint16_t          usExAirFanRunTimeLeast;   //排风机最小运行时间    
+    uint16_t          usExAirFanCtrlTime;       //排风机控制周期
+    uint16_t          usExAirFanRequestTime;    //排风机运行需求时间
+    
+    uint8_t           ucExAirCoolRatio;         //制冷排风百分比
+    uint8_t           ucExAirHeatRatio;         //制热排风百分比
+    uint8_t           ucExAirFanRequstNum;      //排风机需求个数
+
+    eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)
+    
+    OS_TMR            sExAirFanCtrlTmr;         //排风机控制周期定时器
+    OS_TMR            sExAirFanRequestTimeTmr;  //排风机运行需求时间定时器
     
     OS_TMR            sModeChangeTmr_1;         //模式切换时间t1(min)定时器
     OS_TMR            sModeChangeTmr_2;         //模式切换时间t2(min)定时器
@@ -97,6 +102,8 @@ CLASS(System)   /*系统*/
     OS_TMR            sModeChangeTmr_4;         //模式切换时间t4(min)定时器
     OS_TMR            sModeChangeTmr_5;         //模式切换时间t5(min)定时器
     OS_TMR            sModeChangeTmr_6;         //模式切换时间t6(min)定时器
+    
+    OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
     
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
@@ -112,7 +119,7 @@ CLASS(System)   /*系统*/
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        
-    OS_TMR            sRuntimeTmr;              //系统运行时间定时器  
+     
     
     ExAirFan*         pExAirFanVariate;                   //变频风机
     ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
@@ -124,13 +131,13 @@ CLASS(System)   /*系统*/
     TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_OUT_NUM];    //室内温湿度传感器列表
                       
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
-    sTaskInfo         sTaskInfo;        //设备内部任务信息 
-    
+
     void   (*init)(System* pt);
 
 };
 
-void vSystemInit(OS_PRIO prio);
+void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
+
 System* System_Core();    //获取全局唯一对象，单例设计模式
 
 #endif

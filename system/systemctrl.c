@@ -10,12 +10,7 @@ void vSystem_SwitchOpen(System* pt)
 {
     System* pThis = (System*)pt;
 
-    vSystem_OpenUnits(pThis);
-    
-    //开启排风机频率调节时间定时器,频率每【排风机频率调节时间】（默认30s）更新一次  
-   (void)xTimerRegist(&pThis->sExAirFanFreqAdjustTmr, 0, pThis->usExAirFanFreqAdjustTime, 
-                      OS_OPT_TMR_PERIODIC, vSystem_AdjustExAirFanFreq, pThis);    //风机频率调节
-   
+    vSystem_OpenUnits(pThis);   
     pThis->eSwitchCmd = ON; 
 }
 
@@ -80,7 +75,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     //紧急模式
     if(eSystemMode == MODE_EMERGENCY)
     {
-        vSystem_SwitchOpen(pThis);  //开启系统
+        vSystem_SwitchOpen(pThis);                   //开启系统
         vSystem_SetRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
     pThis->eSystemMode = eSystemMode;
@@ -115,7 +110,9 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol)
         pModularRoof = pThis->psModularRoofList[n];        
         pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol / MODULAR_ROOF_NUM;
     }
+    
     pThis->usFreAirSet_Vol = usFreAirSet_Vol;
+    vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
 }
 
 /*设定系统湿度阈值*/
@@ -136,7 +133,7 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
 }
 
 /*设定系统目标CO2浓度值*/
-void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
+void vSystem_SetCO2PPM(System* pt, uint16_t usCO2AdjustThr_V)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
@@ -145,9 +142,9 @@ void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2AdjustThr_V = usCO2PPMSet;
+        pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
     }
-    pThis->usCO2PPMSet = usCO2PPMSet;
+    pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
 }
 
 /*设定系统CO2浓度偏差*/
