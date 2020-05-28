@@ -30,7 +30,7 @@ void vSystem_CloseUnits(System* pt)
 }
 
 /*设定机组运行模式*/
-void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
+void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
@@ -43,19 +43,11 @@ void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode)
         pModularRoof = pThis->psModularRoofList[n];    
         pModularRoof->IDevRunning.setRunningMode(SUPER_PTR(pModularRoof, IDevRunning), eRunMode);
     }
-    if(pThis->eRunningMode == eRunMode)      //防止制热工况下反复关风机
-    {
-        return;
-    }
-    if(pThis->eRunningMode == RUN_MODE_HEAT) //制热工况下，排风机不开启
-    {
-        vSystem_CloseExAirFans(pThis);
-    }
     pThis->eRunningMode = eRunMode; 
 }
 
 /*/调整机组运行模式*/
-void vSystem_AdjustRunningMode(void* p_tmr, void* p_arg)
+void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
 {
     System* pThis = (System*)p_arg;
     
@@ -69,17 +61,17 @@ void vSystem_AdjustRunningMode(void* p_tmr, void* p_arg)
     {
         if(pThis->eRunningMode == RUN_MODE_FAN)
         {
-            vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //切换为湿膜降温模式
+            vSystem_SetUnitRunningMode(pThis, RUN_MODE_WET);    //切换为湿膜降温模式
         }
         else if(pThis->eRunningMode == RUN_MODE_WET)
         {
-            vSystem_SetRunningMode(pThis, RUN_MODE_COOL);   //切换为降温模式
+            vSystem_SetUnitRunningMode(pThis, RUN_MODE_COOL);   //切换为降温模式
         }
     }
 }
 
 /*切换机组运行模式*/
-void vSystem_ChangeRunningMode(System* pt)
+void vSystem_ChangeUnitRunningMode(System* pt)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
@@ -103,27 +95,27 @@ void vSystem_ChangeRunningMode(System* pt)
             //(1)室外干球温度t(wg)≤模式调节温度（默认23℃）
             if(pThis->sAmbientOut_T <= pThis->usAdjustModeTemp)  
             {
-                vSystem_SetRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式 
+                vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);    //开启送风模式 
                 (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->ucModeChangeTime_1 * 60, 0, 
-                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
             }
             
             //(2)室外干球温度t(wg)＞模式调节温度（默认23℃） 且t（ws）+3 <= t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
             if( (pThis->sAmbientOut_T > pThis->usAdjustModeTemp) &&  
                 (pThis->sAmbientOut_Ts + 30) <= pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
-                vSystem_SetRunningMode(pThis, RUN_MODE_WET);    //开启湿膜降温模式
+                vSystem_SetUnitRunningMode(pThis, RUN_MODE_WET);    //开启湿膜降温模式
                 (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->ucModeChangeTime_2 * 60, 0, 
-                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
             }
             
             //(3)室外干球温度t(wg)＞模式调节温度（默认23℃），且t（ws）+3＞t（ng1）-(3.6×n×1.7×6×0.5)/（G×1.2×2）
             if( (pThis->sAmbientOut_T > pThis->usAdjustModeTemp) &&  
                 (pThis->sAmbientOut_Ts + 30) > pThis->sTempSet-(76.5f * pThis->usChickenNum) / pThis->usFreAirSet_Vol )   
             {
-                vSystem_SetRunningMode(pThis, RUN_MODE_COOL);    //开启降温模式
+                vSystem_SetUnitRunningMode(pThis, RUN_MODE_COOL);    //开启降温模式
                 (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->ucModeChangeTime_3 * 60, 0, 
-                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustRunningMode, pThis);
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
             }
         } 
         //B. 舍内温度目标要求t(ng1)≥鸡生适宜长温度（默认25℃）
@@ -139,12 +131,12 @@ void vSystem_ChangeRunningMode(System* pt)
     //制热工况:  室内干球温度t(ng2) <= 舍内温度目标要求温度t(ng1)，开启制热工况
     if(pThis->sAmbientIn_T <= pThis->sTempSet)     
     {
-        vSystem_SetRunningMode(pThis, RUN_MODE_HEAT);    
+        vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);    
     } 
 }
 
 /*机组送风温度变化*/
-void vSystem_SupAirTemp(System* pt)
+void vSystem_UnitSupAirTemp(System* pt)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
@@ -163,6 +155,26 @@ void vSystem_SupAirTemp(System* pt)
     }
     vSystem_DelAlarmRequst(pThis); //所有机组送风温度恢复正常，申请消除声光报警
 }
+
+/*机组新风量变化*/
+void vSystem_UnitFreAir(System* pt)
+{
+    uint8_t  n = 0; 
+    BOOL     xCommErr          = 0;  
+    
+    System* pThis = (System*)pt;
+    ModularRoof* pModularRoof = NULL;
+ 
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pThis->psModularRoofList[n]->sMBSlaveDev.xOnLine == TRUE) //机组不在线
+        {    
+            pThis->usTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
+        }
+    }  
+}
+
 
 /*机组CO2浓度变化*/
 void vSystem_UnitCO2PPM(System* pt)

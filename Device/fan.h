@@ -23,6 +23,11 @@ typedef struct   /*风机设备信息*/
     
 }sFanInfo;
 
+CLASS(AmbientOutFan)          /*室外风机*/ 
+{
+    EXTENDS(Device);
+};
+
 
 CLASS(SupAirFan)          /*送风风机*/ 
 {

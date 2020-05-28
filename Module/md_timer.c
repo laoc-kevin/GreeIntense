@@ -25,6 +25,8 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_O
     }
     else
     {
+        OSTmrStop(p_tmr, OS_OPT_TMR_NONE, NULL, &err);
+        
         p_tmr->Dly = dly;
         p_tmr->Period = period;
         p_tmr->Opt = opt;
@@ -37,7 +39,6 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_O
         }
         if(sTmrState == OS_TMR_STATE_RUNNING)
         {
-            OSTmrStop(p_tmr, OS_OPT_TMR_NONE, NULL, &err);
             OSTmrStart(p_tmr, &err);
         }
     }

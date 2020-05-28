@@ -1,7 +1,7 @@
 #include "md_monitor.h"
 #include "md_event.h"
 
-#define MONITOR_DATA_MAX_NUM        50     //最大可监控点位数，根据实际情况调整
+#define MONITOR_DATA_MAX_NUM        200     //最大可监控点位数，根据实际情况调整
 #define MONITOR_POLL_INTERVAL_MS    10     //
 
 sMonitorInfo* MonitorList = NULL;

@@ -32,17 +32,15 @@ CLASS(System)   /*系统*/
 {
     EXTENDS(Device);         /*继承设备抽象类*/ 
 
+    uint16_t          usUnitID;                 //机型ID
+    uint16_t          usProtocolVer;            //协议版本
+    
     eSystemMode       eSystemMode;              //系统模式
-                                                
-    eSystemState      eSystemState;             //系统状态
-    eRunningMode      eRunningMode;             //运行模式
-                                                
+    eRunningMode      eRunningMode;             //运行模式                                            
     eCtrlEn           eSwitchCmd;               //启停命令 
-    uint8_t           ucSwitchMode;             //启停模式 
-    uint8_t           ucStopErrFlag;            //停系统故障标志
-                      
+                    
     uint16_t          usChickenNum;             //小鸡数量
-    uint8_t           ucChickenGrowDays;        //鸡生长周期天数
+    int8_t            cChickenGrowDays;         //鸡生长周期天数
                       
     uint8_t           ucModeChangeTime_1;       //模式切换时间t1(min)
     uint8_t           ucModeChangeTime_2;       //模式切换时间t2(min)
@@ -53,17 +51,23 @@ CLASS(System)   /*系统*/
                                                 
     int16_t           sTempSet;                 //目标温度值设定
     uint16_t          usGrowUpTemp;             //小鸡适宜生长温度值
+    uint16_t          usEnegyTemp;              //节能温度
     uint16_t          usAdjustModeTemp;         //模式调节温度
     uint16_t          usSupAirMax_T;            //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
     uint16_t          usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t          usCO2AdjustDeviat;        //CO2浓度调节偏差
+    
+    uint16_t          usCO2ExAirDeviat_1;       //CO2浓度排风控制偏差1
+    uint16_t          usCO2ExAirDeviat_2;       //CO2浓度排风控制偏差2
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
-                        
+     
+     
     uint16_t          usExAirRequest_Vol;       //系统排风需求量
     uint16_t          usFreAirSet_Vol;          //系统目标新风风量设定
-                                                                                           
+    uint16_t          usTotalFreAir_Vol;        //系统新风风量 
+    
     uint16_t          usHumidityMax;            //设定湿度max
     uint16_t          usHumidityMin;            //设定湿度min
                                                 
@@ -84,7 +88,7 @@ CLASS(System)   /*系统*/
     uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
     
     uint16_t          usExAirFanRunTimeLeast;   //排风机最小运行时间    
-    uint16_t          usExAirFanCtrlTime;       //排风机控制周期
+    uint16_t          usExAirFanCtrlPeriod;     //排风机控制周期
     uint16_t          usExAirFanRequestTime;    //排风机运行需求时间
     
     uint8_t           ucExAirCoolRatio;         //制冷排风百分比
@@ -105,6 +109,7 @@ CLASS(System)   /*系统*/
     
     OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
     
+    BOOL              xStopErrFlag;            //停系统故障标志
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
     
@@ -119,8 +124,7 @@ CLASS(System)   /*系统*/
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        
-     
-    
+      
     ExAirFan*         pExAirFanVariate;                   //变频风机
     ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
     CO2Sensor*        psCO2SenList  [CO2_SEN_NUM];        //CO2传感器列表
@@ -133,7 +137,6 @@ CLASS(System)   /*系统*/
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
 
     void   (*init)(System* pt);
-
 };
 
 void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);

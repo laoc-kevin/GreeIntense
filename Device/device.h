@@ -23,6 +23,9 @@ typedef int16_t SHORT;
 typedef uint32_t ULONG;
 typedef int32_t LONG;
 
+#define DATA_INIT(arg_1, arg_2)  arg_1 = arg_2;
+
+
 typedef enum   /*频率类型*/
 {
    VARIABLE_FREQ = 0,     //变频
@@ -41,7 +44,6 @@ typedef enum   /*启停状态*/
 {
     STATE_STOP   = 0,      //停止
     STATE_RUN    = 1,      //运行
-
 }eRunningState;
 
 typedef enum   /*运行模式*/
@@ -52,6 +54,11 @@ typedef enum   /*运行模式*/
     RUN_MODE_WET     = 4,      //湿膜
 }eRunningMode;
 
+typedef enum 
+{
+    CMD_OPEN  = 0x00AA,
+    CMD_CLOSE = 0x0055,
+}eSwitchCmd;
 
 
 typedef struct  /*设备模拟量接口类型*/
@@ -98,10 +105,11 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 ABS_CLASS(Device)        /*设备抽象类*/
 {
     uint32_t        ulRunTime;       //运行时间(s)
+    uint16_t        usRunTime_H;     //运行时间(h)
+    
     BOOL            xErrFlag;        //总故障标志
     BOOL            xAlarmFlag;      //总报警标志
-    
-    eRunningState   eRunningState;    //运行状态标志
+    eRunningState   eRunningState;   //运行状态标志
 };
 
 #endif

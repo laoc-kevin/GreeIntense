@@ -105,14 +105,14 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
     uint16_t  usExAirRequest_Vol      = pThis->usExAirRequest_Vol;
     uint16_t  ulExAirFanRated_Vol = pThis->ulExAirFanRated_Vol;
     uint16_t  usExAirFanMinFreq   = pThis->usExAirFanMinFreq;
-    uint16_t  usExAirFanCtrlTime  = pThis->usExAirFanCtrlTime;
+    uint16_t  usExAirFanCtrlPeriod  = pThis->usExAirFanCtrlPeriod;
     
     /********若【排风机类型】为变频+定频，且变频风机无故障*********/
     if(pThis->eExAirFanType == Type_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == FALSE)
     {
         //需求时间t=（（系统排风需求量-【排风机额定风量】*【风机开启需求数】）/【排风机额定风量】）*【排风机控制周期】；
         pThis->usExAirFanRequestTime =  (usExAirRequest_Vol - ulExAirFanRated_Vol*ucExAirFanRequstNum) * 500 / 
-                                        (usExAirFanMinFreq*ulExAirFanRated_Vol) * usExAirFanCtrlTime;
+                                        (usExAirFanMinFreq*ulExAirFanRated_Vol) * usExAirFanCtrlPeriod;
         
         //若t>=【排风机最小运行时间】（默认300s）则最小频率开启变频排风机；否则不开启。
         if(pThis->usExAirFanRequestTime >= pThis->usExAirFanRunTimeLeast)
@@ -131,7 +131,7 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
     {
         //需求时间t=（（系统排风需求量-【排风机额定风量】*【风机开启需求数】）/【排风机额定风量】）*【排风机控制周期】；
         pThis->usExAirFanRequestTime =  (usExAirRequest_Vol - ulExAirFanRated_Vol*ucExAirFanRequstNum) / 
-                                         ulExAirFanRated_Vol * usExAirFanCtrlTime;
+                                         ulExAirFanRated_Vol * usExAirFanCtrlPeriod;
         
         //若t>=【排风机最小运行时间】则开启1台定频排风机；否则不开启
         if(pThis->usExAirFanRequestTime >= pThis->usExAirFanRunTimeLeast)
@@ -221,7 +221,7 @@ void vSystem_ExAirFanConstantCtrl(System* pt)
     vSystem_ExAirFanConstant(pThis);
     
     //每个【排风机控制周期】（默认1800s）周期执行一次以下A、B、C逻辑
-    (void)xTimerRegist(&pThis->sExAirFanCtrlTmr, 0, pThis->usExAirFanCtrlTime,  
+    (void)xTimerRegist(&pThis->sExAirFanCtrlTmr, 0, pThis->usExAirFanCtrlPeriod,  
                        OS_OPT_TMR_PERIODIC, vSystem_ExAirFanCtrlTmrCallback, pThis);
 }
 
@@ -248,7 +248,7 @@ void vSystem_ExAirFanBothCtrl(System* pt)
     uint16_t  usExAirRequest_Vol      = pThis->usExAirRequest_Vol;
     uint16_t  ulExAirFanRated_Vol = pThis->ulExAirFanRated_Vol;
     uint16_t  usExAirFanMinFreq   = pThis->usExAirFanMinFreq;
-    uint16_t  usExAirFanCtrlTime  = pThis->usExAirFanCtrlTime;
+    uint16_t  usExAirFanCtrlPeriod  = pThis->usExAirFanCtrlPeriod;
     
     if(pThis->eExAirFanType != Type_CONSTANT_VARIABLE)
     {
@@ -269,7 +269,7 @@ void vSystem_ExAirFanBothCtrl(System* pt)
     else
     {
         //否则，每个【排风机控制周期】（默认1800s）周期执行一次以下A、B、C逻辑：
-        (void)xTimerRegist(&pThis->sExAirFanCtrlTmr, 0, pThis->usExAirFanCtrlTime,  
+        (void)xTimerRegist(&pThis->sExAirFanCtrlTmr, 0, pThis->usExAirFanCtrlPeriod,  
                            OS_OPT_TMR_PERIODIC, vSystem_ExAirFanCtrlTmrCallback, pThis);
     }
 }

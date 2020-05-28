@@ -58,11 +58,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
                 {
                     return;
                 }
-                //群控控制器与空调机组通讯正常, 但室外温度或湿度传感器故障
-                else if( (pModularRoof->xHumiSenOutErr) || (pModularRoof->xTempSenOutErr) )  
-                {
-                    return;
-                }                    
+                            
             }
         }   
         vSystem_SwitchOpen(pThis);  //开启系统
@@ -76,7 +72,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     if(eSystemMode == MODE_EMERGENCY)
     {
         vSystem_SwitchOpen(pThis);                   //开启系统
-        vSystem_SetRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
+        vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
     pThis->eSystemMode = eSystemMode;
 }
@@ -133,7 +129,7 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
 }
 
 /*设定系统目标CO2浓度值*/
-void vSystem_SetCO2PPM(System* pt, uint16_t usCO2AdjustThr_V)
+void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2AdjustThr_V)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;

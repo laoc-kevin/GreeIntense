@@ -76,17 +76,20 @@ void vSystem_PollTask(void *p_arg)
         
         /***********************BMS事件响应***********************/
         HANDLE(psBMS->System.eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
-        HANDLE(psBMS->System.eRunningMode,     vSystem_SetRunningMode(psSystem, psBMS->System.eRunningMode)) 
+        HANDLE(psBMS->System.eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->System.eRunningMode)) 
         
         HANDLE(psBMS->System.sTempSet,         vSystem_SetTemp(psSystem, psBMS->System.sTempSet))
         HANDLE(psBMS->System.usFreAirSet_Vol,  vSystem_SetFreAir(psSystem, psBMS->System.usFreAirSet_Vol))
+        
+        HANDLE(psBMS->System.ucExAirCoolRatio, vSystem_ExAirSet_Vol(psSystem))
+        HANDLE(psBMS->System.ucExAirHeatRatio, vSystem_ExAirSet_Vol(psSystem))
         
         HANDLE(psBMS->System.usHumidityMin, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin, 
                                                                 psBMS->System.usHumidityMax))
         HANDLE(psBMS->System.usHumidityMax, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin,
                                                                 psBMS->System.usHumidityMax))
         
-        HANDLE(psBMS->System.usCO2AdjustThr_V,  vSystem_SetCO2PPM(psSystem, psBMS->System.usCO2AdjustThr_V))
+        HANDLE(psBMS->System.usCO2AdjustThr_V,  vSystem_SetCO2AdjustThr_V(psSystem, psBMS->System.usCO2AdjustThr_V))
         HANDLE(psBMS->System.usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->System.usCO2AdjustDeviat))
         
         HANDLE(psBMS->System.usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
@@ -102,9 +105,10 @@ void vSystem_PollTask(void *p_arg)
         {
             pModularRoof = pThis->psModularRoofList[n]; 
             
-            HANDLE(pModularRoof->sSupAir_T,    vSystem_SupAirTemp(psSystem);break) 
+            HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem);break)
+            HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem);break)            
  
-            HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem);break)
+            HANDLE(pModularRoof->xStopErrFlag,        vSystem_UnitErr(psSystem);break)
             HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem);break)
             
             HANDLE(pModularRoof->sAmbientInSelf_T,  vSystem_UnitTempHumiIn(psSystem);break)
@@ -176,9 +180,10 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
         if(pModularRoof->Device.eRunningState == STATE_RUN && pModularRoof->Device.ulRunTime < UINT32_MAX)
         {
             pModularRoof->Device.ulRunTime++;
-        }            
+            pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime / 3600;
+        }
+        
     }
-    
     /*********************排风风机运行时间*************************/
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
@@ -186,8 +191,8 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
         if(pExAirFan->Device.eRunningState == STATE_RUN && pExAirFan->Device.ulRunTime < UINT32_MAX)
         {
             pExAirFan->Device.ulRunTime++;
+            pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime / 3600;
         }   
-        pExAirFan->Device.ulRunTime++;
     }
 }
     
@@ -215,11 +220,12 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientInDeviat_H)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientOutDeviat_H)
     
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucChickenGrowDays)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirCoolRatio)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirHeatRatio)
     EEPROM_DATA(TYPE_UINT_8, pThis->eExAirFanType)
     EEPROM_DATA(TYPE_UINT_8, pThis->xAlarmEnable)
+    
+    EEPROM_DATA(TYPE_INT_8, pThis->cChickenGrowDays)
     
     
     EEPROM_DATA(TYPE_UINT_16, pThis->usChickenNum)
@@ -238,13 +244,51 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanMinFreq)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanMaxFreq)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanRunTimeLeast)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanCtrlTime)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanCtrlPeriod)
    
     
     EEPROM_DATA(TYPE_INT_16, pThis->sTempSet)
     
     EEPROM_DATA(TYPE_UINT_32, pThis->ulExAirFanRated_Vol)
-    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime)  
+      
+}
+
+/*系统数据默认值初始化*/
+void vSystem_InitDefaultData(System* pt)
+{
+    System* pThis = (System*)pt;
+    
+    DATA_INIT(pThis->usUnitID, 0x302A)
+    DATA_INIT(pThis->usProtocolVer,10)
+  
+    DATA_INIT(pThis->usEnegyTemp,      250)
+    DATA_INIT(pThis->usAdjustModeTemp, 230)
+    DATA_INIT(pThis->usSupAirMax_T,    450)
+    
+    DATA_INIT(pThis->usHumidityMin,    55)
+    DATA_INIT(pThis->usHumidityMax,    65)
+    
+    DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
+    DATA_INIT(pThis->usCO2AdjustDeviat,  270)
+    DATA_INIT(pThis->usCO2ExAirDeviat_1, 270)
+    DATA_INIT(pThis->usCO2ExAirDeviat_2, 270)
+    DATA_INIT(pThis->usCO2PPMAlarm,     3000)
+    
+    DATA_INIT(pThis->usExAirFanMinFreq,  220)
+    DATA_INIT(pThis->usExAirFanMaxFreq,  500)
+    DATA_INIT(pThis->ucExAirCoolRatio,    90)
+    DATA_INIT(pThis->ucExAirHeatRatio,    90)
+    
+    DATA_INIT(pThis->usExAirFanRunTimeLeast,  300)
+    DATA_INIT(pThis->usExAirFanCtrlPeriod,   1800)
+    DATA_INIT(pThis->ulExAirFanRated_Vol,   36000)
+    
+    DATA_INIT(pThis->ucModeChangeTime_1, 5)
+    DATA_INIT(pThis->ucModeChangeTime_2, 5)
+    DATA_INIT(pThis->ucModeChangeTime_3, 5)
+    DATA_INIT(pThis->ucModeChangeTime_4, 5)
+    DATA_INIT(pThis->ucModeChangeTime_5, 5)
+    DATA_INIT(pThis->ucModeChangeTime_6, 5) 
 }
 
 /*系统初始化*/
@@ -322,6 +366,7 @@ void vSystem_Init(System* pt)
         CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
     }
     
+    vSystem_InitDefaultData(pThis);
     xSystem_CreatePollTask(pThis);
     vReadEEPROMData();                 //同步记忆参数
 
@@ -352,6 +397,7 @@ System* System_Core()
     {
         psSystem = (System*)System_new();
         psSystem->init(psSystem);
+        
     }
     return psSystem;
 }

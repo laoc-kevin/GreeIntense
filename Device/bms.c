@@ -62,6 +62,9 @@ void vBMS_MonitorRegist(BMS* pt)
     MONITOR(&pThis->System.sTempSet,        &pThis->sValChange)
     MONITOR(&pThis->System.usFreAirSet_Vol, &pThis->sValChange)
     
+    MONITOR(&pThis->System.ucExAirCoolRatio, &pThis->sValChange)
+    MONITOR(&pThis->System.ucExAirHeatRatio, &pThis->sValChange)
+    
     MONITOR(&pThis->System.usHumidityMin, &pThis->sValChange)
     MONITOR(&pThis->System.usHumidityMax, &pThis->sValChange)
     

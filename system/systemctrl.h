@@ -14,24 +14,24 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet);
 void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol);
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax);
 
-void vSystem_SetCO2PPM(System* pt, uint16_t usCO2PPMSet);
+void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2PPMSet);
 void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat);
 
 /*********************主机*************************/
 void vSystem_OpenUnits(System* pt);
 void vSystem_CloseUnits(System* pt);
 
-void vSystem_ChangeRunningMode(System* pt);
-void vSystem_SetRunningMode(System* pt, eRunningMode eRunMode);
+void vSystem_ChangeUnitRunningMode(System* pt);
+void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode);
 
-void vSystem_SupAirTemp(System* pt);
+void vSystem_UnitSupAirTemp(System* pt);
 void vSystem_UnitErr(System* pt);
 
 void vSystem_UnitTempHumiOut(System* pt);
 void vSystem_UnitTempHumiIn(System* pt);
 
 void vSystem_UnitCO2PPM(System* pt);
-
+void vSystem_UnitFreAir(System* pt);
 /*********************排风风机*************************/
 void vSystem_CloseExAirFans(System* pt);
 
