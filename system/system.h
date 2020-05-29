@@ -15,11 +15,7 @@
 #define TEMP_HUMI_SEN_OUT_NUM   2        //室外温湿度传感器数量
 #define TEMP_HUMI_SEN_IN_NUM    2        //室内温湿度传感器数量
 
-typedef struct   /*系统信息*/
-{
-    OS_PRIO         ucPrio;;             //内部任务优先级   
 
-}sSystemInfo;
 
 typedef enum   /*系统状态*/
 {
@@ -37,22 +33,37 @@ CLASS(System)   /*系统*/
     
     eSystemMode       eSystemMode;              //系统模式
     eRunningMode      eRunningMode;             //运行模式                                            
-    eCtrlEn           eSwitchCmd;               //启停命令 
+    eSwitchCmd        eSwitchCmd;               //启停命令 
                     
-    uint16_t          usChickenNum;             //小鸡数量
-    int8_t            cChickenGrowDays;         //鸡生长周期天数
+    int16_t           sChickenGrowDays;         //鸡生长周期天数
                       
-    uint8_t           ucModeChangeTime_1;       //模式切换时间t1(min)
-    uint8_t           ucModeChangeTime_2;       //模式切换时间t2(min)
-    uint8_t           ucModeChangeTime_3;       //模式切换时间t3(min)
-    uint8_t           ucModeChangeTime_4;       //模式切换时间t4(min)
-    uint8_t           ucModeChangeTime_5;       //模式切换时间t5(min)
-    uint8_t           ucModeChangeTime_6;       //模式切换时间t6(min)
-                                                
+    uint16_t          usModeChangeTime_1;       //模式切换时间t1(min)
+    uint16_t          usModeChangeTime_2;       //模式切换时间t2(min)
+    uint16_t          usModeChangeTime_3;       //模式切换时间t3(min)
+    uint16_t          usModeChangeTime_4;       //模式切换时间t4(min)
+    uint16_t          usModeChangeTime_5;       //模式切换时间t5(min)
+    uint16_t          usModeChangeTime_6;       //模式切换时间t6(min)
+    uint16_t          usModeChangeTime_7;       //模式切换时间t7(min)
+    uint16_t          usModeChangeTime_8;       //模式切换时间t8(min)
+     
+    uint16_t          usModeChangePeriod_1;     //模式切换间隔时间t1(min)
+    uint16_t          usModeChangePeriod_2;     //模式切换间隔时间t2(min)
+    uint16_t          usModeChangePeriod_3;     //模式切换间隔时间t3(min)
+    uint16_t          usModeChangePeriod_4;     //模式切换间隔时间t4(min)
+    uint16_t          usModeChangePeriod_5;     //模式切换间隔时间t5(min)
+    uint16_t          usModeChangePeriod_6;     //模式切换间隔时间t6(min)
+    
+    uint16_t          usModeAdjustTemp_0;        //模式调节温度T0
+    uint16_t          usModeAdjustTemp_1;        //模式调节温度T1
+    uint16_t          usModeAdjustTemp_2;        //模式调节温度T2
+    uint16_t          usModeAdjustTemp_3;        //模式调节温度T3
+    uint16_t          usModeAdjustTemp_4;        //模式调节温度T4
+    uint16_t          usModeAdjustTemp_5;        //模式调节温度T5
+    uint16_t          usModeAdjustTemp_6;        //模式调节温度T6
+
     int16_t           sTempSet;                 //目标温度值设定
-    uint16_t          usGrowUpTemp;             //小鸡适宜生长温度值
-    uint16_t          usEnegyTemp;              //节能温度
-    uint16_t          usAdjustModeTemp;         //模式调节温度
+    uint16_t          usEnergyTemp;              //节能温度
+    uint16_t          usTempDeviat;             //温度偏差
     uint16_t          usSupAirMax_T;            //送风最大温度  
     
     uint16_t          usCO2PPM;                 //CO2平均浓度
@@ -65,8 +76,8 @@ CLASS(System)   /*系统*/
      
      
     uint16_t          usExAirRequest_Vol;       //系统排风需求量
-    uint16_t          usFreAirSet_Vol;          //系统目标新风风量设定
-    uint16_t          usTotalFreAir_Vol;        //系统新风风量 
+    uint32_t          ulFreAirSet_Vol;          //系统目标新风风量设定
+    uint32_t          ulTotalFreAir_Vol;        //系统新风风量 
     
     uint16_t          usHumidityMax;            //设定湿度max
     uint16_t          usHumidityMin;            //设定湿度min
@@ -77,12 +88,7 @@ CLASS(System)   /*系统*/
     int16_t           sAmbientOut_Ts;           //室外环境湿球温度                                           
     uint16_t          usAmbientIn_H;            //室内环境湿度
     uint16_t          usAmbientOut_H;           //室外环境湿度
-                      
-    uint8_t           ucAmbientInDeviat_T;      //室内环境温度偏差
-    uint8_t           ucAmbientOutDeviat_T;     //室外环境温度偏差
-    uint8_t           ucAmbientInDeviat_H;      //室内环境湿度偏差
-    uint8_t           ucAmbientOutDeviat_H;     //室外环境湿度偏差
-                      
+            
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
     uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
@@ -106,10 +112,21 @@ CLASS(System)   /*系统*/
     OS_TMR            sModeChangeTmr_4;         //模式切换时间t4(min)定时器
     OS_TMR            sModeChangeTmr_5;         //模式切换时间t5(min)定时器
     OS_TMR            sModeChangeTmr_6;         //模式切换时间t6(min)定时器
+    OS_TMR            sModeChangeTmr_7;         //模式切换时间t7(min)定时器
+    OS_TMR            sModeChangeTmr_8;         //模式切换时间t8(min)定时器
+    
+    OS_TMR            sModeChangePeriodTmr_1;   //模式切换间隔t1(min)定时器
+    OS_TMR            sModeChangePeriodTmr_2;   //模式切换间隔t2(min)定时器
+    OS_TMR            sModeChangePeriodTmr_3;   //模式切换间隔t3(min)定时器
+    OS_TMR            sModeChangePeriodTmr_4;   //模式切换间隔t4(min)定时器
+    OS_TMR            sModeChangePeriodTmr_5;   //模式切换间隔t5(min)定时器
+    OS_TMR            sModeChangePeriodTmr_6;   //模式切换间隔t6(min)定时器
+    
     
     OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
     
-    BOOL              xStopErrFlag;            //停系统故障标志
+    BOOL              xCompFirstRun;            //压缩机首次开启
+    BOOL              xStopErrFlag;             //停系统故障标志
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
     

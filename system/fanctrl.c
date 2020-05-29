@@ -352,12 +352,12 @@ void vSystem_ExAirSet_Vol(System* pt)
     if(pThis->eRunningMode == RUN_MODE_HEAT)
     {
         //系统排风需求量=当天目标新风量*【制热排百分比】（默认90）/100
-        pThis->usExAirRequest_Vol = pThis->usFreAirSet_Vol*pThis->ucExAirHeatRatio/100;
+        pThis->usExAirRequest_Vol = pThis->ulFreAirSet_Vol*pThis->ucExAirHeatRatio/100;
     }
     else
     {
         //系统排风需求量=当天目标新风量*【制冷排风百分比】（默认90）/100
-        pThis->usExAirRequest_Vol = pThis->usFreAirSet_Vol*pThis->ucExAirCoolRatio/100;
+        pThis->usExAirRequest_Vol = pThis->ulFreAirSet_Vol*pThis->ucExAirCoolRatio/100;
     }
     
      //（1）当系统排风需求量<=【排风机额定风量】（默认36000 m³/h）

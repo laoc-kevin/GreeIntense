@@ -48,9 +48,9 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
 }
 
 /*机组运行状态设置*/
-void vModularRoof_SetRunningMode(IDevRunning* pt, eRunningMode eMode)
+void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
 {
-    ModularRoof* pThis = SUB_PTR(pt, IDevRunning, ModularRoof);
+    ModularRoof* pThis = (ModularRoof*)pt;
     if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
     {
         pThis->eRunningMode = eMode; 
@@ -64,14 +64,16 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     
     DATA_INIT(pThis->eSwitchCmd,  CMD_CLOSE)
    
-    
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 260)
 
-    DATA_INIT(pThis->usFreAirSet_Vol, 30000)
+    DATA_INIT(pThis->ulFreAirSet_Vol, 30000)
     
     DATA_INIT(pThis->usHumidityMin,    55)
     DATA_INIT(pThis->usHumidityMax,    65)
+    
+    DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
+    DATA_INIT(pThis->usCO2AdjustDeviat,   50)
 }
 
 /*通讯映射函数*/
@@ -141,7 +143,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBRegHoldTable)
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16, 160,   350,      20,  RW, 1, (void*)&pThis->usHeatTempSet)
 
-    MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->usFreAirSet_Vol)
+    MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->ulFreAirSet_Vol)
     MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,     55,  RW, 1, (void*)&pThis->usHumidityMin)
     MASTER_REG_HOLD_DATA(10, uint16,   0,   100,     65,  RW, 1, (void*)&pThis->usHumidityMax)
     MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,   2700,  RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
@@ -208,7 +210,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable)
     
 MASTER_END_DATA_BUF(1, 10)  
     
-    pThis->sDevCommData.ucProtocolID = 1;
+    pThis->sDevCommData.ucProtocolID = 0;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
@@ -223,8 +225,11 @@ void vModularRoof_RegistDev(ModularRoof* pt)
 /*机组数据监控*/
 void vModularRoof_RegistMonitor(ModularRoof* pt)
 {
+    OS_ERR err = OS_ERR_NONE;
     ModularRoof* pThis = (ModularRoof*)pt;
 
+    OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
+    
     MONITOR(&pThis->sSupAir_T,           &pThis->sValChange)
     MONITOR(&pThis->usFreAir_Vol,        &pThis->sValChange)
     
@@ -282,7 +287,7 @@ CTOR(ModularRoof)   //屋顶机构造函数
     FUNCTION_SETTING(IDevSwitch.switchOpen,      vModularRoof_SwitchOpen);
     FUNCTION_SETTING(IDevSwitch.switchClose,     vModularRoof_SwitchClose);
 
-    FUNCTION_SETTING(IDevRunning.setRunningMode, vModularRoof_SetRunningMode);
+    FUNCTION_SETTING(setRunningMode, vModularRoof_SetRunningMode);
 END_CTOR
 
 

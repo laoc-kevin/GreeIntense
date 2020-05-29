@@ -40,26 +40,11 @@ typedef enum   /*系统模式*/
     MODE_EMERGENCY = 4, 
 }eSystemMode;
 
-typedef enum   /*启停状态*/
+typedef enum   /*运行状态*/
 {
     STATE_STOP   = 0,      //停止
     STATE_RUN    = 1,      //运行
 }eRunningState;
-
-typedef enum   /*运行模式*/
-{
-    RUN_MODE_COOL    = 1,      //制冷
-    RUN_MODE_HEAT    = 2,      //制热
-    RUN_MODE_FAN     = 3,      //送风   
-    RUN_MODE_WET     = 4,      //湿膜
-}eRunningMode;
-
-typedef enum 
-{
-    CMD_OPEN  = 0x00AA,
-    CMD_CLOSE = 0x0055,
-}eSwitchCmd;
-
 
 typedef struct  /*设备模拟量接口类型*/
 {
@@ -81,11 +66,6 @@ INTERFACE(IDevSwitch)    /*设备启停接口*/
     
 };
 
-INTERFACE(IDevRunning)    /*设备运行接口*/
-{                                                         
-     void     (*setRunningMode)(IDevRunning* pt, eRunningMode eMode);  //设置系统模式
-};
-
 INTERFACE(IDevFreq)      /*设备频率接口*/
 {
     void         (*setFreq)(IDevFreq* pt, uint16_t usFreq);                              //设置频率
@@ -95,12 +75,8 @@ INTERFACE(IDevFreq)      /*设备频率接口*/
 
 INTERFACE(IDevCom)      /*设备通讯接口*/
 {
-//    void   (*registDev)(IDevCom* pt);       //向通讯主栈中注册设备
     void   (*initDevCommData)(IDevCom* pt); //初始化设备通讯数据表
 };
-
-
-
 
 ABS_CLASS(Device)        /*设备抽象类*/
 {

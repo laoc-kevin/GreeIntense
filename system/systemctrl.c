@@ -11,7 +11,7 @@ void vSystem_SwitchOpen(System* pt)
     System* pThis = (System*)pt;
 
     vSystem_OpenUnits(pThis);   
-    pThis->eSwitchCmd = ON; 
+    pThis->eSwitchCmd = CMD_OPEN; 
 }
 
 /*系统关闭*/
@@ -26,7 +26,7 @@ void vSystem_SwitchClose(System* pt)
     vSystem_CloseExAirFans(pThis);
     vSystem_CloseUnits(pThis);
     
-    pThis->eSwitchCmd = OFF; 
+    pThis->eSwitchCmd = CMD_CLOSE; 
 }
 
 /*切换系统模式*/
@@ -38,40 +38,30 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
-    //手动模式
-    if(eSystemMode == MODE_MANUAL)
-    {
-        
-    }
-    //自动模式
-    if(eSystemMode == MODE_AUTO)
-    {
-        //群控温湿度传感器故障，且群控与机组通信故障无法获取机组正常室外温度、正常室外湿度，禁止从其他模式切换到自动模式
-        if(pThis->xTempHumiSenOutErr == TRUE) 
-        {
-            for(n=0; n < MODULAR_ROOF_NUM; n++)
-            {
-                pModularRoof = pThis->psModularRoofList[n]; 
+    if(eSystemMode == MODE_MANUAL){}    //手动模式
             
-               //(1)群控控制器与空调机组通讯故障        
-                if(pModularRoof->sMBSlaveDev.xOnLine == FALSE) 
-                {
-                    return;
-                }
-                            
-            }
-        }   
+    if(eSystemMode == MODE_AUTO)    //自动模式
+    {
+        //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
+        if(pThis->sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_0)
+        {
+            vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
+        }
+        else
+        {
+            vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
+        }
         vSystem_SwitchOpen(pThis);  //开启系统
     }
-    //关闭模式
-    if(eSystemMode == MODE_CLOSE)
+    
+    if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
         vSystem_SwitchClose(pThis);
     }
-    //紧急模式
-    if(eSystemMode == MODE_EMERGENCY)
+    
+    if(eSystemMode == MODE_EMERGENCY) //紧急模式
     {
-        vSystem_SwitchOpen(pThis);                   //开启系统
+        vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
     pThis->eSystemMode = eSystemMode;
@@ -92,23 +82,35 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet)
         pModularRoof->usHeatTempSet = sTempSet;
     }
     pThis->sTempSet = sTempSet;
+    vSystem_ChangeUnitRunningMode(pThis);
 }
 
 /*设定系统目标新风量*/
-void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol)
+void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAirSet_Vol_L)
 {
     uint8_t  n, ucUnitNum; 
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    uint32_t ulFreAirSet_Vol = usFreAirSet_Vol_H*65535 + usFreAirSet_Vol_L;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];        
-        pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol / MODULAR_ROOF_NUM;
+        pModularRoof->ulFreAirSet_Vol = ulFreAirSet_Vol / MODULAR_ROOF_NUM;
     }
     
-    pThis->usFreAirSet_Vol = usFreAirSet_Vol;
+    pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
+}
+
+/*设定系统排风机额定风量*/
+void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16_t usExAirFanRated_Vol_L)  
+{
+    uint8_t  n, ucUnitNum; 
+    System* pThis = (System*)pt;
+    
+    pThis->ulExAirFanRated_Vol = usExAirFanRated_Vol_H*65535 + usExAirFanRated_Vol_L;
 }
 
 /*设定系统湿度阈值*/

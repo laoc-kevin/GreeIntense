@@ -144,7 +144,10 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
 /* CO2传感器数据监控*/
 void vCO2Sensor_RegistMonitor(Sensor* pt)
 {
+    OS_ERR err = OS_ERR_NONE;
     CO2Sensor* pThis = SUB_PTR(pThis, Sensor, CO2Sensor);
+    
+    OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
 
     MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sValChange)
     MONITOR(&pThis->xCO2Error,   &pThis->Sensor.sValChange)
@@ -274,8 +277,11 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
 /*温湿度传感器数据监控*/
 void vTempHumiSensor_MonitorRegist(Sensor* pt)
 {
+    OS_ERR err = OS_ERR_NONE;
     TempHumiSensor* pThis = SUB_PTR(pThis, Sensor, TempHumiSensor);
 
+    OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
+    
     MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sValChange)
     MONITOR(&pThis->xTempError, &pThis->Sensor.sValChange)
     

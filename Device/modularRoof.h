@@ -14,14 +14,38 @@
 #define   MODULAR_ROOF_REG_HOLD_NUM   30   //机组通讯数据表保持寄存器数量
 #define   MODULAR_ROOF_BIT_COIL_NUM   50   //机组通讯数据表线圈数量
 
+typedef enum 
+{
+    CMD_OPEN  = 0x00AA,
+    CMD_CLOSE = 0x0055,
+}eSwitchCmd;
+
+typedef enum   /*运行模式*/
+{
+    RUN_MODE_COOL    = 1,      //制冷
+    RUN_MODE_HEAT    = 2,      //制热
+    RUN_MODE_FAN     = 3,      //送风   
+    RUN_MODE_WET     = 4,      //湿膜
+}eRunningMode;
+
 typedef enum   /*系统状态*/
 {
     STATE_CLOSE   = 0,        //关机 
     STATE_COOL    = 1,        //制冷
-    STATE_FAN     = 2,        //送风
-    STATE_HEAT    = 3,        //制热
-    STATE_DEFROST = 4,        //化霜
+    STATE_HEAT    = 2,        //制热
+    STATE_FAN     = 3,        //送风
+    STATE_WET     = 4,        //湿膜
+    STATE_DEFROST = 5,        //化霜
 }eSystemState;
+
+typedef enum   /*系统状态*/
+{
+    FUNC_HEAT_PUMP      = 0,        //热泵
+    FUNC_SINGLE_COOL    = 1,        //单冷
+    FUNC_PUMP_AND_AUX   = 2,        //热泵+电加热
+    FUNC_COOL_AND_AUX   = 3,        //单冷+电加热
+}eFuncMode;
+
 
 CLASS(Modular)   /*模块*/
 {
@@ -43,14 +67,14 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     EXTENDS(Device);         /*继承设备抽象类*/ 
     
     IMPLEMENTS(IDevSwitch);     //设备启停接口
-    IMPLEMENTS(IDevRunning);    //设备运行接口
-    
+
     uint16_t      usUnitID;                 //机型ID
     uint16_t      usProtocolVer;            //协议版本
                                             
     eRunningMode  eRunningMode;             //运行模式设定                                      
-    eSwitchCmd    eSwitchCmd;               //启停命令  
-
+    eSwitchCmd      eSwitchCmd;             //启停命令  
+    eFuncMode        eFuncMode;             //功能设定  
+    
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度  
     
@@ -63,7 +87,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
       
     uint16_t      usCoolTempSet;            //制冷温度值设定
     uint16_t      usHeatTempSet;            //制热温度值设定
-    uint16_t      usFreAirSet_Vol;          //目标新风风量设定
+    uint16_t      ulFreAirSet_Vol;          //目标新风风量设定
 
     int16_t       sAmbientIn_T;             //室内环境温度(群控检测)
     int16_t       sAmbientInSelf_T;         //室内环境温度
@@ -100,6 +124,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域
 
     void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo);
+    void (*setRunningMode)(ModularRoof* pt, eRunningMode eMode);
 };
 
 #endif

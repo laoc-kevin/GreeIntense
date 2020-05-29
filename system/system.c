@@ -75,31 +75,31 @@ void vSystem_PollTask(void *p_arg)
         sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
         
         /***********************BMS事件响应***********************/
-        HANDLE(psBMS->System.eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->System.eSystemMode))  
-        HANDLE(psBMS->System.eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->System.eRunningMode)) 
+        HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
+        HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
         
-        HANDLE(psBMS->System.sTempSet,         vSystem_SetTemp(psSystem, psBMS->System.sTempSet))
-        HANDLE(psBMS->System.usFreAirSet_Vol,  vSystem_SetFreAir(psSystem, psBMS->System.usFreAirSet_Vol))
+        HANDLE(psBMS->sTempSet,          vSystem_SetTemp(psSystem, psBMS->sTempSet))
+        HANDLE(psBMS->usFreAirSet_Vol_H, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
+        HANDLE(psBMS->usFreAirSet_Vol_L, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
         
-        HANDLE(psBMS->System.ucExAirCoolRatio, vSystem_ExAirSet_Vol(psSystem))
-        HANDLE(psBMS->System.ucExAirHeatRatio, vSystem_ExAirSet_Vol(psSystem))
+        HANDLE(psBMS->ucExAirCoolRatio, vSystem_ExAirSet_Vol(psSystem))
+        HANDLE(psBMS->ucExAirHeatRatio, vSystem_ExAirSet_Vol(psSystem))
         
-        HANDLE(psBMS->System.usHumidityMin, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin, 
-                                                                psBMS->System.usHumidityMax))
-        HANDLE(psBMS->System.usHumidityMax, vSystem_SetHumidity(psSystem, psBMS->System.usHumidityMin,
-                                                                psBMS->System.usHumidityMax))
+        HANDLE(psBMS->usHumidityMin, vSystem_SetHumidity(psSystem, psBMS->usHumidityMin, psBMS->usHumidityMax))
+        HANDLE(psBMS->usHumidityMax, vSystem_SetHumidity(psSystem, psBMS->usHumidityMin, psBMS->usHumidityMax))
         
-        HANDLE(psBMS->System.usCO2AdjustThr_V,  vSystem_SetCO2AdjustThr_V(psSystem, psBMS->System.usCO2AdjustThr_V))
-        HANDLE(psBMS->System.usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->System.usCO2AdjustDeviat))
+        HANDLE(psBMS->usCO2AdjustThr_V,  vSystem_SetCO2AdjustThr_V(psSystem, psBMS->usCO2AdjustThr_V))
+        HANDLE(psBMS->usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->usCO2AdjustDeviat))
         
-        HANDLE(psBMS->System.usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
-                                                                             psBMS->System.usExAirFanMaxFreq))
-        HANDLE(psBMS->System.usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->System.usExAirFanMinFreq, 
-                                                                             psBMS->System.usExAirFanMaxFreq))
+        HANDLE(psBMS->usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
+        HANDLE(psBMS->usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
         
-        HANDLE(psBMS->System.eExAirFanType, vSystem_ChangeExAirFanType(psSystem, psBMS->System.eExAirFanType))
-                                                                             
-                                                                             
+        HANDLE(psBMS->eExAirFanType, vSystem_ChangeExAirFanType(psSystem, psBMS->eExAirFanType))
+        
+        HANDLE(psBMS->usExAirFanRated_Vol_H, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))                                                                     
+        HANDLE(psBMS->usExAirFanRated_Vol_L, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))
+
+
         /***********************主机事件响应***********************/
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
@@ -208,35 +208,43 @@ void vSystem_RegistEEPROMData(System* pt)
 {
     System* pThis = (System*)pt;
     
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_1)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_2)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_3)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_4)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_5)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucModeChangeTime_6)
-    
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientInDeviat_T)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientOutDeviat_T)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientInDeviat_H)
-    EEPROM_DATA(TYPE_UINT_8, pThis->ucAmbientOutDeviat_H)
-    
     EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirCoolRatio)
     EEPROM_DATA(TYPE_UINT_8, pThis->ucExAirHeatRatio)
     EEPROM_DATA(TYPE_UINT_8, pThis->eExAirFanType)
     EEPROM_DATA(TYPE_UINT_8, pThis->xAlarmEnable)
     
-    EEPROM_DATA(TYPE_INT_8, pThis->cChickenGrowDays)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_1)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_2)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_3)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_4)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_5)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_6)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_7)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangeTime_8)
     
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_1)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_2)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_3)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_4)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_5)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeChangePeriod_6)
     
-    EEPROM_DATA(TYPE_UINT_16, pThis->usChickenNum)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usGrowUpTemp)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usAdjustModeTemp)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_0)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_1)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_2)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_3)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_4)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_5)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_6)
+    
+    EEPROM_DATA(TYPE_UINT_16, pThis->usEnergyTemp)
+    EEPROM_DATA(TYPE_UINT_16, pThis->usTempDeviat)
     EEPROM_DATA(TYPE_UINT_16, pThis->usSupAirMax_T)
     
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustThr_V)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustDeviat)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2PPMAlarm)
-    EEPROM_DATA(TYPE_UINT_16, pThis->usFreAirSet_Vol)
+    EEPROM_DATA(TYPE_UINT_16, pThis->ulFreAirSet_Vol)
     
     EEPROM_DATA(TYPE_UINT_16, pThis->usHumidityMax)
     EEPROM_DATA(TYPE_UINT_16, pThis->usHumidityMin)
@@ -246,11 +254,10 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanRunTimeLeast)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanCtrlPeriod)
    
-    
+    EEPROM_DATA(TYPE_INT_16, pThis->sChickenGrowDays)
     EEPROM_DATA(TYPE_INT_16, pThis->sTempSet)
     
     EEPROM_DATA(TYPE_UINT_32, pThis->ulExAirFanRated_Vol)
-      
 }
 
 /*系统数据默认值初始化*/
@@ -258,11 +265,13 @@ void vSystem_InitDefaultData(System* pt)
 {
     System* pThis = (System*)pt;
     
-    DATA_INIT(pThis->usUnitID, 0x302A)
-    DATA_INIT(pThis->usProtocolVer,10)
-  
-    DATA_INIT(pThis->usEnegyTemp,      250)
-    DATA_INIT(pThis->usAdjustModeTemp, 230)
+    DATA_INIT(pThis->usUnitID,        0x302A)
+    DATA_INIT(pThis->usProtocolVer,       10)
+    DATA_INIT(pThis->eSystemMode, MODE_CLOSE)
+    
+    DATA_INIT(pThis->sChickenGrowDays,   -2)
+    DATA_INIT(pThis->usEnergyTemp,      250)
+    DATA_INIT(pThis->usTempDeviat,       5)
     DATA_INIT(pThis->usSupAirMax_T,    450)
     
     DATA_INIT(pThis->usHumidityMin,    55)
@@ -283,12 +292,30 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usExAirFanCtrlPeriod,   1800)
     DATA_INIT(pThis->ulExAirFanRated_Vol,   36000)
     
-    DATA_INIT(pThis->ucModeChangeTime_1, 5)
-    DATA_INIT(pThis->ucModeChangeTime_2, 5)
-    DATA_INIT(pThis->ucModeChangeTime_3, 5)
-    DATA_INIT(pThis->ucModeChangeTime_4, 5)
-    DATA_INIT(pThis->ucModeChangeTime_5, 5)
-    DATA_INIT(pThis->ucModeChangeTime_6, 5) 
+    DATA_INIT(pThis->usModeChangeTime_1, 5)
+    DATA_INIT(pThis->usModeChangeTime_2, 5)
+    DATA_INIT(pThis->usModeChangeTime_3, 5)
+    DATA_INIT(pThis->usModeChangeTime_4, 5)
+    DATA_INIT(pThis->usModeChangeTime_5, 5)
+    DATA_INIT(pThis->usModeChangeTime_6, 5) 
+    DATA_INIT(pThis->usModeChangeTime_7, 5)
+    DATA_INIT(pThis->usModeChangeTime_8, 5)
+
+    DATA_INIT(pThis->usModeChangePeriod_1, 10)
+    DATA_INIT(pThis->usModeChangePeriod_2, 10)
+    DATA_INIT(pThis->usModeChangePeriod_3, 10)
+    DATA_INIT(pThis->usModeChangePeriod_4, 10)
+    DATA_INIT(pThis->usModeChangePeriod_5, 10)
+    DATA_INIT(pThis->usModeChangePeriod_6, 10)
+
+    DATA_INIT(pThis->usModeAdjustTemp_0, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_1, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_2, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_3, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_4, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_5, 15)
+    DATA_INIT(pThis->usModeAdjustTemp_6, 15)
+
 }
 
 /*系统初始化*/
@@ -305,10 +332,8 @@ void vSystem_Init(System* pt)
     
     vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
     vSystem_RegistEEPROMData(pThis);
-    
     vSystem_InitRuntimeTmr(pThis);
     
-    pThis->eSystemMode      = MODE_CLOSE;
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
 
     /***********************绑定BMS变量变化事件***********************/
@@ -389,7 +414,6 @@ void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE 
    
     System_Core();
 }
-
 
 System* System_Core()
 {
