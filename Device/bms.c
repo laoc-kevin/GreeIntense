@@ -208,10 +208,104 @@ SLAVE_END_DATA_BUF(0, 279)
     /******************************线圈数据域*************************/ 
 SLAVE_BEGIN_DATA_BUF(pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     
-    SLAVE_COIL_BIT_DATA(81,  0, RO, (void*)&pThis->psModularList[1]->psCompList[1]->Device.eRunningState); 
+    SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pSystem->xAlarmEnable) 
+    SLAVE_COIL_BIT_DATA(16, RO, (void*)&pSystem->xTempSenInErr) 
+    SLAVE_COIL_BIT_DATA(17, RO, (void*)&pSystem->xHumiSenInErr) 
+    SLAVE_COIL_BIT_DATA(18, RO, (void*)&pSystem->xCO2SenErr) 
+    SLAVE_COIL_BIT_DATA(24, RW, (void*)&pSystem->psModularRoofList[0]->xErrClean)
     
+    SLAVE_COIL_BIT_DATA(25, RO, (void*)&pSystem->psModularRoofList[0]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(26, RO, (void*)&pSystem->psModularRoofList[0]->xStopErrFlag)
+    SLAVE_COIL_BIT_DATA(27, RO, (void*)&pSystem->psModularRoofList[0]->Device.xErrFlag) 
+    SLAVE_COIL_BIT_DATA(28, RO, (void*)&pSystem->psModularRoofList[0]->Device.xAlarmFlag)
+    SLAVE_COIL_BIT_DATA(29, RO, (void*)&pSystem->psModularRoofList[0]->sMBSlaveDev.xOnLine)
     
+    SLAVE_COIL_BIT_DATA(30, RO, (void*)&pSystem->psModularRoofList[0]->psSupAirFan->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(31, RO, (void*)&pSystem->psModularRoofList[0]->xSupAirDamperState)    
+    SLAVE_COIL_BIT_DATA(32, RO, (void*)&pSystem->psModularRoofList[0]->xWetMode)
+    SLAVE_COIL_BIT_DATA(34, RO, (void*)&pSystem->psModularRoofList[0]->xRetAirSenErr)
+    SLAVE_COIL_BIT_DATA(35, RO, (void*)&pSystem->psModularRoofList[0]->xFreAirSenErr)  
+
+    SLAVE_COIL_BIT_DATA(36, RO, (void*)&pSystem->psModularRoofList[0]->xCO2SenSelfErr_1)
+    SLAVE_COIL_BIT_DATA(37, RO, (void*)&pSystem->psModularRoofList[0]->xCO2SenSelfErr_2) 
+    SLAVE_COIL_BIT_DATA(38, RO, (void*)&pSystem->psModularRoofList[0]->xTempSenInSelfErr)
+    SLAVE_COIL_BIT_DATA(39, RO, (void*)&pSystem->psModularRoofList[0]->xHumiSenInSelfErr) 
+    SLAVE_COIL_BIT_DATA(48, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psCompList[0]->Device.eRunningState)
     
+    SLAVE_COIL_BIT_DATA(49, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(50, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(51, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(52, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->xTempSenOutErr)    
+    SLAVE_COIL_BIT_DATA(53, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->xHumiSenOutErr)    
+    
+    SLAVE_COIL_BIT_DATA(56, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psCompList[0]->Device.eRunningState)  
+    SLAVE_COIL_BIT_DATA(57, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(58, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(59, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(60, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->xTempSenOutErr) 
+                                                                                   
+    SLAVE_COIL_BIT_DATA(61, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->xHumiSenOutErr) 
+    SLAVE_COIL_BIT_DATA(64, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psCompList[0]->Device.eRunningState)  
+    SLAVE_COIL_BIT_DATA(65, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(66, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(67, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)
+                                                                                     
+    SLAVE_COIL_BIT_DATA(68, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->xTempSenOutErr)                                                                              
+    SLAVE_COIL_BIT_DATA(69, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->xHumiSenOutErr) 
+    SLAVE_COIL_BIT_DATA(72, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psCompList[0]->Device.eRunningState)  
+    SLAVE_COIL_BIT_DATA(73, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(74, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)
+        
+    SLAVE_COIL_BIT_DATA(75, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState)                                                                               
+    SLAVE_COIL_BIT_DATA(76, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->xTempSenOutErr)                                                                              
+    SLAVE_COIL_BIT_DATA(77, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->xHumiSenOutErr)    
+    SLAVE_COIL_BIT_DATA(88, RW, (void*)&pSystem->psModularRoofList[1]->xErrClean)                                                              
+    SLAVE_COIL_BIT_DATA(89, RO, (void*)&pSystem->psModularRoofList[1]->Device.eRunningState)
+        
+    SLAVE_COIL_BIT_DATA(90, RO, (void*)&pSystem->psModularRoofList[1]->xStopErrFlag)
+    SLAVE_COIL_BIT_DATA(91, RO, (void*)&pSystem->psModularRoofList[1]->Device.xErrFlag) 
+    SLAVE_COIL_BIT_DATA(92, RO, (void*)&pSystem->psModularRoofList[1]->Device.xAlarmFlag)
+    SLAVE_COIL_BIT_DATA(93, RO, (void*)&pSystem->psModularRoofList[1]->sMBSlaveDev.xOnLine)                                                            
+    SLAVE_COIL_BIT_DATA(94, RO, (void*)&pSystem->psModularRoofList[1]->psSupAirFan->Device.eRunningState)
+        
+    SLAVE_COIL_BIT_DATA(95, RO, (void*)&pSystem->psModularRoofList[1]->xSupAirDamperState)    
+    SLAVE_COIL_BIT_DATA(96, RO, (void*)&pSystem->psModularRoofList[1]->xWetMode)
+    SLAVE_COIL_BIT_DATA(98, RO, (void*)&pSystem->psModularRoofList[1]->xRetAirSenErr)
+    SLAVE_COIL_BIT_DATA(99, RO, (void*)&pSystem->psModularRoofList[1]->xFreAirSenErr)                                                                
+    SLAVE_COIL_BIT_DATA(100, RO, (void*)&pSystem->psModularRoofList[1]->xCO2SenSelfErr_1)
+        
+    SLAVE_COIL_BIT_DATA(101, RO, (void*)&pSystem->psModularRoofList[1]->xCO2SenSelfErr_2) 
+    SLAVE_COIL_BIT_DATA(102, RO, (void*)&pSystem->psModularRoofList[1]->xTempSenInSelfErr)
+    SLAVE_COIL_BIT_DATA(103, RO, (void*)&pSystem->psModularRoofList[1]->xHumiSenInSelfErr) 
+    SLAVE_COIL_BIT_DATA(112, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[0]->Device.eRunningState)                                                               
+    SLAVE_COIL_BIT_DATA(113, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[1]->Device.eRunningState)
+        
+    SLAVE_COIL_BIT_DATA(114, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(115, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(116, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->xTempSenOutErr)    
+    SLAVE_COIL_BIT_DATA(117, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->xHumiSenOutErr)                                                                  
+    SLAVE_COIL_BIT_DATA(120, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psCompList[0]->Device.eRunningState) 
+        
+    SLAVE_COIL_BIT_DATA(121, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(122, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(123, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(124, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xTempSenOutErr)                                                                          
+    SLAVE_COIL_BIT_DATA(125, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xHumiSenOutErr) 
+        
+    SLAVE_COIL_BIT_DATA(128, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psCompList[0]->Device.eRunningState) 
+    SLAVE_COIL_BIT_DATA(129, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(130, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState)    
+    SLAVE_COIL_BIT_DATA(131, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)                                                                              
+    SLAVE_COIL_BIT_DATA(132, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->xTempSenOutErr)    
+        
+    SLAVE_COIL_BIT_DATA(133, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->xHumiSenOutErr) 
+    SLAVE_COIL_BIT_DATA(136, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psCompList[0]->Device.eRunningState)  
+    SLAVE_COIL_BIT_DATA(137, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(138, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)                                                               
+    SLAVE_COIL_BIT_DATA(139, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState) 
+        
+    SLAVE_COIL_BIT_DATA(140, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->xTempSenOutErr)          
+    SLAVE_COIL_BIT_DATA(141, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->xHumiSenOutErr) 
     
 SLAVE_END_DATA_BUF(0, 279)    
     

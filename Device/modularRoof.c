@@ -133,6 +133,7 @@ void vModularRoof_InitDevCommData(ModularRoof* pt)
     sMBTestDevCmd*   psMBCmd          = &pThis->sDevCommData.sMBDevCmdTable;
 
 MASTER_PBUF_INDEX_ALLOC()
+    
 MASTER_TEST_CMD_INIT(psMBCmd, 0, READ_REG_HOLD, 0x302A, TRUE)  
     
     /******************************保持寄存器数据域*************************/
@@ -181,33 +182,48 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable)
     MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
     MASTER_COIL_BIT_DATA(2,  0, RO, (void*)&pThis->Device.xErrFlag);
     MASTER_COIL_BIT_DATA(3,  0, RO, (void*)&pThis->Device.xAlarmFlag); 
-    MASTER_COIL_BIT_DATA(16, 0, WO, (void*)&pThis->xTempSenInErr); 
+    MASTER_COIL_BIT_DATA(10, 0, RW, (void*)&pThis->xErrClean);
     
+    MASTER_COIL_BIT_DATA(16, 0, WO, (void*)&pThis->xTempSenInErr); 
     MASTER_COIL_BIT_DATA(17, 0, WO, (void*)&pThis->xHumiSenInErr);
     MASTER_COIL_BIT_DATA(18, 0, WO, (void*)&pThis->xCO2SenErr);
     MASTER_COIL_BIT_DATA(48, 0, RO, (void*)&pThis->psSupAirFan->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(54, 0, RO, (void*)&pThis->xSupAirDamper); 
-    MASTER_COIL_BIT_DATA(55, 0, RO, (void*)&pThis->xWetMode); 
+    MASTER_COIL_BIT_DATA(54, 0, RO, (void*)&pThis->xSupAirDamperState); 
     
+    MASTER_COIL_BIT_DATA(55,  0, RO, (void*)&pThis->xWetMode);  
     MASTER_COIL_BIT_DATA(64,  0, RO, (void*)&pThis->psModularList[0]->psCompList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(65,  0, RO, (void*)&pThis->psModularList[0]->psCompList[1]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(66,  0, RO, (void*)&pThis->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(67,  0, RO, (void*)&pThis->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(80,  0, RO, (void*)&pThis->psModularList[1]->psCompList[0]->Device.eRunningState); 
     
+    MASTER_COIL_BIT_DATA(80,  0, RO, (void*)&pThis->psModularList[1]->psCompList[0]->Device.eRunningState);  
     MASTER_COIL_BIT_DATA(81,  0, RO, (void*)&pThis->psModularList[1]->psCompList[1]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(82,  0, RO, (void*)&pThis->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(83,  0, RO, (void*)&pThis->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState);
     MASTER_COIL_BIT_DATA(96,  0, RO, (void*)&pThis->psModularList[2]->psCompList[0]->Device.eRunningState); 
+    
     MASTER_COIL_BIT_DATA(97,  0, RO, (void*)&pThis->psModularList[2]->psCompList[1]->Device.eRunningState); 
-   
     MASTER_COIL_BIT_DATA(98,  0, RO, (void*)&pThis->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(99,  0, RO, (void*)&pThis->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState);
     MASTER_COIL_BIT_DATA(112, 0, RO, (void*)&pThis->psModularList[3]->psCompList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(113, 0, RO, (void*)&pThis->psModularList[3]->psCompList[1]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(114, 0, RO, (void*)&pThis->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState); 
     
+    MASTER_COIL_BIT_DATA(114, 0, RO, (void*)&pThis->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState); 
     MASTER_COIL_BIT_DATA(115, 0, RO, (void*)&pThis->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(144, 0, RO, (void*)&pThis->psModularList[0]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(145, 0, RO, (void*)&pThis->psModularList[0]->xHumiSenOutErr);
+    MASTER_COIL_BIT_DATA(264, 0, RO, (void*)&pThis->psModularList[1]->xTempSenOutErr); 
+    
+    MASTER_COIL_BIT_DATA(265, 0, RO, (void*)&pThis->psModularList[1]->xHumiSenOutErr); 
+    MASTER_COIL_BIT_DATA(384, 0, RO, (void*)&pThis->psModularList[2]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(385, 0, RO, (void*)&pThis->psModularList[2]->xHumiSenOutErr); 
+    MASTER_COIL_BIT_DATA(404, 0, RO, (void*)&pThis->psModularList[3]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(405, 0, RO, (void*)&pThis->psModularList[3]->xHumiSenOutErr); 
+    
+    MASTER_COIL_BIT_DATA(621, 0, RO, (void*)&pThis->xFreAirSenErr);
+    MASTER_COIL_BIT_DATA(622, 0, RO, (void*)&pThis->xRetAirSenErr);
+    MASTER_COIL_BIT_DATA(630, 0, RO, (void*)&pThis->xCO2SenSelfErr_1);
+    MASTER_COIL_BIT_DATA(631, 0, RO, (void*)&pThis->xCO2SenSelfErr_2);
     
 MASTER_END_DATA_BUF(1, 10)  
     

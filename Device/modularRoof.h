@@ -95,10 +95,19 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
     
     BOOL          xStopErrFlag;             //停整机故障标志
+    BOOL          xErrClean;                //故障清除
     BOOL          xCO2SenErr;               //CO2传感器故障(群控下发)
     BOOL          xTempSenInErr;            //室内温度传感器故障(群控下发)
     BOOL          xHumiSenInErr;            //室内湿度传感器故障(群控下发)
-    BOOL          xSupAirDamper;            //送风风阀
+    BOOL          xTempSenInSelfErr;        //室内温度传感器故障(机组)
+    BOOL          xHumiSenInSelfErr;        //室内湿度传感器故障(机组)
+    
+    BOOL          xRetAirSenErr;            //回风风速传感器故障
+    BOOL          xFreAirSenErr;            //新风风速传感器故障
+    BOOL          xCO2SenSelfErr_1;         //CO2传感器故障1(机组)
+    BOOL          xCO2SenSelfErr_2;         //CO2传感器故障2(机组)
+    
+    BOOL          xSupAirDamperState;       //送风风阀状态
     BOOL          xWetMode;                 //湿膜加湿
     
     uint16_t      usHumidityMax;            //设定湿度max
