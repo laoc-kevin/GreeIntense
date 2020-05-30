@@ -91,6 +91,7 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->usCO2AdjustThr_V,  vSystem_SetCO2AdjustThr_V(psSystem, psBMS->usCO2AdjustThr_V))
         HANDLE(psBMS->usCO2AdjustDeviat, vSystem_SetCO2AdjustDeviat(psSystem, psBMS->usCO2AdjustDeviat))
         
+        HANDLE(psBMS->usExAirFanFreq,    vSystem_AdjustExAirFanFreq(psSystem, psBMS->usExAirFanFreq))
         HANDLE(psBMS->usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
         HANDLE(psBMS->usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
         
@@ -104,6 +105,8 @@ void vSystem_PollTask(void *p_arg)
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n]; 
+            
+            HANDLE(pModularRoof->Device.eRunningState,    vSystem_UnitState(psSystem);break)
             
             HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem);break)
             HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem);break)            
@@ -177,10 +180,10 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->Device.eRunningState == STATE_RUN && pModularRoof->Device.ulRunTime < UINT32_MAX)
+        if(pModularRoof->Device.eRunningState == STATE_RUN && pModularRoof->Device.ulRunTime_S < UINT32_MAX)
         {
-            pModularRoof->Device.ulRunTime++;
-            pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime / 3600;
+            pModularRoof->Device.ulRunTime_S++;
+            pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime_S / 3600;
         }
         
     }
@@ -188,10 +191,10 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];
-        if(pExAirFan->Device.eRunningState == STATE_RUN && pExAirFan->Device.ulRunTime < UINT32_MAX)
+        if(pExAirFan->Device.eRunningState == STATE_RUN && pExAirFan->Device.ulRunTime_S < UINT32_MAX)
         {
-            pExAirFan->Device.ulRunTime++;
-            pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime / 3600;
+            pExAirFan->Device.ulRunTime_S++;
+            pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S / 3600;
         }   
     }
 }
@@ -332,8 +335,7 @@ void vSystem_Init(System* pt)
     
     vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
     vSystem_RegistEEPROMData(pThis);
-    vSystem_InitRuntimeTmr(pThis);
-    
+   
     pThis->psMBMasterInfo   = psMBGetMasterInfo();
 
     /***********************绑定BMS变量变化事件***********************/
@@ -365,7 +367,7 @@ void vSystem_Init(System* pt)
     for(n=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
-        pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo); //向上转型，由子类转为父类
+        pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2); //向上转型，由子类转为父类
         pThis->psCO2SenList[n] = pCO2Sensor;
         
         CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
@@ -375,7 +377,7 @@ void vSystem_Init(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
-        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
+        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT);
         pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
         
         CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件        
@@ -385,7 +387,7 @@ void vSystem_Init(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
-        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo);
+        pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN);
         pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
         
         CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
@@ -395,7 +397,9 @@ void vSystem_Init(System* pt)
     xSystem_CreatePollTask(pThis);
     vReadEEPROMData();                 //同步记忆参数
 
-    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);   //切换风机类型                  
+    vSystem_InitRuntimeTmr(pThis);
+    
+//    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);   //切换风机类型                  
 }
 
 CTOR(System)   //系统构造函数

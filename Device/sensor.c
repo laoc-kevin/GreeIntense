@@ -4,15 +4,6 @@
 #define TMR_TICK_PER_SECOND     OS_CFG_TMR_TASK_RATE_HZ
 #define SENSOR_TIME_OUT_S       1
 
-#define MAX_TEMP  700
-#define MIN_TEMP  -300
-
-#define MAX_HUMI  100
-#define MIN_HUMI  0
-
-#define MAX_CO2_PPM  2000
-#define MIN_CO2_PPM  0
-
 
 /*************************************************************
 *                         传感器                             *
@@ -25,7 +16,7 @@ void vSensor_RegistDev(Sensor* pt)
     (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
 }
 
-void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
+void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType)
 {
     OS_ERR err = OS_ERR_NONE;
     
@@ -34,10 +25,11 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo)
     
     pThis->psMBMasterInfo = psMBMasterInfo; //所属通讯主栈
     
-    pDevCom->initDevCommData(pDevCom);      //通讯数据初始化
-    
-    vSensor_RegistDev(pThis);               //向通讯主栈中注册设备
     pThis->registMonitor(pThis);            //注册监控数据
+    pDevCom->initDevCommData(pDevCom);      //通讯数据初始化
+    vSensor_RegistDev(pThis);               //向通讯主栈中注册设备
+    
+    pThis->eSensorType = eSensorType;
     
     //传感器1s周期定时器
     (void)xTimerRegist(&pThis->sSensorTmr, 0, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis); 
@@ -102,6 +94,7 @@ MASTER_END_DATA_BUF(1, 0x30)
     pCO2Sen->usMaxPPM = MAX_CO2_PPM;
     pCO2Sen->usMinPPM = MIN_CO2_PPM;
     
+    pThis->sDevCommData.ucProtocolID = 0;
     pThis->sDevCommData.pxDevDataMapIndex = xCO2Sensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
@@ -206,16 +199,32 @@ MASTER_PBUF_INDEX_ALLOC()
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)      
-    MASTER_REG_HOLD_DATA(1, int16,  MIN_TEMP, MAX_TEMP, 0, RO, 0, (void*)&pTempHumiSen->sTemp)
-    MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI, MAX_HUMI, 0, RO, 0, (void*)&pTempHumiSen->usHumi)
-
+MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable) 
+    
+    if(pThis->eSensorType == TYPE_TEMP_HUMI_IN)  
+    {
+        MASTER_REG_HOLD_DATA(1, int16,  MIN_IN_TEMP, MAX_IN_TEMP, 0, RO, 0, (void*)&pTempHumiSen->sTemp)
+        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI, 0, RO, 0, (void*)&pTempHumiSen->usHumi)
+    }        
+    if(pThis->eSensorType == TYPE_TEMP_HUMI_OUT)  
+    {
+        MASTER_REG_HOLD_DATA(1, int16,  MIN_OUT_TEMP, MAX_OUT_TEMP, 0, RO, 0, (void*)&pTempHumiSen->sTemp)
+        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI, 0, RO, 0, (void*)&pTempHumiSen->usHumi)
+    }    
     MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
+        
 MASTER_END_DATA_BUF(1, 0x30)
     
-    pTempHumiSen->sMaxTemp = MAX_TEMP;
-    pTempHumiSen->sMinTemp = MIN_TEMP; 
-    
+    if(pThis->eSensorType == TYPE_TEMP_HUMI_IN)  
+    {
+         pTempHumiSen->sMaxTemp = MAX_IN_TEMP;
+         pTempHumiSen->sMinTemp = MIN_IN_TEMP; 
+    }        
+    if(pThis->eSensorType == TYPE_TEMP_HUMI_OUT)  
+    {
+        pTempHumiSen->sMaxTemp = MAX_OUT_TEMP;
+        pTempHumiSen->sMinTemp = MIN_OUT_TEMP; 
+    }   
     pTempHumiSen->usMaxHumi = MAX_HUMI;
     pTempHumiSen->usMinHumi = MIN_HUMI;
     
@@ -291,9 +300,9 @@ void vTempHumiSensor_MonitorRegist(Sensor* pt)
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数
     SUPER_CTOR(Sensor);
-    FUNCTION_SETTING(Sensor.registMonitor, vTempHumiSensor_MonitorRegist);
+    FUNCTION_SETTING(Sensor.registMonitor,           vTempHumiSensor_MonitorRegist);
     FUNCTION_SETTING(Sensor.IDevCom.initDevCommData, vTempHumiSensor_InitDevCommData);
-    FUNCTION_SETTING(Sensor.timeoutInd, vTempHumiSensor_TimeoutInd);
+    FUNCTION_SETTING(Sensor.timeoutInd,              vTempHumiSensor_TimeoutInd);
 END_CTOR
 
 

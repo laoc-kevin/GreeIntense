@@ -11,7 +11,7 @@
  * @author  laoc
  * @date    2019.01.22
  *********************************************************************/
-eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev, 
+eMBMasterReqErrCode eMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev, 
                                     const sMBTestDevCmd* psMBDevCmd)
 {
     eMBMasterReqErrCode errorCode = MB_MRE_EILLSTATE;
@@ -23,19 +23,48 @@ eMBMasterReqErrCode vMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
     if( psMBDevCmd->eCmdMode == READ_REG_HOLD )
     {
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 
-        errorCode = eMBMasterReqReadHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->ucAddr, 
+        errorCode = eMBMasterReqReadHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
                                                     1, MB_MASTER_WAITING_DELAY);   //测试从设备
 #endif						
     }
     else if(psMBDevCmd->eCmdMode == READ_REG_IN)
     {				
 #if MB_FUNC_READ_INPUT_ENABLED > 0						
-        errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->ucAddr, 
+        errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
                                                   1, MB_MASTER_WAITING_DELAY);     //测试从设备
 #endif						
     }
     return errorCode;
 }
+
+#if MB_MASTER_HEART_BEAT_ENABLED
+/**********************************************************************
+ * @brief   主栈对从设备发送心跳帧
+ * @param   psMBMasterInfo  主栈信息块
+ * @param   psMBSlaveDev    从设备
+ * @return	eMBMasterReqErrCode
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+eMBMasterReqErrCode eMBDevHeartBeat(sMBMasterInfo* psMBMasterInfo, const sMBSlaveDev* psMBSlaveDev)
+{
+    eMBMasterReqErrCode errorCode = MB_MRE_EILLSTATE;
+    sMBDevHeartBeat* psDevHeartBeat = &psMBSlaveDev->psDevCurData->sMBDevHeartBeat;
+    
+    if( (psDevHeartBeat == NULL) || (psMBSlaveDev->psDevCurData->xHeartBeatEnable == FALSE) )
+    {
+         return MB_MRE_ILL_ARG;
+    }
+    if(psDevHeartBeat->eDataType == RegHoldData)
+    {
+#if MB_FUNC_WRITE_HOLDING_ENABLED > 0 
+        errorCode = eMBMasterReqWriteHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psDevHeartBeat->ucAddr, 
+                                                     psDevHeartBeat->usValue, MB_MASTER_WAITING_DELAY);   //心跳
+#endif						
+    }
+    return errorCode;
+}
+#endif	
 
 /**********************************************************************
  * @brief  主栈对从设备未知状态进行测试
@@ -67,7 +96,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
         {
             continue;
         }
-    	errorCode = vMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);	
+    	errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);	
         
         if( errorCode == MB_MRE_NO_ERR ) //证明从设备有反应
         {
@@ -80,11 +109,11 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
             usDataVal |=( (USHORT)(*pcPDUCur++) ) & 0xFF;
             
             psMBSlaveDev->ucDevAddr       = iSlaveAddr;                 //从设备通讯地址
-            psMBSlaveDev->xOnLine        = TRUE;                       //从设备反馈正确，则设备在线
+            psMBSlaveDev->xOnLine         = TRUE;                       //从设备反馈正确，则设备在线
             psMBSlaveDev->psDevCurData    = psMBDevData;                //从设备当前数据域
             psMBSlaveDev->ucProtocolID    = psMBDevData->ucProtocolID;  //从设备协议ID
             
-            if(usAddr == psMBCmd->ucAddr)  //地址一致
+            if(usAddr == psMBCmd->usAddr)  //地址一致
             {   
                 if(psMBCmd->xCheckVal)  //测试时比较数值
                 {
@@ -146,7 +175,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //接口处于测试从设备状态
     for( n=0; n<MB_TEST_RETRY_TIMES; n++ )
     {
-        errorCode = vMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);			
+        errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);			
      
         if( errorCode == MB_MRE_NO_ERR ) //证明从设备有反应
         {
@@ -161,7 +190,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
             psMBSlaveDev->xOnLine        = TRUE;                      //从设备反馈正确，则设备在线
             psMBSlaveDev->ucRetryTimes    = 0;                         //测试次数清零
             
-            if(usAddr == psMBCmd->ucAddr)  //地址一致
+            if(usAddr == psMBCmd->usAddr)  //地址一致
             {   
                 if(psMBCmd->xCheckVal)  //测试时比较数值
                 {

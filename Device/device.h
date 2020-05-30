@@ -32,14 +32,6 @@ typedef enum   /*频率类型*/
    CONSTANT_FREQ = 1      //定频
 }eFreqType;
 
-typedef enum   /*系统模式*/
-{
-    MODE_MANUAL    = 1,     
-    MODE_AUTO      = 2,
-    MODE_CLOSE     = 3,
-    MODE_EMERGENCY = 4, 
-}eSystemMode;
-
 typedef enum   /*运行状态*/
 {
     STATE_STOP   = 0,      //停止
@@ -80,7 +72,7 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 
 ABS_CLASS(Device)        /*设备抽象类*/
 {
-    uint32_t        ulRunTime;       //运行时间(s)
+    uint32_t        ulRunTime_S;       //运行时间(s)
     uint16_t        usRunTime_H;     //运行时间(h)
     
     BOOL            xErrFlag;        //总故障标志

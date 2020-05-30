@@ -28,15 +28,7 @@ typedef enum   /*运行模式*/
     RUN_MODE_WET     = 4,      //湿膜
 }eRunningMode;
 
-typedef enum   /*系统状态*/
-{
-    STATE_CLOSE   = 0,        //关机 
-    STATE_COOL    = 1,        //制冷
-    STATE_HEAT    = 2,        //制热
-    STATE_FAN     = 3,        //送风
-    STATE_WET     = 4,        //湿膜
-    STATE_DEFROST = 5,        //化霜
-}eSystemState;
+
 
 typedef enum   /*系统状态*/
 {
@@ -54,8 +46,8 @@ CLASS(Modular)   /*模块*/
     BOOL          xTempSenOutErr;           //室外温度传感器故障
     BOOL          xHumiSenOutErr;           //室外湿度传感器故障
     
-    eSystemState  eSystemState;             //系统状态
-    
+    uint8_t       ucModularState;           //模块状态 0:关机 1:制冷 2:制热 3:送风 4:湿膜 5:化霜
+ 
     AmbientOutFan* psAmbientOutFanList[AMBIENT_OUT_FAN_NUM]; //室外风机列表
     Compressor*    psCompList[COMP_NUM];                     //压缩机列表
     
@@ -87,7 +79,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
       
     uint16_t      usCoolTempSet;            //制冷温度值设定
     uint16_t      usHeatTempSet;            //制热温度值设定
-    uint16_t      ulFreAirSet_Vol;          //目标新风风量设定
+    uint16_t      usFreAirSet_Vol;          //目标新风风量设定
 
     int16_t       sAmbientIn_T;             //室内环境温度(群控检测)
     int16_t       sAmbientInSelf_T;         //室内环境温度

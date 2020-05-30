@@ -40,7 +40,7 @@ ExAirFan* psSystem_LongestExAirFan(System* pt)
     {          
         for(i=0; i< m-n; i++)
         {
-            if(pFanByRunTimeList[i]->Device.ulRunTime > pFanByRunTimeList[i+1]->Device.ulRunTime)
+            if(pFanByRunTimeList[i]->Device.ulRunTime_S > pFanByRunTimeList[i+1]->Device.ulRunTime_S)
             {
                            pExAirFan   = pFanByRunTimeList[i];
                 pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
@@ -75,7 +75,7 @@ ExAirFan* psSystem_ShortestExAirFan(System* pt)
     {          
         for(i=0; i< m-n; i++)
         {
-            if(pFanByRunTimeList[i]->Device.ulRunTime > pFanByRunTimeList[i+1]->Device.ulRunTime)
+            if(pFanByRunTimeList[i]->Device.ulRunTime_S > pFanByRunTimeList[i+1]->Device.ulRunTime_S)
             {
                            pExAirFan   = pFanByRunTimeList[i];
                 pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
@@ -173,7 +173,7 @@ void vSystem_ExAirFanConstant(System* pt)
     {          
         for(i=0; i< m-n; i++)
         {
-            if(pFanByRunTimeList[i]->Device.ulRunTime > pFanByRunTimeList[i+1]->Device.ulRunTime)
+            if(pFanByRunTimeList[i]->Device.ulRunTime_S > pFanByRunTimeList[i+1]->Device.ulRunTime_S)
             {
                            pExAirFan   = pFanByRunTimeList[i];
                 pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 

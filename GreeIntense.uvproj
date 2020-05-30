@@ -571,6 +571,11 @@
               <FileType>1</FileType>
               <FilePath>.\Device\bms.c</FilePath>
             </File>
+            <File>
+              <FileName>meter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Device\meter.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

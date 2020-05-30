@@ -75,5 +75,5 @@
 #define  OS_CFG_TMR_TASK_RATE_HZ         1000u              /* Rate for timers (1000 Hz Typ.)                           */
 #define  OS_CFG_TMR_TASK_STK_SIZE        128u               /* Stack size (number of CPU_STK elements)                */
 
-#define  TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
+#define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
 #endif

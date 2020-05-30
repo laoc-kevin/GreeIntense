@@ -18,7 +18,7 @@ typedef enum   /*运行模式*/
     TYPE_INT_32    = 6, 
 
     TYPE_RUNTIME   = 7,    
-    
+    TYPE_E32       = 8,
 }eEEPROMDataType;
 
 void vReadEEPROMData(void);

@@ -31,12 +31,12 @@
 
 
 //线圈数据申请  
-#define SLAVE_BIT_COIL_DATA(arg1, arg2, arg3, arg4) \
+#define SLAVE_COIL_BIT_DATA(arg1, arg2, arg3, arg4) \
         vMBSlaveBitDataInit((sMBSlaveBitData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4); \
         usIndex++;
 
 //离散量数据申请  
-#define SLAVE_BIT_DISC_DATA(arg1, arg2, arg3, arg4) \
+#define SLAVE_DISC_BIT_DATA(arg1, arg2, arg3, arg4) \
         vMBSlaveBitDataInit((sMBSlaveBitData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4); \
         usIndex++;
 

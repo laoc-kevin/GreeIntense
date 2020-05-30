@@ -8,21 +8,40 @@
 
 #include "md_timer.h"
 
-#define EX_AIR_FAN_NUM       4            //排风机数量
-#define MODULAR_ROOF_NUM     2            //屋顶机数量 
+#define EX_AIR_FAN_NUM          4        //排风机数量
+#define MODULAR_ROOF_NUM        2        //屋顶机数量 
+                                
+#define CO2_SEN_NUM             8        //CO2传感器数量
+#define TEMP_HUMI_SEN_OUT_NUM   1        //室外温湿度传感器数量
+#define TEMP_HUMI_SEN_IN_NUM    12       //室内温湿度传感器数量
 
-#define CO2_SEN_NUM          8            //CO2传感器数量
-#define TEMP_HUMI_SEN_OUT_NUM   2        //室外温湿度传感器数量
-#define TEMP_HUMI_SEN_IN_NUM    2        //室内温湿度传感器数量
 
 
-
-typedef enum   /*系统状态*/
+typedef enum   /*风机类型*/
 {
     Type_CONSTANT = 0,              //定频
     Type_CONSTANT_VARIABLE = 1      //定频 + 变频
 }eExAirFanType;
 
+typedef enum   /*系统模式*/
+{
+    MODE_CLOSE     = 0,     //关闭模式
+    MODE_MANUAL    = 1,     //手动模式
+    MODE_AUTO      = 2,     //自动模式
+    MODE_EMERGENCY = 3,     //紧急送风模式
+}eSystemMode;
+
+typedef enum   /*系统状态*/
+{
+    STATE_MANUAL    = 0,    //手动模式
+    STATE_COOL      = 1,    //制冷运行
+    STATE_HEAT      = 2,    //制热运行
+    STATE_FAN       = 3,    //送风运行
+    STATE_WET       = 4,    //湿膜运行
+    STATE_EMERGENCY = 5,    //紧急送风模式
+    STATE_CLOSING   = 6,    //正在关机 
+    STATE_CLOSED    = 7,    //已关闭
+}eSystemState;
 
 CLASS(System)   /*系统*/
 {
@@ -32,6 +51,7 @@ CLASS(System)   /*系统*/
     uint16_t          usProtocolVer;            //协议版本
     
     eSystemMode       eSystemMode;              //系统模式
+    eSystemState      eSystemState;
     eRunningMode      eRunningMode;             //运行模式                                            
     eSwitchCmd        eSwitchCmd;               //启停命令 
                     
@@ -62,7 +82,7 @@ CLASS(System)   /*系统*/
     uint16_t          usModeAdjustTemp_6;        //模式调节温度T6
 
     int16_t           sTempSet;                 //目标温度值设定
-    uint16_t          usEnergyTemp;              //节能温度
+    uint16_t          usEnergyTemp;             //节能温度
     uint16_t          usTempDeviat;             //温度偏差
     uint16_t          usSupAirMax_T;            //送风最大温度  
     
@@ -88,7 +108,8 @@ CLASS(System)   /*系统*/
     int16_t           sAmbientOut_Ts;           //室外环境湿球温度                                           
     uint16_t          usAmbientIn_H;            //室内环境湿度
     uint16_t          usAmbientOut_H;           //室外环境湿度
-            
+    
+    uint16_t          usExAirFanFreq;           //排风机频率设定    
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
     uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
@@ -149,7 +170,7 @@ CLASS(System)   /*系统*/
     ModularRoof*      psModularRoofList[MODULAR_ROOF_NUM];   //屋顶机列表
                       
     TempHumiSensor*   psTempHumiSenOutList[TEMP_HUMI_SEN_OUT_NUM];   //室外温湿度传感器列表
-    TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_OUT_NUM];    //室内温湿度传感器列表
+    TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_IN_NUM];    //室内温湿度传感器列表
                       
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
 

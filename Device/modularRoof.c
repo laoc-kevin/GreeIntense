@@ -1,3 +1,4 @@
+#include "sensor.h"
 #include "modularRoof.h"
 
 #define DTU247_PROTOCOL_TYPE_ID   1
@@ -11,11 +12,11 @@ void vModular_Init(Modular* pt)
     uint8_t n = 0;
     Modular* pThis = (Modular*)pt;
     
-    for(n=0; n < AMBIENT_OUT_FAN_NUM; n++)
+    for(n=0; n < AMBIENT_OUT_FAN_NUM; n++)    //室外风机
     {
         pThis->psAmbientOutFanList[n] = (AmbientOutFan*)AmbientOutFan_new();
     }
-    for(n=0; n < COMP_NUM; n++)
+    for(n=0; n < COMP_NUM; n++)               //压缩机
     {
         pThis->psCompList[n] = (Compressor*)Compressor_new();
     }
@@ -67,7 +68,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 260)
 
-    DATA_INIT(pThis->ulFreAirSet_Vol, 30000)
+    DATA_INIT(pThis->usFreAirSet_Vol, 30000)
     
     DATA_INIT(pThis->usHumidityMin,    55)
     DATA_INIT(pThis->usHumidityMax,    65)
@@ -143,20 +144,20 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBRegHoldTable)
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16, 160,   350,      20,  RW, 1, (void*)&pThis->usHeatTempSet)
 
-    MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->ulFreAirSet_Vol)
+    MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->usFreAirSet_Vol)
     MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,     55,  RW, 1, (void*)&pThis->usHumidityMin)
     MASTER_REG_HOLD_DATA(10, uint16,   0,   100,     65,  RW, 1, (void*)&pThis->usHumidityMax)
     MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,   2700,  RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
     MASTER_REG_HOLD_DATA(12, uint16,   5,   500,     50,  RW, 1, (void*)&pThis->usCO2AdjustDeviat)
-        
-    MASTER_REG_HOLD_DATA(16, int16,  -400,  1200,     0,  WO, 1, (void*)&pThis->sAmbientIn_T)
-    MASTER_REG_HOLD_DATA(17, uint16,    0,   100,     0,  WO, 1, (void*)&pThis->usAmbientIn_H)
-    MASTER_REG_HOLD_DATA(18, uint16,    0,  5000,     0,  WO, 1, (void*)&pThis->usCO2PPM)   
-    MASTER_REG_HOLD_DATA(37, uint16,    0,     5,     0,  RO, 1, (void*)&pThis->psModularList[0]->eSystemState) 
-    MASTER_REG_HOLD_DATA(38, uint16,    0,     5,     0,  RO, 1, (void*)&pThis->psModularList[1]->eSystemState)   
-   
-    MASTER_REG_HOLD_DATA(39, uint16,    0,     5,     0,  RO, 1, (void*)&pThis->psModularList[2]->eSystemState) 
-    MASTER_REG_HOLD_DATA(40, uint16,    0,     5,     0,  RO, 1, (void*)&pThis->psModularList[3]->eSystemState)   
+     
+    MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  WO, 1, (void*)&pThis->sAmbientIn_T)
+    MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  WO, 1, (void*)&pThis->usAmbientIn_H)
+    MASTER_REG_HOLD_DATA(18, uint16,    MIN_CO2_PPM,  MAX_CO2_PPM,  0,  WO, 1, (void*)&pThis->usCO2PPM)   
+    MASTER_REG_HOLD_DATA(37,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[0]->ucModularState) 
+    MASTER_REG_HOLD_DATA(38,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[1]->ucModularState)   
+                                                                                          
+    MASTER_REG_HOLD_DATA(39, uint8,     0,     5,     0,  RO, 1, (void*)&pThis->psModularList[2]->ucModularState) 
+    MASTER_REG_HOLD_DATA(40, uint8,     0,     5,     0,  RO, 1, (void*)&pThis->psModularList[3]->ucModularState)   
     MASTER_REG_HOLD_DATA(44, int16,  -200,  1400,     0,  RO, 1, (void*)&pThis->sRetAir_T)      
     MASTER_REG_HOLD_DATA(45, int16,  -200,  1400,     0,  RO, 1, (void*)&pThis->sSupAir_T)
     MASTER_REG_HOLD_DATA(46, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientInSelf_T)
@@ -230,19 +231,20 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
 
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
-    MONITOR(&pThis->sSupAir_T,           &pThis->sValChange)
-    MONITOR(&pThis->usFreAir_Vol,        &pThis->sValChange)
-    
-    MONITOR(&pThis->sAmbientInSelf_T,    &pThis->sValChange)
-    MONITOR(&pThis->usAmbientInSelf_H,   &pThis->sValChange)
-    
-    MONITOR(&pThis->sAmbientOutSelf_T,   &pThis->sValChange)
-    MONITOR(&pThis->usAmbientOutSelf_H,  &pThis->sValChange)
-    
-    MONITOR(&pThis->usCO2PPMSelf,        &pThis->sValChange)
-    
-    MONITOR(&pThis->xStopErrFlag,        &pThis->sValChange)
-    MONITOR(&pThis->sMBSlaveDev.xOnLine, &pThis->sValChange)  
+    MONITOR(&pThis->Device.eRunningState, &pThis->sValChange)
+    MONITOR(&pThis->sSupAir_T,            &pThis->sValChange)
+    MONITOR(&pThis->usFreAir_Vol,         &pThis->sValChange)
+                                          
+    MONITOR(&pThis->sAmbientInSelf_T,     &pThis->sValChange)
+    MONITOR(&pThis->usAmbientInSelf_H,    &pThis->sValChange)
+                                          
+    MONITOR(&pThis->sAmbientOutSelf_T,    &pThis->sValChange)
+    MONITOR(&pThis->usAmbientOutSelf_H,   &pThis->sValChange)
+                                          
+    MONITOR(&pThis->usCO2PPMSelf,         &pThis->sValChange)
+                                          
+    MONITOR(&pThis->xStopErrFlag,         &pThis->sValChange)
+    MONITOR(&pThis->sMBSlaveDev.xOnLine,  &pThis->sValChange)  
 }
 
 /*机组EEPROM数据注册*/
@@ -250,9 +252,8 @@ void vModularRoof_RegistEEPROMData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
     
-    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime)
+    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
 }
-
 
 /*机组初始化*/
 void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
@@ -270,13 +271,14 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
     vModularRoof_InitDefaultData(pThis);    //初始化默认数据
     vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
     
-    pThis->psSupAirFan = (SupAirFan*)SupAirFan_new();     //实例化对象
+    pThis->psSupAirFan = (SupAirFan*)SupAirFan_new();  //送风风机
+    
     for(n=0; n < MODULAR_NUM; n++)
     {
         psModular = (Modular*)Modular_new();
         psModular->init(psModular);
         
-        pThis->psModularList[n] = psModular;   //模块列表       
+        pThis->psModularList[n] = psModular;        //模块列表       
     } 
 }
 

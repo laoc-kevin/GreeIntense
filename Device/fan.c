@@ -120,7 +120,7 @@ void vExAirFan_RegistEEPROMData(ExAirFan* pt)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
     
-    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime)
+    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
 }
 
 
@@ -139,7 +139,6 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
     } 
 }
 
-
 CTOR(ExAirFan)     //排风机构造函数
     SUPER_CTOR(Device);
    
@@ -152,13 +151,4 @@ CTOR(ExAirFan)     //排风机构造函数
     FUNCTION_SETTING(IDevSwitch.switchClose, vExAirFan_SwitchClose);
 END_CTOR
 
-
-//void vExFan_setRunning (void* pt, uint8_t ucFreq)
-//{
-//    ExAirFan* f = ExAirFan_new();
-//    uint16_t freq = 10;
-//    
-//   
-////    f->Fan.Device.ucAlarmFlag;
-//}
 

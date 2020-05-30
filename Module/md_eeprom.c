@@ -52,22 +52,21 @@
 #define RUNTIME_SAVE_COUNT  8			//运行时间类型的参数记忆数量
 #define RUNTIME_SAVE_SIZE   RUNTIME_SAVE_COUNT * sizeof(uint32_t)		//运行时间类型记忆字节长度
 
-//#define E32_SAVE_COUNT		8			//能耗统计uint32类型的参数记忆数量
-//#define E32_SAVE_SIZE		E32_SAVE_COUNT * sizeof(uint32_t)		//能耗统计uint32类型记忆字节长度
+#define E32_SAVE_COUNT		8			//能耗统计uint32类型的参数记忆数量
+#define E32_SAVE_SIZE		E32_SAVE_COUNT * sizeof(uint32_t)		//能耗统计uint32类型记忆字节长度
  
-#define UINT8_WRITE_INTV	    10	    //uint8类型的参数记忆周期
-                                        
+
+#define UINT8_WRITE_INTV	    10	    //uint8类型的参数记忆周期                                       
 #define INT8_WRITE_INTV		    10	    //int8类型的参数记忆周期
                                         
-#define UINT16_WRITE_INTV	    10	    //uint16类型的参数记忆周期
-                                        
+#define UINT16_WRITE_INTV	    10	    //uint16类型的参数记忆周期                                       
 #define INT16_WRITE_INTV	    10	    //int16类型的参数记忆周期
                                         
-#define UINT32_WRITE_INTV	    7200    //uint32类型的参数记忆周期
-                                        
+#define UINT32_WRITE_INTV	    7200    //uint32类型的参数记忆周期                                       
 #define INT32_WRITE_INTV	    7200    //uint32类型的参数记忆周期
 
 #define RUNTIME_WRITE_INTV	    7200    //运行时间类型的参数记忆周期
+#define E32_WRITE_INTV	        7200    //能耗统计uint32类型的参数记忆周期
 
 BOOL     EEPROMDataReady = FALSE;
 
@@ -81,6 +80,8 @@ uint8_t  DataBufUint32Count = 0;
 uint8_t  DataBufInt32Count = 0;
 
 uint8_t  DataBufRuntimeCount = 0;
+uint8_t  DataBufE32Count = 0;
+
 
 uint16_t  DataBufUint8ChangedTimes = 0;
 uint16_t  DataBufInt8ChangedTimes  = 0;
@@ -92,6 +93,7 @@ uint16_t  DataBufUint32ChangedTimes = 0;
 uint16_t  DataBufInt32ChangedTimes = 0;
 
 uint16_t  DataBufRuntimeChangedTimes = 0;
+uint16_t  DataBufE32ChangedTimes = 0;
 
 
 uint8_t*  pDataBufUint8[UINT8_SAVE_COUNT]  = {NULL};
@@ -104,6 +106,7 @@ uint32_t* pDataBufUint32[UINT32_SAVE_COUNT] = {NULL};
 int32_t*  pDataBufInt32[INT32_SAVE_COUNT]   = {NULL};
 
 uint32_t* pDataBufRuntime[RUNTIME_SAVE_COUNT] = {NULL};
+uint32_t* pDataBufE32[E32_SAVE_COUNT] = {NULL};
 
 
 uint8_t __attribute__((aligned (4))) DataBufUint8[UINT8_SAVE_COUNT] = {0};
@@ -120,8 +123,7 @@ uint32_t __attribute__((aligned (4))) DataBufRuntime[RUNTIME_SAVE_COUNT] = {0};
 //uint16_t __attribute__ ((aligned (4))) ReadBufE16[E16_SAVE_COUNT];
 //uint16_t __attribute__ ((aligned (4))) WriteBufE16[E16_SAVE_COUNT] = {0};
 
-//uint32_t __attribute__ ((aligned (4))) ReadBufE32[E32_SAVE_COUNT];
-//uint32_t __attribute__ ((aligned (4))) WriteBufE32[E32_SAVE_COUNT] = {0};
+uint32_t __attribute__ ((aligned (4))) DataBufE32[E32_SAVE_COUNT] = {0};
 
 BOOL xDataUint8Changed(void)
 {
@@ -235,6 +237,21 @@ BOOL xDataRuntimeChanged(void)
 	return xChanged;
 }
 
+BOOL xDataE32Changed(void)
+{
+	uint8_t i = 0;
+	BOOL    xChanged = FALSE;
+
+	for (i = 0; i < E32_SAVE_COUNT; i++)
+	{
+		if( (pDataBufE32[i] != NULL) && (DataBufE32[i] == *pDataBufE32[i]) ) //检查值是否已经改变
+		{
+			xChanged = TRUE;
+			DataBufE32[i] = *pDataBufE32[i];
+		}
+	}
+	return xChanged;
+}
 
 void vReadEEPROMData(void)
 {
@@ -260,6 +277,9 @@ void vReadEEPROMData(void)
     OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
     
     EEPROM_Read(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    
+    EEPROM_Read(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
     
     for(i=0; i<DataBufUint8Count; i++)
@@ -312,6 +332,14 @@ void vReadEEPROMData(void)
         if(pDataBufRuntime[i] != NULL)
         {
             *pDataBufRuntime[i] = DataBufRuntime[i];
+        }
+    }
+    
+    for(i=0; i<DataBufE32Count; i++)
+    {
+        if(pDataBufE32[i] != NULL)
+        {
+            *pDataBufE32[i] = DataBufE32[i];
         }
     }
     EEPROMDataReady = TRUE;
@@ -398,6 +426,17 @@ void vWriteEEPROMData(void)
             EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufRuntimeChangedTimes = 0;
+        } 
+    }
+    
+    if( xDataE32Changed() )
+    {
+        DataBufE32ChangedTimes++;
+        if(DataBufE32ChangedTimes > E32_WRITE_INTV)
+        {
+            EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+            OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            DataBufE32ChangedTimes = 0;
         } 
     }
 }
@@ -492,7 +531,19 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             {
                 return FALSE;
             }                
-        break;          
+        break; 
+
+        case TYPE_E32:
+            if(DataBufE32Count < E32_SAVE_COUNT)
+            {
+                pDataBufE32[DataBufE32Count] = (uint32_t*)pData;
+                DataBufE32Count++;
+            }
+            else
+            {
+                return FALSE;
+            }                
+        break;               
         default: break;
     }
     return TRUE;

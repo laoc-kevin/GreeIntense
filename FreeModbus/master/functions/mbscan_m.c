@@ -39,19 +39,19 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
     
-	UCHAR* pcDevAddrOccupy = psMBDevsInfo->ucDevAddrOccupy;          //被占用的从设备通讯地址
+	BOOL* pxDevAddrOccupy = psMBDevsInfo->xDevAddrOccupy;          //被占用的从设备通讯地址
     
     /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
     for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
     { 
         for(iSlaveAddr = ucMinAddr; iSlaveAddr <= ucMaxAddr; iSlaveAddr++)
         {    
-            if(pcDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
+            if(pxDevAddrOccupy[iSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
             {
                 vMBDevTest(psMBMasterInfo, psMBSlaveDev, iSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
                 if(psMBSlaveDev->xOnLine == TRUE)
                 {
-                    pcDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
+                    pxDevAddrOccupy[iSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
                     break;
                 }                            
             }
@@ -67,8 +67,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
              psMBMasterInfo->pvDTUScanDevCallBack(psMBMasterInfo);
         }   
 #endif
-        
-		/*********************************轮询从设备***********************************/
+		/*********************************测试从设备***********************************/
 		for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
             if(psMBSlaveDev->xOnLine == FALSE)   //如果设备不在线
@@ -81,12 +80,12 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 {
                     psMBSlaveDev->ucDevCurTestAddr = ucMinAddr;  //超过最大地址则重新从最小地址开始测试
                 }                    
-                if(pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
+                if(pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
                 {
                     vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
                     if(psMBSlaveDev->xOnLine == TRUE)
                     {
-                        pcDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
+                        pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
                         break;
                     }                      
                 }
@@ -95,6 +94,16 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         }
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {
+            /*********************************所有设备心跳帧***********************************/
+            for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
+            {
+                  if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
+                  {
+                      eMBDevHeartBeat(psMBMasterInfo, psMBSlaveDev); //心跳帧
+                  }
+            }
+            
+             /*********************************轮询从设备***********************************/
             if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
@@ -104,7 +113,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 }
                 else if(psMBSlaveDev->xOnLine == FALSE)
                 {
-                    pcDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
+                    pxDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
                 }                    
             }
         }     
@@ -168,10 +177,10 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     {
         if( psMBSlaveDev->xDataReady == TRUE)   //从栈数据准备好了才同步上来
         {	 	    
-            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
+            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
                 psMBSlaveDev->xSynchronized = TRUE;                     //同步完成
             }
             else   //同步完成后，先写后读
@@ -426,7 +435,6 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 #endif
 
 #if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 
-
 /***********************************************************************************
  * @brief  轮询写保持寄存器字典
  * @param  ucSndAddr            从栈地址

@@ -18,9 +18,12 @@ void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2PPMSet);
 void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat);
 
 void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16_t usExAirFanRated_Vol_L);  
+
 /*********************主机*************************/
 void vSystem_OpenUnits(System* pt);
 void vSystem_CloseUnits(System* pt);
+
+void vSystem_UnitState(System* pt);
 
 void vSystem_ChangeUnitRunningMode(System* pt);
 void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode);

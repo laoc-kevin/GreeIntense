@@ -504,11 +504,6 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
             return FALSE;
         }
 
-        if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo) == FALSE)   
-        {
-            return FALSE;
-        }
-        
 	    if(psMBMasterList == NULL)   //注册节点
 	    {
             psMBMasterList = psMBMasterInfo;

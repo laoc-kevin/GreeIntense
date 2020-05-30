@@ -95,6 +95,25 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
         pModularRoof = pThis->psModularRoofList[n];    
         pModularRoof->setRunningMode(pModularRoof, eRunMode);
     }
+    switch(eRunMode)
+    {
+        case RUN_MODE_COOL:
+            pThis->eSystemState = STATE_COOL;
+        break;
+        case RUN_MODE_HEAT:
+            pThis->eSystemState = STATE_HEAT;
+        break;
+        case RUN_MODE_FAN:
+            if(pThis->eSystemMode != MODE_EMERGENCY)
+            {
+                pThis->eSystemState = STATE_FAN;
+            }
+        break;
+        case RUN_MODE_WET:
+            pThis->eSystemState = STATE_WET;
+        break;
+        default:break;
+    }        
     pThis->eRunningMode = eRunMode; 
 }
 
@@ -476,13 +495,37 @@ void vSystem_UnitTempHumiIn(System* pt)
     }
 }
 
+/*机组状态变化*/
+void vSystem_UnitState(System* pt)
+{
+    uint8_t  n;
+ 
+    System* pThis = (System*)pt;
+    ModularRoof* pModularRoof = NULL;
+ 
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        {
+            return;
+        }   
+    }
+    if(pThis->eSystemMode == MODE_CLOSE)   //系统关闭模式下
+    {
+        pThis->eSystemState = STATE_CLOSED;
+    }   
+}
+
 /*机组故障处理*/
 void vSystem_UnitErr(System* pt)
 {
-    uint8_t  n, m; 
+    uint8_t  n, ucStopErrNum, ucOnLineNum; 
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    ModularRoof* pOnlineUnit = NULL;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
@@ -490,16 +533,36 @@ void vSystem_UnitErr(System* pt)
         if(pModularRoof->xStopErrFlag) //这个标志位不包含可恢复的故障。群控收到这个标志位就要下发关机命令
         {
             pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); 
+            ucStopErrNum++; 
         }
-
-        //(1)群控控制器与空调机组通讯故障,  (8)空调机组停机保护。声光报警        
-        if( (pModularRoof->sMBSlaveDev.xOnLine == FALSE) || (pModularRoof->xStopErrFlag) ) 
+        //(1)群控控制器与空调机组通讯故障        
+        if(pModularRoof->sMBSlaveDev.xOnLine == TRUE) 
         {
-            pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); 
-            vSystem_SetAlarm(pThis);
-            m++;            
+            ucOnLineNum++;
+            pOnlineUnit = pModularRoof;            
         }  
     }
-    if(m==0){vSystem_DelAlarmRequst(pThis);}//所有机组无故障申请消除声光报警
+    if(ucOnLineNum != 0 && ucOnLineNum != MODULAR_ROOF_NUM ) //其中一台机组通讯故障
+    {
+        if(pOnlineUnit->xStopErrFlag == FALSE)  //且无故障
+        {
+            if(pThis->ulFreAirSet_Vol > 65000)    //保证新风量
+            {
+                pOnlineUnit->usFreAirSet_Vol = 65000;
+            }
+            else
+            {
+                pOnlineUnit->usFreAirSet_Vol = pThis->ulFreAirSet_Vol;
+            }
+        }
+    }
+    if(ucStopErrNum != 0 || ucOnLineNum != MODULAR_ROOF_NUM)   
+    {
+        vSystem_SetAlarm(pThis);
+    }
+    else    //所机组无故障申请消除声光报警
+    {
+        vSystem_DelAlarmRequst(pThis);
+    }
 }
 

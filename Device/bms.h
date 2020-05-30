@@ -6,8 +6,8 @@
 #include "system.h"
 #include "md_monitor.h"
 
-#define   BMS_REG_HOLD_NUM   30    //机组通讯数据表保持寄存器数量
-#define   BMS_BIT_COIL_NUM   50    //机组通讯数据表线圈数量
+#define   BMS_REG_HOLD_NUM   200    //BMS通讯数据表保持寄存器数量
+#define   BMS_BIT_COIL_NUM   100    //BMS通讯数据表线圈数量
 
 CLASS(BMS)
 {
@@ -29,6 +29,7 @@ CLASS(BMS)
     uint8_t           ucExAirHeatRatio;         //制热排风百分比
     
     eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)
+    uint16_t          usExAirFanFreq;           //排风机频率设定    
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
     
@@ -37,6 +38,15 @@ CLASS(BMS)
     
     uint16_t          usTotalFreAir_Vol_H;      //系统新风风量(高位) 
     uint16_t          usTotalFreAir_Vol_L;      //系统新风风量(高位)
+    
+    uint16_t          usUnitTotalEnergy_H;      //机组总耗电量(高位) 
+    uint16_t          usUnitTotalEnergy_L;      //机组总耗电量(高位)
+    
+    uint16_t          usExAirFanTotalEnergy_H;  //排风机总耗电量(高位) 
+    uint16_t          usExAirFanTotalEnergy_L;  //排风机总耗电量(高位)
+    
+    uint16_t          usUnitPower;              //机组耗电功率
+    uint16_t          usExAirFanPower;          //排风机耗电功率
     
     sMBSlaveInfo*     psBMSInfo;          //从栈接口
     sMBSlaveCommData  sBMSCommData;       //系统从栈通讯数据表
