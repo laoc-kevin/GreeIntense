@@ -63,12 +63,14 @@ typedef struct   /* 用于测试从栈的指令数据结构 */
 }sMBTestDevCmd; 
 
 #ifdef MB_MASTER_HEART_BEAT_ENABLED
+
 typedef struct   /* 从设备心跳帧数据结构 */       
 {
     USHORT          usValue;       //数值
     eDataType       eDataType;     //数据类型
     UCHAR           ucAddr;        //点位地址
-}sMBDevHeartBeat;   
+}sMBDevHeartBeat;  
+
 #endif 
 
 typedef struct   /* 主栈字典数据列表结构 */
