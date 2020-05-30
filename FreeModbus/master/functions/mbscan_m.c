@@ -177,10 +177,10 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     {
         if( psMBSlaveDev->xDataReady == TRUE)   //从栈数据准备好了才同步上来
         {	 	    
-            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先读后写
+            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, iSlaveAddr, FALSE);  //同步从栈数据
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, iSlaveAddr);			 //读从栈数据		
                 psMBSlaveDev->xSynchronized = TRUE;                     //同步完成
             }
             else   //同步完成后，先写后读

@@ -56,9 +56,9 @@ typedef struct       /* 主栈字典离散量数据结构 */
 
 typedef struct   /* 用于测试从栈的指令数据结构 */       
 {
+    USHORT          usAddr;        //测试点位地址
     USHORT          usValue;       //数值
     eMasterCmdMode  eCmdMode;      //模式
-    UCHAR           ucAddr;        //测试点位地址
     BOOL            xCheckVal;     //测试时比较数值
 }sMBTestDevCmd; 
 
@@ -105,7 +105,7 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     UCHAR   ucDevCurTestAddr;      //设备当前测试地址
 	UCHAR   ucRetryTimes;          //测试间隔
 	BOOL    xOnLine;               //是否在线
-	BOOL    xDataReady;           //数据是否准备好
+	BOOL    xDataReady;            //数据是否准备好
     UCHAR   ucProtocolID;          //协议ID
 	BOOL    xSynchronized;         //是否同步
     BOOL    xDevOnTimeout;         //是否处于延时

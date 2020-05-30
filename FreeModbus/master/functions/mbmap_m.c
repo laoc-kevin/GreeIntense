@@ -235,11 +235,11 @@ void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr, BOOL xCheckVal)                                  
+void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usAddr, eMasterCmdMode eCmdMode ,USHORT usValue, BOOL xCheckVal)                                  
 {
     pCmd->usValue   = usValue;       //数值
     pCmd->eCmdMode  = eCmdMode;      //测试模式
-    pCmd->ucAddr    = ucAddr;        //测试点位通讯地址
+    pCmd->usAddr    = usAddr;        //测试点位通讯地址
     pCmd->xCheckVal = xCheckVal;     //测试时比较数值
 }
 

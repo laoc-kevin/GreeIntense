@@ -66,7 +66,7 @@ typedef struct            /*从栈通讯字典数据结构*/
 typedef struct          /*从栈通讯参数信息*/   
 {
     UCHAR*              pcSlaveAddr;                //从栈通讯地址
-	BOOL               xDataReady;                  //数据是否准备好
+	BOOL                xDataReady;                 //数据是否准备好
 
     sMBSlaveCommData*   psSlaveCurData;             //从栈当前数据域   
 }sMBSlaveCommInfo; 

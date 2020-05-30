@@ -85,7 +85,7 @@ void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr,
 
 void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR ucAccessMode, void* pvValue);
 
-void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usValue, eMasterCmdMode eCmdMode, UCHAR ucAddr, BOOL xCheckVal); 
+void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usAddr, eMasterCmdMode eCmdMode ,USHORT usValue, BOOL xCheckVal) ; 
 
 void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usValue, eDataType eDataType, UCHAR ucAddr);
 

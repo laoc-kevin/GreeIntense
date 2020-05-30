@@ -23,14 +23,14 @@ eMBMasterReqErrCode eMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
     if( psMBDevCmd->eCmdMode == READ_REG_HOLD )
     {
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 
-        errorCode = eMBMasterReqReadHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->ucAddr, 
+        errorCode = eMBMasterReqReadHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
                                                     1, MB_MASTER_WAITING_DELAY);   //测试从设备
 #endif						
     }
     else if(psMBDevCmd->eCmdMode == READ_REG_IN)
     {				
 #if MB_FUNC_READ_INPUT_ENABLED > 0						
-        errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->ucAddr, 
+        errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
                                                   1, MB_MASTER_WAITING_DELAY);     //测试从设备
 #endif						
     }
@@ -113,7 +113,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
             psMBSlaveDev->psDevCurData    = psMBDevData;                //从设备当前数据域
             psMBSlaveDev->ucProtocolID    = psMBDevData->ucProtocolID;  //从设备协议ID
             
-            if(usAddr == psMBCmd->ucAddr)  //地址一致
+            if(usAddr == psMBCmd->usAddr)  //地址一致
             {   
                 if(psMBCmd->xCheckVal)  //测试时比较数值
                 {
@@ -190,7 +190,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
             psMBSlaveDev->xOnLine        = TRUE;                      //从设备反馈正确，则设备在线
             psMBSlaveDev->ucRetryTimes    = 0;                         //测试次数清零
             
-            if(usAddr == psMBCmd->ucAddr)  //地址一致
+            if(usAddr == psMBCmd->usAddr)  //地址一致
             {   
                 if(psMBCmd->xCheckVal)  //测试时比较数值
                 {
