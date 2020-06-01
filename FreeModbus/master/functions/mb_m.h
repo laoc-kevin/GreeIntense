@@ -218,6 +218,10 @@ typedef eMBErrorCode (*peMBMasterFrameReceive) (sMBMasterInfo* psMBMasterInfo, U
 typedef eMBErrorCode (*peMBMasterFrameSend) (sMBMasterInfo* psMBMasterInfo, UCHAR slaveAddress,
                                              const UCHAR * pucFrame, USHORT usLength);
 
+typedef void(*pvMBMasterFrameReceiveCallback) (void* p_arg);
+        
+typedef void(*pvMBMasterFrameSendCallback) (void* p_arg);
+
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
@@ -238,6 +242,9 @@ typedef BOOL (*pxMBMasterFrameCBTimerExpired) (sMBMasterInfo* psMBMasterInfo);
 extern pxMBMasterFrameCBByteReceived pxMBMasterFrameCBByteReceivedCur;
 extern pxMBMasterFrameCBTransmitterEmpty pxMBMasterFrameCBTransmitterEmptyCur ;
 extern pxMBMasterFrameCBTimerExpired pxMBMasterFrameCBTimerExpiredCur;
+
+extern pvMBMasterFrameReceiveCallback pvMBMasterReceiveCallback;
+extern pvMBMasterFrameSendCallback    pvMBMasterSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 

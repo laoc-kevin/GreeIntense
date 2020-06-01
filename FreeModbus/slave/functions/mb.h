@@ -160,6 +160,11 @@ typedef eMBErrorCode (*peMBSlaveFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHA
 
 typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR slaveAddress,
                                             const UCHAR* pucFrame, USHORT usLength);
+
+typedef void (*pvMBSlaveFrameReceiveCallback) (void* p_arg);
+
+typedef void (*pvMBSlaveFrameSendCallback) (void* p_arg);
+
 #endif
 
 
@@ -201,7 +206,8 @@ extern pxMBSlaveFrameCBByteReceived      pxMBSlaveFrameCBByteReceivedCur;
 extern pxMBSlaveFrameCBTransmitterEmpty  pxMBSlaveFrameCBTransmitterEmptyCur;
 extern pxMBSlaveFrameCBTimerExpired      pxMBSlaveFrameCBTimerExpiredCur;
 
-
+extern pvMBSlaveFrameReceiveCallback     pvMBSlaveReceiveCallback;
+extern pvMBSlaveFrameSendCallback        pvMBSlaveSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 /*! \ingroup modbus

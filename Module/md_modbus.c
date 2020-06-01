@@ -52,7 +52,38 @@ sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",              
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_SLAVE_POLL_TASK_PRIO}; /* 从栈配置信息 */
                                                                    
-                                  
+/******************************************************************
+*@brief 主栈数据接收回调								
+******************************************************************/
+void  vModbusMasterReceiveCallback(void* p_arg)
+{
+    vLedOn(&LedModbus1);
+} 
+
+/******************************************************************
+*@brief 主栈数据接收回调								
+******************************************************************/
+void  vModbusMasterSendCallback(void* p_arg)  
+{
+    vLedOff(&LedModbus1);
+} 
+
+/******************************************************************
+*@brief 从栈数据接收回调								
+******************************************************************/
+void  vModbusSlaveReceiveCallback(void* p_arg)
+{
+    vLedOn(&LedModbus2);
+} 
+
+/******************************************************************
+*@brief 从栈数据接收回调								
+******************************************************************/
+void  vModbusSlaveSendCallback(void* p_arg)  
+{
+    vLedOff(&LedModbus2);
+} 
+
 /**********************************************************************
  * @brief  MODBUS初始化
  * @param  psMBSlaveInfo  从栈信息块   
@@ -66,6 +97,13 @@ void vModbusInit(void)
     
     MBSlaveNode.pcSlaveAddr = pcGetControllerID();
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
+    
+    //modbus回调函数
+    pvMBMasterReceiveCallback = vModbusMasterReceiveCallback;
+    pvMBMasterSendCallback    = vModbusMasterSendCallback;
+ 
+    pvMBSlaveReceiveCallback  = vModbusSlaveReceiveCallback;
+    pvMBSlaveSendCallback     = vModbusSlaveSendCallback;  
 }
    
 /******************************************************************
