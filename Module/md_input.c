@@ -3,6 +3,7 @@
 #include "lpc_adc.h"
 #include "includes.h"
 #include "md_input.h"
+#include "md_event.h"
 #include "my_rtt_printf.h"
 
 #define AI_NUM 8
@@ -37,30 +38,11 @@ int16_t AnalogInputuA[8];       //AI接口临时存储
 sAIData AnalogInputData[AI_NUM];   //AI接口数据                            
 sDIData DigitalInputData[DI_NUM];  //DI接口数据
 	
-/*****************************************************************
-*函数声明
-******************************************************************/
-static void     vInputIOInit(void);
-                
-static uint32_t ulAnalogInputSampling(void);
-static int16_t  sAnalogInputCalibrateuA(int16_t s10_uA);
-static int16_t  sAnalogInputAnalogToUA(uint32_t ulSample);
-                
-static uint8_t  ucInputGet4051Channel(void);
-static void     vInputSet4051Channel(uint8_t ucChannel);
-                
-static void     vInputReceive(void);
-static uint32_t ulAnalogInputConvertToReal(int32_t lMin, int32_t lMax, int16_t s10_uA);
-
-static int16_t  sAnalogInputGetuA(uint8_t ucChannel);
-static uint8_t  ucDigitalInputGetBit(uint8_t ucDACNum, uint8_t ucBit);
-
-static uint8_t  ucSaInputConvertToID(void);
 
 /**************************************************************
 *@brief DI接口变量注册
 ***************************************************************/
-void vDigitalInputRegister(uint8_t ucChannel, uint8_t* pvVal)
+void vDigitalInputRegister(uint8_t ucChannel, void* pvVal)
 {
 	if( (ucChannel > 0) && (ucChannel <= DI_NUM) && (pvVal != NULL))
 	{
@@ -82,50 +64,10 @@ void vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* p
 }
 
 /******************************************************************
-*@brief 输入量所有管脚初始化								
-******************************************************************/
-static void vInputIOInit(void)
-{
-	GPIO_Init();
-	
-	//设置管脚功能，4051A---P1.27，4051B---P1.28，4051C---P1.29  两块4051共用A、B、C管脚
-	
-	//拨码数字量输入P0.28，数字输入1P0.29，数字输入2P1.19，4~20mA模拟输入P0.25
-	(void)PINSEL_ConfigPin(1, 27, 0);
-	(void)PINSEL_ConfigPin(1, 28, 0);
-	(void)PINSEL_ConfigPin(1, 29, 0);
-	
-	(void)PINSEL_ConfigPin(0, 28, 0);
-	(void)PINSEL_ConfigPin(0, 29, 0);
-	(void)PINSEL_ConfigPin(1, 19, 0);
-	
-	(void)PINSEL_SetAnalogPinMode(0, 25, ENABLE);
-	(void)PINSEL_ConfigPin(0, 25, 1);
-	
-	//设置管脚输入输出模式
-	GPIO_SetDir(1, 1<<27, 1);
-	GPIO_SetDir(1, 1<<28, 1);
-	GPIO_SetDir(1, 1<<29, 1);
-	
-	GPIO_SetDir(0, 1<<28, 0);
-	GPIO_SetDir(0, 1<<29|1<<30, 0); //P0.29和P0.30两个管脚共享方向寄存器
-	GPIO_SetDir(1, 1<<19, 0); 
-	
-	GPIO_SetDir(1, 1<<25, 0); 		//快测口
-	
-	//设置输出管脚初始为低电平
-	GPIO_ClearValue(1, 1<<27 | 1<<28 | 1<<29);
-	
-	//ADC初始化
-	ADC_Init(LPC_ADC, 200000);
-	ADC_ChannelCmd(LPC_ADC, ADC_CHANNEL_2, ENABLE);	
-}
-
-/******************************************************************
 *@brief  模拟输入采样函数，采7次，去除最大、最小值取平均	
 *@return 采样电流值
 ******************************************************************/
-static uint32_t ulAnalogInputSampling(void)
+uint32_t ulAnalogInputSampling(void)
 {
 	uint8_t i, n;
 	uint32_t hits[7];											//存取7次采样值
@@ -173,7 +115,7 @@ static uint32_t ulAnalogInputSampling(void)
 *@brief  模拟量输入转换成实际的电流值，单位为10uA  
 *@return 实际电流值								
 ******************************************************************/
-static int16_t  sAnalogInputToUA(uint32_t ulSample)
+int16_t  sAnalogInputToUA(uint32_t ulSample)
 {
 	uint32_t ulInput_V = 0;	   //参考电压
 	int16_t  s10_uA = 0;
@@ -187,7 +129,7 @@ static int16_t  sAnalogInputToUA(uint32_t ulSample)
 /******************************************************************
 *@brief 获取当前输入通道							
 ******************************************************************/
-static uint8_t  ucInputGet4051Channel(void)
+uint8_t  ucInputGet4051Channel(void)
 {
 	uint32_t ulIOValue = GPIO_ReadValue(1); 
 	return (uint8_t)(ulIOValue>>27 & 0x07);		//注意，类型强转优先级比位移运算高
@@ -197,7 +139,7 @@ static uint8_t  ucInputGet4051Channel(void)
 *@brief 设置当前输入通道，通过设置74HC4051芯片的选择管脚
 *@param  channel	1~8
 ******************************************************************/
-static void vInputSet4051Channel(uint8_t ucChannel)
+void vInputSet4051Channel(uint8_t ucChannel)
 {
 	switch(ucChannel)
 	{
@@ -238,9 +180,41 @@ static void vInputSet4051Channel(uint8_t ucChannel)
 }
 
 /******************************************************************
+*@brief 提取拨码值								
+******************************************************************/
+uint8_t ucGetSaInput(void)
+{
+	return SaInput;	
+}
+
+/******************************************************************
+*@brief 获取控制器ID								
+******************************************************************/
+uint8_t ucGetControllerID(void)
+{
+    return ControllerID;
+}
+
+/******************************************************************
+*@brief 获取控制器ID地址								
+******************************************************************/
+uint8_t*  pcGetControllerID(void)
+{
+    return &ControllerID;
+}
+
+/******************************************************************
+*@brief 拨码值转控制器ID							
+******************************************************************/
+uint8_t ucSaInputConvertToID(void)
+{
+	return (~(((SaInput & 1) << 4) | ((SaInput & 2) >> 1) | ((SaInput & 4) >> 1) | (SaInput & 8) | ((SaInput & 16) >> 2))) & 31;
+}
+
+/******************************************************************
 *@brief 输入数据接收函数，包括拨码、数字量和模拟量								
 ******************************************************************/
-static void vInputReceive(void)
+void vInputReceive(void)
 {
 	int16_t i, n;
     
@@ -300,7 +274,7 @@ static void vInputReceive(void)
 *@param  uA	电流值 单位10uA
 *@return 实际电流值								
 ******************************************************************/
-static int16_t sAnalogInputCalibrateuA(int16_t us10_uA)
+int16_t sAnalogInputCalibrateuA(int16_t us10_uA)
 {
 	uint8_t i = 0;
 	int16_t delta = 0;
@@ -522,48 +496,57 @@ uint8_t ucDigitalInputGetRealVal(uint8_t ucChannel)
 }
 
 /******************************************************************
-*@brief 提取拨码值								
-******************************************************************/
-uint8_t ucGetSaInput(void)
-{
-	return SaInput;	
-}
-
-/******************************************************************
-*@brief 获取控制器ID								
-******************************************************************/
-uint8_t ucGetControllerID(void)
-{
-    return ControllerID;
-}
-
-/******************************************************************
-*@brief 获取控制器ID地址								
-******************************************************************/
-uint8_t*  pcGetControllerID(void)
-{
-    return &ControllerID;
-}
-
-/******************************************************************
-*@brief 拨码值转控制器ID							
-******************************************************************/
-uint8_t ucSaInputConvertToID(void)
-{
-	return (~(((SaInput & 1) << 4) | ((SaInput & 2) >> 1) | ((SaInput & 4) >> 1) | (SaInput & 8) | ((SaInput & 16) >> 2))) & 31;
-}
-
-/******************************************************************
 *@brief 读取输入量任务函数							
 ******************************************************************/
 void vInputReceiveTask(void *p_arg)
 {
 	OS_ERR err = OS_ERR_NONE;
 	
-	vInputIOInit();
 	while(DEF_TRUE)
 	{
 		vInputReceive();	
 		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 	}
+}
+
+/******************************************************************
+*@brief 输入量初始化								
+******************************************************************/
+void vInputInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
+{
+	GPIO_Init();
+	
+	//设置管脚功能，4051A---P1.27，4051B---P1.28，4051C---P1.29  两块4051共用A、B、C管脚
+	
+	//拨码数字量输入P0.28，数字输入1P0.29，数字输入2P1.19，4~20mA模拟输入P0.25
+	(void)PINSEL_ConfigPin(1, 27, 0);
+	(void)PINSEL_ConfigPin(1, 28, 0);
+	(void)PINSEL_ConfigPin(1, 29, 0);
+	
+	(void)PINSEL_ConfigPin(0, 28, 0);
+	(void)PINSEL_ConfigPin(0, 29, 0);
+	(void)PINSEL_ConfigPin(1, 19, 0);
+	
+	(void)PINSEL_SetAnalogPinMode(0, 25, ENABLE);
+	(void)PINSEL_ConfigPin(0, 25, 1);
+	
+	//设置管脚输入输出模式
+	GPIO_SetDir(1, 1<<27, 1);
+	GPIO_SetDir(1, 1<<28, 1);
+	GPIO_SetDir(1, 1<<29, 1);
+	
+	GPIO_SetDir(0, 1<<28, 0);
+	GPIO_SetDir(0, 1<<29|1<<30, 0); //P0.29和P0.30两个管脚共享方向寄存器
+	GPIO_SetDir(1, 1<<19, 0); 
+	
+	GPIO_SetDir(1, 1<<25, 0); 		//快测口
+	
+	//设置输出管脚初始为低电平
+	GPIO_ClearValue(1, 1<<27 | 1<<28 | 1<<29);
+	
+	//ADC初始化
+	ADC_Init(LPC_ADC, 200000);
+	ADC_ChannelCmd(LPC_ADC, ADC_CHANNEL_2, ENABLE);	
+    
+    (void)eTaskCreate(p_tcb, vInputReceiveTask, NULL, prio, p_stk_base, stk_size);
 }

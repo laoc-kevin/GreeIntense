@@ -20,6 +20,13 @@ eMBMasterReqErrCode eMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
     {
          return MB_MRE_ILL_ARG;
     }
+    if(psMBDevCmd->eCmdMode == WRITE_REG_HOLD)
+    {
+#if MB_FUNC_WRITE_HOLDING_ENABLED > 0 
+        errorCode = eMBMasterReqWriteHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
+                                                     psMBDevCmd->usValue, MB_MASTER_WAITING_DELAY);   //测试从设备
+#endif						
+    }   
     if( psMBDevCmd->eCmdMode == READ_REG_HOLD )
     {
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 
@@ -27,7 +34,7 @@ eMBMasterReqErrCode eMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, const sMBSlaveD
                                                     1, MB_MASTER_WAITING_DELAY);   //测试从设备
 #endif						
     }
-    else if(psMBDevCmd->eCmdMode == READ_REG_IN)
+    if(psMBDevCmd->eCmdMode == READ_REG_IN)
     {				
 #if MB_FUNC_READ_INPUT_ENABLED > 0						
         errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psMBDevCmd->usAddr, 
@@ -51,17 +58,32 @@ eMBMasterReqErrCode eMBDevHeartBeat(sMBMasterInfo* psMBMasterInfo, const sMBSlav
     eMBMasterReqErrCode errorCode = MB_MRE_EILLSTATE;
     sMBDevHeartBeat* psDevHeartBeat = &psMBSlaveDev->psDevCurData->sMBDevHeartBeat;
     
-    if( (psDevHeartBeat == NULL) || (psMBSlaveDev->psDevCurData->xHeartBeatEnable == FALSE) )
+    if( (psDevHeartBeat == NULL) || (psDevHeartBeat->xHeartBeatEnable == FALSE) )
     {
          return MB_MRE_ILL_ARG;
     }
-    if(psDevHeartBeat->eDataType == RegHoldData)
+    
+    if(psDevHeartBeat->eCmdMode == WRITE_REG_HOLD)
     {
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0 
-        errorCode = eMBMasterReqWriteHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psDevHeartBeat->ucAddr, 
+        errorCode = eMBMasterReqWriteHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psDevHeartBeat->usAddr, 
                                                      psDevHeartBeat->usValue, MB_MASTER_WAITING_DELAY);   //心跳
 #endif						
     }
+    if(psDevHeartBeat->eCmdMode == READ_REG_HOLD)
+    {
+#if MB_FUNC_READ_HOLDING_ENABLED > 0 
+        errorCode = eMBMasterReqReadHoldingRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psDevHeartBeat->usAddr, 
+                                                    1, MB_MASTER_WAITING_DELAY);   //心跳
+#endif					
+    }
+    if(psDevHeartBeat->eCmdMode == READ_REG_IN)
+    {				
+#if MB_FUNC_READ_INPUT_ENABLED > 0						
+        errorCode = eMBMasterReqReadInputRegister(psMBMasterInfo, psMBSlaveDev->ucDevAddr, psDevHeartBeat->usAddr, 
+                                                  1, MB_MASTER_WAITING_DELAY);     //心跳
+#endif
+    }        
     return errorCode;
 }
 #endif	
