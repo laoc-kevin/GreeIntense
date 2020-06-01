@@ -5,7 +5,10 @@
 #include "lpc_gpio.h"
 #include "lpc_clkpwr.h"
 
+#include "app_val.h"
+
 #include "md_led.h"
+
 #include "md_modbus.h"
 #include "md_output.h"
 #include "md_input.h"
@@ -49,29 +52,62 @@ sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",              
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_SLAVE_POLL_TASK_PRIO}; /* 从栈配置信息 */
                                                                    
-/**********************************************************************
- * @brief  MODBUS主栈初始化
- *********************************************************************/
-void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
+/******************************************************************
+*@brief 主栈数据接收回调								
+******************************************************************/
+void  vModbusMasterReceiveCallback(void* p_arg)
 {
-    MBMasterNode.ucMasterPollPrio = ucPollPrio;
-    MBMasterNode.ucMasterScanPrio = ucScanPrio;
-    (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
-}
+    vLedOn(&LedModbus1);
+} 
+
+/******************************************************************
+*@brief 主栈数据接收回调								
+******************************************************************/
+void  vModbusMasterSendCallback(void* p_arg)  
+{
+    vLedOff(&LedModbus1);
+} 
+
+/******************************************************************
+*@brief 从栈数据接收回调								
+******************************************************************/
+void  vModbusSlaveReceiveCallback(void* p_arg)
+{
+    vLedOn(&LedModbus2);
+} 
+
+/******************************************************************
+*@brief 从栈数据接收回调								
+******************************************************************/
+void  vModbusSlaveSendCallback(void* p_arg)  
+{
+    vLedOff(&LedModbus2);
+} 
 
 /**********************************************************************
- * @brief  MODBUS从栈初始化
+ * @brief  MODBUS初始化
+ * @param  psMBSlaveInfo  从栈信息块   
+ * @return BOOL   
+ * @author laoc
+ * @date 2019.01.22
  *********************************************************************/
-void vModbusSlaveInit(OS_PRIO prio)
+void vModbusInit(void)
 {
-    MBSlaveNode.pcSlaveAddr = pcGetControllerID();
-    MBSlaveNode.ucSlavePollPrio = prio;
+    (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
     
+    MBSlaveNode.pcSlaveAddr = pcGetControllerID();
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
+    
+    //modbus回调函数
+    pvMBMasterReceiveCallback = vModbusMasterReceiveCallback;
+    pvMBMasterSendCallback    = vModbusMasterSendCallback;
+ 
+    pvMBSlaveReceiveCallback  = vModbusSlaveReceiveCallback;
+    pvMBSlaveSendCallback     = vModbusSlaveSendCallback;  
 }
    
 /******************************************************************
-*@brief 获取主栈								
+*@brief 获取主栈地址								
 ******************************************************************/
 sMBMasterInfo*  psMBGetMasterInfo(void)
 {
@@ -79,12 +115,13 @@ sMBMasterInfo*  psMBGetMasterInfo(void)
 }
 
 /******************************************************************
-*@brief 获取从栈							
+*@brief 获取从栈栈地址								
 ******************************************************************/
 sMBSlaveInfo*  psMBGetSlaveInfo(void)
 {
     return &MBSlaveInfo;
 }
+
 
 /**********************************************************************
  * @brief   UART1中断响应函数

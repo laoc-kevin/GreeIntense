@@ -18,10 +18,11 @@ void vWatchDogFeedTask(void * p_arg)
     
 	while(DEF_TRUE)
 	{
-		vLedOn( &LedMCU );
-		OSTimeDlyHMSM( 0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err );
-		vLedOff( &LedMCU );
-	    OSTimeDlyHMSM( 0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err );
+		vLedOn(&LedMCU);
+		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+        
+		vLedOff(&LedMCU);
+	    OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err);
 		WWDT_Feed();
 	}
 }

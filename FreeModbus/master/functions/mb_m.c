@@ -89,6 +89,10 @@ pxMBMasterFrameCBByteReceived         pxMBMasterFrameCBByteReceivedCur;
 pxMBMasterFrameCBTransmitterEmpty     pxMBMasterFrameCBTransmitterEmptyCur ;
 pxMBMasterFrameCBTimerExpired         pxMBMasterFrameCBTimerExpiredCur;
 
+pvMBMasterFrameReceiveCallback pvMBMasterReceiveCallback;
+pvMBMasterFrameSendCallback    pvMBMasterSendCallback;
+
+
 /* An array of Modbus functions handlers which associates Modbus function
  * codes with implementing functions.
  */
@@ -138,7 +142,7 @@ static void vMBMasterDevOfflineTimeout( void * p_tmr, void * p_arg);
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-eMBErrorCode eMBMasterInit ( sMBMasterInfo* psMBMasterInfo)
+eMBErrorCode eMBMasterInit(sMBMasterInfo* psMBMasterInfo)
 {
     eMBErrorCode       eStatus = MB_ENOERR;
     sMBMasterPort* psMBPort= &psMBMasterInfo->sMBPort;
@@ -158,8 +162,6 @@ eMBErrorCode eMBMasterInit ( sMBMasterInfo* psMBMasterInfo)
 		pxMBMasterFrameCBTimerExpiredCur = xMBMasterRTUTimerT35Expired;
 
 		eStatus = eMBMasterRTUInit(psMBMasterInfo);
-	
-//	    (void)eMBMasterTableInit(psMBMasterInfo);
 	
 		break;
 #endif
@@ -317,7 +319,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         switch (eEvent)
         {
         case EV_MASTER_READY:
-            break;
+        break;
 
         case EV_MASTER_FRAME_RECEIVED:
 			eStatus = peMBMasterFrameReceiveCur( psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength );
@@ -333,7 +335,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 				vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_RECEIVE_DATA);
 				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_PROCESS );
 			}
-			break;
+            
+            if(eStatus == MB_ENOERR && pvMBMasterReceiveCallback != NULL)
+            {
+                pvMBMasterReceiveCallback((void*)psMBMasterInfo);
+            }
+        break;
           
         case EV_MASTER_EXECUTE:
             ucFunctionCode = *(ucMBFrame + MB_PDU_FUNC_OFF);
@@ -387,7 +394,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
             	vMBMasterCBRequestSuccess(psMBPort);
             	vMBMasterRunResRelease();
             }
-            break;
+        break;
 
         case EV_MASTER_FRAME_SENT:     //主栈发送请求
         	/* Master is busy now. */
@@ -397,6 +404,10 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			eStatus = peMBMasterFrameSendCur( psMBMasterInfo,ucMBMasterGetDestAddr(psMBMasterInfo), 
 		                                      ucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo) );    //发送数据帧     
 #endif
+            if(pvMBMasterSendCallback != NULL)
+            {
+                pvMBMasterSendCallback((void*)psMBMasterInfo);
+            }
 		break;
 
         case EV_MASTER_ERROR_PROCESS:    //主栈处理错误
@@ -426,8 +437,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			vMBMasterRunResRelease();
         break;
 			
-		default: 
-		break;
+		default:break;
         }
     }
     return MB_ENOERR;

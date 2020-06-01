@@ -203,9 +203,9 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRe
     MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,   2700,  RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
     MASTER_REG_HOLD_DATA(12, uint16,   5,   500,     50,  RW, 1, (void*)&pThis->usCO2AdjustDeviat)
      
-    MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  WO, 1, (void*)&pThis->sAmbientIn_T)
-    MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  WO, 1, (void*)&pThis->usAmbientIn_H)
-    MASTER_REG_HOLD_DATA(18, uint16,    MIN_CO2_PPM,  MAX_CO2_PPM,  0,  WO, 1, (void*)&pThis->usCO2PPM)   
+    MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  RW, 1, (void*)&pThis->sAmbientIn_T)
+    MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  RW, 1, (void*)&pThis->usAmbientIn_H)
+    MASTER_REG_HOLD_DATA(18, uint16,    MIN_CO2_PPM,  MAX_CO2_PPM,  0,  RW, 1, (void*)&pThis->usCO2PPM)   
     MASTER_REG_HOLD_DATA(37,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[0]->ucModularState) 
     MASTER_REG_HOLD_DATA(38,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[1]->ucModularState)   
                                                                                           
@@ -218,8 +218,8 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRe
     MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientInSelf_H)
     MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientOutSelf_T) 
     MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientOutSelf_H)
-    MASTER_REG_HOLD_DATA(51, uint16,    0,    100,  100,  RO, 1, (void*)&pThis->usFreAirDamper_Ang)
-    MASTER_REG_HOLD_DATA(52, uint16,    0,   5000,    0,  RO, 1, (void*)&pThis->usCO2PPMSelf)         
+    MASTER_REG_HOLD_DATA(51, uint16,    0,   100,   100,  RO, 1, (void*)&pThis->usFreAirDamper_Ang)
+    MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO, 1, (void*)&pThis->usCO2PPMSelf)         
    
     MASTER_REG_HOLD_DATA(53, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usFreAir_Vol)
     MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usSupAir_Vol)
@@ -236,9 +236,9 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCo
     MASTER_COIL_BIT_DATA(3,  0, RO, (void*)&pThis->Device.xAlarmFlag); 
     MASTER_COIL_BIT_DATA(10, 0, RW, (void*)&pThis->xErrClean);
     
-    MASTER_COIL_BIT_DATA(16, 0, WO, (void*)&pThis->xTempSenInErr); 
-    MASTER_COIL_BIT_DATA(17, 0, WO, (void*)&pThis->xHumiSenInErr);
-    MASTER_COIL_BIT_DATA(18, 0, WO, (void*)&pThis->xCO2SenErr);
+    MASTER_COIL_BIT_DATA(16, 0, RW, (void*)&pThis->xTempSenInErr); 
+    MASTER_COIL_BIT_DATA(17, 0, RW, (void*)&pThis->xHumiSenInErr);
+    MASTER_COIL_BIT_DATA(18, 0, RW, (void*)&pThis->xCO2SenErr);
     MASTER_COIL_BIT_DATA(48, 0, RO, (void*)&pThis->psSupAirFan->Device.eRunningState);
     MASTER_COIL_BIT_DATA(54, 0, RO, (void*)&pThis->xSupAirDamperState); 
     
@@ -277,7 +277,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCo
     MASTER_COIL_BIT_DATA(630, 0, RO, (void*)&pThis->xCO2SenSelfErr_1);
     MASTER_COIL_BIT_DATA(631, 0, RO, (void*)&pThis->xCO2SenSelfErr_2);
     
-MASTER_END_DATA_BUF(1, 10)  
+MASTER_END_DATA_BUF(0, 631)  
     
     pThis->sDevCommData.ucProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
