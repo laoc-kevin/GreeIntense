@@ -185,9 +185,8 @@ void vModularRoof_InitDevCommData(ModularRoof* pt)
     
 MASTER_PBUF_INDEX_ALLOC()
     
-MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x302A, TRUE)  
-    
-MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, RegHoldData, 0x302A)
+MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x302A, TRUE)     //测试命令
+MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, TRUE)  //心跳帧
     
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
