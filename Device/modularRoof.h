@@ -11,7 +11,7 @@
 #define   AMBIENT_OUT_FAN_NUM         2    //模块室外风机数量
 #define   COMP_NUM                    2    //模块压缩机数量
 
-#define   MODULAR_ROOF_REG_HOLD_NUM   30   //机组通讯数据表保持寄存器数量
+#define   MODULAR_ROOF_REG_HOLD_NUM   50   //机组通讯数据表保持寄存器数量
 #define   MODULAR_ROOF_BIT_COIL_NUM   50   //机组通讯数据表线圈数量
 
 typedef enum 

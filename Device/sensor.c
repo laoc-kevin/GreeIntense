@@ -1,9 +1,11 @@
 #include "sensor.h"
 #include "md_timer.h"
 
-#define TMR_TICK_PER_SECOND     OS_CFG_TMR_TASK_RATE_HZ
-#define SENSOR_TIME_OUT_S       1
+#define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
+#define SENSOR_TIME_OUT_S               1
 
+#define SENSOR_CO2_PROTOCOL_TYPE_ID     0
+#define SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID   0
 
 /*************************************************************
 *                         传感器                             *
@@ -50,7 +52,7 @@ BOOL xCO2Sensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT 
     USHORT i = 0;
     switch(ucProtocolID)
 	{
-        case 0:
+        case SENSOR_CO2_PROTOCOL_TYPE_ID:
             if(eDataType == RegHoldData)
             {
                 switch(usAddr)
@@ -94,7 +96,7 @@ MASTER_END_DATA_BUF(1, 0x30)
     pCO2Sen->usMaxPPM = MAX_CO2_PPM;
     pCO2Sen->usMinPPM = MIN_CO2_PPM;
     
-    pThis->sDevCommData.ucProtocolID = 0;
+    pThis->sDevCommData.ucProtocolID = SENSOR_CO2_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xCO2Sensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
@@ -126,11 +128,11 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     if( (psCO2Sen->usAvgCO2PPM < psCO2Sen->usMinPPM) || (psCO2Sen->usAvgCO2PPM > psCO2Sen->usMaxPPM) ||
         (psCO2Sen->Sensor.sMBSlaveDev.xOnLine == FALSE) )
     {
-        psCO2Sen->xCO2Error = TRUE;
+        psCO2Sen->xCO2SenErr = TRUE;
     }
     else
     {
-        psCO2Sen->xCO2Error = FALSE;
+        psCO2Sen->xCO2SenErr = FALSE;
     }
 }
 
@@ -143,7 +145,7 @@ void vCO2Sensor_RegistMonitor(Sensor* pt)
     OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
 
     MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xCO2Error,   &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xCO2SenErr,   &pThis->Sensor.sValChange)
 }
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
@@ -228,7 +230,7 @@ MASTER_END_DATA_BUF(1, 0x30)
     pTempHumiSen->usMaxHumi = MAX_HUMI;
     pTempHumiSen->usMinHumi = MIN_HUMI;
     
-    pThis->sDevCommData.ucProtocolID = 0;
+    pThis->sDevCommData.ucProtocolID = SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xTempHumiSensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
@@ -264,22 +266,22 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     if( (pTempHumiSen->sAvgTemp < pTempHumiSen->sMinTemp) || (pTempHumiSen->sAvgTemp > pTempHumiSen->sMaxTemp) ||
         (pTempHumiSen->Sensor.sMBSlaveDev.xOnLine == FALSE) ) 
     {
-        pTempHumiSen->xTempError = TRUE;
+        pTempHumiSen->xTempSenErr = TRUE;
     }
     else
     {
-        pTempHumiSen->xTempError = FALSE;
+        pTempHumiSen->xTempSenErr = FALSE;
     }
     
      //判断传感器是否故障
     if( (pTempHumiSen->usAvgHumi < pTempHumiSen->usMinHumi) || (pTempHumiSen->usAvgHumi > pTempHumiSen->usMaxHumi) ||
         (pTempHumiSen->Sensor.sMBSlaveDev.xOnLine == FALSE) )
     {
-        pTempHumiSen->xHumiError = TRUE;
+        pTempHumiSen->xHumiSenErr = TRUE;
     }
     else
     {
-        pTempHumiSen->xHumiError = FALSE;
+        pTempHumiSen->xHumiSenErr = FALSE;
     }
 }
 
@@ -292,10 +294,10 @@ void vTempHumiSensor_MonitorRegist(Sensor* pt)
     OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
     MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xTempError, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xTempSenErr, &pThis->Sensor.sValChange)
     
     MONITOR(&pThis->usAvgHumi,  &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xHumiError, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xHumiSenErr, &pThis->Sensor.sValChange)
 }
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数

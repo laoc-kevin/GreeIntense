@@ -46,6 +46,7 @@ void vSystem_ExAirSet_Vol(System* pt);
 void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
 void vSystem_ExAirFanCtrl(System* pt);
 
+void vSystem_ExAirFanErr(System* pt);
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

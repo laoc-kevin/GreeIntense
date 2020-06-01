@@ -7,7 +7,7 @@
 #include "md_monitor.h"
 
 #define   BMS_REG_HOLD_NUM   200    //BMS通讯数据表保持寄存器数量
-#define   BMS_BIT_COIL_NUM   100    //BMS通讯数据表线圈数量
+#define   BMS_BIT_COIL_NUM   200    //BMS通讯数据表线圈数量
 
 CLASS(BMS)
 {

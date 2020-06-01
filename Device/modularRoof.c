@@ -1,7 +1,7 @@
 #include "sensor.h"
 #include "modularRoof.h"
 
-#define DTU247_PROTOCOL_TYPE_ID   1
+#define MODULAR_ROOF_PROTOCOL_TYPE_ID   0
 
 /*************************************************************
 *                         模块                               *
@@ -83,18 +83,40 @@ BOOL xModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHOR
     USHORT i = 0;
     switch(ucProtocolID)
 	{
-        case DTU247_PROTOCOL_TYPE_ID:
+        case MODULAR_ROOF_PROTOCOL_TYPE_ID:
             if(eDataType == RegHoldData)
             {
                 switch(usAddr)
                 {
-                    case 12	:  i = 0 ;  break;
-                    case 59	:  i = 1 ;  break;
-                    case 60	:  i = 2 ;  break;
-                    case 61	:  i = 3 ;  break;
-                    case 62	:  i = 4 ;  break;
-                    case 63	:  i = 5 ;  break;
-                       
+                    case 0 :  i = 0 ;  break;
+                    case 2 :  i = 1 ;  break;
+                    case 3 :  i = 2 ;  break;
+                    case 5 :  i = 3 ;  break;
+                    case 6 :  i = 4 ;  break;
+                    case 8 :  i = 5 ;  break;
+                    case 9 :  i = 6 ;  break;
+                    case 10:  i = 7 ;  break;
+                    case 11:  i = 8 ;  break;
+                    case 12:  i = 9 ;  break;
+                    case 16:  i = 10;  break;
+                    case 17:  i = 11;  break;
+                    case 18:  i = 12;  break;
+                    case 37:  i = 13;  break;
+                    case 38:  i = 14;  break;
+                    case 39:  i = 15;  break;
+                    case 40:  i = 16;  break;
+                    case 44:  i = 17;  break;
+                    case 45:  i = 18;  break;
+                    case 46:  i = 19;  break;
+                    case 47:  i = 20;  break;
+                    case 48:  i = 21;  break;
+                    case 49:  i = 22;  break;
+                    case 51:  i = 23;  break;
+                    case 52:  i = 24;  break;
+                    case 53:  i = 25;  break;
+                    case 54:  i = 26;  break;
+                    case 55:  i = 27;  break;
+
                     default:
                 		return FALSE;
                 	break;
@@ -104,13 +126,46 @@ BOOL xModularRoof_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHOR
             {
                 switch(usAddr)
                 {
-                    case 12	:  i = 0 ;  break;
-                    case 59	:  i = 1 ;  break;
-                    case 60	:  i = 2 ;  break;
-                    case 61	:  i = 3 ;  break;
-                    case 62	:  i = 4 ;  break;
-                    case 63	:  i = 5 ;  break;
-                       
+                    case 0  :  i = 0 ;  break;
+                    case 1  :  i = 1 ;  break;
+                    case 2  :  i = 2 ;  break;
+                    case 3  :  i = 3 ;  break;
+                    case 10 :  i = 4 ;  break;
+                    case 16 :  i = 5 ;  break;
+                    case 17 :  i = 6 ;  break;
+                    case 18 :  i = 7 ;  break;
+                    case 48 :  i = 8 ;  break;
+                    case 54 :  i = 9 ;  break;
+                    case 55	:  i = 10;  break;
+                    case 64	:  i = 11;  break;
+                    case 65	:  i = 12;  break;
+                    case 66	:  i = 13;  break;
+                    case 67	:  i = 14;  break;
+                    case 80	:  i = 15;  break;
+                    case 81	:  i = 16;  break;
+                    case 82	:  i = 17;  break;
+                    case 83	:  i = 18;  break;
+                    case 96	:  i = 19;  break;
+                    case 97	:  i = 20;  break;
+                    case 98	:  i = 21;  break;
+                    case 99	:  i = 22;  break;
+                    case 112:  i = 23;  break;
+                    case 113:  i = 24;  break;
+                    case 114:  i = 25;  break;
+                    case 115:  i = 26;  break;
+                    case 144:  i = 27;  break;
+                    case 145:  i = 28;  break;
+                    case 264:  i = 29;  break;
+                    case 265:  i = 30;  break;
+                    case 384:  i = 31;  break;
+                    case 385:  i = 32;  break;
+                    case 404:  i = 33;  break;
+                    case 405:  i = 34;  break;
+                    case 621:  i = 35;  break;
+                    case 622:  i = 36;  break;
+                    case 630:  i = 37;  break;
+                    case 631:  i = 38;  break;
+  
                     default:
                 		return FALSE;
                 	break;
@@ -128,16 +183,14 @@ void vModularRoof_InitDevCommData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
     
-    sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
-    sMBDevDataTable* psMBCoilTable    = &pThis->sDevCommData.sMBCoilTable; 
-    sMBTestDevCmd*   psMBCmd          = &pThis->sDevCommData.sMBDevCmdTable;
-
 MASTER_PBUF_INDEX_ALLOC()
     
-MASTER_TEST_CMD_INIT(psMBCmd, 0, READ_REG_HOLD, 0x302A, TRUE)  
+MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x302A, TRUE)  
+    
+MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, RegHoldData, 0x302A)
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBRegHoldTable)
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
     MASTER_REG_HOLD_DATA(0, uint16,   0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
     MASTER_REG_HOLD_DATA(2, uint16,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
@@ -176,7 +229,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, psMBRegHoldTable)
 MASTER_END_DATA_BUF(0, 55)
     
     /******************************线圈数据域*************************/ 
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable) 
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable; ) 
     
     MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);
     MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
@@ -227,7 +280,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, psMBCoilTable)
     
 MASTER_END_DATA_BUF(1, 10)  
     
-    pThis->sDevCommData.ucProtocolID = 0;
+    pThis->sDevCommData.ucProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }

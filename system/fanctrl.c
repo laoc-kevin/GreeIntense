@@ -295,7 +295,7 @@ void vSystem_ExAirFanCtrl(System* pt)
             }
             if(pExAirFan->eSwitchCmd == OFF)
             {
-                 pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭排风机
+                pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭排风机
             }                
         }
     }
@@ -404,3 +404,20 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     }
 }
 
+/*设置风机故障*/
+void vSystem_ExAirFanErr(System* pt)
+{
+    uint8_t  n = 0; 
+    
+    System*   pThis     = (System*)pt;
+    ExAirFan* pExAirFan = NULL;
+    
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pExAirFan = pThis->psExAirFanList[n];       
+        if(pExAirFan->xExAirFanErr == TRUE)  
+        {
+            pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭排风机
+        } 
+    }
+}

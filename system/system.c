@@ -25,12 +25,12 @@ static OS_TCB*   psSystemTaskTCB = NULL;
 static CPU_STK*  psSystemTaskStk = NULL;
 
 /*系统排风机配置信息*/
-sFanInfo ExAirFanVariate = {VARIABLE_FREQ, 250, 500, 1, 1, 1, 1};
+sFanInfo ExAirFanVariate = {VARIABLE_FREQ, 250, 500, 1, 1, 1, 1, 1};
 
-sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 2, 0},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3, 0},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 4, 0},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 5, 0},
+sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 2},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 3},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 4},
+                                         {CONSTANT_FREQ, 0, 0, 0, 0, 5, 5, 5},
                                        };
 /*系统排风机类型切换*/
 void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
@@ -100,7 +100,6 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->usExAirFanRated_Vol_H, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))                                                                     
         HANDLE(psBMS->usExAirFanRated_Vol_L, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))
 
-
         /***********************主机事件响应***********************/
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
@@ -129,7 +128,7 @@ void vSystem_PollTask(void *p_arg)
             pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
             
             HANDLE(pCO2Sensor->usAvgCO2PPM, vSystem_CO2PPM(psSystem);break) 
-            HANDLE(pCO2Sensor->xCO2Error,   vSystem_CO2SensorErr(psSystem);break)
+            HANDLE(pCO2Sensor->xCO2SenErr,   vSystem_CO2SensorErr(psSystem);break)
         }
         
         /***********************室外温湿度传感器事件响应***********************/
@@ -138,22 +137,22 @@ void vSystem_PollTask(void *p_arg)
             pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
             
             HANDLE(pTempHumiSensor->sAvgTemp,   vSystem_TempHumiOut(psSystem);break) 
-            HANDLE(pTempHumiSensor->xTempError, vSystem_TempHumiOutErr(psSystem);break)
+            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiOutErr(psSystem);break)
             
             HANDLE(pTempHumiSensor->usAvgHumi,  vSystem_TempHumiOut(psSystem);break) 
-            HANDLE(pTempHumiSensor->xHumiError, vSystem_TempHumiOutErr(psSystem);break)
+            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiOutErr(psSystem);break)
         }
         
-         /***********************室内温湿度传感器事件响应***********************/
+        /***********************室内温湿度传感器事件响应***********************/
         for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
         {
             pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
             
             HANDLE(pTempHumiSensor->sAvgTemp,   vSystem_TempHumiIn(psSystem);break) 
-            HANDLE(pTempHumiSensor->xTempError, vSystem_TempHumiInErr(psSystem);break)
+            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiInErr(psSystem);break)
             
             HANDLE(pTempHumiSensor->usAvgHumi,  vSystem_TempHumiIn(psSystem);break) 
-            HANDLE(pTempHumiSensor->xHumiError, vSystem_TempHumiInErr(psSystem);break)
+            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiInErr(psSystem);break)
         }
     }
 }
@@ -360,7 +359,9 @@ void vSystem_Init(System* pt)
     {
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象
         pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
-        pThis->psExAirFanList[n] = pExAirFan;        
+        pThis->psExAirFanList[n] = pExAirFan; 
+
+        CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件        
     }
     
     /***********************CO2传感器***********************/

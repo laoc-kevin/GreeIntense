@@ -5,7 +5,7 @@
 #include "device.h"
 #include "sensor.h"
 #include "modularRoof.h"
-
+#include "meter.h"
 #include "md_timer.h"
 
 #define EX_AIR_FAN_NUM          4        //排风机数量
@@ -73,13 +73,13 @@ CLASS(System)   /*系统*/
     uint16_t          usModeChangePeriod_5;     //模式切换间隔时间t5(min)
     uint16_t          usModeChangePeriod_6;     //模式切换间隔时间t6(min)
     
-    uint16_t          usModeAdjustTemp_0;        //模式调节温度T0
-    uint16_t          usModeAdjustTemp_1;        //模式调节温度T1
-    uint16_t          usModeAdjustTemp_2;        //模式调节温度T2
-    uint16_t          usModeAdjustTemp_3;        //模式调节温度T3
-    uint16_t          usModeAdjustTemp_4;        //模式调节温度T4
-    uint16_t          usModeAdjustTemp_5;        //模式调节温度T5
-    uint16_t          usModeAdjustTemp_6;        //模式调节温度T6
+    uint16_t          usModeAdjustTemp_0;       //模式调节温度T0
+    uint16_t          usModeAdjustTemp_1;       //模式调节温度T1
+    uint16_t          usModeAdjustTemp_2;       //模式调节温度T2
+    uint16_t          usModeAdjustTemp_3;       //模式调节温度T3
+    uint16_t          usModeAdjustTemp_4;       //模式调节温度T4
+    uint16_t          usModeAdjustTemp_5;       //模式调节温度T5
+    uint16_t          usModeAdjustTemp_6;       //模式调节温度T6
 
     int16_t           sTempSet;                 //目标温度值设定
     uint16_t          usEnergyTemp;             //节能温度
@@ -124,6 +124,7 @@ CLASS(System)   /*系统*/
 
     eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)
     
+    OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
     OS_TMR            sExAirFanCtrlTmr;         //排风机控制周期定时器
     OS_TMR            sExAirFanRequestTimeTmr;  //排风机运行需求时间定时器
     
@@ -143,9 +144,6 @@ CLASS(System)   /*系统*/
     OS_TMR            sModeChangePeriodTmr_5;   //模式切换间隔t5(min)定时器
     OS_TMR            sModeChangePeriodTmr_6;   //模式切换间隔t6(min)定时器
     
-    
-    OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
-    
     BOOL              xCompFirstRun;            //压缩机首次开启
     BOOL              xStopErrFlag;             //停系统故障标志
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
@@ -163,14 +161,16 @@ CLASS(System)   /*系统*/
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
     DTU*              psDTU;                    //DTU模块        
       
-    ExAirFan*         pExAirFanVariate;                   //变频风机
-    ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];     //排风机列表
-    CO2Sensor*        psCO2SenList  [CO2_SEN_NUM];        //CO2传感器列表
-                      
-    ModularRoof*      psModularRoofList[MODULAR_ROOF_NUM];   //屋顶机列表
-                      
+    Meter*            pUnitMeter;               //机组电表  
+    Meter*            pExAirFanMeter;           //排风机电表  
+     
+    ExAirFan*         pExAirFanVariate;                              //变频风机
+    ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];                //排风机列表
+    CO2Sensor*        psCO2SenList  [CO2_SEN_NUM];                   //CO2传感器列表
+                                                                     
+    ModularRoof*      psModularRoofList[MODULAR_ROOF_NUM];           //屋顶机列表                 
     TempHumiSensor*   psTempHumiSenOutList[TEMP_HUMI_SEN_OUT_NUM];   //室外温湿度传感器列表
-    TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_IN_NUM];    //室内温湿度传感器列表
+    TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_IN_NUM];     //室内温湿度传感器列表
                       
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
 

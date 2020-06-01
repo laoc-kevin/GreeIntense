@@ -15,7 +15,7 @@ void vSystem_CO2PPM(System* pt)
     for(n=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
-        if(pCO2Sensor->xCO2Error == FALSE)
+        if(pCO2Sensor->xCO2SenErr == FALSE)
         {
             usTotalCO2PPM = usTotalCO2PPM + pCO2Sensor->usAvgCO2PPM;
             ucCO2Num++;
@@ -55,7 +55,7 @@ void vSystem_CO2SensorErr(System* pt)
     for(n=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
-        if(pCO2Sensor->xCO2Error == FALSE)
+        if(pCO2Sensor->xCO2SenErr == FALSE)
         {
             ucCO2Num++;
         }  
@@ -95,12 +95,12 @@ void vSystem_TempHumiOut(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
-        if(pTempHumiSensor->xTempError == FALSE)
+        if(pTempHumiSensor->xTempSenErr == FALSE)
         {
             sTotalTemp  = sTotalTemp + pTempHumiSensor->sAvgTemp;
             ucTempNum++;            
         }
-        if(pTempHumiSensor->xHumiError == FALSE)
+        if(pTempHumiSensor->xHumiSenErr == FALSE)
         {
             usTotalHumi = usTotalHumi + pTempHumiSensor->usAvgHumi;
             ucHumiNum++;
@@ -136,11 +136,11 @@ void vSystem_TempHumiOutErr(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
-        if(pTempHumiSensor->xTempError == FALSE)
+        if(pTempHumiSensor->xTempSenErr == FALSE)
         {
             ucTempNum++;            
         }
-        if(pTempHumiSensor->xHumiError == FALSE)
+        if(pTempHumiSensor->xHumiSenErr == FALSE)
         {
             ucHumiNum++;
         }           
@@ -177,12 +177,12 @@ void vSystem_TempHumiIn(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenInList[n]; 
-        if(pTempHumiSensor->xTempError == FALSE)
+        if(pTempHumiSensor->xTempSenErr == FALSE)
         {
             sTotalTemp  = sTotalTemp + pTempHumiSensor->sAvgTemp;
             ucTempNum++;            
         }
-        if(pTempHumiSensor->xHumiError == FALSE)
+        if(pTempHumiSensor->xHumiSenErr == FALSE)
         {
             usTotalHumi = usTotalHumi + pTempHumiSensor->usAvgHumi;
             ucHumiNum++;
@@ -222,11 +222,11 @@ void vSystem_TempHumiInErr(System* pt)
     for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenInList[n]; 
-        if(pTempHumiSensor->xTempError == FALSE)
+        if(pTempHumiSensor->xTempSenErr == FALSE)
         {
             ucTempNum++;            
         }
-        if(pTempHumiSensor->xHumiError == FALSE)
+        if(pTempHumiSensor->xHumiSenErr == FALSE)
         {
             ucHumiNum++;
         }            

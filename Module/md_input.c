@@ -42,7 +42,7 @@ sDIData DigitalInputData[DI_NUM];  //DI接口数据
 /**************************************************************
 *@brief DI接口变量注册
 ***************************************************************/
-void vDigitalInputRegister(uint8_t ucChannel, uint8_t* pvVal)
+void vDigitalInputRegister(uint8_t ucChannel, void* pvVal)
 {
 	if( (ucChannel > 0) && (ucChannel <= DI_NUM) && (pvVal != NULL))
 	{
