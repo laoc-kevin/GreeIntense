@@ -166,7 +166,6 @@ typedef void (*pvMBSlaveFrameSendCallback)(void* p_arg);
 
 #endif
 
-
 #if MB_SLAVE_CPN_ENABLED > 0									 
 										 									 
 typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
