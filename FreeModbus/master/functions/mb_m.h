@@ -238,12 +238,12 @@ typedef BOOL (*pxMBMasterFrameCBTimerExpired) (sMBMasterInfo* psMBMasterInfo);
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-extern pxMBMasterFrameCBByteReceived      pxMBMasterFrameCBByteReceivedCur;
-extern pxMBMasterFrameCBTransmitterEmpty  pxMBMasterFrameCBTransmitterEmptyCur ;
-extern pxMBMasterFrameCBTimerExpired      pxMBMasterFrameCBTimerExpiredCur;
+extern pxMBMasterFrameCBByteReceived     pxMBMasterFrameCBByteReceivedCur;
+extern pxMBMasterFrameCBTransmitterEmpty pxMBMasterFrameCBTransmitterEmptyCur ;
+extern pxMBMasterFrameCBTimerExpired     pxMBMasterFrameCBTimerExpiredCur;
 
-extern pvMBMasterFrameReceiveCallback     pvMBMasterReceiveCallback;
-extern pvMBMasterFrameSendCallback        pvMBMasterSendCallback;
+extern pvMBMasterFrameReceiveCallback    pvMBMasterReceiveCallback;
+extern pvMBMasterFrameSendCallback       pvMBMasterSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 

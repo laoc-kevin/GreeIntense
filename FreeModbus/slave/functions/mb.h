@@ -160,9 +160,9 @@ typedef eMBErrorCode (*peMBSlaveFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHA
 typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR slaveAddress,
                                             const UCHAR* pucFrame, USHORT usLength);
 
-typedef void (*pvMBSlaveFrameReceiveCallback) (void* p_arg);
+typedef void (*pvMBSlaveFrameReceiveCallback)(void* p_arg);
 
-typedef void (*pvMBSlaveFrameSendCallback) (void* p_arg);
+typedef void (*pvMBSlaveFrameSendCallback)(void* p_arg);
 
 #endif
 
@@ -200,12 +200,12 @@ typedef BOOL (*pxMBSlaveFrameCBTimerExpired)(sMBSlaveInfo* psMBSlaveInfo);
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  */
-extern pxMBSlaveFrameCBByteReceived      pxMBSlaveFrameCBByteReceivedCur;
-extern pxMBSlaveFrameCBTransmitterEmpty  pxMBSlaveFrameCBTransmitterEmptyCur;
-extern pxMBSlaveFrameCBTimerExpired      pxMBSlaveFrameCBTimerExpiredCur;
+extern pxMBSlaveFrameCBByteReceived     pxMBSlaveFrameCBByteReceivedCur;
+extern pxMBSlaveFrameCBTransmitterEmpty pxMBSlaveFrameCBTransmitterEmptyCur;
+extern pxMBSlaveFrameCBTimerExpired     pxMBSlaveFrameCBTimerExpiredCur;
 
-extern pvMBSlaveFrameReceiveCallback     pvMBSlaveReceiveCallback;
-extern pvMBSlaveFrameSendCallback        pvMBSlaveSendCallback;
+extern pvMBSlaveFrameReceiveCallback    pvMBSlaveReceiveCallback;
+extern pvMBSlaveFrameSendCallback       pvMBSlaveSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 /*! \ingroup modbus
