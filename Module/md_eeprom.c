@@ -1,6 +1,7 @@
 #include "lpc_eeprom.h"
 #include "md_eeprom.h"
 #include "md_event.h"
+#include "my_rtt_printf.h"
 
 #define EEPROM_READ_DATA_DELAY_MS       50
 #define EEPROM_WRITE_DATA_DELAY_MS      200
@@ -258,6 +259,8 @@ void vReadEEPROMData(void)
     uint8_t i = 0;
     OS_ERR err = OS_ERR_NONE;
     
+    myprintf("EEPROM_Read\n");
+    
     EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
     
@@ -281,6 +284,8 @@ void vReadEEPROMData(void)
     
     EEPROM_Read(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    
+    myprintf("EEPROM_Read\n");
     
     for(i=0; i<DataBufUint8Count; i++)
     {
@@ -553,7 +558,10 @@ void vEEPROMDataTask(void * p_arg)
 {
     OS_ERR err = OS_ERR_NONE;
     
-    EEPROM_Init();    
+    EEPROM_Init(); 
+
+    vReadEEPROMData();
+    
     while(DEF_TRUE)
 	{
         OSTimeDlyHMSM(0, 0, EEPROM_WRITE_DATA_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);

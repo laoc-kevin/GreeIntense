@@ -213,7 +213,7 @@ void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CP
 
 #if EEPROM_DATA_TASK_EN >0                        //eeprom参数记忆功能
     OS_TCB      EEPROMDataTaskTCB;
-    CPU_STK     EEPROMDataTaskStk[SEGMENT_TASK_STK_SIZE];
+    CPU_STK     EEPROMDataTaskStk[EEPROM_DATA_TASK_STK_SIZE];
 #endif
 
 #if SYSTEM_EVENT_TASK_EN >0                       //系统事件功能
@@ -228,7 +228,7 @@ void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CP
 
 #if SYSTEM_MAIN_CTRL_TASK_EN  >0                 //系统逻辑控制功能
     OS_TCB      SystemMainCtrlTCB;		
-    CPU_STK     SystemMainCtrlSTK [SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
+    CPU_STK     SystemMainCtrlStk[SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
 #endif	
 
 #if WATCHDOG_FEED_TASK_EN >0                     //喂狗功能
@@ -265,6 +265,8 @@ static  void  AppTaskCreate (void)
     
 	OS_CRITICAL_ENTER();
 
+    myprintf("Data_Process*******\n");
+    
 #if OUTPUT_SET_TASK_EN > 0     //IO输出数据接收功能 
     vOutputInit();   
 #endif
@@ -289,13 +291,17 @@ static  void  AppTaskCreate (void)
     vModbusSlaveInit(MB_SLAVE_POLL_TASK_PRIO);
 #endif
 
-#if MB_MASTER_POLL_TASK_EN > 0   //Modbus RS485 主栈功能
-    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO)
+#if MB_MASTER_TASK_EN > 0   //Modbus RS485 主栈功能
+    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO);
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 
-    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlSTK, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
-#endif	
+    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlStk, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
+#endif
+
+#if EEPROM_DATA_TASK_EN > 0      //数据掉电记忆功能
+    vEEPROMInit(&EEPROMDataTaskTCB, EEPROM_DATA_TASK_PRIO, EEPROMDataTaskStk, EEPROM_DATA_TASK_STK_SIZE);
+#endif
 
 #if WATCHDOG_FEED_TASK_EN >0     //喂狗功能
     vWatchDogInit(&WatchDogFeedTaskTCB, WATCHDOG_FEED_TASK_PRIO, WatchDogFeedTaskStk, WATCHDOG_FEED_TASK_STK_SIZE);
@@ -304,6 +310,8 @@ static  void  AppTaskCreate (void)
 #if TASK_STACK_WATCH_EN > 0      //内存监控功能
     AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE)
 #endif
+
+   
 
 	OS_CRITICAL_EXIT();              
 }

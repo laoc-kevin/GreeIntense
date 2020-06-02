@@ -11,7 +11,7 @@
 #define EX_AIR_FAN_NUM          4        //排风机数量
 #define MODULAR_ROOF_NUM        2        //屋顶机数量 
                                 
-#define CO2_SEN_NUM             8        //CO2传感器数量
+#define CO2_SEN_NUM             3        //CO2传感器数量
 #define TEMP_HUMI_SEN_OUT_NUM   1        //室外温湿度传感器数量
 #define TEMP_HUMI_SEN_IN_NUM    12       //室内温湿度传感器数量
 
@@ -44,6 +44,8 @@ typedef enum   /*系统状态*/
 }eSystemState;
 
 CLASS(System)   /*系统*/
+
+//typedef struct System
 {
     EXTENDS(Device);         /*继承设备抽象类*/ 
 
@@ -174,7 +176,7 @@ CLASS(System)   /*系统*/
                       
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
 
-    void   (*init)(System* pt);
+    void   (*init)( System* pt);
 };
 
 void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);

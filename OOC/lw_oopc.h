@@ -113,7 +113,7 @@ void type##_ctor(type* cthis) {
 #define CTOR(type)                                      \
     type* type##_new() {                                \
     struct type *cthis;                                 \
-    cthis = (struct type*)malloc(sizeof(struct type));  \
+    cthis = (struct type*)calloc(1, sizeof(struct type));  \
     if(!cthis)                                          \
     {                                                   \
         return 0;                                       \

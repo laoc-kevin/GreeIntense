@@ -11,6 +11,7 @@
 #include "md_output.h"
 #include "md_input.h"
 #include "md_eeprom.h"
+#include "my_rtt_printf.h"
 
 typedef uint8_t BOOL;
 

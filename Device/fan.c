@@ -177,7 +177,6 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan)
     
     //排风机2s周期定时器
     (void)xTimerRegist(&pThis->sExAirFanTmr, 0, EX_AIR_FAN_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vExAirFan_TimeoutInd, pThis); 
-    
 }
 
 CTOR(ExAirFan)     //排风机构造函数

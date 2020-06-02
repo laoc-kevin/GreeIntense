@@ -697,7 +697,10 @@ BMS* BMS_Core()
     if(psBMS == NULL)
     {
         psBMS = (BMS*)BMS_new();
-        psBMS->init(psBMS);
+        if(psBMS == NULL)
+        {
+            psBMS->init(psBMS);
+        }
     }
     return psBMS;
 }

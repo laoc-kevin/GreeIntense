@@ -28,6 +28,7 @@
 static USHORT usDTUInitCmd[2]  ={DTU_PROTOCOL_VERSIPON, INIT_DTU247_REG_HOLD_VALUE};
 static USHORT usDTUInitedCmd[2]={DTU_PROTOCOL_VERSIPON, INITED_DTU247_REG_HOLD_VALUE};	
 
+static DTU* psDTU = NULL;
 
 /*DTU模块定时器中断*/
 void vDTU_TimeoutInd(void * p_tmr, void * p_arg)
@@ -272,10 +273,7 @@ BOOL xDTU_Init(DTU* pt, sMBMasterInfo* psMBMasterInfo)
 }
 
 CTOR(DTU)   //BMS构造函数
-
     FUNCTION_SETTING(init, xDTU_Init);
-
 END_CTOR
-
 
 #endif

@@ -34,7 +34,9 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensor
     pThis->eSensorType = eSensorType;
     
     //传感器1s周期定时器
-    (void)xTimerRegist(&pThis->sSensorTmr, 0, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis); 
+    (void)xTimerRegist(&pThis->sSensorTmr, 0, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis);
+
+      
 }
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数
@@ -98,7 +100,7 @@ MASTER_END_DATA_BUF(1, 0x30)
     
     pThis->sDevCommData.ucProtocolID = SENSOR_CO2_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xCO2Sensor_DevDataMapIndex;    //绑定映射函数
-    pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
+    pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData); 
 }
 
 

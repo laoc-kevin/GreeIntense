@@ -19,7 +19,7 @@ void vModular_Init(Modular* pt)
     for(n=0; n < COMP_NUM; n++)               //压缩机
     {
         pThis->psCompList[n] = (Compressor*)Compressor_new();
-    }
+    } 
 }
 
 CTOR(Modular)   //模块构造函数
@@ -344,10 +344,14 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
     for(n=0; n < MODULAR_NUM; n++)
     {
         psModular = (Modular*)Modular_new();
-        psModular->init(psModular);
-        
-        pThis->psModularList[n] = psModular;        //模块列表       
-    } 
+        if(psModular != NULL)
+        {
+            psModular->init(psModular);
+            pThis->psModularList[n] = psModular;        //模块列表 
+            
+            myprintf("Modular: %d   addr: %d\n", n, psModular);              
+        }       
+    }  
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数

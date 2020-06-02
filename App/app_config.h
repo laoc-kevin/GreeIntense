@@ -3,6 +3,8 @@
 
 #include "os.h"
 
+#define DEBUG_ENABLE     1  
+
 /**************************任务配置开关*****************************/
 #define LWIP_CREATE_TASK_EN                   0      //LWIP协议栈
 #define TCP_SERVER_TASK_EN                    0      //TCP服务器功能
@@ -18,7 +20,7 @@
 #define SYSTEM_MONITOR_TASK_EN                1      //系统数据监控功能
 #define SYSTEM_MAIN_CTRL_TASK_EN              1      //系统逻辑控制功能
 
-#define MB_SLAVE_TASK_EN                      1      //Modbus RS485 从栈功能          
+#define MB_SLAVE_TASK_EN                      0      //Modbus RS485 从栈功能          
 #define MB_MASTER_TASK_EN                     1      //Modbus RS485 主栈功能                                              
 #define CANOPEN_TASK_EN                       0      //CANopen通讯功能
                                               
