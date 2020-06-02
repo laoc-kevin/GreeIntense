@@ -151,7 +151,6 @@ typedef void (*pvMBSlaveFrameStop)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef void (*pvMBSlaveFrameClose)(sMBSlavePort* psMBPort);
 
-
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 typedef eMBErrorCode (*peMBSlaveFrameReceive) (sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRcvAddress,
@@ -163,9 +162,7 @@ typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR s
 typedef void (*pvMBSlaveFrameReceiveCallback)(void* p_arg);
 
 typedef void (*pvMBSlaveFrameSendCallback)(void* p_arg);
-
 #endif
-
 
 #if MB_SLAVE_CPN_ENABLED > 0									 
 										 									 
@@ -175,7 +172,6 @@ typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UC
 typedef eMBErrorCode (*peMBSlaveCPNFrameSend)(sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr,
 	                                          UCHAR ucDestAddr, const UCHAR* pucFrame, USHORT usLength);
 #endif
-
 /* ----------------------- Callback for the protocol stack ------------------*/
 /*!
  * \brief Callback function for the porting layer when a new byte is
@@ -194,7 +190,6 @@ typedef BOOL (*pxMBSlaveFrameCBByteReceived)(sMBSlaveInfo* psMBSlaveInfo);
 typedef BOOL (*pxMBSlaveFrameCBTransmitterEmpty)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef BOOL (*pxMBSlaveFrameCBTimerExpired)(sMBSlaveInfo* psMBSlaveInfo);
-
 
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
