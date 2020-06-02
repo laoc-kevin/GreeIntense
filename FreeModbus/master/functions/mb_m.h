@@ -233,18 +233,17 @@ typedef BOOL (*pxMBMasterFrameCBTransmitterEmpty) (sMBMasterInfo* psMBMasterInfo
 
 typedef BOOL (*pxMBMasterFrameCBTimerExpired) (sMBMasterInfo* psMBMasterInfo);
 
-
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-extern pxMBMasterFrameCBByteReceived pxMBMasterFrameCBByteReceivedCur;
-extern pxMBMasterFrameCBTransmitterEmpty pxMBMasterFrameCBTransmitterEmptyCur ;
-extern pxMBMasterFrameCBTimerExpired pxMBMasterFrameCBTimerExpiredCur;
+extern pxMBMasterFrameCBByteReceived      pxMBMasterFrameCBByteReceivedCur;
+extern pxMBMasterFrameCBTransmitterEmpty  pxMBMasterFrameCBTransmitterEmptyCur ;
+extern pxMBMasterFrameCBTimerExpired      pxMBMasterFrameCBTimerExpiredCur;
 
-extern pvMBMasterFrameReceiveCallback pvMBMasterReceiveCallback;
-extern pvMBMasterFrameSendCallback    pvMBMasterSendCallback;
+extern pvMBMasterFrameReceiveCallback     pvMBMasterReceiveCallback;
+extern pvMBMasterFrameSendCallback        pvMBMasterSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 
