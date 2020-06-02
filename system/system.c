@@ -6,6 +6,7 @@
 #include "md_modbus.h"
 #include "md_timer.h"
 
+#include "stdlib.h"
 /*************************************************************
 *                         系统                               *
 **************************************************************/
@@ -420,11 +421,20 @@ void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE 
     System_Core();
 }
 
+uint8_t* p = NULL;
+
 System* System_Core()
 {
     if(psSystem == NULL)
     {
-        psSystem = (System*)System_new();
+        
+        
+         p = (uint8_t*)calloc(1, sizeof(uint8_t));
+        
+//        psSystem = (System*)System_new();
+//        
+         psSystem = calloc(1, sizeof(struct System));
+        
         psSystem->init(psSystem);
         
     }

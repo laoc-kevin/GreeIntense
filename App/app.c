@@ -33,6 +33,7 @@
 #include "md_segment.h"
 #include "md_modbus.h"
 #include "md_output.h"
+#include "md_input.h"
 #include "md_event.h"
 #include "md_rtc.h"
 #include "md_watchdog.h"
