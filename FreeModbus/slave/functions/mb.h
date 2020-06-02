@@ -146,7 +146,6 @@ typedef struct                 /* 从栈节点配置信息 */
    sMBSlaveCommData*   psSlaveCurData;
 }sMBSlaveNodeInfo;
 
-
 typedef void (*pvMBSlaveFrameStart)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef void (*pvMBSlaveFrameStop)(sMBSlaveInfo* psMBSlaveInfo);
@@ -164,8 +163,7 @@ typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR s
 #endif
 
 
-#if MB_SLAVE_CPN_ENABLED > 0
-										 
+#if MB_SLAVE_CPN_ENABLED > 0									 
 										 									 
 typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
 	                                             UCHAR* pucDestAddr, UCHAR** pucFrame, USHORT * pusLength);
