@@ -30,6 +30,6 @@ uint8_t  ucGetControllerID(void);
 uint8_t* pcGetControllerID(void);
 uint8_t  ucGetSaInput(void);
 
-void     vInputReceiveTask(void *p_arg);
+void vInputInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
 
 #endif

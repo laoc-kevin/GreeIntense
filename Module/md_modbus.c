@@ -85,27 +85,34 @@ void  vModbusSlaveSendCallback(void* p_arg)
 } 
 
 /**********************************************************************
- * @brief  MODBUS初始化
- * @param  psMBSlaveInfo  从栈信息块   
- * @return BOOL   
- * @author laoc
- * @date 2019.01.22
+ * @brief  MODBUS主栈初始化
  *********************************************************************/
-void vModbusInit(void)
+void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
 {
-    (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
     
-    MBSlaveNode.pcSlaveAddr = pcGetControllerID();
-    (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
+    MBMasterNode.ucMasterPollPrio = ucPollPrio;
+    MBMasterNode.ucMasterScanPrio = ucScanPrio;
+    
+    (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
     
     //modbus回调函数
     pvMBMasterReceiveCallback = vModbusMasterReceiveCallback;
     pvMBMasterSendCallback    = vModbusMasterSendCallback;
- 
+}
+  
+/**********************************************************************
+ * @brief  MODBUS从栈初始化
+ *********************************************************************/
+void vModbusSlaveInit(OS_PRIO prio)
+{
+    MBSlaveNode.pcSlaveAddr = pcGetControllerID();
+    MBSlaveNode.ucSlavePollPrio = prio;
+    (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
+    
     pvMBSlaveReceiveCallback  = vModbusSlaveReceiveCallback;
     pvMBSlaveSendCallback     = vModbusSlaveSendCallback;  
 }
-   
+
 /******************************************************************
 *@brief 获取主栈地址								
 ******************************************************************/

@@ -23,8 +23,9 @@
 #include  <bsp.h>
 #include  <bsp_int.h>
 
-#include "my_rtt_printf.h"
 #include "lpc_clkpwr.h"
+#include "my_rtt_printf.h"
+
 #include "app_config.h"
 
 #include "md_led.h"
@@ -32,11 +33,12 @@
 #include "md_segment.h"
 #include "md_modbus.h"
 #include "md_output.h"
+#include "md_input.h"
+#include "md_event.h"
 #include "md_rtc.h"
 #include "md_watchdog.h"
 
-#include "mb.h"
-
+//#include "system.h"
 
 /*
 *********************************************************************************************************
@@ -115,15 +117,11 @@ int main(void)
                  &err);
 
     OSStart(&err);                                              /* Start multitasking (i.e. give control to uC/OS-III). */
-
-    while (DEF_ON) {                                            /* Should Never Get Here.                               */
-        ;
-    }
+    while(DEF_ON){;}                                            /* Should Never Get Here.                               */
 }
 
 
-/*
-*********************************************************************************************************
+/**********************************************************************************************************
 *                                          STARTUP TASK
 *
 * Description : This is an example of a startup task.  As mentioned in the book's text, you MUST
@@ -135,8 +133,7 @@ int main(void)
 *
 * Notes       : 1) The first line of code is used to prevent a compiler warning because 'p_arg' is not
 *                  used.  The compiler should not generate any code for this statement.
-*********************************************************************************************************
-*/
+**********************************************************************************************************/
 static  void  AppTaskStart (void *p_arg)
 {
     CPU_INT32U  cnts = 0;
@@ -160,66 +157,93 @@ static  void  AppTaskStart (void *p_arg)
 
     AppTaskCreate();                                            /* Create Application tasks                             */
 
-    while (DEF_TRUE) {                                          /* Task body, always written as an infinite loop.       */
-        OSTimeDlyHMSM(0u, 0u, 15u, 0u,
-                      OS_OPT_TIME_HMSM_STRICT,
-                      &err);
+    while (DEF_TRUE)                                            /* Task body, always written as an infinite loop.       */
+    {                                         
+        OSTimeDlyHMSM(0u, 0u, 15u, 0u, OS_OPT_TIME_HMSM_STRICT, &err);
         SysStartFlag = 0;
-    		for(i = 0; i < 17; i++)
-    		{
-    			OSTimeDlyHMSM(0u, 0u, 0u, 100u,
-                          OS_OPT_TIME_HMSM_STRICT,
-                          &err);
-    		}
+        for(i = 0; i < 17; i++)
+        {
+        	OSTimeDlyHMSM(0u, 0u, 0u, 100u, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
     }
 }
 
-//任务配置信息
-//系统控制主任务
+#if TASK_STACK_WATCH_EN > 0
 
-#define  	APP_OUTPUT_SET_TASK_PRIO		12
-#define     APP_OUTPUT_SET_TASK_STK_SIZE     128
-OS_TCB      AppOutputSetTaskTCB;
-CPU_STK     AppOutputSetTaskStk[APP_OUTPUT_SET_TASK_STK_SIZE];
+void  AppTaskStackWatch (void *p_arg)
+{
+    CPU_SR_ALLOC();
+    OS_ERR err;
+    CPU_STK_SIZE free,used;
+  
+    while(DEF_TRUE)
+    {
+        OS_CRITICAL_ENTER();  
+          
+        OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+           
+        //OSTaskStkChk (&Data_Process_TCB,&free,&used,&err);
+        //myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+        
+        OS_CRITICAL_EXIT(); //退出临界区	
+     }
+}
 
-#define  	APP_INPUT_RECEIVE_TASK_PRIO		13
-#define     APP_INPUT_RECEIVE_TASK_STK_SIZE     128
-OS_TCB      AppInputReceiveTaskTCB;
-CPU_STK     AppInputReceiveTaskStk[APP_INPUT_RECEIVE_TASK_STK_SIZE];
+void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
+{
+    OSTaskCreate( &p_tcb, "TaskStackWatch", AppTaskStackWatch, 0, prio, p_stk_base, stk_size/10, stk_size,
+                   0,0,0, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), &err );
+                
+//    OS_TaskSuspend((OS_TCB*)&AppTaskStartTCB,&err);	
+}
 
-#define  	APP_SEGMENT_TASK_PRIO  			14
-#define     APP_SEGMENT_TASK_STK_SIZE         	128
-OS_TCB      AppSegmentTaskTCB;
-CPU_STK     AppSegmentTaskStk[APP_SEGMENT_TASK_STK_SIZE];
+#endif
 
-#define  	APP_MB_SLAVE_POLL_TASK_PRIO  	16
-#define     APP_MB_SLAVE_POLL_TASK_STK_SIZE   160
-OS_TCB      AppMbSlavePollTaskTCB;
-CPU_STK     AppMbSlavePollTaskStk[APP_MB_SLAVE_POLL_TASK_STK_SIZE];
-CPU_STK     AppMbSlavePollTaskFPStk[APP_MB_SLAVE_POLL_TASK_STK_SIZE];
+/************************任务配置信息***************************/
 
-#define  	APP_MB_MASTER_POLL_TASK_PRIO  	17
-#define     APP_MB_MASTER_POLL_TASK_STK_SIZE    160
-OS_TCB      AppMbMasterPollTaskTCB;
-CPU_STK     AppMbMasterPollTaskStk[APP_MB_MASTER_POLL_TASK_STK_SIZE];
+#if INPUT_RECEIVE_TASK_EN  >0                     //IO输入数据接收功能
+    OS_TCB      InputReceiveTaskTCB;
+    CPU_STK     InputReceiveTaskStk[INPUT_RECEIVE_TASK_STK_SIZE];
+#endif
 
-#define  	APP_MB_SCAN_SLAVE_TASK_PRIO  	18
-#define     APP_MB_SCAN_SLAVE_TASK_STK_SIZE    160
-OS_TCB      AppMbScanSlaveTaskTCB;
-CPU_STK     AppMbScanSlaveTaskStk[APP_MB_SCAN_SLAVE_TASK_STK_SIZE];
+#if SEGMENT_TASK_EN >0                            //数码管显示功能
+    OS_TCB      SegmentTaskTCB;
+    CPU_STK     SegmentTaskStk[SEGMENT_TASK_STK_SIZE];
+#endif
 
-#define  	APP_WATCHDOG_FEED_TASK_PRIO  	23
-#define     APP_WATCHDOG_FEED_TASK_STK_SIZE    128
-OS_TCB      AppWatchDogFeedTaskTCB;
-CPU_STK     AppWatchDogFeedTaskStk[APP_WATCHDOG_FEED_TASK_STK_SIZE];
+#if EEPROM_DATA_TASK_EN >0                        //eeprom参数记忆功能
+    OS_TCB      EEPROMDataTaskTCB;
+    CPU_STK     EEPROMDataTaskStk[SEGMENT_TASK_STK_SIZE];
+#endif
 
-#define  AppTaskStackWatch_PRIO            24 
-#define  AppTaskStackWatch_STK_SIZE       100 
-OS_TCB  AppTaskStackWatch_TCB;		
-CPU_STK AppTaskStackWatch_STK [AppTaskStackWatch_STK_SIZE];
+#if SYSTEM_EVENT_TASK_EN >0                       //系统事件功能
+    OS_TCB      SystemEventTaskTCB;
+    CPU_STK     SystemEventTaskStk[SYSTEM_EVENT_TASK_STK_SIZE];
+#endif
 
-/*
-*********************************************************************************************************
+#if SYSTEM_MONITOR_TASK_EN >0                    //系统数据监控功能
+    OS_TCB      SystemMonitorTaskTCB;
+    CPU_STK     SystemMonitorTaskStk[SYSTEM_MONITOR_TASK_STK_SIZE];
+#endif
+
+#if SYSTEM_MAIN_CTRL_TASK_EN  >0                 //系统逻辑控制功能
+    OS_TCB      SystemMainCtrlTCB;		
+    CPU_STK     SystemMainCtrlSTK [SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
+#endif	
+
+#if WATCHDOG_FEED_TASK_EN >0                     //喂狗功能
+    OS_TCB      WatchDogFeedTaskTCB;
+    CPU_STK     WatchDogFeedTaskStk[WATCHDOG_FEED_TASK_STK_SIZE];  
+#endif
+
+#if TASK_STACK_WATCH_TASK_EN > 0                 //内存监控功能
+    OS_TCB      TaskStackWatchTCB;		
+    CPU_STK     TaskStackWatchStk[TASK_STACK_WATCH_TASK_STK_SIZE];
+#endif
+
+
+
+/*********************************************************************************************************
 *                                          AppTaskCreate()
 *
 * Description : Create Application Tasks.
@@ -231,103 +255,59 @@ CPU_STK AppTaskStackWatch_STK [AppTaskStackWatch_STK_SIZE];
 * Caller(s)   : AppTaskStart()
 *
 * Note(s)     : none.
-*********************************************************************************************************
-*/
+*********************************************************************************************************/
 static  void  AppTaskCreate (void)
 {
-	
 	OS_ERR err = OS_ERR_NONE;
-	//初始化
-	
 	CPU_SR_ALLOC();
 
 	vRTCInit();
-
+    
 	OS_CRITICAL_ENTER();
 
-    //IO输入数据接收任务
-	OSTaskCreate(&AppOutputSetTaskTCB,
-                  "vOutputSetTask",
-                  vOutputSetTask,
-                  0u,
-                  APP_OUTPUT_SET_TASK_PRIO,
-                  &AppOutputSetTaskStk[0u],
-                  APP_OUTPUT_SET_TASK_STK_SIZE / 10u,
-                  APP_OUTPUT_SET_TASK_STK_SIZE,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
-
-
-	//IO输入数据接收任务
-	OSTaskCreate(&AppInputReceiveTaskTCB,
-                  "vInputReceiveTask",
-                  vInputReceiveTask,
-                  0u,
-                  APP_INPUT_RECEIVE_TASK_PRIO,
-                 &AppInputReceiveTaskStk[0u],
-                  APP_INPUT_RECEIVE_TASK_STK_SIZE / 10u,
-                  APP_INPUT_RECEIVE_TASK_STK_SIZE,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
-				 
-	//数码管显示任务
-	OSTaskCreate(&AppSegmentTaskTCB,
-                  "vSegmentTask",
-                  vSegmentTask,
-                  0u,
-                  APP_SEGMENT_TASK_PRIO,
-                 &AppSegmentTaskStk[0u],
-                  APP_SEGMENT_TASK_STK_SIZE / 10u,
-                  APP_SEGMENT_TASK_STK_SIZE,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
-				 
-#if WATCHDOG_ENABLE
-	//喂狗任务
-	OSTaskCreate(&AppWatchDogFeedTaskTCB,
-                  "vWatchDogFeedTask",
-                  vWatchDogFeedTask,
-                  0u,
-                  APP_WATCHDOG_FEED_TASK_PRIO,
-                 &AppWatchDogFeedTaskStk[0u],
-                  APP_WATCHDOG_FEED_TASK_STK_SIZE / 10u,
-                  APP_WATCHDOG_FEED_TASK_STK_SIZE,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
+#if OUTPUT_SET_TASK_EN > 0     //IO输出数据接收功能 
+    vOutputInit();   
+#endif
+    
+#if INPUT_RECEIVE_TASK_EN > 0   //IO输入数据接收功能
+    vInputInit(&InputReceiveTaskTCB, INPUT_RECEIVE_TASK_PRIO, InputReceiveTaskStk, INPUT_RECEIVE_TASK_STK_SIZE); 
 #endif
 
-#if TASK_STACK_WATCH_ENABLE
- OSTaskCreate( (OS_TCB     *)&AppTaskStackWatch_TCB,
-                (CPU_CHAR   *)"AppTaskStackWatch",
-                (OS_TASK_PTR ) AppTaskStackWatch,
-                (void       *) 0,
-                (OS_PRIO     ) AppTaskStackWatch_PRIO,
-                (CPU_STK    *)&AppTaskStackWatch_STK[0],
-                (CPU_STK_SIZE) AppTaskStackWatch_STK_SIZE/10,/*栈溢出临界值我设置在栈大小的90%处*/
-                (CPU_STK_SIZE) AppTaskStackWatch_STK_SIZE,
-                (OS_MSG_QTY  ) 0,
-                (OS_TICK     ) 0,
-                (void       *) 0,
-                (OS_OPT      )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), 
-                (OS_ERR     *) &err);
-                
-    OS_TaskSuspend((OS_TCB*)&AppTaskStartTCB,&err);				
-	OS_CRITICAL_EXIT();
-
+#if SEGMENT_TASK_EN > 0         //数码管显示功能  
+    vSegmentInit(&SegmentTaskTCB, SEGMENT_TASK_PRIO, SegmentTaskStk, SEGMENT_TASK_STK_SIZE);
 #endif
-                
+
+#if SYSTEM_EVENT_TASK_EN >0      //系统事件功能
+    vEventInit(&SystemEventTaskTCB, SYSTEM_EVENT_TASK_PRIO, SystemEventTaskStk, SYSTEM_EVENT_TASK_STK_SIZE);
+#endif
+
+#if SYSTEM_MONITOR_TASK_EN >0    //系统数据监控功能
+    vEventInit(&SystemMonitorTaskTCB, SYSTEM_MONITOR_TASK_PRIO, SystemMonitorTaskStk, SYSTEM_MONITOR_TASK_STK_SIZE);
+#endif
+
+#if MB_SLAVE_POLL_TASK_EN > 0    //Modbus RS485 从栈功能    
+    vModbusSlaveInit(MB_SLAVE_POLL_TASK_PRIO);
+#endif
+
+#if MB_MASTER_POLL_TASK_EN > 0   //Modbus RS485 主栈功能
+    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO)
+#endif
+
+#if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 
+    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlSTK, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
+#endif	
+
+#if WATCHDOG_FEED_TASK_EN >0     //喂狗功能
+    vWatchDogInit(&WatchDogFeedTaskTCB, WATCHDOG_FEED_TASK_PRIO, WatchDogFeedTaskStk, WATCHDOG_FEED_TASK_STK_SIZE);
+#endif
+
+#if TASK_STACK_WATCH_EN > 0      //内存监控功能
+    AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE)
+#endif
+
+     myprintf("Data_Process");
+
+	OS_CRITICAL_EXIT();              
 }
 /*
 *********************************************************************************************************
@@ -349,22 +329,6 @@ static  void  AppObjCreate (void)
 	
 }
 
-void  AppTaskStackWatch (void *p_arg)
-{
-  CPU_SR_ALLOC();
-  OS_ERR err;
-  CPU_STK_SIZE free,used;
-  
-  while(DEF_TRUE)
-  {
-	OS_CRITICAL_ENTER();  
-	  
-    OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 
-//	OSTaskStkChk (&Data_Process_TCB,&free,&used,&err);
-//	myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
-	
-	OS_CRITICAL_EXIT(); //退出临界区	
-   }
-}
+
 

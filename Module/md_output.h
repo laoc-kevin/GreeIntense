@@ -29,6 +29,7 @@ typedef struct
 	eCtrlEn      eDOVal;         //当前实际值       
 }sDOData; 
 
+void vOutputInit(void);
 void vAnalogOutputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax);
 
 void vDigitalOutputCtrl( uint8_t ucChannel, eCtrlEn eCtrl);

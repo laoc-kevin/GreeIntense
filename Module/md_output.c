@@ -3,7 +3,6 @@
 #include "lpc_ssp.h"
 #include "lpc_pwm.h"
 #include "md_output.h"
-#include "app_val.h"
 #include "my_rtt_printf.h"
 
 #define DAC7760_REG_OUT      0x551000    //
@@ -42,25 +41,6 @@ const IODef* PWM_IOList[PWM_NUM]={ &AOutput1, &AOutput2, &AOutput3, &AOutput4, &
 sDOData DigitalOutputData[DO_NUM];
 sAOData AnalogOutputData[AO_NUM]; 
 					  
-/**************************************************************
-*函数声明
-***************************************************************/
-static void  vDAC7760Init(void);
-static void  vDigitalOutputInit(void);
-static void  vPWM1Init(void);
-
-static void  vSetDAC7760IO(const IODef* psIO);
-static void  vClrDAC7760IO(const IODef* psIO);
-
-static void  vSendDataToDAC7760(uint8_t ucSuperIO, uint32_t ulData);
-static void  vSetPWMData(uint8_t pwmChannel, uint32_t ulData);
-static void  vOutputSet(void);
-
-static void vSetDAC7760OutputuA(uint8_t ucSuperIO, uint16_t uA);
-static void vSetPWMRealVal(uint8_t pwmChannel, int32_t lMin, int32_t lMax, uint32_t ulRealData);
-static void vSetDAC7760RealVal(uint8_t ucSuperIO, int32_t lMin, int32_t lMax, uint32_t ulRealData);
-
-
 /**************************************************************
 *@brief AO接口注册
 ***************************************************************/
@@ -163,7 +143,7 @@ void vDigitalOutputToggle( uint8_t ucChannel )
 *@param psIO	控制器数字量输出I/O
 *								
 ***************************************************/
-static void vSetDAC7760IO(const IODef* psIO )
+void vSetDAC7760IO(const IODef* psIO )
 {
 	GPIO_SetValue(psIO->Port, 1 << psIO->Pin);
 }
@@ -172,9 +152,80 @@ static void vSetDAC7760IO(const IODef* psIO )
 *@brief DAC7760的管脚清零
 *@param psIO	控制器数字量输出I/O								
 ***************************************************/
-static void vClrDAC7760IO(const IODef* psIO )
+void vClrDAC7760IO(const IODef* psIO )
 {
 	GPIO_ClearValue(psIO->Port, 1 << psIO->Pin);
+}
+
+void MyDelay(int ticks)
+{
+	while(ticks > 0)
+	{
+		ticks--;
+	}
+}
+
+/*************************************************************************
+*@brief	  超级IO模拟量输出数据发送函数	原理：根据DAC7760芯片的时序图来进行设置
+*@param	  ucSuperIO 	使用的超级IO口，1或者2
+*@param   ulData	    数据	格式：1字节寄存器地址+2字节数据
+*@author  laoc
+*@date	  2019-02-17
+***************************************************************************/
+void vSendDataToDAC7760(uint8_t ucSuperIO, uint32_t ulData)
+{
+	uint8_t i;
+	OS_ERR err = OS_ERR_NONE;
+	
+	uint8_t ucSpidata[3];
+	ucSpidata[2] = ulData & 0xFF;
+	ucSpidata[1] = (ulData >> 8) & 0xFF;
+	ucSpidata[0] = (ulData >> 16) & 0xFF;
+	
+	if( ucSuperIO == 1)
+	{
+		SET_VALUE_DAC7760_CLR1;												//CLR管脚置高电平，清空7760输入								
+		SET_VALUE_DAC7760_LATCH1;											//LATCH管脚置高电平
+		MyDelay(20);														//延时保证DAC7760输出清零
+		
+		CLR_VALUE_DAC7760_CLR1;												//CLR管脚置低电平，以便输入新的数据
+		MyDelay(20);
+		
+		for(i = 0; i <= 2; i++)
+		{
+			SSP_SendData(LPC_SSP1, ucSpidata[i]);
+		}
+		/* 等待数据发送完毕 */
+
+		while( (LPC_SSP1->SR & 0x01) == 0) {}				//等待数据发送完毕
+		CLR_VALUE_DAC7760_LATCH1;							//置LATCH为低电平
+		MyDelay(50);
+			
+		SET_VALUE_DAC7760_LATCH1;							//产生上升沿，将发送到DAC7760的数据转化为输出
+		MyDelay(50);
+	}
+	else if( ucSuperIO == 2 )
+	{
+		SET_VALUE_DAC7760_CLR2;
+		SET_VALUE_DAC7760_LATCH2;
+		MyDelay(20);
+		
+		CLR_VALUE_DAC7760_CLR2;
+		MyDelay(20);
+		
+		for(i = 0; i <= 2; i++)
+		{
+			SSP_SendData(LPC_SSP1, ucSpidata[i]);
+		}
+		/* 等待数据发送完毕 */
+		while( (LPC_SSP1->SR & 0x01) == 0 ){}
+		
+		CLR_VALUE_DAC7760_LATCH2;
+		MyDelay(50);
+			
+		SET_VALUE_DAC7760_LATCH2;
+		MyDelay(50);
+	}
 }
 
 /***************************************************
@@ -239,78 +290,6 @@ void vDAC7760Init(void)
 #endif
 
 	while(LPC_SSP1->SR == 0){}
-}
-
-void MyDelay(int ticks);
-void MyDelay(int ticks)
-{
-	while(ticks > 0)
-	{
-		ticks--;
-	}
-}
-
-/*************************************************************************
-*@brief	  超级IO模拟量输出数据发送函数	原理：根据DAC7760芯片的时序图来进行设置
-*@param	  ucSuperIO 	使用的超级IO口，1或者2
-*@param   ulData	    数据	格式：1字节寄存器地址+2字节数据
-*@author  laoc
-*@date	  2019-02-17
-***************************************************************************/
-static void vSendDataToDAC7760(uint8_t ucSuperIO, uint32_t ulData)
-{
-	uint8_t i;
-	OS_ERR err = OS_ERR_NONE;
-	
-	uint8_t ucSpidata[3];
-	ucSpidata[2] = ulData & 0xFF;
-	ucSpidata[1] = (ulData >> 8) & 0xFF;
-	ucSpidata[0] = (ulData >> 16) & 0xFF;
-	
-	if( ucSuperIO == 1)
-	{
-		SET_VALUE_DAC7760_CLR1;												//CLR管脚置高电平，清空7760输入								
-		SET_VALUE_DAC7760_LATCH1;											//LATCH管脚置高电平
-		MyDelay(20);														//延时保证DAC7760输出清零
-		
-		CLR_VALUE_DAC7760_CLR1;												//CLR管脚置低电平，以便输入新的数据
-		MyDelay(20);
-		
-		for(i = 0; i <= 2; i++)
-		{
-			SSP_SendData(LPC_SSP1, ucSpidata[i]);
-		}
-		/* 等待数据发送完毕 */
-
-		while( (LPC_SSP1->SR & 0x01) == 0) {}				//等待数据发送完毕
-		CLR_VALUE_DAC7760_LATCH1;							//置LATCH为低电平
-		MyDelay(50);
-			
-		SET_VALUE_DAC7760_LATCH1;							//产生上升沿，将发送到DAC7760的数据转化为输出
-		MyDelay(50);
-	}
-	else if( ucSuperIO == 2 )
-	{
-		SET_VALUE_DAC7760_CLR2;
-		SET_VALUE_DAC7760_LATCH2;
-		MyDelay(20);
-		
-		CLR_VALUE_DAC7760_CLR2;
-		MyDelay(20);
-		
-		for(i = 0; i <= 2; i++)
-		{
-			SSP_SendData(LPC_SSP1, ucSpidata[i]);
-		}
-		/* 等待数据发送完毕 */
-		while( (LPC_SSP1->SR & 0x01) == 0 ){}
-		
-		CLR_VALUE_DAC7760_LATCH2;
-		MyDelay(50);
-			
-		SET_VALUE_DAC7760_LATCH2;
-		MyDelay(50);
-	}
 }
 
 /***************************************************
@@ -466,13 +445,12 @@ void vAnalogOutputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 }
 
 /******************************************************************
-*@brief 输出设置任务函数							
+*@brief 输出量初始化								
 ******************************************************************/
-void vOutputSetTask(void *p_arg)
+void vOutputInit(void)
 {
-	OS_ERR err = OS_ERR_NONE;
-	
 	vDigitalOutputInit();
 	vDAC7760Init();
 	vPWM1Init();
 }
+
