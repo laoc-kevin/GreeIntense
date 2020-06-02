@@ -145,7 +145,6 @@ typedef struct                 /* 从栈节点配置信息 */
    OS_PRIO             ucSlavePollPrio;  
 }sMBSlaveNodeInfo;
 
-
 typedef void (*pvMBSlaveFrameStart)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef void (*pvMBSlaveFrameStop)(sMBSlaveInfo* psMBSlaveInfo);
@@ -168,8 +167,7 @@ typedef void (*pvMBSlaveFrameSendCallback) (void* p_arg);
 #endif
 
 
-#if MB_SLAVE_CPN_ENABLED > 0
-										 
+#if MB_SLAVE_CPN_ENABLED > 0									 
 										 									 
 typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucSourAddr,
 	                                             UCHAR* pucDestAddr, UCHAR** pucFrame, USHORT * pusLength);
