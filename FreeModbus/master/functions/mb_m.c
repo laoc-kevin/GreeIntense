@@ -89,8 +89,8 @@ pxMBMasterFrameCBByteReceived         pxMBMasterFrameCBByteReceivedCur;
 pxMBMasterFrameCBTransmitterEmpty     pxMBMasterFrameCBTransmitterEmptyCur ;
 pxMBMasterFrameCBTimerExpired         pxMBMasterFrameCBTimerExpiredCur;
 
-pvMBMasterFrameReceiveCallback pvMBMasterReceiveCallback;
-pvMBMasterFrameSendCallback    pvMBMasterSendCallback;
+pvMBMasterFrameReceiveCallback        pvMBMasterReceiveCallback;
+pvMBMasterFrameSendCallback           pvMBMasterSendCallback;
 
 
 /* An array of Modbus functions handlers which associates Modbus function
