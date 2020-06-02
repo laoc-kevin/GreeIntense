@@ -37,6 +37,7 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
+#include  <os.h>
 
 #include "mb.h"
 #include "mbconfig.h"
@@ -382,8 +383,6 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
-	CPU_SR_ALLOC();
-
     /* Check if the protocol stack is ready. */
     if(psMBSlaveInfo->eMBState != STATE_ENABLED)      //检查协议栈是否使能
     {
@@ -395,8 +394,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
     {
         switch (eEvent)
         {
-        case EV_READY:
-            break;
+        case EV_READY:break;
 
         case EV_FRAME_RECEIVED:                    //接收到一帧数据，此事件发生
 	
@@ -529,7 +527,7 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
 	sMBSlaveTask*         psMBTask = &psMBSlaveInfo->sMBTask;   //从栈状态机任务信息
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;   //从栈通讯信息
     
-    if(psMBSlaveInfo != NULL)
+    if(psMBSlaveInfo == NULL)
     {
         return FALSE;
     }
@@ -561,10 +559,10 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         }
 
         /*******************************创建从栈状态机任务*************************/
-        if(xMBSlaveCreatePollTask(psMBSlaveInfo) == FALSE)  
-        {
-            return FALSE;
-        }
+//        if(xMBSlaveCreatePollTask(psMBSlaveInfo) == FALSE)  
+//        {
+//            return FALSE;
+//        }
         
 	    if(psMBSlaveList == NULL)  //注册节点
 	    {
@@ -631,9 +629,9 @@ BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
     CPU_STK_SIZE  stk_size = MB_SLAVE_POLL_TASK_STK_SIZE; 
     sMBSlaveTask* psMBTask = &psMBSlaveInfo->sMBTask;
     
-    OS_PRIO             prio = psMBTask->ucSlavePollPrio;
-    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sSlavePollTCB);  
-    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usSlavePollStk);
+    OS_PRIO  prio       = psMBTask->ucSlavePollPrio;
+    OS_TCB*  p_tcb      = (OS_TCB*)(&psMBTask->sSlavePollTCB);  
+    CPU_STK* p_stk_base = (CPU_STK*)(psMBTask->usSlavePollStk);
     
     OSTaskCreate( p_tcb,
                   "vMBSlavePollTask",
@@ -660,11 +658,11 @@ BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
  *********************************************************************/
 void vMBSlavePollTask(void *p_arg)
 {
-	CPU_SR_ALLOC();
-	
 	OS_ERR err                  = OS_ERR_NONE;
 	eMBErrorCode        eStatus = MB_ENOERR;
 	sMBSlaveInfo* psMBSlaveInfo = (sMBSlaveInfo*)p_arg;
+    
+//    CPU_SR_ALLOC();
     
 #if MB_SLAVE_RTU_ENABLED > 0
 	eStatus = eMBSlaveInit(psMBSlaveInfo);
@@ -673,7 +671,6 @@ void vMBSlavePollTask(void *p_arg)
 #if MB_SLAVE_CPN_ENABLED > 0
 	eStatus = eMBSlaveInit(psMBSlaveInfo);
 #endif
-	
 	if(eStatus == MB_ENOERR)
 	{
 		eStatus = eMBSlaveEnable(psMBSlaveInfo);
@@ -681,8 +678,12 @@ void vMBSlavePollTask(void *p_arg)
 		{
 			while (DEF_TRUE)
 			{
-                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);				
+                (void)OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
+                
 				(void)eMBSlavePoll(psMBSlaveInfo);
+                
+                 myprintf("vMBSlavePollTask\n");
+                 	
 			}
 		}			
 	}	

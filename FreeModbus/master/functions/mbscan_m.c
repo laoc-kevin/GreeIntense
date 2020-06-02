@@ -59,7 +59,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     }
 	while (DEF_TRUE)
 	{
-		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
+		(void)OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);
         
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理      
         if( (psMBMasterInfo->bDTUEnable != FALSE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))

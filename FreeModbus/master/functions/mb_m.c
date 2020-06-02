@@ -606,10 +606,10 @@ void vMBMasterPollTask(void *p_arg)
 	
 	eStatus = eMBMasterInit(psMBMasterInfo);
 	
+    myprintf("vMBMasterPollTask\n");
 	if(eStatus == MB_ENOERR)
 	{
 		eStatus = eMBMasterEnable(psMBMasterInfo);
-		
 		if(eStatus == MB_ENOERR)
 		{
 			while (DEF_TRUE)

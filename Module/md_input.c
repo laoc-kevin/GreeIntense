@@ -496,11 +496,55 @@ uint8_t ucDigitalInputGetRealVal(uint8_t ucChannel)
 }
 
 /******************************************************************
+*@brief 输入量所有管脚初始化								
+******************************************************************/
+static void AppInputIOInit(void)
+{
+	GPIO_Init();
+	
+	//设置管脚功能，4051A---P1.27，4051B---P1.28，4051C---P1.29  两块4051共用A、B、C管脚
+	
+	//拨码数字量输入P0.28，数字输入1P0.29，数字输入2P1.19，4~20mA模拟输入P0.25
+	(void)PINSEL_ConfigPin(1, 27, 0);
+	(void)PINSEL_ConfigPin(1, 28, 0);
+	(void)PINSEL_ConfigPin(1, 29, 0);
+	
+	(void)PINSEL_ConfigPin(0, 28, 0);
+	(void)PINSEL_ConfigPin(0, 29, 0);
+	(void)PINSEL_ConfigPin(1, 19, 0);
+	
+	(void)PINSEL_SetAnalogPinMode(0, 25, ENABLE);
+	(void)PINSEL_ConfigPin(0, 25, 1);
+	
+	//设置管脚输入输出模式
+	GPIO_SetDir(1, 1<<27, 1);
+	GPIO_SetDir(1, 1<<28, 1);
+	GPIO_SetDir(1, 1<<29, 1);
+	
+	GPIO_SetDir(0, 1<<28, 0);
+	GPIO_SetDir(0, 1<<29|1<<30, 0); //P0.29和P0.30两个管脚共享方向寄存器
+	GPIO_SetDir(1, 1<<19, 0); 
+	
+	GPIO_SetDir(1, 1<<25, 0); 		//快测口
+	
+	//设置输出管脚初始为低电平
+	GPIO_ClearValue(1, 1<<27 | 1<<28 | 1<<29);
+	
+	//ADC初始化
+	ADC_Init(LPC_ADC, 200000);
+	ADC_ChannelCmd(LPC_ADC, ADC_CHANNEL_2, ENABLE);	
+}
+
+
+
+/******************************************************************
 *@brief 读取输入量任务函数							
 ******************************************************************/
 void vInputReceiveTask(void *p_arg)
 {
 	OS_ERR err = OS_ERR_NONE;
+	
+    AppInputIOInit();
 	
 	while(DEF_TRUE)
 	{

@@ -18,8 +18,6 @@ typedef struct        /**DI数据结构**/
 	void*           pvDIVal;       //当前实际值       
 }sDIData; 
 
-void vInputInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
-
 void     vDigitalInputRegister(uint8_t ucChannel, void* pvVal);
 void     vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);
          
@@ -31,5 +29,7 @@ uint8_t  ucDigitalInputGetRealVal(uint8_t ucChannel);
 uint8_t  ucGetControllerID(void);
 uint8_t* pcGetControllerID(void);
 uint8_t  ucGetSaInput(void);
+
+void vInputInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
 
 #endif
