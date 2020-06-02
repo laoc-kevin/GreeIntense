@@ -37,6 +37,7 @@
 #include "mbframe.h"
 #include "mbdict_m.h"
 
+
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif
@@ -137,32 +138,37 @@ typedef  void (*pvDTUScanDev)(void* p_arg);
 typedef struct sMBMasterInfo  /* master information */
 {
     sMBMasterPort       sMBPort;                   //主栈硬件接口信息
-	sMBMasterDevsInfo   sMBDevsInfo;                   //主栈从设备信息
+	sMBMasterDevsInfo   sMBDevsInfo;               //主栈从设备信息
 	sMBMasterTask       sMBTask;                   //主栈状态机任务信息
                                                                     
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
     BOOL                bDTUEnable;    
     pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块
 #endif                                                              
-                                                                    
-	eMBMode             eMode;                          //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
-	eMBState            eMBState;                       //主栈状态
-    eMBMasterSndState   eSndState;                      //发送状态
-    eMBMasterRcvState   eRcvState;                      //接收状态
-	                                                          
-	eMBMasterErrorEventType eCurErrorType;              //当前错误类型
+
+#ifdef MB_MASTER_HEART_BEAT_ENABLED
     
-	USHORT              usSndPDULength;                 //PDU数据域长度
-    USHORT              usSndBufferCount;               //发送缓冲区数据量
-    USHORT              usRcvBufferPos;                 //接收缓冲区数据位置
-	                                                          
-	UCHAR*              pucSndBufferCur;                //当前发送数据缓冲区指针
-    UCHAR*              pucMasterPDUCur;                //当前发送帧PDU数据域指针
     
-    UCHAR               ucMBDestAddr;                   //当前从设备地址
-    BOOL                xMBRunInMasterMode;             //是否处于主栈模式
-    BOOL                xMBRunInTestMode;               //是否处于主栈测试从设备模式
-	BOOL                xFrameIsBroadcast;              //是否为广播帧
+#endif        
+    
+	eMBMode             eMode;                         //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
+	eMBState            eMBState;                      //主栈状态
+    eMBMasterSndState   eSndState;                     //发送状态
+    eMBMasterRcvState   eRcvState;                     //接收状态
+	                                                         
+	eMBMasterErrorEventType eCurErrorType;             //当前错误类型
+    
+	USHORT              usSndPDULength;                //PDU数据域长度
+    USHORT              usSndBufferCount;              //发送缓冲区数据量
+    USHORT              usRcvBufferPos;                //接收缓冲区数据位置
+	                                                         
+	UCHAR*              pucSndBufferCur;               //当前发送数据缓冲区指针
+    UCHAR*              pucMasterPDUCur;               //当前发送帧PDU数据域指针
+    
+    UCHAR               ucMBDestAddr;                  //当前从设备地址
+    BOOL                xMBRunInMasterMode;            //是否处于主栈模式
+    BOOL                xMBRunInTestMode;              //是否处于主栈测试从设备模式
+	BOOL                xFrameIsBroadcast;             //是否为广播帧
     
 #if MB_MASTER_RTU_ENABLED > 0         //RTU mode information
 	UCHAR               ucRTUSndBuf[MB_PDU_SIZE_MAX];         //发送缓冲区
@@ -212,6 +218,10 @@ typedef eMBErrorCode (*peMBMasterFrameReceive) (sMBMasterInfo* psMBMasterInfo, U
 typedef eMBErrorCode (*peMBMasterFrameSend) (sMBMasterInfo* psMBMasterInfo, UCHAR slaveAddress,
                                              const UCHAR * pucFrame, USHORT usLength);
 
+typedef void(*pvMBMasterFrameReceiveCallback) (void* p_arg);
+        
+typedef void(*pvMBMasterFrameSendCallback) (void* p_arg);
+
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
@@ -223,15 +233,17 @@ typedef BOOL (*pxMBMasterFrameCBTransmitterEmpty) (sMBMasterInfo* psMBMasterInfo
 
 typedef BOOL (*pxMBMasterFrameCBTimerExpired) (sMBMasterInfo* psMBMasterInfo);
 
-
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-extern pxMBMasterFrameCBByteReceived pxMBMasterFrameCBByteReceivedCur;
+extern pxMBMasterFrameCBByteReceived     pxMBMasterFrameCBByteReceivedCur;
 extern pxMBMasterFrameCBTransmitterEmpty pxMBMasterFrameCBTransmitterEmptyCur ;
-extern pxMBMasterFrameCBTimerExpired pxMBMasterFrameCBTimerExpiredCur;
+extern pxMBMasterFrameCBTimerExpired     pxMBMasterFrameCBTimerExpiredCur;
+
+extern pvMBMasterFrameReceiveCallback    pvMBMasterReceiveCallback;
+extern pvMBMasterFrameSendCallback       pvMBMasterSendCallback;
 
 /* ----------------------- Function prototypes ------------------------------*/
 

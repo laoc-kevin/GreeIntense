@@ -74,23 +74,23 @@ static sMBMasterInfo*      psMBMasterList = NULL;
  * mode (RTU or ASCII) the are set to the correct implementations.
  * Using for Modbus Master,Add by Armink 20130813
  */
-static peMBMasterFrameSend        peMBMasterFrameSendCur;
-static pvMBMasterFrameStart       pvMBMasterFrameStartCur;
-static pvMBMasterFrameStop        pvMBMasterFrameStopCur;
-static peMBMasterFrameReceive     peMBMasterFrameReceiveCur;
-static pvMBMasterFrameClose       pvMBMasterFrameCloseCur;
+static peMBMasterFrameSend     peMBMasterFrameSendCur;
+static pvMBMasterFrameStart    pvMBMasterFrameStartCur;
+static pvMBMasterFrameStop     pvMBMasterFrameStopCur;
+static peMBMasterFrameReceive  peMBMasterFrameReceiveCur;
+static pvMBMasterFrameClose    pvMBMasterFrameCloseCur;
 
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  * Using for Modbus Master,Add by Armink 20130813
  */
-pxMBMasterFrameCBByteReceived         pxMBMasterFrameCBByteReceivedCur;
-pxMBMasterFrameCBTransmitterEmpty     pxMBMasterFrameCBTransmitterEmptyCur ;
-pxMBMasterFrameCBTimerExpired         pxMBMasterFrameCBTimerExpiredCur;
+pxMBMasterFrameCBByteReceived      pxMBMasterFrameCBByteReceivedCur;
+pxMBMasterFrameCBTransmitterEmpty  pxMBMasterFrameCBTransmitterEmptyCur ;
+pxMBMasterFrameCBTimerExpired      pxMBMasterFrameCBTimerExpiredCur;
 
-pvMBMasterFrameReceiveCallback        pvMBMasterReceiveCallback;
-pvMBMasterFrameSendCallback           pvMBMasterSendCallback;
+pvMBMasterFrameReceiveCallback     pvMBMasterReceiveCallback;
+pvMBMasterFrameSendCallback        pvMBMasterSendCallback;
 
 
 /* An array of Modbus functions handlers which associates Modbus function
