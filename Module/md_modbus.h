@@ -5,7 +5,8 @@
 #include "mb_m.h"
 
 void vModbusSlaveInit(OS_PRIO prio);
-
+void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio);
+    
 sMBMasterInfo* psMBGetMasterInfo(void);
 sMBSlaveInfo*  psMBGetSlaveInfo(void);
 
