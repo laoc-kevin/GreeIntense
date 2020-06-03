@@ -70,6 +70,9 @@ void vMonitorPollTask(void *p_arg)
     }
 }
 
+/**************************************************************
+*@brief 数据监控初始化
+***************************************************************/
 void vMonitorInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
 {
     (void)eTaskCreate(p_tcb, vMonitorPollTask, NULL, prio, p_stk_base, stk_size);

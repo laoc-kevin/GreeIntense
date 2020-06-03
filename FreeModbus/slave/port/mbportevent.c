@@ -27,7 +27,6 @@
 
 #define TIME_TICK_OUT 0
 
-
 /* ----------------------- Start implementation -----------------------------*/
 
 /**********************************************************************
@@ -38,8 +37,12 @@
  *********************************************************************/
 BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort)
 {
+    OS_ERR err = OS_ERR_NONE;
+    
     psMBPort->xEventInQueue = FALSE;
-    return TRUE;
+    OSSemCreate(&psMBPort->sMBEventSem, "sMBEventSem", 0, &err);      //从栈事件消息量
+    
+    return (err == OS_ERR_NONE);
 }
 
 /**********************************************************************
@@ -56,9 +59,9 @@ BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
     psMBPort->eQueuedEvent = eEvent;
 	
     (void)OSSemPost(&psMBPort->sMBEventSem, OS_OPT_POST_ALL, &err);
-	
 //	 (void)OSTaskSemPost(&AppMbSlavePollTaskTCB, OS_OPT_POST_NONE, &err);
-    return TRUE;
+    
+    return (err == OS_ERR_NONE);
 }
 
 /**********************************************************************
@@ -74,8 +77,9 @@ BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType * eEvent)
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-	(void)OSSemPend(&psMBPort->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err);
-//	(void)OSSemSet(&SlaveEventSem, 0, &err);
+	(void)OSSemPend(&psMBPort->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err);    
+	(void)OSSemSet(&psMBPort->sMBEventSem, 0, &err);
+  
     if( psMBPort->xEventInQueue )
     {
         *eEvent = psMBPort->eQueuedEvent;

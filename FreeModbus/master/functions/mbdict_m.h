@@ -7,7 +7,7 @@
 
 /* -----------------------Master Defines -------------------------------------*/
 #define MB_MASTER_MIN_DEV_ADDR    1     //主栈从设备最小通讯地址
-#define MB_MASTER_MAX_DEV_ADDR    20    //主栈从设备最大通讯地址
+#define MB_MASTER_MAX_DEV_ADDR    1    //主栈从设备最大通讯地址
 
 typedef enum      /* 测试模式 */        
 {

@@ -9,6 +9,7 @@
 *                         BMS接口                            *
 **************************************************************/
 static BMS* psBMS = NULL;
+static BMS  BMSCore;
 
 /*通讯映射函数*/
 BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
@@ -696,7 +697,7 @@ BMS* BMS_Core()
 {
     if(psBMS == NULL)
     {
-        psBMS = (BMS*)BMS_new();
+        psBMS = (BMS*)&BMSCore;
         if(psBMS == NULL)
         {
             psBMS->init(psBMS);

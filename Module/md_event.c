@@ -62,6 +62,9 @@ void vEventPollTask(void * p_arg)
     }
 }
 
+/**************************************************************
+*@brief 事件消息泵初始化
+***************************************************************/
 void vEventInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
 {
     (void)eTaskCreate(p_tcb, vEventPollTask, NULL, prio, p_stk_base, stk_size);

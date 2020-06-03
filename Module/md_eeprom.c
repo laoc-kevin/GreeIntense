@@ -254,6 +254,9 @@ BOOL xDataE32Changed(void)
 	return xChanged;
 }
 
+/**********************************************************************
+ * @brief  读EEPROM数据
+ *********************************************************************/
 void vReadEEPROMData(void)
 {
     uint8_t i = 0;
@@ -354,7 +357,10 @@ BOOL xEEPROMDataIsReady(void)
 {
     return EEPROMDataReady;
 }
-    
+  
+/**********************************************************************
+ * @brief  写EEPROM数据
+ *********************************************************************/
 void vWriteEEPROMData(void)
 {
     uint8_t i = 0;
@@ -446,6 +452,9 @@ void vWriteEEPROMData(void)
     }
 }
 
+/**********************************************************************
+ * @brief  注册EEPROM数据
+ *********************************************************************/
 BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
 {
     if(pData == NULL)
@@ -554,6 +563,9 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
     return TRUE;
 }
 
+/**********************************************************************
+ * @brief  轮询写EEPROM数据任务
+ *********************************************************************/
 void vEEPROMDataTask(void * p_arg)
 {
     OS_ERR err = OS_ERR_NONE;
@@ -569,6 +581,9 @@ void vEEPROMDataTask(void * p_arg)
     }
 }
 
+/**********************************************************************
+ * @brief  EEPROM初始化
+ *********************************************************************/
 void vEEPROMInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
 {
      (void)eTaskCreate(p_tcb, vEEPROMDataTask, NULL, prio, p_stk_base, stk_size);

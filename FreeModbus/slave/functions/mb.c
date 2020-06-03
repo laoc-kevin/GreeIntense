@@ -37,7 +37,6 @@
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include  <os.h>
 
 #include "mb.h"
 #include "mbconfig.h"
@@ -160,7 +159,7 @@ static xMBSlaveFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
+eMBErrorCode eMBSlaveInit(sMBSlaveInfo* psMBSlaveInfo)
 {
     eMBErrorCode           eStatus = MB_ENOERR;
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
@@ -233,10 +232,9 @@ eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
             eStatus = MB_EINVAL;
 		    break;
         }
-
         if( eStatus == MB_ENOERR )
         {
-            if(!xMBSlavePortEventInit(psMBPort))
+            if(xMBSlavePortEventInit(psMBPort) == FALSE)
             {
                 /* port dependent event module initalization failed. */
                 eStatus = MB_EPORTERR;
@@ -244,10 +242,6 @@ eMBErrorCode eMBSlaveInit( sMBSlaveInfo* psMBSlaveInfo)
             else
             {
                 psMBSlaveInfo->eMBState = STATE_DISABLED;    //modbus协议栈初始化状态,在此初始化为禁止
-                
-#if MB_SLAVE_USE_TABLE > 0				
-				(void)eMBScanTableBind();
-#endif
             }
         }
     }
@@ -314,9 +308,9 @@ eMBErrorCode eMBSlaveClose( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-eMBErrorCode eMBSlaveEnable( sMBSlaveInfo* psMBSlaveInfo )
+eMBErrorCode eMBSlaveEnable(sMBSlaveInfo* psMBSlaveInfo)
 {
-    eMBErrorCode           eStatus = MB_ENOERR;
+    eMBErrorCode eStatus = MB_ENOERR;
     
     if(psMBSlaveInfo->eMBState == STATE_DISABLED)
     {
@@ -383,6 +377,8 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
+	CPU_SR_ALLOC();
+
     /* Check if the protocol stack is ready. */
     if(psMBSlaveInfo->eMBState != STATE_ENABLED)      //检查协议栈是否使能
     {
@@ -390,11 +386,12 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
     }
 
      /* 检查是否有事件发生。 若没有事件发生，将控制权交还主调函数. 否则，将处理该事件 */
-    if( xMBSlavePortEventGet(psMBPort, &eEvent) == TRUE )              
+    if(xMBSlavePortEventGet(psMBPort, &eEvent) == TRUE)              
     {
         switch (eEvent)
         {
-        case EV_READY:break;
+        case EV_READY:
+            break;
 
         case EV_FRAME_RECEIVED:                    //接收到一帧数据，此事件发生
 	
@@ -550,20 +547,17 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         {
             psMBCommInfo->pcSlaveAddr = psSlaveNode->pcSlaveAddr;
         }
-  
         /***************************从栈状态机任务块设置***************************/
         psMBTask   = (sMBSlaveTask*)(&psMBSlaveInfo->sMBTask);
         if(psMBTask != NULL)
         {
             psMBTask->ucSlavePollPrio = psSlaveNode->ucSlavePollPrio;
         }
-
         /*******************************创建从栈状态机任务*************************/
-//        if(xMBSlaveCreatePollTask(psMBSlaveInfo) == FALSE)  
-//        {
-//            return FALSE;
-//        }
-        
+        if(xMBSlaveCreatePollTask(psMBSlaveInfo) == FALSE)  
+        {
+            return FALSE;
+        }
 	    if(psMBSlaveList == NULL)  //注册节点
 	    {
             psMBSlaveList = psMBSlaveInfo;
@@ -600,14 +594,11 @@ void vMBSlaveRegistCommData(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveCommData* psSla
  *********************************************************************/
 sMBSlaveInfo* psMBSlaveFindNodeByPort(const CHAR* pcMBPortName)
 {
-	char*                      pcPortName = NULL;
-	sMBSlaveInfo*           psMBSlaveInfo = NULL;
+	sMBSlaveInfo*  psMBSlaveInfo = NULL;
 
 	for( psMBSlaveInfo = psMBSlaveList; psMBSlaveInfo != NULL; psMBSlaveInfo = psMBSlaveInfo->pNext )
 	{
-        strcpy(pcPortName, psMBSlaveInfo->sMBPort.pcMBPortName);
-           
-        if( strcmp(pcPortName,pcMBPortName) == 0 )
+        if( strcmp(psMBSlaveInfo->sMBPort.pcMBPortName, pcMBPortName) == 0 )
         {
             return psMBSlaveInfo;
         }
@@ -629,23 +620,12 @@ BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
     CPU_STK_SIZE  stk_size = MB_SLAVE_POLL_TASK_STK_SIZE; 
     sMBSlaveTask* psMBTask = &psMBSlaveInfo->sMBTask;
     
-    OS_PRIO  prio       = psMBTask->ucSlavePollPrio;
-    OS_TCB*  p_tcb      = (OS_TCB*)(&psMBTask->sSlavePollTCB);  
-    CPU_STK* p_stk_base = (CPU_STK*)(psMBTask->usSlavePollStk);
+    OS_PRIO             prio = psMBTask->ucSlavePollPrio;
+    OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sSlavePollTCB);  
+    CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usSlavePollStk);
     
-    OSTaskCreate( p_tcb,
-                  "vMBSlavePollTask",
-                  vMBSlavePollTask,
-                  (void*)psMBSlaveInfo,
-                  prio,
-                  p_stk_base ,
-                  stk_size / 10u,
-                  stk_size,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
+    OSTaskCreate(p_tcb, "vMBSlavePollTask", vMBSlavePollTask, (void*)psMBSlaveInfo, prio, p_stk_base, 
+                 stk_size/10u, stk_size, 0u, 0u, 0u, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ), &err);
     return (err == OS_ERR_NONE);
 }
 
@@ -658,32 +638,22 @@ BOOL xMBSlaveCreatePollTask(sMBSlaveInfo* psMBSlaveInfo)
  *********************************************************************/
 void vMBSlavePollTask(void *p_arg)
 {
-	OS_ERR err                  = OS_ERR_NONE;
-	eMBErrorCode        eStatus = MB_ENOERR;
-	sMBSlaveInfo* psMBSlaveInfo = (sMBSlaveInfo*)p_arg;
+	OS_ERR err = OS_ERR_NONE;
     
-//    CPU_SR_ALLOC();
+	eMBErrorCode  eStatus       = MB_ENOERR;
+    sMBSlaveInfo* psMBSlaveInfo = (sMBSlaveInfo*)p_arg;; 
     
-#if MB_SLAVE_RTU_ENABLED > 0
 	eStatus = eMBSlaveInit(psMBSlaveInfo);
-#endif	
-	
-#if MB_SLAVE_CPN_ENABLED > 0
-	eStatus = eMBSlaveInit(psMBSlaveInfo);
-#endif
 	if(eStatus == MB_ENOERR)
 	{
 		eStatus = eMBSlaveEnable(psMBSlaveInfo);
 		if(eStatus == MB_ENOERR)
-		{
+		{  
 			while (DEF_TRUE)
-			{
-                (void)OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
-                
+			{	
+                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
 				(void)eMBSlavePoll(psMBSlaveInfo);
-                
-                 myprintf("vMBSlavePollTask\n");
-                 	
+                myprintf("vMBSlavePollTask\n");                   
 			}
 		}			
 	}	

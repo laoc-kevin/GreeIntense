@@ -331,14 +331,6 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
     Modular*     psModular = NULL;
     
     pThis->psMBMasterInfo = psMBMasterInfo;
-
-    vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
-    vModularRoof_RegistMonitor(pThis);      //注册监控数据
-   
-    vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
-    vModularRoof_InitDefaultData(pThis);    //初始化默认数据
-    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
-    
     pThis->psSupAirFan = (SupAirFan*)SupAirFan_new();  //送风风机
     
     for(n=0; n < MODULAR_NUM; n++)
@@ -347,11 +339,18 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
         if(psModular != NULL)
         {
             psModular->init(psModular);
-            pThis->psModularList[n] = psModular;        //模块列表 
-            
-            myprintf("Modular: %d   addr: %d\n", n, psModular);              
+            pThis->psModularList[n] = psModular;        //模块列表       
         }       
-    }  
+    } 
+
+    vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
+    vModularRoof_RegistMonitor(pThis);      //注册监控数据
+   
+    vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
+    vModularRoof_InitDefaultData(pThis);    //初始化默认数据
+    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
+
+    myprintf("vModularRoof_Init\n");    
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数

@@ -535,8 +535,6 @@ static void AppInputIOInit(void)
 	ADC_ChannelCmd(LPC_ADC, ADC_CHANNEL_2, ENABLE);	
 }
 
-
-
 /******************************************************************
 *@brief 读取输入量任务函数							
 ******************************************************************/
@@ -548,8 +546,8 @@ void vInputReceiveTask(void *p_arg)
 	
 	while(DEF_TRUE)
 	{
-		vInputReceive();	
-		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+        vInputReceive();
+        OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);	
 	}
 }
 

@@ -513,7 +513,6 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         {
             return FALSE;
         }
-
 	    if(psMBMasterList == NULL)   //注册节点
 	    {
             psMBMasterList = psMBMasterInfo;
@@ -538,14 +537,11 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
  *********************************************************************/
 sMBMasterInfo* psMBMasterFindNodeByPort(const CHAR* pcMBPortName)
 {
-	char*              pcPortName = NULL;
 	sMBMasterInfo* psMBMasterInfo = NULL;
 	
 	for( psMBMasterInfo = psMBMasterList; psMBMasterInfo != NULL; psMBMasterInfo = psMBMasterInfo->pNext )
-	{
-        strcpy(pcPortName, psMBMasterInfo->sMBPort.pcMBPortName);
-        
-        if( strcmp(pcPortName, pcMBPortName) == 0 )
+	{    
+        if( strcmp(psMBMasterInfo->sMBPort.pcMBPortName, pcMBPortName) == 0 )
         {
         	return psMBMasterInfo;
         }
@@ -571,19 +567,8 @@ BOOL xMBMasterCreatePollTask(sMBMasterInfo* psMBMasterInfo)
     OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sMasterPollTCB);  
     CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usMasterPollStk);
     
-    OSTaskCreate( p_tcb,
-                  "vMBMasterPollTask",
-                  vMBMasterPollTask,
-                  (void*)psMBMasterInfo,
-                  prio,
-                  p_stk_base,
-                  stk_size / 10u,
-                  stk_size,
-                  0u,
-                  0u,
-                  0u,
-                 (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                 &err);
+    OSTaskCreate(p_tcb, "vMBMasterPollTask", vMBMasterPollTask, (void*)psMBMasterInfo, prio, p_stk_base,
+                 stk_size/10u, stk_size, 0u, 0u, 0u, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ), &err);
     return (err == OS_ERR_NONE);
 }
 
@@ -615,7 +600,8 @@ void vMBMasterPollTask(void *p_arg)
 			while (DEF_TRUE)
 			{	
 				(void)OSTimeDlyHMSM(0, 0, 0, MB_MASTER_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-				(void)eMBMasterPoll(psMBMasterInfo);			
+				(void)eMBMasterPoll(psMBMasterInfo);
+                 myprintf("vMBMasterPollTask\n");                      
 			}
 		}			
 	}	
@@ -741,8 +727,6 @@ BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address)
     }
     return FALSE; 
 }
-
-
 
 /**********************************************************************
  * @brief   从设备定时器初始化

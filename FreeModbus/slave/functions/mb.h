@@ -73,7 +73,7 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_TCP_PORT_USE_DEFAULT 0   
 
-#define MB_SLAVE_POLL_TASK_STK_SIZE         160
+#define MB_SLAVE_POLL_TASK_STK_SIZE         256
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -143,7 +143,6 @@ typedef struct                 /* 从栈节点配置信息 */
    UCHAR*              pcSlaveAddr;
                        
    OS_PRIO             ucSlavePollPrio;  
-   sMBSlaveCommData*   psSlaveCurData;
 }sMBSlaveNodeInfo;
 
 typedef void (*pvMBSlaveFrameStart)(sMBSlaveInfo* psMBSlaveInfo);
@@ -151,7 +150,6 @@ typedef void (*pvMBSlaveFrameStart)(sMBSlaveInfo* psMBSlaveInfo);
 typedef void (*pvMBSlaveFrameStop)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef void (*pvMBSlaveFrameClose)(sMBSlavePort* psMBPort);
-
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
@@ -164,7 +162,6 @@ typedef eMBErrorCode (*peMBSlaveFrameSend) (sMBSlaveInfo* psMBSlaveInfo, UCHAR s
 typedef void (*pvMBSlaveFrameReceiveCallback)(void* p_arg);
 
 typedef void (*pvMBSlaveFrameSendCallback)(void* p_arg);
-
 #endif
 
 #if MB_SLAVE_CPN_ENABLED > 0									 
@@ -175,7 +172,6 @@ typedef eMBErrorCode (*peMBSlaveCPNFrameReceive)(sMBSlaveInfo* psMBSlaveInfo, UC
 typedef eMBErrorCode (*peMBSlaveCPNFrameSend)(sMBSlaveInfo* psMBSlaveInfo, UCHAR ucSourAddr,
 	                                          UCHAR ucDestAddr, const UCHAR* pucFrame, USHORT usLength);
 #endif
-
 /* ----------------------- Callback for the protocol stack ------------------*/
 /*!
  * \brief Callback function for the porting layer when a new byte is
@@ -195,14 +191,13 @@ typedef BOOL (*pxMBSlaveFrameCBTransmitterEmpty)(sMBSlaveInfo* psMBSlaveInfo);
 
 typedef BOOL (*pxMBSlaveFrameCBTimerExpired)(sMBSlaveInfo* psMBSlaveInfo);
 
-
 /* Callback functions required by the porting layer. They are called when
  * an external event has happend which includes a timeout or the reception
  * or transmission of a character.
  */
-extern pxMBSlaveFrameCBByteReceived      pxMBSlaveFrameCBByteReceivedCur;
-extern pxMBSlaveFrameCBTransmitterEmpty  pxMBSlaveFrameCBTransmitterEmptyCur;
-extern pxMBSlaveFrameCBTimerExpired      pxMBSlaveFrameCBTimerExpiredCur;
+extern pxMBSlaveFrameCBByteReceived     pxMBSlaveFrameCBByteReceivedCur;
+extern pxMBSlaveFrameCBTransmitterEmpty pxMBSlaveFrameCBTransmitterEmptyCur;
+extern pxMBSlaveFrameCBTimerExpired     pxMBSlaveFrameCBTimerExpiredCur;
 
 extern pvMBSlaveFrameReceiveCallback    pvMBSlaveReceiveCallback;
 extern pvMBSlaveFrameSendCallback       pvMBSlaveSendCallback;
