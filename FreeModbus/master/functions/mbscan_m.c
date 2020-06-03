@@ -40,6 +40,8 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
 	BOOL* pxDevAddrOccupy = psMBDevsInfo->xDevAddrOccupy;          //被占用的从设备通讯地址
     
+     myprintf("vMBMasterScanSlaveDevTask\n");  
+    
     /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
     for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
     { 
@@ -48,8 +50,6 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
             if(pxDevAddrOccupy[ucSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
             {
                 vMBDevTest(psMBMasterInfo, psMBSlaveDev, ucSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
-                myprintf("vMBDevTest %d \n", ucSlaveAddr);
-                
                 if(psMBSlaveDev->xOnLine == TRUE)
                 {
                     pxDevAddrOccupy[ucSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
@@ -57,11 +57,10 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 }                            
             }
         }
-//         myprintf("vMBMasterScanSlaveDevTask\n");  
     }
 	while (DEF_TRUE)
 	{
-		(void)OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);
+		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
         
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理      
         if( (psMBMasterInfo->bDTUEnable != FALSE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
@@ -449,7 +448,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister( sMBMasterInfo* psMBMaster
 	eMBMasterReqErrCode        eStatus = MB_MRE_NO_ERR;
     sMasterRegHoldData* psRegHoldValue = NULL;
     
-    sMBSlaveDev*       psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    sMBSlaveDev*        psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable;         //从设备通讯协议表
 	
 	iLastAddr = 0;

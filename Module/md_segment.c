@@ -41,9 +41,9 @@ void vSegmentTask(void *p_arg)
 {
 	OS_ERR os_err = OS_ERR_NONE;
     
-    SegmentID = ucGetControllerID();
 	while(DEF_TRUE)
 	{
+        SegmentID = ucGetControllerID();
         vSegmentShowToggle();
         OSTimeDlyHMSM(0, 0, 0, 5, OS_OPT_TIME_HMSM_STRICT, &os_err);
 	}
