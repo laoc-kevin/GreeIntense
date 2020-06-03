@@ -115,20 +115,15 @@ void vMBMasterSetCurTimerMode( sMBMasterPort* psMBPort, eMBMasterTimerMode eMBTi
 	psMBPort->eCurTimerMode = eMBTimerMode;
 }
 
-static void TIMERExpiredISR(void * p_arg)    //定时器中断服务函数
+void vMasterTimeoutInd(void * p_tmr, void * p_arg)
 {
-	sMBMasterPort*   psMBPort = (sMBMasterPort*)p_arg;
+    sMBMasterPort*   psMBPort = (sMBMasterPort*)p_arg;
 	sMBMasterInfo*   psMBMasterInfo = psMBMasterFindNodeByPort(psMBPort->pcMBPortName);
 	
 	if(psMBMasterInfo != NULL)
 	{
 		pxMBMasterFrameCBTimerExpiredCur(psMBMasterInfo);
 	} 
-}
-
-static void vMasterTimeoutInd(void * p_tmr, void * p_arg)
-{
-    TIMERExpiredISR(p_arg);
 }
 
 BOOL xMBsMasterPortTmrsInit(sMBMasterPort* psMBPort, USHORT usTim1Timerout50us)

@@ -60,7 +60,6 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 		UART_TxCmd(psMBSlaveUart->ID, DISABLE);                           
 	}
 	UART_FIFOReset(psMBSlaveUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
-	
 }
 
 void vMBSlavePortClose(sMBSlavePort* psMBPort)
@@ -80,8 +79,7 @@ BOOL xMBSlavePortSerialInit(sMBSlavePort* psMBPort)
     return bInitialized;
 }
 
-BOOL
-xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
+BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
 {
 //	UCHAR h;
 //	UCHAR l;

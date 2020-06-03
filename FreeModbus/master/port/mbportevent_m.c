@@ -39,12 +39,13 @@ BOOL xMBMasterPortEventInit( sMBMasterPort* psMBPort )
 {
 	OS_ERR err = OS_ERR_NONE;
 	
-	OSSemCreate( &(psMBPort->sMBEventSem), "sMBEventSem", 0, &err );             //主栈事件消息量
-    OSSemCreate( &(psMBPort->sMBEventSem), "sMBErrorEventSem", 0, &err );   //主栈错误消息量
+	OSSemCreate(&psMBPort->sMBEventSem, "sMBEventSem", 0, &err);              //主栈事件消息量
+    OSSemCreate(&psMBPort->sMBErrorEventSem, "sMBErrorEventSem", 0, &err);   //主栈错误消息量
 	
 	psMBPort->xEventInQueue = FALSE;
 	psMBPort->xErrorEventInQueue = FALSE;
-    return TRUE;
+    
+    return (err == OS_ERR_NONE);
 }
 
 /**********************************************************************
@@ -60,8 +61,9 @@ xMBMasterPortEventPost( sMBMasterPort* psMBPort, eMBMasterEventType eEvent )
 	OS_ERR err = OS_ERR_NONE;
     psMBPort->xEventInQueue = TRUE;
     psMBPort->eQueuedEvent = eEvent;
-	(void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );
-    return TRUE;
+    
+	(void)OSSemPost(&psMBPort->sMBEventSem, OS_OPT_POST_ALL, &err);
+    return (err == OS_ERR_NONE);
 }
 
 /**********************************************************************
@@ -110,7 +112,6 @@ BOOL xMBMasterPortEventGet( sMBMasterPort* psMBPort, eMBMasterEventType * eEvent
         psMBPort->xEventInQueue = FALSE;
         xEventHappened = TRUE;
     }
-
     return xEventHappened;
 }
 /**
@@ -167,11 +168,11 @@ void vMBMasterErrorCBRespondTimeout( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
      * If you don't use OS, you can change it.
      */
 	 OS_ERR err = OS_ERR_NONE;	
+    
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_RESPOND_TIMEOUT );
 	psMBPort->xErrorEventInQueue = TRUE;
 	
-	(void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );	
-	
+	(void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );		
     /* You can add your code under here. */
 }
 
@@ -193,11 +194,12 @@ void vMBMasterErrorCBReceiveData( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
      * If you don't use OS, you can change it.
      */
     OS_ERR err = OS_ERR_NONE;
+    
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_RECEIVE_DATA );
 	psMBPort->xErrorEventInQueue = TRUE;
+    
     (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );
     /* You can add your code under here. */
-   
 }
 		
 void vMBMasterErrorCBRespondData( sMBMasterPort* psMBPort, UCHAR ucDestAddr, 
@@ -237,8 +239,10 @@ void vMBMasterErrorCBExecuteFunction( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
      * If you don't use OS, you can change it.
      */
     OS_ERR err = OS_ERR_NONE;
+    
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_EXECUTE_FUNCTION );
-	psMBPort->xErrorEventInQueue = TRUE;		
+	psMBPort->xErrorEventInQueue = TRUE;	
+	
     (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );
     /* You can add your code under here. */
    
@@ -257,8 +261,10 @@ void vMBMasterCBRequestSuccess( sMBMasterPort* psMBPort )
      * If you don't use OS, you can change it.
      */
     OS_ERR err = OS_ERR_NONE;
+    
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_PROCESS_SUCCESS );
     psMBPort->xErrorEventInQueue = TRUE;
+    
     (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err);
 	
     /* You can add your code under here. */

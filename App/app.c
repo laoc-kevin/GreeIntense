@@ -28,6 +28,7 @@
 
 #include "app_config.h"
 
+#include "mb.h"
 #include "md_led.h"
 #include "md_input.h"
 #include "md_segment.h"
@@ -168,37 +169,6 @@ static  void  AppTaskStart (void *p_arg)
     }
 }
 
-#if TASK_STACK_WATCH_EN > 0
-
-void  AppTaskStackWatch (void *p_arg)
-{
-    CPU_SR_ALLOC();
-    OS_ERR err;
-    CPU_STK_SIZE free,used;
-  
-    while(DEF_TRUE)
-    {
-        OS_CRITICAL_ENTER();  
-          
-        OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-           
-        //OSTaskStkChk (&Data_Process_TCB,&free,&used,&err);
-        //myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
-        
-        OS_CRITICAL_EXIT(); //退出临界区	
-     }
-}
-
-void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
-{
-    OSTaskCreate( &p_tcb, "TaskStackWatch", AppTaskStackWatch, 0, prio, p_stk_base, stk_size/10, stk_size,
-                   0,0,0, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), &err );
-                
-//    OS_TaskSuspend((OS_TCB*)&AppTaskStartTCB,&err);	
-}
-
-#endif
-
 /************************任务配置信息***************************/
 
 #if INPUT_RECEIVE_TASK_EN  >0                     //IO输入数据接收功能
@@ -213,7 +183,7 @@ void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CP
 
 #if EEPROM_DATA_TASK_EN >0                        //eeprom参数记忆功能
     OS_TCB      EEPROMDataTaskTCB;
-    CPU_STK     EEPROMDataTaskStk[SEGMENT_TASK_STK_SIZE];
+    CPU_STK     EEPROMDataTaskStk[EEPROM_DATA_TASK_STK_SIZE];
 #endif
 
 #if SYSTEM_EVENT_TASK_EN >0                       //系统事件功能
@@ -228,7 +198,7 @@ void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CP
 
 #if SYSTEM_MAIN_CTRL_TASK_EN  >0                 //系统逻辑控制功能
     OS_TCB      SystemMainCtrlTCB;		
-    CPU_STK     SystemMainCtrlSTK [SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
+    CPU_STK     SystemMainCtrlStk [SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
 #endif	
 
 #if WATCHDOG_FEED_TASK_EN >0                     //喂狗功能
@@ -241,7 +211,34 @@ void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CP
     CPU_STK     TaskStackWatchStk[TASK_STACK_WATCH_TASK_STK_SIZE];
 #endif
 
+#if TASK_STACK_WATCH_EN > 0
 
+void  AppTaskStackWatch(void *p_arg)
+{
+    CPU_SR_ALLOC();
+    OS_ERR err;
+    CPU_STK_SIZE free,used;
+  
+    while(DEF_TRUE)
+    {
+        OS_CRITICAL_ENTER();  
+          
+        OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+           
+        OSTaskStkChk (&AppMbSlavePollTaskTCB,&free,&used,&err);   //需要监控的任务堆栈，根据需要编写
+        myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+        
+        OS_CRITICAL_EXIT(); //退出临界区	
+     }
+}
+
+void  AppTaskStackWatchInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
+{
+    OS_ERR err = OS_ERR_NONE;
+    OSTaskCreate( p_tcb, "TaskStackWatch", AppTaskStackWatch, 0, prio, p_stk_base, stk_size/10, stk_size,
+                  0,0,0, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), &err );          
+}
+#endif
 
 /*********************************************************************************************************
 *                                          AppTaskCreate()
@@ -285,28 +282,32 @@ static  void  AppTaskCreate (void)
     vEventInit(&SystemMonitorTaskTCB, SYSTEM_MONITOR_TASK_PRIO, SystemMonitorTaskStk, SYSTEM_MONITOR_TASK_STK_SIZE);
 #endif
 
-#if MB_SLAVE_POLL_TASK_EN > 0    //Modbus RS485 从栈功能    
+#if MB_SLAVE_TASK_EN > 0         //Modbus RS485 从栈功能 
     vModbusSlaveInit(MB_SLAVE_POLL_TASK_PRIO);
 #endif
 
-#if MB_MASTER_POLL_TASK_EN > 0   //Modbus RS485 主栈功能
-    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO)
+#if MB_MASTER_TASK_EN > 0       //Modbus RS485 主栈功能
+    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO);
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 
-    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlSTK, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
+    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlStk, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
+#endif	
+
+#if EEPROM_DATA_TASK_EN >0       //eeprom参数记忆功能
+    vEEPROMInit(&EEPROMDataTaskTCB, EEPROM_DATA_TASK_PRIO, EEPROMDataTaskStk, EEPROM_DATA_TASK_STK_SIZE); 
 #endif	
 
 #if WATCHDOG_FEED_TASK_EN >0     //喂狗功能
     vWatchDogInit(&WatchDogFeedTaskTCB, WATCHDOG_FEED_TASK_PRIO, WatchDogFeedTaskStk, WATCHDOG_FEED_TASK_STK_SIZE);
 #endif
 
-#if TASK_STACK_WATCH_EN > 0      //内存监控功能
+#if TASK_STACK_WATCH_TASK_EN > 0      //内存监控功能
     AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE)
 #endif
 
-     myprintf("Data_Process");
-
+     myprintf("Data_Process\n");
+                      
 	OS_CRITICAL_EXIT();              
 }
 /*
@@ -326,7 +327,6 @@ static  void  AppTaskCreate (void)
 */
 static  void  AppObjCreate (void)
 {
-	
 }
 
 

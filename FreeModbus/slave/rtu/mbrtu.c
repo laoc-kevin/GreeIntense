@@ -53,7 +53,7 @@
  *********************************************************************/
 eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
 {
-    ULONG           usTimerT35_50us;
+    ULONG usTimerT35_50us;
     
     eMBErrorCode           eStatus = MB_ENOERR;
     sMBSlavePort*        psMBPort  = &psMBSlaveInfo->sMBPort;
@@ -62,7 +62,7 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
     ENTER_CRITICAL_SECTION();
 
     /* Modbus RTU uses 8 Databits. */
-    if( xMBSlavePortSerialInit(psMBPort) != TRUE )           //串口初始化
+    if( xMBSlavePortSerialInit(psMBPort) == FALSE )           //串口初始化
     {
         eStatus = MB_EPORTERR;
     }
@@ -87,7 +87,7 @@ eMBErrorCode eMBSlaveRTUInit( sMBSlaveInfo* psMBSlaveInfo )
              */
             usTimerT35_50us = (7UL * 220000UL) / (2UL * (psMBSlaveUart->UARTCfg.Baud_rate));
         }
-        if( xMBSlavePortTimersInit(psMBPort, (USHORT)usTimerT35_50us) != TRUE )           //t35超时定时器
+        if( xMBSlavePortTimersInit(psMBPort, (USHORT)usTimerT35_50us) == FALSE )           //t35超时定时器
         {
             eStatus = MB_EPORTERR;
         }
@@ -119,7 +119,7 @@ void eMBSlaveRTUStart(sMBSlaveInfo* psMBSlaveInfo)
      */
     psMBSlaveInfo->eRcvState = STATE_RX_INIT;
     vMBSlavePortSerialEnable(psMBPort, TRUE, FALSE);    //从栈等待数据，开启串口接收，发送未开启
-    vMBSlavePortTimersEnable(psMBPort);               //启动定时器
+    vMBSlavePortTimersEnable(psMBPort);                 //启动定时器
 
     EXIT_CRITICAL_SECTION();             //开全局中断
 }
@@ -379,7 +379,7 @@ BOOL xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlaveRTUTimerT35Expired( sMBSlaveInfo* psMBSlaveInfo )
+BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
 {
     BOOL                 xNeedPoll  = FALSE;
     BOOL       xRcvStateNeedChange  = TRUE;

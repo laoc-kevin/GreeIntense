@@ -6,7 +6,7 @@
 #include "md_event.h"
 #include "md_led.h"
 
-uint8_t CANOpenID = 0;
+uint8_t SegmentID = 0;
 
 uint8_t DISP_TAB_LEFT[10] = {0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90};
 uint8_t DISP_TAB_RIGHT[10] = {0x40,0x79,0x24,0x30,0x19,0x12,0x02,0x78,0x00,0x10};
@@ -26,11 +26,11 @@ void vSegmentShowToggle(void)
 	static uint8_t position = 0;
 	if (!position) //显示左边
 	{
-		SSP_SendData(LPC_SSP0, (CPU_INT16U)DISP_TAB_LEFT[CANOpenID/10]);
+		SSP_SendData(LPC_SSP0, (CPU_INT16U)DISP_TAB_LEFT[SegmentID/10]);
 	}
 	else
 	{
-		SSP_SendData(LPC_SSP0, (CPU_INT16U)DISP_TAB_RIGHT[CANOpenID%10]);
+		SSP_SendData(LPC_SSP0, (CPU_INT16U)DISP_TAB_RIGHT[SegmentID%10]);
 	}
 	position = ~position;
 }
@@ -40,18 +40,12 @@ void vSegmentShowToggle(void)
 void vSegmentTask(void *p_arg)
 {
 	OS_ERR os_err = OS_ERR_NONE;
+    
+    SegmentID = ucGetControllerID();
 	while(DEF_TRUE)
 	{
-		if (!CANOpenID)
-		{
-			CANOpenID = ucGetControllerID();
-			OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_HMSM_STRICT, &os_err);
-		}
-		else
-		{
-			vSegmentShowToggle();
-			OSTimeDlyHMSM(0, 0, 0, 5, OS_OPT_TIME_HMSM_STRICT, &os_err);
-		}
+        vSegmentShowToggle();
+        OSTimeDlyHMSM(0, 0, 0, 5, OS_OPT_TIME_HMSM_STRICT, &os_err);
 	}
 }
 

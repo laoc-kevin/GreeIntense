@@ -73,7 +73,7 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_TCP_PORT_USE_DEFAULT 0   
 
-#define MB_SLAVE_POLL_TASK_STK_SIZE         128
+#define MB_SLAVE_POLL_TASK_STK_SIZE         256
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum

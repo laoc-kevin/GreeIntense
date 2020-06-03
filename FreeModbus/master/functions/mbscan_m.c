@@ -38,8 +38,9 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
     
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
-    
 	BOOL* pxDevAddrOccupy = psMBDevsInfo->xDevAddrOccupy;          //被占用的从设备通讯地址
+    
+     myprintf("vMBMasterScanSlaveDevTask\n");  
     
     /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
     for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
@@ -138,19 +139,8 @@ BOOL xMBMasterCreateScanSlaveDevTask(sMBMasterInfo* psMBMasterInfo)
     OS_TCB*            p_tcb = (OS_TCB*)(&psMBTask->sMasterScanTCB);  
     CPU_STK*      p_stk_base = (CPU_STK*)(psMBTask->usMasterScanStk);
    
-    OSTaskCreate( p_tcb,
-                  "vMBMasterScanSlaveDevTask",
-                  vMBMasterScanSlaveDevTask,
-                  (void*)psMBMasterInfo,
-                  prio,
-                  p_stk_base ,
-                  stk_size / 10u,
-                  stk_size,
-                  0u,
-                  0u,
-                  0u,
-                  (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR ),
-                  &err);
+    OSTaskCreate(p_tcb, "vMBMasterScanSlaveDevTask", vMBMasterScanSlaveDevTask, (void*)psMBMasterInfo, prio, p_stk_base,
+                 stk_size/10u, stk_size, 0u, 0u, 0u, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), &err);
     return (err == OS_ERR_NONE);              
 }
 

@@ -32,14 +32,10 @@
 
 #define TMR_TICK_PER_SECOND      OS_CFG_TMR_TASK_RATE_HZ
 
-
-
 /* ----------------------- Start implementation -----------------------------*/
 void vMBSlavePortTimersEnable(sMBSlavePort* psMBPort)
 {	
 	OS_ERR err = OS_ERR_NONE;
-    
-	(void)OSTmrStateGet(&psMBPort->sSlavePortTmr, &err);;
     (void)OSTmrStart(&psMBPort->sSlavePortTmr, &err);
 }
 
@@ -49,39 +45,24 @@ void vMBSlavePortTimersDisable(sMBSlavePort* psMBPort)
     (void)OSTmrStop(&psMBPort->sSlavePortTmr, OS_OPT_TMR_NONE, NULL, &err);
 }
 
-static void TIMERExpiredISR(void * p_arg)    //定时器中断服务函数
+void vSlaveTimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
 {
-	sMBSlavePort*      psMBPort = (sMBSlavePort*)p_arg;
+    sMBSlavePort*      psMBPort = (sMBSlavePort*)p_arg;
 	sMBSlaveInfo* psMBSlaveInfo = psMBSlaveFindNodeByPort(psMBPort->pcMBPortName);
 	
-	if( psMBSlaveInfo != NULL )
+	if(psMBSlaveInfo != NULL)
 	{
 		pxMBSlaveFrameCBTimerExpiredCur(psMBSlaveInfo);
 	} 
 }
 
-static void vSlaveTimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
-{
-     TIMERExpiredISR(p_arg);
-}
-
 BOOL xMBSlavePortTimersInit(sMBSlavePort* psMBPort, USHORT usTim1Timerout50us)
 {
 	OS_ERR err = OS_ERR_NONE;
-	ULONG    i = (usTim1Timerout50us * 80 ) / (1000000 / TMR_TICK_PER_SECOND);
+	OS_TICK  i = (usTim1Timerout50us * 80) / (1000000 / TMR_TICK_PER_SECOND);   //50us太快，改为80us 
 
-    OSTmrCreate(&psMBPort->sSlavePortTmr,
-			"sSlavePortTmr",
-		    i,   //50us太快，改为80us 
-			0,
-			OS_OPT_TMR_ONE_SHOT,
-			vSlaveTimeoutInd,
-			(void*)psMBPort,
-			&err);
-	if( err == OS_ERR_NONE )
-	{
-		 return TRUE;
-	}
-    return FALSE;
+    OSTmrCreate(&psMBPort->sSlavePortTmr, "sSlavePortTmr", i, 0, OS_OPT_TMR_ONE_SHOT, vSlaveTimeoutInd, (void*)psMBPort, &err);
+    
+    return (err == OS_ERR_NONE);
 }
 #endif
