@@ -35,7 +35,7 @@
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBMasterPortEventInit( sMBMasterPort* psMBPort )
+BOOL xMBMasterPortEventInit(sMBMasterPort* psMBPort)
 {
 	OS_ERR err = OS_ERR_NONE;
 	
@@ -55,8 +55,7 @@ BOOL xMBMasterPortEventInit( sMBMasterPort* psMBPort )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL
-xMBMasterPortEventPost( sMBMasterPort* psMBPort, eMBMasterEventType eEvent )
+BOOL xMBMasterPortEventPost(sMBMasterPort* psMBPort, eMBMasterEventType eEvent)
 {
 	OS_ERR err = OS_ERR_NONE;
     psMBPort->xEventInQueue = TRUE;
@@ -73,16 +72,16 @@ xMBMasterPortEventPost( sMBMasterPort* psMBPort, eMBMasterEventType eEvent )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBMasterPortEventGet( sMBMasterPort* psMBPort, eMBMasterEventType * eEvent )
+BOOL xMBMasterPortEventGet(sMBMasterPort* psMBPort, eMBMasterEventType* eEvent)
 {
     BOOL xEventHappened = FALSE;
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-    (void)OSSemPend( &(psMBPort->sMBEventSem), 0, OS_OPT_PEND_BLOCKING, &ts, &err );
-	(void)OSSemSet( &(psMBPort->sMBEventSem), 0, &err);
+    (void)OSSemPend(&psMBPort->sMBEventSem, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
+	(void)OSSemSet(&psMBPort->sMBEventSem, 0, &err);
 	
-    if( psMBPort->xEventInQueue )
+    if(psMBPort->xEventInQueue)
     {
 		switch(psMBPort->eQueuedEvent)
 		{
@@ -172,7 +171,7 @@ void vMBMasterErrorCBRespondTimeout( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_RESPOND_TIMEOUT );
 	psMBPort->xErrorEventInQueue = TRUE;
 	
-	(void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );		
+	(void)OSSemPost(&psMBPort->sMBErrorEventSem, OS_OPT_POST_ALL, &err );		
     /* You can add your code under here. */
 }
 
@@ -198,7 +197,7 @@ void vMBMasterErrorCBReceiveData( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_RECEIVE_DATA );
 	psMBPort->xErrorEventInQueue = TRUE;
     
-    (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );
+    (void)OSSemPost(&psMBPort->sMBErrorEventSem, OS_OPT_POST_ALL, &err );
     /* You can add your code under here. */
 }
 		
@@ -210,7 +209,7 @@ void vMBMasterErrorCBRespondData( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
      * If you don't use OS, you can change it.
      */
     OS_ERR err = OS_ERR_NONE;
-    (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_RESPOND_DATA );
+    (void)xMBMasterPortEventPost(psMBPort, EV_MASTER_ERROR_RESPOND_DATA);
 	
     vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);
 			
@@ -243,7 +242,7 @@ void vMBMasterErrorCBExecuteFunction( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
     (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_EXECUTE_FUNCTION );
 	psMBPort->xErrorEventInQueue = TRUE;	
 	
-    (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err );
+    (void)OSSemPost(&psMBPort->sMBErrorEventSem, OS_OPT_POST_ALL, &err );
     /* You can add your code under here. */
    
 }
@@ -254,7 +253,7 @@ void vMBMasterErrorCBExecuteFunction( sMBMasterPort* psMBPort, UCHAR ucDestAddr,
  * So,for real-time of system.Do not execute too much waiting process.
  *
  */
-void vMBMasterCBRequestSuccess( sMBMasterPort* psMBPort ) 
+void vMBMasterCBRequestSuccess(sMBMasterPort* psMBPort) 
 {
     /**
      * @note This code is use OS's event mechanism for modbus master protocol stack.
@@ -262,10 +261,10 @@ void vMBMasterCBRequestSuccess( sMBMasterPort* psMBPort )
      */
     OS_ERR err = OS_ERR_NONE;
     
-    (void)xMBMasterPortEventPost( psMBPort, EV_MASTER_PROCESS_SUCCESS );
+    (void)xMBMasterPortEventPost(psMBPort, EV_MASTER_PROCESS_SUCCESS);
     psMBPort->xErrorEventInQueue = TRUE;
     
-    (void)OSSemPost( &(psMBPort->sMBEventSem), OS_OPT_POST_ALL, &err);
+    (void)OSSemPost(&psMBPort->sMBErrorEventSem, OS_OPT_POST_ALL, &err);
 	
     /* You can add your code under here. */
 }
@@ -285,37 +284,34 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;	
 
-	(void)OSSemPend( &(psMBPort->sMBEventSem), 0, OS_OPT_PEND_BLOCKING, &ts, &err );
-	(void)OSSemSet( &(psMBPort->sMBEventSem), 0, &err );
+	(void)OSSemPend(&psMBPort->sMBErrorEventSem, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
+	(void)OSSemSet(&psMBPort->sMBErrorEventSem, 0, &err);
     
-	if( psMBPort->xErrorEventInQueue )
+	if(psMBPort->xErrorEventInQueue)
     {
-		switch(psMBPort->eQueuedEvent)
-		{
-		case EV_MASTER_PROCESS_SUCCESS:
-			break;
-		case EV_MASTER_ERROR_RESPOND_TIMEOUT:
-		{
-			eErrStatus = MB_MRE_TIMEDOUT;
-			break;
+        switch(psMBPort->eQueuedEvent)
+        {
+        case EV_MASTER_PROCESS_SUCCESS:
+        	break;
+        case EV_MASTER_ERROR_RESPOND_TIMEOUT:
+        {
+        	eErrStatus = MB_MRE_TIMEDOUT;
+        	break;
+        }
+        case EV_MASTER_ERROR_RECEIVE_DATA:
+        {
+        	eErrStatus = MB_MRE_REV_DATA;
+        	break;
+        }
+        case EV_MASTER_ERROR_EXECUTE_FUNCTION:
+        {
+        	eErrStatus = MB_MRE_EXE_FUN;
+        	break;
+        }	
+        default:	
+        	break;
 		}
-		case EV_MASTER_ERROR_RECEIVE_DATA:
-		{
-			eErrStatus = MB_MRE_REV_DATA;
-			break;
-		}
-		case EV_MASTER_ERROR_EXECUTE_FUNCTION:
-		{
-			eErrStatus = MB_MRE_EXE_FUN;
-			break;
-		}
-				
-		default:	
-			break;
-		}
-//		(void)OSSemPost(&MasterIdleSem, OS_OPT_POST_ALL, &err);
 	}
-//   myprintf("eMBMasterWaitRequestFinish\n" );
 	psMBPort->xErrorEventInQueue = FALSE;
 
     return eErrStatus;

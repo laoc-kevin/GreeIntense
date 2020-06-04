@@ -49,10 +49,10 @@
 #define MASTER_TEST_CMD_INIT(pCmd, arg1, arg2, arg3, arg4) \
         vMBMasterDevTestCmdInit((sMBTestDevCmd*)pCmd, arg1, arg2, arg3, arg4); 
 
-#if MB_MASTER_HEART_BEAT_ENABLED
+#if MB_MASTER_HEART_BEAT_ENABLED > 0
 //心跳帧初始化申请  
-#define MASTER_HEART_BEAT_INIT(psDevHeartBeat, arg1, arg2, arg3, arg4) \
-        vMBMasterDevHeartBeatInit((sMBDevHeartBeat*)psDevHeartBeat, arg1, arg2, arg3, arg4);         
+#define MASTER_HEART_BEAT_INIT(psDevHeartBeat, arg1, arg2, arg3, arg4, arg5) \
+        vMBMasterDevHeartBeatInit((sMBDevHeartBeat*)psDevHeartBeat, arg1, arg2, arg3, arg4, arg5);         
 #endif  
 
 #endif
@@ -87,7 +87,8 @@ void vMBMasterDevDiscDataInit(sMasterBitDiscData* pData, USHORT usAddr, UCHAR uc
 
 void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usAddr, eMasterCmdMode eCmdMode ,USHORT usValue, BOOL xCheckVal); 
 
-void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usAddr, eMasterCmdMode eCmdMode, USHORT usValue, BOOL xHeartBeatEnable);
+void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usAddr, eMasterCmdMode eCmdMode, 
+                               USHORT usValue, USHORT usHeartBeatPeriod, BOOL xHeartBeatEnable);  
 
 void vMBMasterDevDataTableInit(sMBDevDataTable* pDataTable, void* pvDataBuf, 
                                USHORT usStartAddr, USHORT usEndAddr, USHORT usDataCount); 

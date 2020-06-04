@@ -6,8 +6,10 @@
 #include "port.h"
 
 /* -----------------------Master Defines -------------------------------------*/
-#define MB_MASTER_MIN_DEV_ADDR    1     //主栈从设备最小通讯地址
-#define MB_MASTER_MAX_DEV_ADDR    20    //主栈从设备最大通讯地址
+#define MB_MASTER_MIN_DEV_ADDR    1    //主栈从设备最小通讯地址
+#define MB_MASTER_MAX_DEV_ADDR    2    //主栈从设备最大通讯地址
+
+#define MB_HEART_BEAT_DELAY_MS    10   //主栈心跳延时
 
 typedef enum      /* 测试模式 */        
 {
@@ -69,6 +71,7 @@ typedef struct   /* 从设备心跳帧数据结构 */
     USHORT          usAddr;             //点位地址
     eMasterCmdMode  eCmdMode;           //模式
     USHORT          usValue;            //数值
+    USHORT          usHeartBeatPeriod;  //心跳间隔(s)
     BOOL            xHeartBeatEnable;   //使能
 }sMBDevHeartBeat;  
 
@@ -113,11 +116,17 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     BOOL    xDevOnTimeout;         //是否处于延时
     OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
+#if MB_MASTER_HEART_BEAT_ENABLED >0
+    OS_TMR  sDevHeartBeatTmr;      //心跳间隔定时器
+#endif 
+    
     sMBSlaveDevCommData* psDevDataInfo;     //从设备数据域
     sMBSlaveDevCommData* psDevCurData;      //从设备当前数据域   
     
     struct sMBSlaveDev*  pNext;             //下一个设备节点
     struct sMBSlaveDev*  pLast;             //尾设备节点
+    
+    struct sMBMasterInfo* psMBMasterInfo;   //所属的主栈  
 }sMBSlaveDev; 
 
 typedef struct    /* 主栈从设备状态结构  */

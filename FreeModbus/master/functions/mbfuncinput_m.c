@@ -70,15 +70,16 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                                   USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut )
+eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
+                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode)
 {
-    UCHAR                   *ucMBFrame;
+    UCHAR  *ucMBFrame = NULL;
+	OS_ERR err = OS_ERR_NONE;
     
-    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPort*    psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
-	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
-	
+    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
+	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
+	sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;      //硬件结构
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -92,14 +93,20 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo
 		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
 		
-		ucMBFrame[MB_PDU_FUNC_OFF]                = MB_FUNC_READ_INPUT_REGISTER;
-		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF]       = usRegAddr >> 8;
-		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1]   = usRegAddr;
-		ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF]     = usNRegs >> 8;
-		ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF + 1] = usNRegs;
-		
+		*(ucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_READ_INPUT_REGISTER;
+		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)       = usRegAddr >> 8;
+		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)   = usRegAddr;
+		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)     = usNRegs >> 8;
+		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
+		 
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-		
+        
+#if MB_MASTER_HEART_BEAT_ENABLED >0    
+        while(psMBMasterInfo->xHeartBeatMode == TRUE && xHeartBeatMode == TRUE) //如果处于心跳模式
+        {
+            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
+#endif 		
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }

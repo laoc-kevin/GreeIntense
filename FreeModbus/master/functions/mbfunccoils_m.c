@@ -87,11 +87,12 @@
 eMBMasterReqErrCode
 eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usNCoils, LONG lTimeOut)
 {
-    UCHAR                 *ucMBFrame;
-    eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
-   
-	sMBMasterPort*         psMBPort = &psMBMasterInfo->sMBPort;
-	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    UCHAR  *ucMBFrame  = NULL;
+    OS_ERR  err        = OS_ERR_NONE;
+    
+    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
+	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -113,6 +114,13 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		*(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) = usNCoils;               //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
+        
+#if MB_MASTER_HEART_BEAT_ENABLED >0    
+        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        {
+            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
+#endif 
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );     //主栈发送请求
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                     //等待数据响应，会阻塞线程
     }
@@ -131,12 +139,14 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 eMBException
 eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen )
 {
-    UCHAR* ucMBFrame;
+    
     UCHAR  ucByteCount;
     USHORT usRegAddress, usCoilCount;
 
-    eMBErrorCode    eRegStatus;
-    eMBException    eStatus = MB_EX_NONE;
+    UCHAR* ucMBFrame = NULL;
+
+    eMBErrorCode    eRegStatus = MB_ENOERR;
+    eMBException    eStatus    = MB_EX_NONE;
     
     /* If this request is broadcast, and it's read mode. This request don't need execute. */
     if ( xMBMasterRequestIsBroadcast(psMBMasterInfo) )
@@ -175,7 +185,7 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
 			                                  usRegAddress, usCoilCount, MB_REG_READ );  //回调函数
 
             /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
             {
                 eStatus = prveMBMasterError2Exception(eRegStatus);
             }
@@ -195,7 +205,6 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
 }
 #endif
 
- 
 #if MB_FUNC_WRITE_COIL_ENABLED > 0
 /***********************************************************************************
  * @brief  主栈写单个线圈
@@ -212,11 +221,12 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
 eMBMasterReqErrCode
 eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usMBBitData, LONG lTimeOut )
 {
-    UCHAR                 *ucMBFrame;
+    UCHAR  *ucMBFrame  = NULL;
+    OS_ERR  err        = OS_ERR_NONE;
 
-    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;
-	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
+	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -242,9 +252,15 @@ eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT us
 		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usMBBitData;                     //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
-		
+        
+#if MB_MASTER_HEART_BEAT_ENABLED >0    
+        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        {
+            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
+#endif 		
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );       //主栈发送请求
-		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                    //等待数据响应，会阻塞线程
+		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                       //等待数据响应，会阻塞线程
     }
     return eErrStatus;
 }
@@ -264,8 +280,8 @@ eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
     USHORT          usRegAddress;
     UCHAR           ucBuf[2];
 
-    eMBErrorCode    eRegStatus;
-    eMBException    eStatus = MB_EX_NONE;
+    eMBErrorCode    eRegStatus = MB_ENOERR;
+    eMBException    eStatus    = MB_EX_NONE;
 
     if( *usLen == (MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN) )
     {
@@ -328,13 +344,15 @@ eMBMasterReqErrCode
 eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 		USHORT usCoilAddr, USHORT usNCoils, UCHAR * pucDataBuffer, LONG lTimeOut)
 {
-    UCHAR *ucMBFrame;
     UCHAR  ucByteCount;
     USHORT usRegIndex = 0;
     
-    eMBMasterReqErrCode  eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPort*         psMBPort = &psMBMasterInfo->sMBPort;
-	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    UCHAR  *ucMBFrame  = NULL;
+    OS_ERR  err        = OS_ERR_NONE;
+    
+    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
+	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
+    sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -375,8 +393,14 @@ eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 		{
 			*ucMBFrame++ = (UCHAR)( *(pucDataBuffer + (usRegIndex++)) );
 		}
-		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
+        
+#if MB_MASTER_HEART_BEAT_ENABLED >0    
+        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        {
+            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
+#endif         
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
@@ -450,7 +474,6 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     }
     return eStatus;
 }
-
 #endif
 
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
