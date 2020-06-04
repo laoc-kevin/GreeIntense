@@ -166,6 +166,8 @@ typedef struct sMBMasterInfo  /* master information */
     UCHAR*              pucMasterPDUCur;               //当前发送帧PDU数据域指针
     
     UCHAR               ucMBDestAddr;                  //当前从设备地址
+    
+    BOOL                xHeartBeatMode;                //是否处于心跳模式
     BOOL                xMBRunInMasterMode;            //是否处于主栈模式
     BOOL                xMBRunInTestMode;              //是否处于主栈测试从设备模式
 	BOOL                xFrameIsBroadcast;             //是否为广播帧

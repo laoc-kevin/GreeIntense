@@ -2,7 +2,7 @@
 #include "mbfunc_m.h"
 #include "mbscan_m.h"
 
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+#if MB_MASTER_DTU_ENABLED > 0   //GPRS模块功能支持
 
 #define DTU_PROTOCOL_VERSIPON                   0x0B    //DTU通讯协议版本号 V1.1
 

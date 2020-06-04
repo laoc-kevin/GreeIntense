@@ -7,10 +7,10 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
-#define MB_SCAN_SLAVE_DELAY_MS                  20    //主栈扫描从设备
+#define MB_SCAN_SLAVE_DELAY_MS                  50    //主栈扫描从设备
 
-#define MB_SCAN_READ_SLAVE_INTERVAL_MS          20
-#define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         20
+#define MB_SCAN_READ_SLAVE_INTERVAL_MS          50
+#define MB_SCAN_WRITE_SLAVE_INTERVAL_MS         50
 
 /**********************************************************************
  * @brief   主栈轮询从设备任务
@@ -40,7 +40,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
 	BOOL* pxDevAddrOccupy = psMBDevsInfo->xDevAddrOccupy;          //被占用的从设备通讯地址
     
-     myprintf("vMBMasterScanSlaveDevTask\n");  
+    (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
     
     /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
     for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
@@ -60,10 +60,11 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     }
 	while (DEF_TRUE)
 	{
+         myprintf("********************************************\n");
 		(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
-        
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持，特殊处理      
-        if( (psMBMasterInfo->bDTUEnable != FALSE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
+      
+#if MB_MASTER_DTU_ENABLED > 0    //GPRS模块功能支持，特殊处理      
+        if( (psMBMasterInfo->bDTUEnable == TRUE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
         {
              psMBMasterInfo->pvDTUScanDevCallBack(psMBMasterInfo);
         }   
@@ -84,6 +85,8 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 if(pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
                 {
                     vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
+                    
+                    myprintf("eMBDevCmdTest %d  %d\n", psMBSlaveDev->ucDevCurTestAddr, errorCode);
                     if(psMBSlaveDev->xOnLine == TRUE)
                     {
                         pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
@@ -93,17 +96,9 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 psMBSlaveDev->ucDevCurTestAddr++;
             }
         }
+        myprintf("++++++++++++++++++++++++++++++++++++++++++++\n");
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
-        {
-            /*********************************所有设备心跳帧***********************************/
-            for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
-            {
-                  if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
-                  {
-                      eMBDevHeartBeat(psMBMasterInfo, psMBSlaveDev); //心跳帧
-                  }
-            }
-            
+        {           
              /*********************************轮询从设备***********************************/
             if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
@@ -115,8 +110,10 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 else if(psMBSlaveDev->xOnLine == FALSE)
                 {
                     pxDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
-                }                    
+                }
+                myprintf("psMBSlaveDev->ucDevAddr %d  %d\n", psMBSlaveDev->ucDevAddr, errorCode);                
             }
+             myprintf("---------------------------------\n");
         }     
 	}
 }
@@ -288,7 +285,8 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 		{
 			if( iCount > 0)
 			{
-				eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+				eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                        MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
                 iCount = 0;	
 			}
            	if( psRegInputValue->ucAccessMode != WO )
@@ -310,12 +308,14 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 		}
         if( ((psRegInputValue->ucAccessMode == WO) || (iIndex == psMBRegInTable->usDataCount-1)) && (iCount > 0) )  //如果寄存器为只写，发送读请求
         {
-        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                    MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
             iCount = 0; 
         }
         if( iCount * 4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
         {
-        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                    MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
         	iCount = 1;
             iStartAddr = psRegInputValue->usAddr;				
         }
@@ -374,7 +374,8 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
         {
         	if( iCount > 0)
         	{
-        		eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        		eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                          MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
                 iCount = 0;
         	}
             if( psRegHoldValue->ucAccessMode != WO )
@@ -399,7 +400,8 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		{
 			if( iCount > 1)
 			{
-				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);   //
+				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, 
+                                                          MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);   //
                 iCount = 0;	                                                                                          	
 			}
 			else
@@ -409,12 +411,14 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		}
         if( ((psRegHoldValue->ucAccessMode == WO) || (iIndex == psMBRegHoldTable->usDataCount-1)) && ( iCount > 0))  //如果寄存器为只写，发送读请求
         {
-        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                      MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
             iCount = 0;	 
         }
         if( iCount * 4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
         {
-        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
+                                                      MB_MASTER_WAITING_DELAY, psMBMasterInfo->xHeartBeatMode);
         	iCount = 1;
             iStartAddr = psRegHoldValue->usAddr;		
         }

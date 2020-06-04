@@ -56,22 +56,22 @@ eMBException    eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
-eMBMasterReqErrCode eMBMasterReqReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                                   USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut );
+eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
+                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode);
 eMBException    eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
-eMBMasterReqErrCode eMBMasterReqReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                                     USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut );
+eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
+                                                     USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode);
 eMBException    eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
-eMBMasterReqErrCode eMBMasterReqWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
-                                                      USHORT usRegAddr, USHORT usMBSlaveRegData, LONG lTimeOut );	
+eMBMasterReqErrCode eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
+                                                     USHORT usRegData, LONG lTimeOut, BOOL xHeartBeatMode);
 eMBException    eMBMasterFuncWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 

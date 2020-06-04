@@ -70,11 +70,12 @@
 eMBMasterReqErrCode
 eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
 {
-    UCHAR                   *ucMBFrame;
+    UCHAR  *ucMBFrame = NULL;
+	OS_ERR  err = OS_ERR_NONE;
     
-    eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
-    sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
-	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
+    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
+    sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
+    sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;      //硬件结构
 	
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -88,13 +89,21 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
     {
 		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
-		ucMBFrame[MB_PDU_FUNC_OFF]                 = MB_FUNC_READ_DISCRETE_INPUTS;
-		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF]        = usDiscreteAddr >> 8;
-		ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1]    = usDiscreteAddr;
-		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF ]    = usNDiscreteIn >> 8;
-		ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] = usNDiscreteIn;
+        
+		*(ucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_DISCRETE_INPUTS;
+		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usDiscreteAddr >> 8;
+		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usDiscreteAddr;
+		*(ucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF)     = usNDiscreteIn >> 8;
+		*(ucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = usNDiscreteIn;
+        
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
+#if MB_MASTER_HEART_BEAT_ENABLED >0    
+        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        {
+            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+        }
+#endif         
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
@@ -201,8 +210,7 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
     if( (psMBDiscInTable->pvDataBuf == NULL) || (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
-	}
-    
+	} 
     DISCRETE_INPUT_START = psMBDiscInTable->usStartAddr;
     DISCRETE_INPUT_END   = psMBDiscInTable->usEndAddr;
 

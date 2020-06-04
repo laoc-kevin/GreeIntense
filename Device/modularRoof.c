@@ -2,11 +2,11 @@
 #include "modularRoof.h"
 
 #define MODULAR_ROOF_PROTOCOL_TYPE_ID   0
+#define MODULAR_HEART_BEAT_PERIOD_S     10
 
 /*************************************************************
 *                         模块                               *
 **************************************************************/
-
 void vModular_Init(Modular* pt)
 {
     uint8_t n = 0;
@@ -186,7 +186,7 @@ void vModularRoof_InitDevCommData(ModularRoof* pt)
 MASTER_PBUF_INDEX_ALLOC()
     
 MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x302A, TRUE)     //测试命令
-MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, TRUE)  //心跳帧
+MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, MODULAR_HEART_BEAT_PERIOD_S, TRUE)  //心跳帧
     
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)

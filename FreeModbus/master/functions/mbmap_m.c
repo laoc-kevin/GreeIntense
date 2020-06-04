@@ -248,12 +248,14 @@ void vMBMasterDevTestCmdInit(sMBTestDevCmd* pCmd, USHORT usAddr, eMasterCmdMode 
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usAddr, eMasterCmdMode eCmdMode, USHORT usValue, BOOL xHeartBeatEnable)                                  
+void vMBMasterDevHeartBeatInit(sMBDevHeartBeat* psDevHeartBeat, USHORT usAddr, eMasterCmdMode eCmdMode, 
+                               USHORT usValue, USHORT usHeartBeatPeriod, BOOL xHeartBeatEnable)                                  
 {
-    psDevHeartBeat->usValue          = usValue;      //数值
-    psDevHeartBeat->eCmdMode         = eCmdMode;     //测试模式
-    psDevHeartBeat->usAddr           = usAddr;       //测试点位通讯地址
-    psDevHeartBeat->xHeartBeatEnable = xHeartBeatEnable;
+    psDevHeartBeat->usValue           = usValue;           //数值
+    psDevHeartBeat->eCmdMode          = eCmdMode;          //测试模式
+    psDevHeartBeat->usAddr            = usAddr;            //测试点位通讯地址
+    psDevHeartBeat->usHeartBeatPeriod = usHeartBeatPeriod; //心跳间隔(s)
+    psDevHeartBeat->xHeartBeatEnable  = xHeartBeatEnable;  //使能
 }
 
 /***********************************************************************************

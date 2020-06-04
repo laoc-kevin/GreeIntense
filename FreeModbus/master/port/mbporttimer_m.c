@@ -33,24 +33,21 @@
 
 #define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
 
-
 /* ----------------------- Start implementation -----------------------------*/
-
 void vMBsMasterPortTmrsEnable(sMBMasterPort* psMBPort)
 {
 	OS_ERR err = OS_ERR_NONE;
     vMBMasterSetCurTimerMode(psMBPort, MB_TMODE_T35);
 	
-    (void)OSTmrStart( &(psMBPort->sMasterPortTmr), &err);
+    (void)OSTmrStart(&psMBPort->sMasterPortTmr, &err);
 	
-	if( OSTmrStateGet( &(psMBPort->sConvertDelayTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sConvertDelayTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		 (void)OSTmrStop( &(psMBPort->sConvertDelayTmr), OS_OPT_TMR_NONE, NULL, &err);
+		 (void)OSTmrStop(&psMBPort->sConvertDelayTmr, OS_OPT_TMR_NONE, NULL, &err);
 	}
-	
-	if( OSTmrStateGet( &(psMBPort->sRespondTimeoutTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sRespondTimeoutTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		(void)OSTmrStop( &(psMBPort->sRespondTimeoutTmr), OS_OPT_TMR_NONE, NULL, &err);
+		(void)OSTmrStop(&psMBPort->sRespondTimeoutTmr, OS_OPT_TMR_NONE, NULL, &err);
 	} 
 }
 
@@ -59,16 +56,15 @@ void vMBsMasterPortTmrsConvertDelayEnable(sMBMasterPort* psMBPort)
 	OS_ERR err = OS_ERR_NONE;
 	 vMBMasterSetCurTimerMode(psMBPort, MB_TMODE_CONVERT_DELAY);
 	
-	(void)OSTmrStart( &(psMBPort->sConvertDelayTmr), &err);
+	(void)OSTmrStart(&psMBPort->sConvertDelayTmr, &err);
 	
-	if( OSTmrStateGet( &(psMBPort->sMasterPortTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sMasterPortTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		 (void)OSTmrStop( &(psMBPort->sMasterPortTmr), OS_OPT_TMR_NONE, NULL, &err);
+        (void)OSTmrStop(&psMBPort->sMasterPortTmr, OS_OPT_TMR_NONE, NULL, &err);
 	}
-	
-	if( OSTmrStateGet( &(psMBPort->sRespondTimeoutTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sRespondTimeoutTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		(void)OSTmrStop( &(psMBPort->sRespondTimeoutTmr), OS_OPT_TMR_NONE, NULL, &err);
+		(void)OSTmrStop(&psMBPort->sRespondTimeoutTmr, OS_OPT_TMR_NONE, NULL, &err);
 	} 
 }
 
@@ -77,40 +73,37 @@ void vMBsMasterPortTmrsRespondTimeoutEnable(sMBMasterPort* psMBPort)
 	OS_ERR err = OS_ERR_NONE;
 	 vMBMasterSetCurTimerMode(psMBPort, MB_TMODE_RESPOND_TIMEOUT);
  
-	(void)OSTmrStart( &(psMBPort->sRespondTimeoutTmr), &err);
+	(void)OSTmrStart(&psMBPort->sRespondTimeoutTmr, &err);
 	
-	if( OSTmrStateGet( &(psMBPort->sMasterPortTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sMasterPortTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		 (void)OSTmrStop( &(psMBPort->sMasterPortTmr), OS_OPT_TMR_NONE, NULL, &err);
+		 (void)OSTmrStop(&psMBPort->sMasterPortTmr, OS_OPT_TMR_NONE, NULL, &err);
 	}
-	
-	if( OSTmrStateGet( &(psMBPort->sConvertDelayTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sConvertDelayTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		(void)OSTmrStop( &(psMBPort->sConvertDelayTmr), OS_OPT_TMR_NONE, NULL, &err);
+		(void)OSTmrStop(&psMBPort->sConvertDelayTmr, OS_OPT_TMR_NONE, NULL, &err);
 	} 
 }
 
 void vMBsMasterPortTmrsDisable(sMBMasterPort* psMBPort)
 {
 	OS_ERR err = OS_ERR_NONE;
-    if( OSTmrStateGet( &(psMBPort->sMasterPortTmr), &err) == OS_TMR_STATE_RUNNING)
+    if( OSTmrStateGet(&psMBPort->sMasterPortTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		 (void)OSTmrStop( &(psMBPort->sMasterPortTmr), OS_OPT_TMR_NONE, NULL, &err);
+		 (void)OSTmrStop(&psMBPort->sMasterPortTmr, OS_OPT_TMR_NONE, NULL, &err);
 	}
-	
-	if( OSTmrStateGet( &(psMBPort->sConvertDelayTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sConvertDelayTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		(void)OSTmrStop( &(psMBPort->sConvertDelayTmr), OS_OPT_TMR_NONE, NULL, &err);
+		(void)OSTmrStop(&psMBPort->sConvertDelayTmr, OS_OPT_TMR_NONE, NULL, &err);
 	} 
-	
-	if( OSTmrStateGet( &(psMBPort->sRespondTimeoutTmr), &err) == OS_TMR_STATE_RUNNING)
+	if( OSTmrStateGet(&psMBPort->sRespondTimeoutTmr, &err) == OS_TMR_STATE_RUNNING)
 	{
-		(void)OSTmrStop( &(psMBPort->sRespondTimeoutTmr), OS_OPT_TMR_NONE, NULL, &err);
+		(void)OSTmrStop(&psMBPort->sRespondTimeoutTmr, OS_OPT_TMR_NONE, NULL, &err);
 	} 
 }
 
 /* Set Modbus Master current timer mode.*/
-void vMBMasterSetCurTimerMode( sMBMasterPort* psMBPort, eMBMasterTimerMode eMBTimerMode )
+void vMBMasterSetCurTimerMode(sMBMasterPort* psMBPort, eMBMasterTimerMode eMBTimerMode)
 {
 	psMBPort->eCurTimerMode = eMBTimerMode;
 }
@@ -129,17 +122,17 @@ void vMasterTimeoutInd(void * p_tmr, void * p_arg)
 BOOL xMBsMasterPortTmrsInit(sMBMasterPort* psMBPort, USHORT usTim1Timerout50us)
 {
 	OS_ERR err = OS_ERR_NONE;
-	ULONG i = (ULONG)( (usTim1Timerout50us*80) / (1000000/TMR_TICK_PER_SECOND) );
+	OS_TICK i = (OS_TICK)( (usTim1Timerout50us*80) / (1000000/TMR_TICK_PER_SECOND) );
 	
-	OSTmrCreate( &(psMBPort->sMasterPortTmr),       //主定时器
-			      "sMasterPortTmr",
-			      i,      
-			      0,
-			      OS_OPT_TMR_ONE_SHOT,
-			      vMasterTimeoutInd,
-			      (void*)psMBPort,
-			      &err);
-	if( err != OS_ERR_NONE )
+	OSTmrCreate(&psMBPort->sMasterPortTmr,       //主定时器
+			    "sMasterPortTmr",
+			    i,      
+			    0,
+			    OS_OPT_TMR_ONE_SHOT,
+			    vMasterTimeoutInd,
+			    (void*)psMBPort,
+			    &err);
+	if(err != OS_ERR_NONE)
 	{
         return FALSE;
 	}
