@@ -112,7 +112,6 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 }
                 break;                
             }
-            
         } 
         myprintf("-----------------------------------------------\n");        
 	}
@@ -157,37 +156,37 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     
 //    myprintf("ucSlaveAddr %d  vMBMasterScanSlaveDev\n", ucSlaveAddr);
     
-    psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;   //当前从设备
+    psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;                         //当前从设备
     if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
     {
         return;
     }
-    if( (psMBSlaveDev != NULL) && (psMBSlaveDev->xOnLine == TRUE) )   //如果设备在线则进行轮询
+    if( (psMBSlaveDev != NULL) && (psMBSlaveDev->xOnLine == TRUE) )       //如果设备在线则进行轮询
     {
-        if( psMBSlaveDev->xDataReady == TRUE)   //从栈数据准备好了才同步上来
+        if( psMBSlaveDev->xDataReady == TRUE)         //从设备数据准备好了才同步上来
         {	 	    
             if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
-                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从栈数据
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从栈数据		
-                psMBSlaveDev->xSynchronized = TRUE;                     //同步完成
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从设备数据
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从设备数据		
+                psMBSlaveDev->xSynchronized = TRUE;                              //同步完成
             }
             else   //同步完成后，先写后读
             {
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, TRUE);  //写有变化数据	
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从栈数据										
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			//读从设备数据										
             }
         }
         else  //从栈数据未好，则只进行写不读
         {
             if(psMBSlaveDev->xSynchronized == FALSE) 
             {
-                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从栈数据
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步设备数据
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
             else    
             {
-               vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从栈数据
+               vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读设备数据
             }
         }
         myprintf("******************** ucSlaveAddr %d  xDataReady %d  xSynchronized %d***********************\n", 
@@ -726,9 +725,34 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 }
 #endif
 
-#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
+#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0
+/*************************************************************************************
+ * @brief  写线圈
+ * @param  ucSndAddr            从栈地址
+ * @return eMBMasterReqErrCode  错误码
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr,
+                                       USHORT usNCoils, UCHAR* pucDataBuffer, LONG lTimeOut)
+{
+    eMBMasterReqErrCode eStatus = MB_MRE_NO_ERR;
+    USHORT usMBBitData = 0;
+    
+    if(usNCoils == 1)      //写单个线圈
+    {
+        usMBBitData = (*(UCHAR*)pucDataBuffer >0) ? 0xFF00 : 0x0000;
+        eStatus = eMBMasterReqWriteCoil(psMBMasterInfo, ucSndAddr, usCoilAddr, usMBBitData, lTimeOut);   
+    }
+    else if(usNCoils > 1)  //写多个线圈
+    {
+        eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, usCoilAddr, usNCoils, (UCHAR*)pucDataBuffer, lTimeOut);	      
+    }
+    return eStatus;
+}
+
 /***********************************************************************************
- * @brief  轮询写线圈字典
+ * @brief  轮询写线圈
  * @param  ucSndAddr            从栈地址
  * @return eMBMasterReqErrCode  错误码
  * @author laoc
@@ -808,8 +832,8 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 		{
 			if(iBits == iChangedBits)   //线圈地址不连续，且该线圈地址也发生了变化
 			{
-				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits - 1, 
-														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
+				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits - 1, 
+											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	  //写线圈
 			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
 			    {	
 			    	for( i = iChangedBits; i > 0; i--)
@@ -851,8 +875,8 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 			}
 			else if(iBits > iChangedBits)  //线圈地址不连续，但该线圈地址没发生变化
 			{
-				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
-														(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
+				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
+                                             (UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 			
 			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
 			    {	
@@ -888,7 +912,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 			if( (iBits != iChangedBits) || (iIndex == psMBCoilTable->usDataCount-1) 
 				|| (iChangedBits >= MB_PDU_SIZE_MAX*4) ) //地址到达字典最后或者数据超过Modbus数据帧最大字节数，则发送写请求
 		    {                                                                                                                                                             			
-				eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
+				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
 		    											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
 				
 		    	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据

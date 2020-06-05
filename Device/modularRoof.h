@@ -22,7 +22,6 @@ typedef enum
 
 typedef enum   /*运行模式*/
 {
-    RUN_MODE_NOTHING = 0,      //默认
     RUN_MODE_COOL    = 1,      //制冷
     RUN_MODE_HEAT    = 2,      //制热
     RUN_MODE_FAN     = 3,      //送风   

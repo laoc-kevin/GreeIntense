@@ -219,7 +219,7 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode
-eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usMBBitData, LONG lTimeOut )
+eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usMBBitData, LONG lTimeOut)
 {
     UCHAR  *ucMBFrame  = NULL;
     OS_ERR  err        = OS_ERR_NONE;
@@ -232,11 +232,11 @@ eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT us
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
-    else if ( (usMBBitData != 0xFF00) && (usMBBitData != 0x0000) ) 
+    else if( (usMBBitData != 0xFF00) && (usMBBitData != 0x0000) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) 
+    else if(xMBMasterRunResTake(lTimeOut) == FALSE ) 
 	{
 		eErrStatus = MB_MRE_MASTER_BUSY;
 	}
@@ -275,10 +275,10 @@ eMBMasterReqWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT us
  * @date 2019.01.22
  *************************************************************************************/
 eMBException
-eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen)
 {
-    USHORT          usRegAddress;
-    UCHAR           ucBuf[2];
+    USHORT usRegAddress;
+    UCHAR  ucBuf[2];
 
     eMBErrorCode    eRegStatus = MB_ENOERR;
     eMBException    eStatus    = MB_EX_NONE;
@@ -301,7 +301,7 @@ eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
             {
                 ucBuf[0] = 0;
             }
-            eRegStatus = eMBMasterRegCoilsCB( psMBMasterInfo, &ucBuf[0], usRegAddress, 1, MB_REG_WRITE ); //功能回调函数
+            eRegStatus = eMBMasterRegCoilsCB(psMBMasterInfo, &ucBuf[0], usRegAddress, 1, MB_REG_WRITE); //功能回调函数
 
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
@@ -327,7 +327,6 @@ eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
 
 
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-
  /***********************************************************************************
  * @brief  主栈写多个线圈
  * @param  psMBMasterInfo  主栈信息块
@@ -342,7 +341,7 @@ eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
  *************************************************************************************/
 eMBMasterReqErrCode
 eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr,
-                                USHORT usNCoils, UCHAR * pucDataBuffer, LONG lTimeOut)
+                                USHORT usNCoils, UCHAR* pucDataBuffer, LONG lTimeOut)
 {
     UCHAR  ucByteCount;
     USHORT usRegIndex = 0;

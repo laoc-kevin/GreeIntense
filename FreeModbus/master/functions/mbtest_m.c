@@ -120,9 +120,15 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR 
         {
             continue;
         }
-      
-    	errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd, ucSlaveAddr);	
-        if( errorCode == MB_MRE_NO_ERR ) //证明从设备有反应
+        for(n=0; n<MB_TEST_RETRY_TIMES; n++)
+        {
+    	    errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd, ucSlaveAddr);
+            if(errorCode == MB_MRE_NO_ERR )
+            {
+                break;
+            }
+        }            
+        if(errorCode == MB_MRE_NO_ERR) //证明从设备有反应
         {
             pcPDUDataCur = psMBMasterInfo->pucMasterPDUCur + MB_PDU_VALUE_OFF;  //接收帧的数据域
             
@@ -189,7 +195,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     }
     /****************************测试设备**********************************/
     psMBMasterInfo->xMBRunInTestMode = TRUE;  //接口处于测试从设备状态
-    for( n=0; n<MB_TEST_RETRY_TIMES; n++ )
+    for(n=0; n<MB_TEST_RETRY_TIMES; n++)
     {
         errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd, psMBSlaveDev->ucDevAddr);			
         if(errorCode == MB_MRE_NO_ERR) //证明从设备有反应
@@ -220,8 +226,9 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         
         if(psMBSlaveDev->ucRetryTimes == MB_TEST_RETRY_TIMES)  //前两周期测试都报故障
         {
-            psMBSlaveDev->xOnLine           = FALSE;                   //从设备掉线
-            psMBSlaveDev->ucDevCurTestAddr  = 0;                      //从设备当前测试通讯地址置零
+            psMBSlaveDev->xOnLine       = FALSE;    //从设备掉线
+            psMBSlaveDev->xSynchronized = FALSE;    //从设备同步置位
+            psMBSlaveDev->ucDevCurTestAddr  = 0;    //从设备当前测试通讯地址置零
             (void)OSTmrStop(&psMBSlaveDev->sDevHeartBeatTmr, OS_OPT_TMR_NONE, NULL, &err);
         }
         else

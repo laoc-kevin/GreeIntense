@@ -66,7 +66,6 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     void* p = (void*)&pThis->eRunningMode;
     
     DATA_INIT(pThis->eSwitchCmd,  CMD_CLOSE)
-    DATA_INIT(pThis->eRunningMode, RUN_MODE_NOTHING)
     
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 200)
@@ -79,7 +78,9 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
     DATA_INIT(pThis->usCO2AdjustDeviat,   50)
     
-    myprintf("pThis->eRunningMode %d\n", *(uint16_t*)p);
+    DATA_INIT(pThis->xErrClean,   1)
+    
+    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode);
     
 }
 
@@ -198,8 +199,8 @@ MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0
 MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
     MASTER_REG_HOLD_DATA(0, uint16,   0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
-    MASTER_REG_HOLD_DATA(2, uint16,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
-    MASTER_REG_HOLD_DATA(3, uint16,   0, 65535,       0,  RW, 1, (void*)&pThis->eRunningMode)
+    MASTER_REG_HOLD_DATA(2,  uint8,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
+    MASTER_REG_HOLD_DATA(3,  uint8,   0,     4,       0,  RW, 1, (void*)&pThis->eRunningMode)
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16, 160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
 
