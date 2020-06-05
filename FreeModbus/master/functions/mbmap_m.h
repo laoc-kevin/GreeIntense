@@ -41,7 +41,7 @@
         
 //结束数据表申请  
 #define MASTER_END_DATA_BUF(usStartAddr, usEndAddr)\
-        vMBMasterDevDataTableInit(psDataTable, &pvDataBuf, usStartAddr, \
+        vMBMasterDevDataTableInit(psDataTable, (void*)pvDataBuf, usStartAddr, \
                                   usEndAddr, usIndex);     \
         usIndex = 0; 
  
@@ -73,8 +73,8 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
                                          USHORT usDiscreteAddr, sMasterBitDiscData ** pvDiscreteValue);
 
 
-void vMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, USHORT usPreVal,
-                              LONG lMinVal, LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue);
+void vMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, LONG lMaxVal, 
+                                 USHORT usPreVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue);
 
 void vMBMasterDevRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
                             LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue);   

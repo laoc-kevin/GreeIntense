@@ -66,12 +66,10 @@ void vDTU_TmrTimeoutEnable(DTU* pt)
     (void)OSTmrStart(&pThis->DTUTimerTimeout, &err);
 }	
 
-
 /*DTU测试*/
 void vDTU_DevTest(DTU* pt)
 {
     UCHAR n, ucSlaveDevMaxAddr, ucSlaveDevMinAddr;
-    
     DTU* pThis = (DTU*)pt;
     
 	OS_ERR                      err     = OS_ERR_NONE;
@@ -79,7 +77,7 @@ void vDTU_DevTest(DTU* pt)
     sMBMasterInfo*       psMBMasterInfo = pThis->psMBMasterInfo;
 	sMBMasterDevsInfo*    psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
 
-    if( (psMBMasterInfo->bDTUEnable == FALSE) || (!pThis->ucDTUInited) )
+    if( (psMBMasterInfo->bDTUEnable == FALSE) || (pThis->ucDTUInited == FALSE) )
     {
         return;
     }

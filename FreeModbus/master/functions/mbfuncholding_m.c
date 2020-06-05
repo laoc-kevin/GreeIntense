@@ -198,6 +198,8 @@ eMBMasterFuncWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR* pucFram
 eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 		                             USHORT usRegAddr, USHORT usNRegs, USHORT* pusDataBuffer, LONG lTimeOut)
 {
+    UCHAR a,b;
+    
     UCHAR  *ucMBFrame = NULL;
     USHORT  usRegIndex = 0;
     
@@ -211,7 +213,7 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) 
+    else if(xMBMasterRunResTake(lTimeOut) == FALSE ) 
 	{
 		eErrStatus = MB_MRE_MASTER_BUSY;
 	}
@@ -234,7 +236,9 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 		}
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + 2*usNRegs);
 		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-	
+        
+//	    myprintf("ucSlaveAddr %d  eMBMasterReqWriteMultipleHoldingRegister    \n",ucSndAddr);
+        
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
         while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
         {

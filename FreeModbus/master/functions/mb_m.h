@@ -140,17 +140,18 @@ typedef struct sMBMasterInfo  /* master information */
     sMBMasterPort       sMBPort;                   //主栈硬件接口信息
 	sMBMasterDevsInfo   sMBDevsInfo;               //主栈从设备信息
 	sMBMasterTask       sMBTask;                   //主栈状态机任务信息
-                                                                    
+    
+    USHORT  RegHoldValueList[MB_PDU_SIZE_MAX];
+    USHORT* pRegHoldPreValueList[MB_PDU_SIZE_MAX];
+    
+    UCHAR   BitCoilByteValueList[MB_PDU_SIZE_MAX];
+    UCHAR*  pBitCoilPreValueList[MB_PDU_SIZE_MAX * 8];
+    
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
     BOOL                bDTUEnable;    
     pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块
 #endif                                                              
-
-#ifdef MB_MASTER_HEART_BEAT_ENABLED
-    
-    
-#endif        
-    
+  
 	eMBMode             eMode;                         //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
 	eMBState            eMBState;                      //主栈状态
     eMBMasterSndState   eSndState;                     //发送状态
@@ -191,8 +192,8 @@ typedef struct                 /* 主栈节点配置信息 */
     sUART_Def*  psMasterUart;
     CHAR*       pcMBPortName; 
     
-    USHORT      usMinAddr;    
-    USHORT      usMaxAddr;
+    UCHAR       ucMinAddr;    
+    UCHAR       ucMaxAddr;
              
     OS_PRIO     ucMasterPollPrio;
     OS_PRIO     ucMasterScanPrio;

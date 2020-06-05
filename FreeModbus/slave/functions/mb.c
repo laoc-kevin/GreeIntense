@@ -363,7 +363,7 @@ eMBErrorCode eMBSlaveDisable( sMBSlaveInfo* psMBSlaveInfo )
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
+eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
 {
     static UCHAR   *ucMBFrame;            //接收和发送报文数据缓存区
     static UCHAR    ucRcvAddress;         //modbus从机地址
@@ -421,7 +421,7 @@ eMBErrorCode eMBSlavePoll( sMBSlaveInfo* psMBSlaveInfo )
                 }
             }     
 #endif  
-			if(eStatus == MB_ENOERR && pvMBSlaveReceiveCallback != NULL)
+			if(pvMBSlaveReceiveCallback != NULL)
             {
                 pvMBSlaveReceiveCallback((void*)psMBSlaveInfo);
             }

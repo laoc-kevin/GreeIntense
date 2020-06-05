@@ -341,8 +341,8 @@ eMBMasterFuncWriteCoil( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode
-eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
-		USHORT usCoilAddr, USHORT usNCoils, UCHAR * pucDataBuffer, LONG lTimeOut)
+eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr,
+                                USHORT usNCoils, UCHAR * pucDataBuffer, LONG lTimeOut)
 {
     UCHAR  ucByteCount;
     USHORT usRegIndex = 0;
@@ -353,7 +353,7 @@ eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
 	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
     sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
-	
+
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -385,7 +385,6 @@ eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
         {
         	ucByteCount = (UCHAR)(usNCoils/8);
         }
-		
 		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF) = ucByteCount;
 		ucMBFrame += MB_PDU_REQ_WRITE_MUL_VALUES_OFF;
 		
@@ -400,9 +399,10 @@ eMBMasterReqWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
         {
             (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
         }
-#endif         
+#endif           
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
+ 
     }
     return eErrStatus;
 }
@@ -454,7 +454,6 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
         {
             eRegStatus = eMBMasterRegCoilsCB( psMBMasterInfo, ucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
                                               usRegAddress, usCoilCnt, MB_REG_WRITE );     //线圈功能函数
-
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {

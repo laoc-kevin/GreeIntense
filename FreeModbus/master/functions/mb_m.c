@@ -64,7 +64,7 @@
 
 #define TMR_TICK_PER_SECOND                  OS_CFG_TMR_TASK_RATE_HZ
 
-#define MB_MASTER_DEV_OFFLINE_TMR_S          30
+#define MB_MASTER_DEV_OFFLINE_TMR_S          10
 #define MB_MASTER_POLL_INTERVAL_MS           30
 
 /* ----------------------- Static variables ---------------------------------*/
@@ -299,6 +299,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
     static eMBException eException;
 
     USHORT i, j;
+    USHORT  usAddr, usDataVal;
     
     eMBMasterEventType      eEvent;
     eMBMasterErrorEventType errorType;
@@ -307,6 +308,9 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 	sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;   //硬件结构
 	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
 	
+    UCHAR*               pcPDUCur    = NULL;
+     
+    
     /* Check if the protocol stack is ready. */
     if(psMBMasterInfo->eMBState != STATE_ENABLED)
     {
@@ -323,12 +327,13 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         break;
 
         case EV_MASTER_FRAME_RECEIVED:
-			eStatus = peMBMasterFrameReceiveCur( psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength );
-            psMBMasterInfo->pucMasterPDUCur = ucMBFrame;
-        
+            
+			eStatus = peMBMasterFrameReceiveCur(psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength);
+            
 			/* Check if the frame is for us. If not ,send an error process event. */
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddr(psMBMasterInfo)) )
 			{
+                psMBMasterInfo->pucMasterPDUCur = ucMBFrame;
 				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_EXECUTE );
 			}
 			else
@@ -337,7 +342,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_PROCESS );
 			}
             
-            if(eStatus == MB_ENOERR && pvMBMasterReceiveCallback != NULL)
+            if(pvMBMasterReceiveCallback != NULL)
             {
                 pvMBMasterReceiveCallback((void*)psMBMasterInfo);
             }
@@ -478,16 +483,16 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         psMBDevsInfo = (sMBMasterDevsInfo*)(&psMBMasterInfo->sMBDevsInfo);
         if(psMBDevsInfo != NULL)
         {
-            if(psMasterNode->usMaxAddr > MB_MASTER_MAX_DEV_ADDR)
+            if(psMasterNode->ucMaxAddr > MB_MASTER_MAX_DEV_ADDR)
             {
-                psMasterNode->usMaxAddr = MB_MASTER_MAX_DEV_ADDR;
+                psMasterNode->ucMaxAddr = MB_MASTER_MAX_DEV_ADDR;
             }
-            if(psMasterNode->usMinAddr < MB_MASTER_MIN_DEV_ADDR)
+            if(psMasterNode->ucMinAddr < MB_MASTER_MIN_DEV_ADDR)
             {
-                psMasterNode->usMinAddr = MB_MASTER_MIN_DEV_ADDR;
+                psMasterNode->ucMinAddr = MB_MASTER_MIN_DEV_ADDR;
             }
-            psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->usMaxAddr;
-            psMBDevsInfo->ucSlaveDevMinAddr = psMasterNode->usMinAddr;
+            psMBDevsInfo->ucSlaveDevMinAddr = psMasterNode->ucMinAddr;
+            psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->ucMaxAddr;
         }
         /***************************主栈状态机任务块设置***************************/
         psMBTask = (sMBMasterTask*)(&psMBMasterInfo->sMBTask);
@@ -722,7 +727,7 @@ BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address)
 }
 
 /**********************************************************************
- * @brief   从设备定时器初始化
+ * @brief   从设备掉线定时器初始化
  * @param   psMBDev   从设备状态
  * @param   usTimerSec     定时器延迟时间 s
  * @return	BOOL
@@ -734,7 +739,7 @@ BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec)
     OS_ERR err = OS_ERR_NONE;
 	OS_TICK i = (OS_TICK)(usTimerSec * TMR_TICK_PER_SECOND);  //延时30s
     
-    OSTmrCreate( &(psMBDev->sDevOfflineTmr),       //主定时器
+    OSTmrCreate( &(psMBDev->sDevOfflineTmr),       //从设备定时器
 			      "sDevOfflineTmr",
 			      i,      
 			      0,
@@ -756,10 +761,11 @@ BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec)
 void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
 {
     OS_ERR err = OS_ERR_NONE;
-	OS_TICK i = (OS_TICK)(MB_MASTER_DEV_OFFLINE_TMR_S / TMR_TICK_PER_SECOND);
-    
+
     sMBSlaveDev* psMBDev = (sMBSlaveDev*)p_arg;
-    psMBDev->xDevOnTimeout = FALSE;    
+    psMBDev->xDevOnTimeout = FALSE; 
+
+     myprintf("vMBMasterDevOfflineTimeout\n");       
 }
 
 /**********************************************************************

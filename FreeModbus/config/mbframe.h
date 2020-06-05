@@ -72,7 +72,8 @@ PR_BEGIN_EXTERN_C
 #define MB_PDU_SIZE_MAX          253 /*!< Maximum size of a PDU. */
 #define MB_PDU_SIZE_MIN          1   /*!< Minimum size of a PDU. */
 #define MB_PDU_FUNC_OFF          0   /*!< Offset of function code in PDU. */
-#define MB_PDU_DATA_OFF          1   /*!< Offset for response data in PDU. */
+#define MB_PDU_DATA_OFF          1   /*!< Offset of response data in PDU. */
+#define MB_PDU_VALUE_OFF         2   /*!< Offset of data value in PDU. */
 
 #define MB_CPN_FRAME_SIZE_MIN         22      /*!< Minimum size of a Modbus CPN frame. */
 #define MB_CPN_FRAME_SIZE_MAX         1022    /*!< Maximum size of a Modbus CPN frame. */

@@ -51,10 +51,10 @@ typedef struct                                /* 主栈接口定义  */
 	eMBMasterTimerMode  eCurTimerMode;            //当前定时器模式
 	
 	OS_SEM sMBEventSem;                           //主栈事件消息量
-    OS_SEM sMBErrorEventSem;                      //主栈错误事件
+    OS_SEM sMBWaitFinishSem;                      //主栈等待消息量
 	
     BOOL   xEventInQueue;                         //主栈有新事件
-    BOOL   xErrorEventInQueue;                    //主栈有新错误事件
+    BOOL   xWaitFinishInQueue;                    //主栈有新错误事件
 	
     const  CHAR* pcMBPortName;                    //主栈接口名称
 }sMBMasterPort;

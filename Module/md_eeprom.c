@@ -261,9 +261,7 @@ void vReadEEPROMData(void)
 {
     uint8_t i = 0;
     OS_ERR err = OS_ERR_NONE;
-    
-    myprintf("EEPROM_Read\n");
-    
+
     EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
     

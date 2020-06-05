@@ -218,7 +218,7 @@ eMBMasterRTUSend(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, const UCHAR* 
     USHORT          usCRC16;
     eMBErrorCode    eStatus = MB_ENOERR;
 
-    sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;
+    sMBMasterPort*     psMBPort     = &psMBMasterInfo->sMBPort;
 	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态
 
     if( (ucSlaveAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSlaveAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
@@ -365,12 +365,12 @@ BOOL xMBMasterRTUTransmitFSM(sMBMasterInfo* psMBMasterInfo)
          * idle state.  */
     case STATE_M_TX_IDLE:
         /* enable receiver/disable transmitter. */
-        vMBMasterPortSerialEnable( psMBPort, TRUE, FALSE );              //发送器处于空闲状态，使能接收，禁止发送
+        vMBMasterPortSerialEnable(psMBPort, TRUE, FALSE);              //发送器处于空闲状态，使能接收，禁止发送
         break;
 
     case STATE_M_TX_XMIT:                                      //发送器处于发送状态,在从机发送函数eMBRTUSend中赋值STATE_TX_XMIT
         /* check if we are finished. */
-        if( psMBMasterInfo->usSndBufferCount != 0 )
+        if(psMBMasterInfo->usSndBufferCount != 0)
         {
             (void)xMBMasterPortSerialPutByte( psMBPort, (CHAR)(*psMBMasterInfo->pucSndBufferCur) );          //发送数据
             psMBMasterInfo->pucSndBufferCur++;  /* next byte in sendbuffer. */
@@ -419,7 +419,6 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 		/* Timer t35 expired. Startup phase is finished. */
 	case STATE_M_RX_INIT:
 		 xNeedPoll = xMBMasterPortEventPost(psMBPort, EV_MASTER_READY);
-         myprintf("EV_MASTER_READY\n"); 
 		break;
 
 		/* A frame was received and t35 expired. Notify the listener that

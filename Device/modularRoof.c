@@ -63,10 +63,13 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
     
+    void* p = (void*)&pThis->eRunningMode;
+    
     DATA_INIT(pThis->eSwitchCmd,  CMD_CLOSE)
-   
+    DATA_INIT(pThis->eRunningMode, RUN_MODE_NOTHING)
+    
     DATA_INIT(pThis->usCoolTempSet, 260)
-    DATA_INIT(pThis->usHeatTempSet, 260)
+    DATA_INIT(pThis->usHeatTempSet, 200)
 
     DATA_INIT(pThis->usFreAirSet_Vol, 30000)
     
@@ -75,6 +78,9 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     
     DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
     DATA_INIT(pThis->usCO2AdjustDeviat,   50)
+    
+    myprintf("pThis->eRunningMode %d\n", *(uint16_t*)p);
+    
 }
 
 /*通讯映射函数*/
@@ -195,7 +201,7 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRe
     MASTER_REG_HOLD_DATA(2, uint16,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
     MASTER_REG_HOLD_DATA(3, uint16,   0, 65535,       0,  RW, 1, (void*)&pThis->eRunningMode)
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
-    MASTER_REG_HOLD_DATA(6, uint16, 160,   350,      20,  RW, 1, (void*)&pThis->usHeatTempSet)
+    MASTER_REG_HOLD_DATA(6, uint16, 160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
 
     MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->usFreAirSet_Vol)
     MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,     55,  RW, 1, (void*)&pThis->usHumidityMin)
@@ -225,10 +231,12 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRe
     MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usSupAir_Vol)
     MASTER_REG_HOLD_DATA(55, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usRetAir_Vol)
 
+    
+    
 MASTER_END_DATA_BUF(0, 55)
     
     /******************************线圈数据域*************************/ 
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable; ) 
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable) 
     
     MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);
     MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
@@ -278,6 +286,9 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCo
     MASTER_COIL_BIT_DATA(631, 0, RO, (void*)&pThis->xCO2SenSelfErr_2);
     
 MASTER_END_DATA_BUF(0, 631)  
+    
+    myprintf("&sMBRegHoldTable %d  sModularRoof_RegHoldBuf %d\n", 
+    &pThis->sDevCommData.sMBRegHoldTable, &pThis->sModularRoof_RegHoldBuf);
     
     pThis->sDevCommData.ucProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
@@ -348,9 +359,7 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo)
    
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
     vModularRoof_InitDefaultData(pThis);    //初始化默认数据
-    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
-
-    myprintf("vModularRoof_Init\n");    
+    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备 
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数

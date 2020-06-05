@@ -30,11 +30,16 @@
 #define MB_DEFAULT_MASTER_POLL_TASK_PRIO   10
 #define MB_DEFAULT_MASTER_SCAN_TASK_PRIO   11
 
+#define MB_MASTER_LED_SEND_DELAY_MS      30
+#define MB_MASTER_LED_RECEIVE_DELAY_MS   50
 /**********************************************************************
 *变量声明
 ************************************************************************/
 sMBMasterInfo     MBMasterInfo;         //主栈接口
 sMBSlaveInfo      MBSlaveInfo;          //从栈接口
+
+BOOL MBMasterLedState = 0;
+BOOL MBSlaveLedState  = 0;
 
 sUART_Def MBSlaveUart= { &Uart1Rx, &Uart1Tx, &Uart1DE, &Uart1Inv, UART_1,                /* 从栈串口设置 */
                          {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}        /* 默认串口配置 9600 8n1 */
@@ -57,15 +62,21 @@ sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_DEFAULT
 ******************************************************************/
 void  vModbusMasterReceiveCallback(void* p_arg)
 {
-    vLedOn(&LedModbus1);
+    OS_ERR err = OS_ERR_NONE;
+    
+    vLedStateChange(&LedModbus1, MBMasterLedState);
+    MBMasterLedState = !MBMasterLedState;
 } 
 
 /******************************************************************
-*@brief 主栈数据接收回调								
+*@brief 主栈数据发送回调								
 ******************************************************************/
 void  vModbusMasterSendCallback(void* p_arg)  
 {
-    vLedOff(&LedModbus1);
+    OS_ERR err = OS_ERR_NONE;
+
+    vLedStateChange(&LedModbus1, MBMasterLedState);
+    MBMasterLedState = !MBMasterLedState;
 } 
 
 /******************************************************************
@@ -77,7 +88,7 @@ void  vModbusSlaveReceiveCallback(void* p_arg)
 } 
 
 /******************************************************************
-*@brief 从栈数据接收回调								
+*@brief 从栈数据发送回调								
 ******************************************************************/
 void  vModbusSlaveSendCallback(void* p_arg)  
 {
@@ -89,7 +100,6 @@ void  vModbusSlaveSendCallback(void* p_arg)
  *********************************************************************/
 void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
 {
-    
     MBMasterNode.ucMasterPollPrio = ucPollPrio;
     MBMasterNode.ucMasterScanPrio = ucScanPrio;
     
@@ -111,9 +121,7 @@ void vModbusSlaveInit(OS_PRIO prio)
     (void)xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode);
 
     pvMBSlaveReceiveCallback  = vModbusSlaveReceiveCallback;
-    pvMBSlaveSendCallback     = vModbusSlaveSendCallback; 
-
-    myprintf("MBSlaveNode.pcSlaveAddr %d   prio  %d\n", *MBSlaveNode.pcSlaveAddr, prio);    	    
+    pvMBSlaveSendCallback     = vModbusSlaveSendCallback;  	    
 }
 
 /******************************************************************

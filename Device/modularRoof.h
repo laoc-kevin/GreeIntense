@@ -22,13 +22,12 @@ typedef enum
 
 typedef enum   /*运行模式*/
 {
+    RUN_MODE_NOTHING = 0,      //默认
     RUN_MODE_COOL    = 1,      //制冷
     RUN_MODE_HEAT    = 2,      //制热
     RUN_MODE_FAN     = 3,      //送风   
     RUN_MODE_WET     = 4,      //湿膜
 }eRunningMode;
-
-
 
 typedef enum   /*系统状态*/
 {
@@ -62,11 +61,11 @@ CLASS(ModularRoof)   /*屋顶机机组*/
 
     uint16_t      usUnitID;                 //机型ID
     uint16_t      usProtocolVer;            //协议版本
-                                            
+     
+    eFuncMode     eFuncMode;                //功能设定    
     eRunningMode  eRunningMode;             //运行模式设定                                      
-    eSwitchCmd      eSwitchCmd;             //启停命令  
-    eFuncMode        eFuncMode;             //功能设定  
-    
+    eSwitchCmd    eSwitchCmd;               //启停命令  
+      
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度  
     

@@ -174,8 +174,8 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-void vMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, USHORT usPreVal,
-                              LONG lMinVal, LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
+void vMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, LONG lMaxVal, 
+                                 USHORT usPreVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 
 {
     pData->usAddr            = usAddr;              //地址
