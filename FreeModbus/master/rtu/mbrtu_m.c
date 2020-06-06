@@ -225,6 +225,7 @@ eMBMasterRTUSend(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, const UCHAR* 
 	{
 		return MB_EINVAL;
 	}
+    
     ENTER_CRITICAL_SECTION();
 
     /* Check if the receiver is still in idle state. If not we where to
@@ -285,9 +286,9 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
     assert_param(( eSndState == STATE_M_TX_IDLE ) || ( eSndState == STATE_M_TX_XFWR ));   //确保没有数据在发送或者主栈没有在等待从栈响应
 
     /* Always read the character. */
-    ( void )xMBMasterPortSerialGetByte( psMBPort, (CHAR*) &ucByte );
+    (void)xMBMasterPortSerialGetByte(psMBPort, (CHAR*) &ucByte);
 
-    switch (psMBMasterInfo->eRcvState)
+    switch(psMBMasterInfo->eRcvState)
     {
         /* If we have received a character in the init state we have to
          * wait until the frame is finished.
@@ -312,7 +313,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
     	/* In time of respond timeout,the receiver receive a frame.
     	 * Disable timer of respond timeout and change the transmiter state to idle.
     	 */
-    	vMBsMasterPortTmrsDisable( psMBPort );
+    	vMBsMasterPortTmrsDisable(psMBPort);
     	psMBMasterInfo->eSndState = STATE_M_TX_IDLE;
 
         psMBMasterInfo->usRcvBufferPos = 0;
@@ -329,7 +330,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
          * ignored.
          */
     case STATE_M_RX_RCV:
-        if( psMBMasterInfo->usRcvBufferPos < MB_SER_PDU_SIZE_MAX )            //一帧报文的字节数大于最大PDU长度，忽略超出的数据
+        if(psMBMasterInfo->usRcvBufferPos < MB_SER_PDU_SIZE_MAX)  //一帧报文的字节数大于最大PDU长度，忽略超出的数据
         {
             psMBMasterInfo->ucRTURcvBuf[psMBMasterInfo->usRcvBufferPos++] = ucByte;
         }
@@ -357,9 +358,9 @@ BOOL xMBMasterRTUTransmitFSM(sMBMasterInfo* psMBMasterInfo)
     BOOL           xNeedPoll = FALSE;
     sMBMasterPort*  psMBPort = &psMBMasterInfo->sMBPort;
 	
-    assert_param( eRcvState == STATE_M_RX_IDLE );
+    assert_param(eRcvState == STATE_M_RX_IDLE);
 
-    switch ( psMBMasterInfo->eSndState )
+    switch(psMBMasterInfo->eSndState)
     {
         /* We should not get a transmitter event if the transmitter is in
          * idle state.  */
@@ -452,7 +453,7 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 				      (eRcvState == STATE_M_RX_ERRO ) || (eRcvState == STATE_M_RX_IDLE) );
 		break;
 	}
-	psMBMasterInfo->eRcvState = STATE_M_RX_IDLE;                   //处理完数据，接收器状态为空闲
+	psMBMasterInfo->eRcvState = STATE_M_RX_IDLE;   //处理完数据，接收器状态为空闲
 
 	if(xSndStateNeedChange)
 	{

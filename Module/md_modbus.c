@@ -25,13 +25,12 @@
 #include "port.h"
 #include "my_rtt_printf.h"
 
-#define MB_DEFAULT_SLAVE_POLL_TASK_PRIO    9
+#define MB_DEFAULT_SLAVE_POLL_TASK_PRIO          9
 
-#define MB_DEFAULT_MASTER_POLL_TASK_PRIO   10
-#define MB_DEFAULT_MASTER_SCAN_TASK_PRIO   11
+#define MB_DEFAULT_MASTER_HEART_BEAT_TASK_PRIO   10
+#define MB_DEFAULT_MASTER_POLL_TASK_PRIO         11
+#define MB_DEFAULT_MASTER_SCAN_TASK_PRIO         12
 
-#define MB_MASTER_LED_SEND_DELAY_MS      30
-#define MB_MASTER_LED_RECEIVE_DELAY_MS   50
 /**********************************************************************
 *变量声明
 ************************************************************************/
@@ -51,6 +50,7 @@ sUART_Def MBMasterUart = { &Uart0Rx, &Uart0Tx, &Uart0DE, &Uart0Inv, UART_0,     
 
 sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",                        /* 主栈配置信息 */
                                    MB_MASTER_MIN_DEV_ADDR, MB_MASTER_MAX_DEV_ADDR,
+                                   MB_DEFAULT_MASTER_HEART_BEAT_TASK_PRIO,
                                    MB_DEFAULT_MASTER_POLL_TASK_PRIO, MB_DEFAULT_MASTER_SCAN_TASK_PRIO, 
                                    TRUE
                                  };
@@ -98,10 +98,11 @@ void  vModbusSlaveSendCallback(void* p_arg)
 /**********************************************************************
  * @brief  MODBUS主栈初始化
  *********************************************************************/
-void vModbusMasterInit(OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
+void vModbusMasterInit(OS_PRIO ucHeartPrio, OS_PRIO ucPollPrio, OS_PRIO ucScanPrio)
 {
-    MBMasterNode.ucMasterPollPrio = ucPollPrio;
-    MBMasterNode.ucMasterScanPrio = ucScanPrio;
+    MBMasterNode.ucMasterHeartBeatPrio = ucHeartPrio;
+    MBMasterNode.ucMasterPollPrio      = ucPollPrio;
+    MBMasterNode.ucMasterScanPrio      = ucScanPrio;
     
     (void)xMBMasterRegistNode(&MBMasterInfo, &MBMasterNode);
     

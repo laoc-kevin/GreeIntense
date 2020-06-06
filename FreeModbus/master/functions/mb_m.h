@@ -77,10 +77,11 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_MASTER_TCP_PORT_USE_DEFAULT   0
 
-#define MB_MASTER_POLL_TASK_STK_SIZE     160
-#define MB_MASTER_SCAN_TASK_STK_SIZE     160
+#define MB_MASTER_POLL_TASK_STK_SIZE        160
+#define MB_MASTER_SCAN_TASK_STK_SIZE        160
+#define MB_MASTER_HEART_BEAT_TASK_STK_SIZE  160
 
-#define MB_MASTER_WAITING_DELAY          50    //主栈等待响应时间
+#define MB_MASTER_WAITING_DELAY             80    //主栈等待响应时间
 
 /* ----------------------- Type definitions ---------------------------------*/
 
@@ -116,7 +117,15 @@ typedef enum
     STATE_M_TX_IDLE,              /*!< Transmitter is in idle state. */
     STATE_M_TX_XMIT,              /*!< Transmitter is in transfer state. */
     STATE_M_TX_XFWR,              /*!< Transmitter is in transfer finish and wait receive state. */
-} eMBMasterSndState;
+}eMBMasterSndState;
+
+typedef enum
+{
+    STATE_HEART_BEAT,            //心跳模式
+    STATE_SCAN_DEV,              //主栈轮询从设备模式
+    STATE_TEST_DEV,              //主栈测试从设备模式
+}eMasterRunMode;
+
 
 typedef struct                 /* master poll task information */ 
 {
@@ -128,6 +137,12 @@ typedef struct                 /* master poll task information */
     
     CPU_STK             usMasterPollStk[MB_MASTER_POLL_TASK_STK_SIZE];
     CPU_STK             usMasterScanStk[MB_MASTER_SCAN_TASK_STK_SIZE];
+    
+#if MB_MASTER_HEART_BEAT_ENABLED > 0
+    OS_TCB              sMasterHeartBeatTCB;
+    OS_PRIO             ucMasterHeartBeatPrio;
+    CPU_STK             usMasterHeartBeatStk[MB_MASTER_HEART_BEAT_TASK_STK_SIZE];   
+#endif	 
     
 }sMBMasterTask;
 
@@ -149,15 +164,16 @@ typedef struct sMBMasterInfo  /* master information */
     
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
     BOOL                bDTUEnable;    
-    pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块
-#endif                                                              
-  
+    pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块轮询回调
+#endif    
+    
 	eMBMode             eMode;                         //MODBUS模式:    RTU模式   ASCII模式   TCP模式 
 	eMBState            eMBState;                      //主栈状态
     eMBMasterSndState   eSndState;                     //发送状态
     eMBMasterRcvState   eRcvState;                     //接收状态
 	                                                         
 	eMBMasterErrorEventType eCurErrorType;             //当前错误类型
+    eMasterRunMode      eMBRunMode;                    //主栈模式
     
 	USHORT              usSndPDULength;                //PDU数据域长度
     USHORT              usSndBufferCount;              //发送缓冲区数据量
@@ -165,12 +181,8 @@ typedef struct sMBMasterInfo  /* master information */
 	                                                         
 	UCHAR*              pucSndBufferCur;               //当前发送数据缓冲区指针
     UCHAR*              pucMasterPDUCur;               //当前发送帧PDU数据域指针
-    
     UCHAR               ucMBDestAddr;                  //当前从设备地址
-    
-    BOOL                xHeartBeatMode;                //是否处于心跳模式
-    BOOL                xMBRunInMasterMode;            //是否处于主栈模式
-    BOOL                xMBRunInTestMode;              //是否处于主栈测试从设备模式
+   
 	BOOL                xFrameIsBroadcast;             //是否为广播帧
     
 #if MB_MASTER_RTU_ENABLED > 0         //RTU mode information
@@ -194,14 +206,18 @@ typedef struct                 /* 主栈节点配置信息 */
     
     UCHAR       ucMinAddr;    
     UCHAR       ucMaxAddr;
-             
+  
+#if MB_MASTER_HEART_BEAT_ENABLED > 0
+    OS_PRIO     ucMasterHeartBeatPrio;
+#endif	
+    
     OS_PRIO     ucMasterPollPrio;
     OS_PRIO     ucMasterScanPrio;
-
+  
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持    
     BOOL        bDTUEnable;
 #endif
-    
+   
 }sMBMasterNodeInfo;
 
 
@@ -512,8 +528,8 @@ void vMBMasterSetPDUSndLength( sMBMasterInfo* psMBMasterInfo, USHORT SendPDULeng
 UCHAR ucMBMasterGetDestAddr( const sMBMasterInfo* psMBMasterInfo );
 void vMBMasterSetDestAddress( sMBMasterInfo* psMBMasterInfo, UCHAR Address );
 
-BOOL xMBMasterGetCBRunInMasterMode( const sMBMasterInfo* psMBMasterInfo );
-void vMBMasterSetCBRunInMasterMode( sMBMasterInfo* psMBMasterInfo, BOOL IsMasterMode );
+//eMasterRunMode eMBMasterGetCBRunInMode(const sMBMasterInfo* psMBMasterInfo);
+//void vMBMasterSetCBRunInScanMode(sMBMasterInfo* psMBMasterInfo);
 
 eMBMasterErrorEventType eMBMasterGetErrorType( const sMBMasterInfo* psMBMasterInfo );
 void vMBMasterSetErrorType( sMBMasterInfo* psMBMasterInfo, eMBMasterErrorEventType errorType );

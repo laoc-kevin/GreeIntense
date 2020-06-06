@@ -71,7 +71,7 @@
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode)
+                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatTest)
 {
     UCHAR  *ucMBFrame = NULL;
 	OS_ERR err = OS_ERR_NONE;
@@ -102,9 +102,10 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo,
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE && xHeartBeatMode == TRUE) //如果处于心跳模式
+        
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT && xHeartBeatTest == FALSE) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif 		
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
@@ -199,7 +200,7 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);         //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
-    if(psMBMasterInfo->xMBRunInTestMode)
+    if(psMBMasterInfo->eMBRunMode == STATE_TEST_DEV) //测试从设备模式
     {  
         return MB_ENOERR;
     }  

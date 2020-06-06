@@ -116,9 +116,9 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif 
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );     //主栈发送请求
@@ -254,9 +254,9 @@ eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif 		
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );       //主栈发送请求
@@ -322,9 +322,7 @@ eMBMasterFuncWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT *
     }
     return eStatus;
 }
-
 #endif
-
 
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
  /***********************************************************************************
@@ -393,10 +391,11 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
 		}
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+#if MB_MASTER_HEART_BEAT_ENABLED >0  
+        
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif           
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);

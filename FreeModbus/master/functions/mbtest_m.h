@@ -6,4 +6,5 @@
 void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev, UCHAR ucSlaveAddr);
 void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev);
 
+BOOL xMBMasterCreateDevHeartBeatTask(sMBMasterInfo* psMBMasterInfo);
 #endif

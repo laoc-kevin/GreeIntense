@@ -287,7 +287,7 @@ static  void  AppTaskCreate (void)
 #endif
 
 #if MB_MASTER_TASK_EN > 0       //Modbus RS485 主栈功能
-    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO);
+    vModbusMasterInit(MB_MASTER_HEART_TASK_PRIO, MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO);
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 

@@ -44,6 +44,7 @@
 #include "mbfunc_m.h"
 #include "mbdict_m.h"
 #include "mbscan_m.h"
+#include "mbtest_m.h"
 #include "mbmap_m.h"
 
 #if MB_MASTER_RTU_ENABLED == 1
@@ -129,9 +130,6 @@ static xMBMasterFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
     {MB_FUNC_READ_DISCRETE_INPUTS, eMBMasterFuncReadDiscreteInputs},
 #endif
 };
-
-/* ----------------------- static functions ---------------------------------*/
-static void vMBMasterDevOfflineTimeout( void * p_tmr, void * p_arg);
 
 /* ----------------------- Start implementation -----------------------------*/
 
@@ -329,8 +327,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 
         case EV_MASTER_FRAME_RECEIVED:
             
-			eStatus = peMBMasterFrameReceiveCur(psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength);
-            
+			eStatus = peMBMasterFrameReceiveCur(psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength);  
 			/* Check if the frame is for us. If not ,send an error process event. */
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddr(psMBMasterInfo)) )
 			{
@@ -367,12 +364,11 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 						break;
 					}
 					else if (xMasterFuncHandlers[i].ucFunctionCode == ucFunctionCode)
-					 {
-						vMBMasterSetCBRunInMasterMode(psMBMasterInfo, TRUE);
+					{
 						/* If master request is broadcast,
 						 * the master need execute function for all slave.
 						 */
-						if ( xMBMasterRequestIsBroadcast(psMBMasterInfo) ) 
+						if(xMBMasterRequestIsBroadcast(psMBMasterInfo)) 
 						{
 							usLength = usMBMasterGetPDUSndLength(psMBMasterInfo);
 							for(j = psMBDevsInfo->ucSlaveDevMinAddr; j <= psMBDevsInfo->ucSlaveDevMaxAddr; j++)
@@ -385,7 +381,6 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 						{
 							eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, ucMBFrame, &usLength);
 						}
-						vMBMasterSetCBRunInMasterMode(psMBMasterInfo, FALSE);
 						break;
 					}
 				}
@@ -442,8 +437,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			    default:break;
 			}
 			vMBMasterRunResRelease();
-        break;
-			
+        break;	
 		default:break;
         }
     }
@@ -459,6 +453,8 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMasterNode)
 {
+    OS_ERR err = OS_ERR_NONE;
+    
     sMBMasterInfo*         psMBInfo   = NULL;
     sMBMasterPort*         psMBPort   = &psMBMasterInfo->sMBPort;      //主栈硬件接口信息
 	sMBMasterTask*         psMBTask   = &psMBMasterInfo->sMBTask;      //主栈状态机任务信息
@@ -472,7 +468,7 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
     {
         psMBMasterInfo->pNext = NULL;
         psMBMasterInfo->eMode = psMasterNode->eMode;
-        
+       
         /***************************硬件接口设置***************************/
         psMBPort = (sMBMasterPort*)(&psMBMasterInfo->sMBPort);
         if(psMBPort != NULL)
@@ -501,11 +497,15 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         {
             psMBTask->ucMasterPollPrio = psMasterNode->ucMasterPollPrio;
             psMBTask->ucMasterScanPrio = psMasterNode->ucMasterScanPrio;
+            
+#if MB_MASTER_HEART_BEAT_ENABLED > 0
+            psMBTask->ucMasterHeartBeatPrio = psMasterNode->ucMasterHeartBeatPrio;
+#endif	 
         }
+        
         /******************************GPRS模块功能支持****************************/
 #ifdef MB_MASTER_DTU_ENABLED    
         psMBMasterInfo->bDTUEnable = psMasterNode->bDTUEnable;
-
 #endif   
         /*******************************创建主栈状态机任务*************************/
         if(xMBMasterCreatePollTask(psMBMasterInfo) == FALSE)   
@@ -514,6 +514,11 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         }
         /*******************************创建主栈轮询任务*************************/
         if(xMBMasterCreateScanSlaveDevTask(psMBMasterInfo) == FALSE)   
+        {
+            return FALSE;
+        }
+        /*******************************创建主栈心跳轮询任务*************************/
+        if(xMBMasterCreateDevHeartBeatTask(psMBMasterInfo) == FALSE)   
         {
             return FALSE;
         }
@@ -652,6 +657,8 @@ BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBNewDev)
     
     if(psMBNewDev != NULL) 
     {
+        psMBNewDev->psMBMasterInfo = psMBMasterInfo;
+        
         (void)xMBMasterInitDevTimer(psMBNewDev, MB_MASTER_DEV_OFFLINE_TMR_S);   //初始化掉线定时器
         psMBNewDev->pNext = NULL;
         
@@ -728,30 +735,6 @@ BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address)
 }
 
 /**********************************************************************
- * @brief   从设备掉线定时器初始化
- * @param   psMBDev   从设备状态
- * @param   usTimerSec     定时器延迟时间 s
- * @return	BOOL
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec)
-{
-    OS_ERR err = OS_ERR_NONE;
-	OS_TICK i = (OS_TICK)(usTimerSec * TMR_TICK_PER_SECOND);  //延时30s
-    
-    OSTmrCreate( &(psMBDev->sDevOfflineTmr),       //从设备定时器
-			      "sDevOfflineTmr",
-			      i,      
-			      0,
-			      OS_OPT_TMR_ONE_SHOT,
-			      vMBMasterDevOfflineTimeout,
-			      (void*)psMBDev,
-			      &err);
-    return (err == OS_ERR_NONE);
-}
-
-/**********************************************************************
  * @brief   从设备定时器中断
  * @param   *p_tmr     定时器
  * @param   *p_arg     参数
@@ -766,7 +749,25 @@ void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
     sMBSlaveDev* psMBDev = (sMBSlaveDev*)p_arg;
     psMBDev->xDevOnTimeout = FALSE; 
 
-     myprintf("vMBMasterDevOfflineTimeout\n");       
+    myprintf("vMBMasterDevOfflineTimeout\n");       
+}
+
+/**********************************************************************
+ * @brief   从设备掉线定时器初始化
+ * @param   psMBDev   从设备状态
+ * @param   usTimerSec     定时器延迟时间 s
+ * @return	BOOL
+ * @author  laoc
+ * @date    2019.01.22
+ *********************************************************************/
+BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec)
+{
+    OS_ERR err = OS_ERR_NONE;
+	OS_TICK i = (OS_TICK)(usTimerSec * TMR_TICK_PER_SECOND);  //延时30s
+    
+    OSTmrCreate(&psMBDev->sDevOfflineTmr, "sDevOfflineTmr", i, 0, OS_OPT_TMR_ONE_SHOT, 
+                vMBMasterDevOfflineTimeout, (void*)psMBDev, &err);//从设备定时器
+    return (err == OS_ERR_NONE);
 }
 
 /**********************************************************************
@@ -798,14 +799,14 @@ void vMBMastersDevOfflineTmrDel(sMBSlaveDev* psMBDev)
 /**********************************接口函数******************************************/
 
 /* Get whether the Modbus Master is run in master mode.*/
-BOOL xMBMasterGetCBRunInMasterMode( const sMBMasterInfo* psMBMasterInfo )
+eMasterRunMode eMBMasterGetCBRunInMode(const sMBMasterInfo* psMBMasterInfo)
 {
-	return psMBMasterInfo->xMBRunInMasterMode;
+	return psMBMasterInfo->eMBRunMode;
 }
 /* Set whether the Modbus Master is run in master mode.*/
-void vMBMasterSetCBRunInMasterMode( sMBMasterInfo* psMBMasterInfo, BOOL IsMasterMode )
+void vMBMasterSetCBRunInScanMode(sMBMasterInfo* psMBMasterInfo)
 {
-	psMBMasterInfo->xMBRunInMasterMode = IsMasterMode;
+	psMBMasterInfo->eMBRunMode = STATE_SCAN_DEV;
 }
 /* Get Modbus Master send destination address. */
 UCHAR ucMBMasterGetDestAddr( const sMBMasterInfo* psMBMasterInfo )

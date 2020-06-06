@@ -118,6 +118,7 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     
 #if MB_MASTER_HEART_BEAT_ENABLED >0
     OS_TMR  sDevHeartBeatTmr;      //心跳间隔定时器
+    BOOL    xDevHeartBeatRequest;  //心跳请求
 #endif 
     
     sMBSlaveDevCommData* psDevDataInfo;     //从设备数据域

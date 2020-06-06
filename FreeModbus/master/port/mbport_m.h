@@ -50,6 +50,7 @@ typedef struct                                /* 主栈接口定义  */
 	eMBMasterEventType  eQueuedEvent;             //主栈事件
 	eMBMasterTimerMode  eCurTimerMode;            //当前定时器模式
 	
+    OS_SEM sMBIdleSem;                            //主栈空闲消息量
 	OS_SEM sMBEventSem;                           //主栈事件消息量
     OS_SEM sMBWaitFinishSem;                      //主栈等待消息量
 	

@@ -100,7 +100,7 @@
  *************************************************************************************/
 eMBMasterReqErrCode
 eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                 USHORT usRegData, LONG lTimeOut, BOOL xHeartBeatMode)
+                                 USHORT usRegData, LONG lTimeOut, BOOL xHeartBeatTest)
 {
     UCHAR *ucMBFrame = NULL;
 	OS_ERR err = OS_ERR_NONE;
@@ -130,12 +130,13 @@ eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE && xHeartBeatMode == TRUE) //如果处于心跳模式
-        {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-        }
+        
+       if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT && xHeartBeatTest == FALSE) //如果处于心跳模式
+       {
+           (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
+       }
 #endif           
-		(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );
+		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
     return eErrStatus;
@@ -238,12 +239,13 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
         
 //	    myprintf("ucSlaveAddr %d  eMBMasterReqWriteMultipleHoldingRegister    \n",ucSndAddr);
+            
+#if MB_MASTER_HEART_BEAT_ENABLED >0 
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
-        {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-        }
+       if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
+       {
+           (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
+       }
 #endif 
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
@@ -320,15 +322,17 @@ eMBMasterFuncWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR*
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                     USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode)
+                                                     USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatTest)
 {
     UCHAR* ucMBFrame = NULL;
     OS_ERR err = OS_ERR_NONE;
     
+    OS_MSG_SIZE  msgSize = 0;
+
     eMBMasterReqErrCode     eErrStatus = MB_MRE_NO_ERR;
     sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
-	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
-	
+	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
+
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -348,12 +352,13 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE);
+          
+#if MB_MASTER_HEART_BEAT_ENABLED >0  
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE && xHeartBeatMode == TRUE) //如果处于心跳模式
-        {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-        }
+       if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT && xHeartBeatTest == FALSE) //如果处于心跳模式
+       {
+           (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
+       }
 #endif 
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
@@ -484,9 +489,9 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READWRITE_SIZE_MIN + 2*usNWriteRegs);
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif         
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
@@ -592,11 +597,10 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
     
      /* 主栈处于测试从设备状态 */		
-    if(psMBMasterInfo->xMBRunInTestMode)
+    if(psMBMasterInfo->eMBRunMode == STATE_TEST_DEV) //测试从设备模式
     {
         return MB_ENOERR;
     }	
-    
     if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);

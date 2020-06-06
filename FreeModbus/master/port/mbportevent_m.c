@@ -39,8 +39,9 @@ BOOL xMBMasterPortEventInit(sMBMasterPort* psMBPort)
 {
 	OS_ERR err = OS_ERR_NONE;
 	
-	OSSemCreate(&psMBPort->sMBEventSem, "sMBEventSem", 0, &err);              //主栈事件消息量
-    OSSemCreate(&psMBPort->sMBWaitFinishSem, "sMBWaitFinishSem", 0, &err);   //主栈错误消息量
+    OSSemCreate(&psMBPort->sMBIdleSem, "sMBIdleSem", 0, &err);             //主栈空闲消息量
+	OSSemCreate(&psMBPort->sMBEventSem, "sMBEventSem", 0, &err);           //主栈事件消息量
+    OSSemCreate(&psMBPort->sMBWaitFinishSem, "sMBWaitFinishSem", 0, &err); //主栈错误消息量
 	
 	psMBPort->xEventInQueue = FALSE;
 	psMBPort->xWaitFinishInQueue = FALSE;
@@ -111,6 +112,8 @@ BOOL xMBMasterPortEventGet(sMBMasterPort* psMBPort, eMBMasterEventType* eEvent)
         psMBPort->xEventInQueue = FALSE;
         xEventHappened = TRUE;
     }
+    
+    
     return xEventHappened;
 }
 /**
@@ -302,6 +305,7 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         }
         case EV_MASTER_ERROR_EXECUTE_FUNCTION:
         {
+//             myprintf(" EV_MASTER_ERROR_EXECUTE_FUNCTION \n");
         	eErrStatus = MB_MRE_EXE_FUN;
         	break;
         }	
@@ -309,7 +313,9 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         	break;
 		}
 	}
-	psMBPort->xWaitFinishInQueue = FALSE;
+	psMBPort->xWaitFinishInQueue = FALSE; 
+    (void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);
+    
     return eErrStatus;
 }
 

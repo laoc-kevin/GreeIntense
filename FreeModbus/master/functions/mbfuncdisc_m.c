@@ -99,9 +99,9 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
 #if MB_MASTER_HEART_BEAT_ENABLED >0    
-        while(psMBMasterInfo->xHeartBeatMode == TRUE) //如果处于心跳模式
+        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
         {
-            (void)OSTimeDlyHMSM(0, 0, 0, MB_HEART_BEAT_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
         }
 #endif         
 		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );
