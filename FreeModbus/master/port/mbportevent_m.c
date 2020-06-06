@@ -291,7 +291,7 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         	break;
         case EV_MASTER_ERROR_RESPOND_TIMEOUT:
         {
-            myprintf(" EV_MASTER_ERROR_RESPOND_TIMEOUT \n"); 
+//            myprintf(" EV_MASTER_ERROR_RESPOND_TIMEOUT \n"); 
         	eErrStatus = MB_MRE_TIMEDOUT;
         	break;
         }
@@ -310,7 +310,6 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
 		}
 	}
 	psMBPort->xWaitFinishInQueue = FALSE;
-       
     return eErrStatus;
 }
 

@@ -60,7 +60,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 	{
         (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
         
-        myprintf("**************************************\n");   
+        myprintf("****************************************************************************\n");   
 #if MB_MASTER_DTU_ENABLED > 0    //GPRS模块功能支持，特殊处理      
         if( (psMBMasterInfo->bDTUEnable == TRUE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
         {
@@ -83,8 +83,6 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 if(pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
                 {
                     vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
-                    myprintf("vMBDevTest  %d\n", psMBSlaveDev->ucDevCurTestAddr);
-                    
                     if(psMBSlaveDev->xOnLine == TRUE)
                     {
                         pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
@@ -94,14 +92,12 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 psMBSlaveDev->ucDevCurTestAddr++;
             }
         }
-
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {    
-             /*********************************轮询从设备***********************************/
+            /*********************************轮询从设备***********************************/
             if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
-  
                 if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
                 {
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
@@ -112,8 +108,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 }
                 break;                
             }
-        } 
-        myprintf("-----------------------------------------------\n");        
+        }      
 	}
 }
 
@@ -163,7 +158,7 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     }
     if( (psMBSlaveDev != NULL) && (psMBSlaveDev->xOnLine == TRUE) )       //如果设备在线则进行轮询
     {
-        if( psMBSlaveDev->xDataReady == TRUE)         //从设备数据准备好了才同步上来
+        if(psMBSlaveDev->xDataReady == TRUE)         //从设备数据准备好了才同步上来
         {	 	    
             if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
@@ -177,19 +172,15 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
                 vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			//读从设备数据										
             }
         }
-        else  //从栈数据未好，则只进行写不读
+        else  //从设备数据未好，则只进行写不读
         {
             if(psMBSlaveDev->xSynchronized == FALSE) 
             {
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步设备数据
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
-            else    
-            {
-               vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读设备数据
-            }
         }
-        myprintf("******************** ucSlaveAddr %d  xDataReady %d  xSynchronized %d***********************\n", 
+        myprintf("***ucSlaveAddr %d  xDataReady %d  xSynchronized %d***\n", 
         ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);
     }		
 }
@@ -207,7 +198,7 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
-//    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
+    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, ucSlaveAddr); //读保持寄存器 							
@@ -239,7 +230,7 @@ void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
-//    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
+    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);	//写保持寄存器 									

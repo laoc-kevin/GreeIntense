@@ -151,15 +151,15 @@ eMBErrorCode eMBMasterInit(sMBMasterInfo* psMBMasterInfo)
 	{
 #if MB_MASTER_RTU_ENABLED > 0
 	case MB_RTU:
-		pvMBMasterFrameStartCur = eMBMasterRTUStart;
-		pvMBMasterFrameStopCur = eMBMasterRTUStop;
-		peMBMasterFrameSendCur = eMBMasterRTUSend;
+		pvMBMasterFrameStartCur   = eMBMasterRTUStart;
+		pvMBMasterFrameStopCur    = eMBMasterRTUStop;
+		peMBMasterFrameSendCur    = eMBMasterRTUSend;
 		peMBMasterFrameReceiveCur = eMBMasterRTUReceive;
-		pvMBMasterFrameCloseCur = MB_PORT_HAS_CLOSE ? vMBMasterPortClose : NULL;
+		pvMBMasterFrameCloseCur   = MB_PORT_HAS_CLOSE ? vMBMasterPortClose : NULL;
 	
-		pxMBMasterFrameCBByteReceivedCur = xMBMasterRTUReceiveFSM;
+		pxMBMasterFrameCBByteReceivedCur     = xMBMasterRTUReceiveFSM;
 		pxMBMasterFrameCBTransmitterEmptyCur = xMBMasterRTUTransmitFSM;
-		pxMBMasterFrameCBTimerExpiredCur = xMBMasterRTUTimerT35Expired;
+		pxMBMasterFrameCBTimerExpiredCur     = xMBMasterRTUTimerT35Expired;
 
 		eStatus = eMBMasterRTUInit(psMBMasterInfo);
 	
@@ -167,15 +167,16 @@ eMBErrorCode eMBMasterInit(sMBMasterInfo* psMBMasterInfo)
 #endif
     
 #if MB_MASTER_ASCII_ENABLED > 0
-		case MB_ASCII:
-		pvMBMasterFrameStartCur = eMBMasterASCIIStart;
-		pvMBMasterFrameStopCur = eMBMasterASCIIStop;
-		peMBMasterFrameSendCur = eMBMasterASCIISend;
+    case MB_ASCII:
+		pvMBMasterFrameStartCur   = eMBMasterASCIIStart;
+		pvMBMasterFrameStopCur    = eMBMasterASCIIStop;
+		peMBMasterFrameSendCur    = eMBMasterASCIISend;
 		peMBMasterFrameReceiveCur = eMBMasterASCIIReceive;
-		pvMBMasterFrameCloseCur = MB_PORT_HAS_CLOSE ? vMBMasterPortClose : NULL;
-		pxMBMasterFrameCBByteReceived = xMBMasterASCIIReceiveFSM;
+		pvMBMasterFrameCloseCur   = MB_PORT_HAS_CLOSE ? vMBMasterPortClose : NULL;
+    
+		pxMBMasterFrameCBByteReceived     = xMBMasterASCIIReceiveFSM;
 		pxMBMasterFrameCBTransmitterEmpty = xMBMasterASCIITransmitFSM;
-		pxMBMasterPortCBTimerExpired = xMBMasterASCIITimerT1SExpired;
+		pxMBMasterPortCBTimerExpired      = xMBMasterASCIITimerT1SExpired;
 
 		eStatus = eMBMasterASCIIInit(ucPort, ulBaudRate, eParity );
 		break;
@@ -186,7 +187,7 @@ eMBErrorCode eMBMasterInit(sMBMasterInfo* psMBMasterInfo)
 	}
 	if (eStatus == MB_ENOERR)
 	{
-		if (!xMBMasterPortEventInit(psMBPort))
+		if(xMBMasterPortEventInit(psMBPort) == FALSE)
 		{
 			/* port dependent event module initalization failed. */
 			eStatus = MB_EPORTERR;
@@ -208,7 +209,7 @@ eMBErrorCode eMBMasterInit(sMBMasterInfo* psMBMasterInfo)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-eMBErrorCode eMBMasterClose( sMBMasterInfo* psMBMasterInfo )
+eMBErrorCode eMBMasterClose(sMBMasterInfo* psMBMasterInfo)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;
