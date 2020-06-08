@@ -16,12 +16,12 @@
 #define SEGMENT_TASK_EN            1      //数码管显示功能
 #define EEPROM_DATA_TASK_EN        0      //eeprom参数记忆功能
 
-#define SYSTEM_EVENT_TASK_EN       1      //系统事件功能
-#define SYSTEM_MONITOR_TASK_EN     1      //系统数据监控功能
+#define SYSTEM_EVENT_TASK_EN       0      //系统事件功能
+#define SYSTEM_MONITOR_TASK_EN     0      //系统数据监控功能
 #define SYSTEM_MAIN_CTRL_TASK_EN   1      //系统逻辑控制功能
 
 #define MB_SLAVE_TASK_EN           1      //Modbus RS485 从栈功能          
-#define MB_MASTER_TASK_EN          1      //Modbus RS485 主栈功能                                              
+#define MB_MASTER_TASK_EN          0      //Modbus RS485 主栈功能                                              
 #define CANOPEN_TASK_EN            0      //CANopen通讯功能
                                    
 #define WATCHDOG_FEED_TASK_EN      1      //喂狗功能

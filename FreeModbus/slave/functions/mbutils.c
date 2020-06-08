@@ -97,8 +97,13 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
                 break;
 #endif
                 default:break;			
-            }	
-            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) && (pucBitData->ucAccessMode != RO) )
+            }
+            if(pucBitData->ucAccessMode == RO)
+            {
+                return MB_ENOREG;
+            }
+
+            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) )
             {
                 ucBit = (UCHAR)( ((*ucByteBuf) & (1 << i) ) >> i );   //取对应位的值
                 if( *(UCHAR*)pucBitData->pvValue != ucBit )
@@ -108,8 +113,7 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
             }
             else
             {
-                eStatus = MB_ENOREG;
-                return eStatus;
+                break;
             }
             usAddress++;
 		}
@@ -153,6 +157,7 @@ eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
         {
             iBits = BITS_UCHAR;
         }
+        
         for(i = 0; i < iBits; i++)
         {
             switch(eDataType)
@@ -170,17 +175,21 @@ eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
 #endif
                 default:break;					
 			}
-            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) && (pucBitData->ucAccessMode != WO) )
+            if(pucBitData->ucAccessMode == WO)
+            {
+                return MB_ENOREG;
+            }
+            
+            if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) )
             {
                 if( (*(UCHAR*)pucBitData->pvValue) > 0)
                 {
-                    *ucByteBuf |= ( 1 << i );
+                    *ucByteBuf |= (1 << i);
                 }			
             }
             else
             {
-                eStatus = MB_ENOREG;
-                return eStatus;
+                *ucByteBuf |= (0 << i);;
             }
             usAddress++;
         }

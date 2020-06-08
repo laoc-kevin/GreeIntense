@@ -331,7 +331,7 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
     }
     else
     {
-        eStatus = MB_ENOREG;
+        return MB_ENOREG;
     }
     return eStatus;
 }

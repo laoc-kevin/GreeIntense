@@ -48,7 +48,7 @@ void vMBSlavePortTimersDisable(sMBSlavePort* psMBPort)
 void vSlaveTimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
 {
     sMBSlavePort*      psMBPort = (sMBSlavePort*)p_arg;
-	sMBSlaveInfo* psMBSlaveInfo = psMBSlaveFindNodeByPort(psMBPort->pcMBPortName);
+	sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
 	
 	if(psMBSlaveInfo != NULL)
 	{

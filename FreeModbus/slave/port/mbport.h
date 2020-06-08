@@ -49,14 +49,15 @@ typedef enum
 
 typedef struct                        /* 从栈接口定义  */
 {
-	const sUART_Def*     psMBSlaveUart;        //从栈通讯串口结构
-	OS_TMR              sSlavePortTmr;         //从栈3.5字符间隔定时器
-                        
-	eMBSlaveEventType   eQueuedEvent;          //从栈事件
-	OS_SEM              sMBEventSem;           //从栈事件消息量                   
-    BOOL                xEventInQueue;         //从栈有新事件
-                
-    const CHAR*         pcMBPortName;          //从栈名称
+	const sUART_Def*     psMBSlaveUart;         //从栈接口通讯串口结构
+	OS_TMR               sSlavePortTmr;         //从栈接口3.5字符间隔定时器
+                                                
+	eMBSlaveEventType    eQueuedEvent;          //从栈接口事件
+	OS_SEM               sMBEventSem;           //从栈接口事件消息量                   
+    BOOL                 xEventInQueue;         //从栈接口有新事件
+                                             
+    const CHAR*          pcMBPortName;          //从栈接口名称
+    struct sMBSlaveInfo* psMBSlaveInfo;         //所属主栈
 }sMBSlavePort;
 
 
@@ -75,9 +76,9 @@ INLINE BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte);
 
 INLINE BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte);
 
-void prvvSlaveUARTTxReadyISR(const CHAR* pcMBPortName);
+void prvvSlaveUARTTxReadyISR(const sMBSlavePort* psMBPort);
 
-void prvvSlaveUARTRxISR(const CHAR* pcMBPortName);
+void prvvSlaveUARTRxISR(const sMBSlavePort* psMBPort);
 
 /* -----------------------Master Serial port event functions ----------------------------*/
 BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort);

@@ -157,52 +157,53 @@ eMBSlaveRegInputCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAd
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if( (usAddress >= REG_INPUT_START) && (usAddress + usNRegs <= REG_INPUT_END) )
-    {
-		iRegIndex = usAddress ;
-        while (usNRegs > 0)
-        {
-			(void)eMBSlaveRegInMap(psMBSlaveInfo, iRegIndex, &pvRegInValue);
-			
-			if( (pvRegInValue != NULL) && (pvRegInValue->ucAccessMode != WO) )
-			{		
-				if (pvRegInValue->ucDataType == uint16)
-				{
-					usRegInValue = (USHORT)(*(USHORT*)pvRegInValue->pvValue);
-				}
-                else if(pvRegInValue->ucDataType == uint8)
-                {
-					usRegInValue = (USHORT)(*(UCHAR*)pvRegInValue->pvValue);
-				}
-				else if(pvRegInValue->ucDataType == int16)
-				{
-					usRegInValue = (USHORT)(*(SHORT*)pvRegInValue->pvValue);
-				}
-				else if(pvRegInValue->ucDataType == int8)
-				{
-					usRegInValue = (USHORT)(*(int8_t*)pvRegInValue->pvValue);
-				}
-				
-                if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1) )
-                {
-                    usRegInValue *=  pvRegInValue->fTransmitMultiple;
-                }  
-				*pucRegBuffer++ = (UCHAR)(usRegInValue >> 8);
-                *pucRegBuffer++ = (UCHAR)(usRegInValue & 0xFF);	
-			}
-            else
-			{
-				eStatus = MB_ENOREG;
-				return eStatus;
-			}
-			iRegIndex++;
-            usNRegs--;
-        }
+    if( (usAddress < REG_INPUT_START) || (usAddress + usNRegs > REG_INPUT_END) )
+    { 
+        return MB_ENOREG;
     }
-    else
+    
+    iRegIndex = usAddress ;
+    while (usNRegs > 0)
     {
-        eStatus = MB_ENOREG;
+        (void)eMBSlaveRegInMap(psMBSlaveInfo, iRegIndex, &pvRegInValue);
+        
+        if(pvRegInValue->ucAccessMode == WO)
+        {
+            return MB_ENOREG;
+        }
+        if( (pvRegInValue != NULL) && (pvRegInValue->pvValue != NULL) )
+        {		
+            if (pvRegInValue->ucDataType == uint16)
+            {
+                usRegInValue = (USHORT)(*(USHORT*)pvRegInValue->pvValue);
+            }
+            else if(pvRegInValue->ucDataType == uint8)
+            {
+                usRegInValue = (USHORT)(*(UCHAR*)pvRegInValue->pvValue);
+            }
+            else if(pvRegInValue->ucDataType == int16)
+            {
+                usRegInValue = (USHORT)(*(SHORT*)pvRegInValue->pvValue);
+            }
+            else if(pvRegInValue->ucDataType == int8)
+            {
+                usRegInValue = (USHORT)(*(int8_t*)pvRegInValue->pvValue);
+            }
+            
+            if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1) )
+            {
+                usRegInValue *=  pvRegInValue->fTransmitMultiple;
+            }  
+            *pucRegBuffer++ = (UCHAR)(usRegInValue >> 8);
+            *pucRegBuffer++ = (UCHAR)(usRegInValue & 0xFF);	
+        }
+        else
+        {
+            *pucRegBuffer++ = 0;
+            *pucRegBuffer++ = 0;	
+        }
+        iRegIndex++;
+        usNRegs--;
     }
     return eStatus;
 }

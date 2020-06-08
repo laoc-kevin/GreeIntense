@@ -166,11 +166,11 @@ void UART1_IRQHandler(void)
 		
 		case UART_IIR_INTID_RDA:
 		case UART_IIR_INTID_CTI:
-		    prvvSlaveUARTRxISR("UART1");	   //Modbus Uart ISR
+		    prvvSlaveUARTRxISR(&(MBSlaveInfo.sMBPort));	   //Modbus Uart ISR
 		break;
 		
 		case UART_IIR_INTID_THRE:
-	         prvvSlaveUARTTxReadyISR("UART1");  //Modbus Uart ISR
+	         prvvSlaveUARTTxReadyISR(&(MBSlaveInfo.sMBPort));  //Modbus Uart ISR
 		break;
 		
 		default:break ;
@@ -198,11 +198,11 @@ void UART0_IRQHandler(void)
 		
 		case UART_IIR_INTID_RDA:
 		case UART_IIR_INTID_CTI:
-		     prvvMasterUARTRxISR("UART0");	      //Modbus Master Uart ISR
+		     prvvMasterUARTRxISR(&(MBMasterInfo.sMBPort));	      //Modbus Master Uart ISR
 		break;
 		
 		case UART_IIR_INTID_THRE:
-	         prvvMasterUARTTxReadyISR("UART0");  //Modbus Master Uart ISR
+	         prvvMasterUARTTxReadyISR(&(MBMasterInfo.sMBPort));  //Modbus Master Uart ISR
 		break;
 		
 		default:break ;

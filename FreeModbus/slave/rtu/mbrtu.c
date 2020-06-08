@@ -381,8 +381,9 @@ BOOL xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo )
  *********************************************************************/
 BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
 {
-    BOOL                 xNeedPoll  = FALSE;
+    BOOL       xNeedPoll            = FALSE;
     BOOL       xRcvStateNeedChange  = TRUE;
+    
     sMBSlavePort* psMBPort  = &psMBSlaveInfo->sMBPort;
     
     switch (psMBSlaveInfo->eRcvState)             //上报modbus协议栈的事件状态给poll函数
@@ -395,8 +396,8 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
         /* A frame was received and t35 expired. Notify the listener that
          * a new frame was received. */
     case STATE_RX_RCV:
-		
-	    if( psMBSlaveInfo->usRcvBufferPos >= 5)   //防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据
+		//防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据,Modbus RTU通讯帧最短至少8byte
+	    if(psMBSlaveInfo->usRcvBufferPos >= 8)   
 		{
 	        xNeedPoll = xMBSlavePortEventPost(psMBPort,EV_FRAME_RECEIVED); //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
 			myprintf("EV_FRAME_RECEIVED******************\n");

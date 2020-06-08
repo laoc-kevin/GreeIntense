@@ -126,10 +126,9 @@ BOOL xMBMasterPortSerialGetByte(const sMBMasterPort* psMBPort, CHAR * pucByte)  
  * a new character can be sent. The protocol stack will then call 
  * xMBPortSerialPutByte( ) to send the character.
  */
-void prvvMasterUARTTxReadyISR(const CHAR* pcMBPortName)   //串口服务函数
+void prvvMasterUARTTxReadyISR(const sMBMasterPort* psMBPort)   //串口服务函数
 {
-	sMBMasterInfo* psMBMasterInfo = psMBMasterFindNodeByPort(pcMBPortName);
-    
+	sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
 	if( psMBMasterInfo != NULL )
 	{
 		(void)pxMBMasterFrameCBTransmitterEmptyCur(psMBMasterInfo);
@@ -142,10 +141,9 @@ void prvvMasterUARTTxReadyISR(const CHAR* pcMBPortName)   //串口服务函数
  * protocol stack will then call xMBPortSerialGetByte( ) to retrieve the
  * character.
  */
-void prvvMasterUARTRxISR(const CHAR* pcMBPortName)
+void prvvMasterUARTRxISR(const sMBMasterPort* psMBPort)
 {
-	sMBMasterInfo* psMBMasterInfo = psMBMasterFindNodeByPort(pcMBPortName);
-
+	sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
 	if(psMBMasterInfo != NULL)
 	{
 		(void)pxMBMasterFrameCBByteReceivedCur(psMBMasterInfo);

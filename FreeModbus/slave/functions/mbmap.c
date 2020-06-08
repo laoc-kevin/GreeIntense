@@ -19,12 +19,17 @@ eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegInAddr, sMBSlaveRegDat
     sMBSlaveCommData*            psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBRegInTable = &psCurData->sMBRegInTable;
 	
+    if(psCurData->pxSlaveDataMapIndex == NULL)
+    {
+         return MB_EILLSTATE;
+    }
     if(psCurData->pxSlaveDataMapIndex(RegInputData, usRegInAddr, &usIndex))    //从栈字典映射函数
 	{
         *pvRegInValue = (sMBSlaveRegData*)psMBRegInTable->pvDataBuf + usIndex;
     }
 	else
     {
+        *pvRegInValue = NULL;
         return MB_ENOREG;
     }
     return eStatus;	
@@ -51,12 +56,17 @@ eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRe
     sMBSlaveCommData*              psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBRegHoldTable = &psCurData->sMBRegHoldTable;
 
+    if(psCurData->pxSlaveDataMapIndex == NULL)
+    {
+         return MB_EILLSTATE;
+    }
 	if(psCurData->pxSlaveDataMapIndex(RegHoldData, usRegHoldAddr, &usIndex))    //从栈字典映射函数
     {
         *pvRegHoldValue = (sMBSlaveRegData*)psMBRegHoldTable->pvDataBuf + usIndex;
     }
     else
     {
+        *pvRegHoldValue = NULL;
         return MB_ENOREG;
     }
     return eStatus;	
@@ -81,12 +91,17 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 	sMBSlaveCommData*           psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBCoilTable = &psCurData->sMBCoilTable;
     
+    if(psCurData->pxSlaveDataMapIndex == NULL)
+    {
+         return MB_EILLSTATE;
+    }
 	if(psCurData->pxSlaveDataMapIndex(CoilData, usCoilAddr, &usIndex))    //从栈字典映射函数
     {
         *pvCoilValue = (sMBSlaveBitData*)psMBCoilTable->pvDataBuf + usIndex;
     }
 	else
     {
+        *pvCoilValue = NULL;
         return MB_ENOREG;
     }
     return eStatus;	
@@ -112,13 +127,18 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
 
 	sMBSlaveCommData*             psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBDiscInTable = &psCurData->sMBDiscInTable;
-
+    
+    if(psCurData->pxSlaveDataMapIndex == NULL)
+    {
+         return MB_EILLSTATE;
+    }
 	if(psCurData->pxSlaveDataMapIndex(DiscInData, usDiscreteAddr, &usIndex))    //从栈字典映射函数
     {
         *pvDiscreteValue = (sMBSlaveBitData*)psMBDiscInTable->pvDataBuf + usIndex;
     }
     else
     {
+        *pvDiscreteValue = NULL;
         return MB_ENOREG;
     }
     return eStatus;	
@@ -135,20 +155,25 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
  * @date 2019.01.22
  *************************************************************************************/
 eMBErrorCode 
-eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData ** pvCPNValue)
+eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData** pvCPNValue)
 {
     USHORT usIndex;
 	eMBErrorCode eStatus = MB_ENOERR;
     
     sMBSlaveCommData*          psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBCPNTable = &psCurData->sMBCPNTable;
-
+    
+    if(psCurData->pxSlaveDataMapIndex == NULL)
+    {
+         return MB_EILLSTATE;
+    }
 	if(psCurData->pxSlaveDataMapIndex(ValCPNData, usCpnName, &usIndex))    //从栈字典映射函数
     {
         *pvCPNValue = (sMBSlaveCPNData*)psMBCPNTable->pvDataBuf + usIndex;
     }
 	else
     {
+        *pvDiscreteValue = pvCPNValue;
         return MB_ENOREG;
     }
     return eStatus;	

@@ -111,7 +111,7 @@ void vMBMasterSetCurTimerMode(sMBMasterPort* psMBPort, eMBMasterTimerMode eMBTim
 void vMasterTimeoutInd(void * p_tmr, void * p_arg)
 {
     sMBMasterPort*   psMBPort = (sMBMasterPort*)p_arg;
-	sMBMasterInfo*   psMBMasterInfo = psMBMasterFindNodeByPort(psMBPort->pcMBPortName);
+	sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
 	
 	if(psMBMasterInfo != NULL)
 	{

@@ -240,13 +240,10 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
         
 //	    myprintf("ucSlaveAddr %d  eMBMasterReqWriteMultipleHoldingRegister    \n",ucSndAddr);
             
-#if MB_MASTER_HEART_BEAT_ENABLED >0 
-        
-       if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
-       {
-           (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-       }
-#endif 
+        (void)OSSemPend(&psMBPort->sMBIdleSem, 0, OS_OPT_PEND_BLOCKING, NULL, &err);
+        (void)OSSemSet(&psMBPort->sMBIdleSem, 0, &err);
+        (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);  
+
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
@@ -337,7 +334,7 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
-    else if ( xMBMasterRunResTake(lTimeOut) == FALSE ) 
+    else if(xMBMasterRunResTake(lTimeOut) == FALSE) 
 	{
 		eErrStatus = MB_MRE_MASTER_BUSY;
 	}
@@ -352,14 +349,11 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE);
-          
-#if MB_MASTER_HEART_BEAT_ENABLED >0  
-        
-       if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT && xHeartBeatTest == FALSE) //如果处于心跳模式
-       {
-           (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-       }
-#endif 
+
+        (void)OSSemPend(&psMBPort->sMBIdleSem, 0, OS_OPT_PEND_BLOCKING, NULL, &err);
+        (void)OSSemSet(&psMBPort->sMBIdleSem, 0, &err);
+        (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);  
+
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }

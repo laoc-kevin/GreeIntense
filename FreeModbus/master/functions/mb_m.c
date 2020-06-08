@@ -65,7 +65,7 @@
 
 #define TMR_TICK_PER_SECOND                  OS_CFG_TMR_TASK_RATE_HZ
 
-#define MB_MASTER_DEV_OFFLINE_TMR_S          10
+
 #define MB_MASTER_POLL_INTERVAL_MS           30
 
 /* ----------------------- Static variables ---------------------------------*/
@@ -235,13 +235,17 @@ eMBErrorCode eMBMasterClose(sMBMasterInfo* psMBMasterInfo)
  *********************************************************************/
 eMBErrorCode eMBMasterEnable(sMBMasterInfo* psMBMasterInfo)
 {
-    eMBErrorCode eStatus = MB_ENOERR;
-
+    eMBErrorCode   eStatus  = MB_ENOERR;
+    OS_ERR         err     = OS_ERR_NONE;
+    
+    sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;
+    
     if( psMBMasterInfo->eMBState == STATE_DISABLED )
     {
         /* Activate the protocol stack. */
         pvMBMasterFrameStartCur(psMBMasterInfo);
         psMBMasterInfo->eMBState = STATE_ENABLED;
+        (void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);
     }
     else
     {
@@ -473,6 +477,7 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         psMBPort = (sMBMasterPort*)(&psMBMasterInfo->sMBPort);
         if(psMBPort != NULL)
         {
+            psMBPort->psMBMasterInfo = psMBMasterInfo;
             psMBPort->psMBMasterUart = psMasterNode->psMasterUart;
             psMBPort->pcMBPortName   = psMasterNode->pcMBPortName;
         }
@@ -658,8 +663,6 @@ BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBNewDev)
     if(psMBNewDev != NULL) 
     {
         psMBNewDev->psMBMasterInfo = psMBMasterInfo;
-        
-        (void)xMBMasterInitDevTimer(psMBNewDev, MB_MASTER_DEV_OFFLINE_TMR_S);   //初始化掉线定时器
         psMBNewDev->pNext = NULL;
         
         if(psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
@@ -676,125 +679,6 @@ BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBNewDev)
     }
     return TRUE;
 }
-
-/**********************************************************************
- * @brief   移除从设备
- * @param   psMBMasterInfo  主栈信息块 
- * @param   Address         从设备地址 
- * @return	BOOL
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address)
-{
-    sMBSlaveDev*  psMBDev = NULL;
-    sMBSlaveDev*  psMBPreDev = NULL;
-    sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
-    
-    if( psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
-    {
-        return FALSE;
-    }
-    else
-    {
-        for(psMBDev = psMBDevsInfo->psMBSlaveDevsList; psMBDev != NULL; psMBDev = psMBDev->pNext)
-        {
-            if(psMBDev->ucDevAddr == Address) //找到结点
-            {             
-                if(psMBDev->pNext == NULL) //只有一个结点或者最后节点
-                {
-                    if(psMBPreDev == NULL) //只有一个结点
-                    {
-                        psMBDevsInfo->psMBSlaveDevsList = NULL;
-                    }
-                    else //最后节点
-                    {
-                        psMBPreDev->pNext = NULL;
-                    }
-                }
-                else  //有多个结点或非最后节点
-                {
-                    if(psMBPreDev == NULL) //第一个结点
-                    {
-                        psMBDevsInfo->psMBSlaveDevsList = psMBDev->pNext;
-                    }
-                    else  //非第一个结点
-                    {
-                        psMBPreDev->pNext = psMBDev->pNext; 
-                    }  
-                }
-                
-                vMBMastersDevOfflineTmrDel(psMBDev);
-                (void)free(psMBDev); 
-                return TRUE;         
-            }
-            psMBPreDev = psMBDev;
-        }
-    }
-    return FALSE; 
-}
-
-/**********************************************************************
- * @brief   从设备定时器中断
- * @param   *p_tmr     定时器
- * @param   *p_arg     参数
- * @return	none
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
-{
-    OS_ERR err = OS_ERR_NONE;
-
-    sMBSlaveDev* psMBDev = (sMBSlaveDev*)p_arg;
-    psMBDev->xDevOnTimeout = FALSE; 
-
-    myprintf("vMBMasterDevOfflineTimeout\n");       
-}
-
-/**********************************************************************
- * @brief   从设备掉线定时器初始化
- * @param   psMBDev   从设备状态
- * @param   usTimerSec     定时器延迟时间 s
- * @return	BOOL
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec)
-{
-    OS_ERR err = OS_ERR_NONE;
-	OS_TICK i = (OS_TICK)(usTimerSec * TMR_TICK_PER_SECOND);  //延时30s
-    
-    OSTmrCreate(&psMBDev->sDevOfflineTmr, "sDevOfflineTmr", i, 0, OS_OPT_TMR_ONE_SHOT, 
-                vMBMasterDevOfflineTimeout, (void*)psMBDev, &err);//从设备定时器
-    return (err == OS_ERR_NONE);
-}
-
-/**********************************************************************
- * @brief   从设备定时器使能
- * @param   psMBDev   从设备状态
- * @return	none
- *********************************************************************/
-void vMBMastersDevOfflineTmrEnable(sMBSlaveDev* psMBDev)
-{
-    OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrStart( &(psMBDev->sDevOfflineTmr), &err);
-    psMBDev->xDevOnTimeout = TRUE;
-}
-
-/**********************************************************************
- * @brief   删除从设备定时器
- * @param   psMBDev   从设备状态  
- * @return	none
- * @author  laoc
- * @date    2019.01.22
- *********************************************************************/
-void vMBMastersDevOfflineTmrDel(sMBSlaveDev* psMBDev)
-{
-    OS_ERR err = OS_ERR_NONE;
-    (void)OSTmrDel( &(psMBDev->sDevOfflineTmr), &err);
-}
-
 
 /**********************************接口函数******************************************/
 

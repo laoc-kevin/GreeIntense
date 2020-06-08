@@ -293,9 +293,8 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
 
         ucRegWriteByteCount = *(pucFrame + MB_PDU_FUNC_READWRITE_BYTECNT_OFF);
 
-        if( (usRegReadCount >= 1) && (usRegReadCount <= 0x7D) &&
-            (usRegWriteCount >= 1) && (usRegWriteCount <= 0x79) &&
-            ((2 * usRegWriteCount) == ucRegWriteByteCount) )
+        if( (usRegReadCount >= 1) && (usRegReadCount <= 0x7D) &&(usRegWriteCount >= 1) && (usRegWriteCount <= 0x79) &&
+            (2*usRegWriteCount  == ucRegWriteByteCount) )
         {
             /* Make callback to update the register values. */
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_READWRITE_WRITE_VALUES_OFF,
@@ -375,149 +374,150 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if( (usAddress >= REG_HOLDING_START) && (usAddress + usNRegs <= REG_HOLDING_END) )
+    if( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs > REG_HOLDING_END) )
     {
-        iRegIndex = usAddress;
-        switch (eMode)
+        return  MB_ENOREG;
+    }
+    
+    iRegIndex = usAddress;
+    switch (eMode)
+    {
+    /* read current register values from the protocol stack. */
+    case MB_REG_READ:
+        while (usNRegs > 0)
         {
-        /* read current register values from the protocol stack. */
-        case MB_REG_READ:
-            while (usNRegs > 0)
+            (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue);
+    
+            if(pvRegHoldValue->ucAccessMode == WO)
             {
-                (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue);
-			
-				if( (pvRegHoldValue != NULL) && (pvRegHoldValue->ucAccessMode != WO) )                        
-				{	
-					/* 根据数据类型进行指针转换，需要特别注意，转错会导致数值异常*/
-					if (pvRegHoldValue->ucDataType == uint16)   
-					{
-						usRegHoldValue = (USHORT)(*(USHORT*)pvRegHoldValue->pvValue );
-					}
-					else if(pvRegHoldValue->ucDataType == uint8)
-					{
-						usRegHoldValue = (USHORT)(*(UCHAR*)pvRegHoldValue->pvValue );
-					}
-					else if(pvRegHoldValue->ucDataType == int16)
-					{
-						usRegHoldValue = (USHORT)(*(SHORT*)pvRegHoldValue->pvValue );
-					}
-					else if(pvRegHoldValue->ucDataType == int8)
-					{
-						usRegHoldValue = (USHORT)(*(int8_t*)pvRegHoldValue->pvValue );
-					}
+                return MB_ENOREG;
+            }
+            if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL))                        
+            {	
+                /* 根据数据类型进行指针转换，需要特别注意，转错会导致数值异常*/
+                if (pvRegHoldValue->ucDataType == uint16)   
+                {
+                	usRegHoldValue = (USHORT)(*(USHORT*)pvRegHoldValue->pvValue);
+                }
+                else if(pvRegHoldValue->ucDataType == uint8)
+                {
+                	usRegHoldValue = (USHORT)(*(UCHAR*)pvRegHoldValue->pvValue);
+                }
+                else if(pvRegHoldValue->ucDataType == int16)
+                {
+                	usRegHoldValue = (USHORT)(*(SHORT*)pvRegHoldValue->pvValue);
+                }
+                else if(pvRegHoldValue->ucDataType == int8)
+                {
+                	usRegHoldValue = (USHORT)(*(int8_t*)pvRegHoldValue->pvValue);
+                }
                     
-					if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1) )
-                    {
-                        usRegHoldValue *=  pvRegHoldValue->fTransmitMultiple;
-                    }                        
-					*pucRegBuffer++ = (UCHAR)(usRegHoldValue >> 8);
-					*pucRegBuffer++ = (UCHAR)(usRegHoldValue & 0xFF);
-				}
-				else
-				{
-			        eStatus = MB_ENOREG;
-				    return eStatus;
-				}
-				iRegIndex++;
-				usNRegs--;
+                if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1) )
+                {
+                    usRegHoldValue *=  pvRegHoldValue->fTransmitMultiple;
+                }                        
+                *pucRegBuffer++ = (UCHAR)(usRegHoldValue >> 8);
+            	*pucRegBuffer++ = (UCHAR)(usRegHoldValue & 0xFF);
             }
-            break;
-
-        /* write current register values with new values from the protocol stack. */
-        case MB_REG_WRITE:
-     		while(usNRegs > 0)
+            else
             {
-				(void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue); //扫描保持寄存器字典，取对应的点
-				
-				usRegHoldValue  =((LONG)(*pucRegBuffer++)) << 8;
-			    usRegHoldValue |=((LONG)(*pucRegBuffer++)) & 0xFF;
-				
-				if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != RO))
-				{
-					if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1))
-				    {
-				    	usRegHoldValue /= pvRegHoldValue->fTransmitMultiple;
-				    }
-					
-					if (pvRegHoldValue->ucDataType == uint16)
-					{
-						if( (usRegHoldValue >= pvRegHoldValue->lMinVal ) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )	
-						{		
-							if ( usRegHoldValue != *(USHORT*)pvRegHoldValue->pvValue ) //更新数据
-							{
-								*(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;	
-							}		
-						}
-						else
-						{
-							eStatus = MB_EINVAL;
-							return eStatus;
-						}		
-					}
-					else if(pvRegHoldValue->ucDataType == uint8)
-					{				
-					    if( (usRegHoldValue >= pvRegHoldValue->lMinVal ) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )
-						{
-							if(usRegHoldValue != *(UCHAR*)pvRegHoldValue->pvValue)
-							{
-								*(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;					
-							}							
-						}
-						else
-						{
-							eStatus = MB_EINVAL;
-							return eStatus;
-						}
-					}
-					else if (pvRegHoldValue->ucDataType == int16)
-					{
-						sRegHoldValue = (SHORT)usRegHoldValue;
-						 if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
-						{		
-							if(sRegHoldValue != *(SHORT*)pvRegHoldValue->pvValue)
-							{
-								*(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;							
-							}		
-						}
-						else
-						{
-							eStatus = MB_EINVAL;
-							return eStatus;
-						}		
-					}
-					else if(pvRegHoldValue->ucDataType == int8)
-					{	
-                         cRegHoldValue = (int8_t)usRegHoldValue;						
-					    if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )	
-						{
-							if(cRegHoldValue != *(int8_t*)pvRegHoldValue->pvValue)
-							{
-								*(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;				
-							}					
-						}
-						else
-						{
-							eStatus = MB_EINVAL;
-							return eStatus;
-						}
-					}	
-				}
-				else
-				{
-					eStatus = MB_ENOREG;
-				    return eStatus;
-				}
-				iRegIndex++;
-                usNRegs--;
+                *pucRegBuffer++ = 0;
+            	*pucRegBuffer++ = 0;
             }
-            break;
-		default: break;
+            iRegIndex++;
+            usNRegs--;
+            }
+    break;
+    
+    /* write current register values with new values from the protocol stack. */
+    case MB_REG_WRITE:
+        while(usNRegs > 0)
+        {
+            (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue); //扫描保持寄存器字典，取对应的点
+            
+            if(pvRegHoldValue->ucAccessMode == RO)
+            {
+                return MB_ENOREG;
+            }
+            usRegHoldValue  =((LONG)(*pucRegBuffer++)) << 8;
+            usRegHoldValue |=((LONG)(*pucRegBuffer++)) & 0xFF;
+            
+            if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) )
+            {
+                if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1))
+                {
+                    usRegHoldValue /= pvRegHoldValue->fTransmitMultiple;
+                }
+                if (pvRegHoldValue->ucDataType == uint16)
+                {
+                    if( (usRegHoldValue >= pvRegHoldValue->lMinVal ) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )	
+                    {		
+                        if ( usRegHoldValue != *(USHORT*)pvRegHoldValue->pvValue ) //更新数据
+                        {
+                            *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;	
+                        }	
+                    }
+                    else
+                    {
+                        return MB_EINVAL;
+                    }		
+                }
+                else if(pvRegHoldValue->ucDataType == uint8)
+                {				
+                    if( (usRegHoldValue >= pvRegHoldValue->lMinVal) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )
+                	 {
+                	 	 if(usRegHoldValue != *(UCHAR*)pvRegHoldValue->pvValue)
+                	 	 {
+                            *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;					
+                	 	 }							
+                	 }
+                	 else
+                	 {
+                	     return MB_EINVAL;
+                	 }
+                }
+                else if (pvRegHoldValue->ucDataType == int16)
+                {
+                    sRegHoldValue = (SHORT)usRegHoldValue;
+                    if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
+                    {		
+                        if(sRegHoldValue != *(SHORT*)pvRegHoldValue->pvValue)
+                        {
+                            *(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;							
+                        }		
+                    }
+                    else
+                    {
+                    	return MB_EINVAL;
+                    }		
+                }
+                else if(pvRegHoldValue->ucDataType == int8)
+                {	
+                    cRegHoldValue = (int8_t)usRegHoldValue;						
+                    if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )	
+                    {
+                        if(cRegHoldValue != *(int8_t*)pvRegHoldValue->pvValue)
+                        {
+                            *(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;				
+                        }					
+                    }
+                    else
+                    {
+                        return MB_EINVAL;
+                    }
+                }	
+            }
+            else
+            {
+                break; 
+            }
+            iRegIndex++;
+            usNRegs--;
         }
+    break;
+	default: break;
     }
-    else
-    {
-        eStatus = MB_ENOREG;
-    }
+    
     return eStatus;
 }
 

@@ -283,6 +283,8 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;	
 
+    sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
+    
 	(void)OSSemPend(&psMBPort->sMBWaitFinishSem, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
 	(void)OSSemSet(&psMBPort->sMBWaitFinishSem, 0, &err);
     
@@ -313,7 +315,9 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         	break;
 		}
 	}
-	psMBPort->xWaitFinishInQueue = FALSE; 
+	psMBPort->xWaitFinishInQueue = FALSE;
+
+//    (void)OSTaskQPost(&psMBMasterInfo->sMBTask.sMasterScanTCB, NULL, 0, OS_OPT_POST_ALL, &err);    
     (void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);
     
     return eErrStatus;

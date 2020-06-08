@@ -8,8 +8,8 @@
 /*************************************************************
 *                         BMS接口                            *
 **************************************************************/
-static BMS* psBMS = NULL;
-static BMS  BMSCore;
+BMS* psBMS = NULL;
+BMS  BMSCore;
 
 /*通讯映射函数*/
 BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
@@ -309,14 +309,14 @@ BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
 void vBMS_InitBMSCommData(BMS* pt)
 {
     BMS*    pThis   = (BMS*)pt;
-    System* pSystem = (System*)System_Core;
+    System* pSystem = (System*)System_Core();
      
 SLAVE_PBUF_INDEX_ALLOC()    
     
 SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable) 
     
     SLAVE_REG_HOLD_DATA(0,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usUnitID)
-    SLAVE_REG_HOLD_DATA(1,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usProtocolVer)
+    SLAVE_REG_HOLD_DATA(1,  uint16,    0,  65535, WO, 1, (void*)&pSystem->usProtocolVer)
     SLAVE_REG_HOLD_DATA(2,  uint16,    0,      3, RW, 1, (void*)&pThis->eSystemMode)
     SLAVE_REG_HOLD_DATA(3,  uint16,    0,      4, RW, 1, (void*)&pThis->eRunningMode)
     SLAVE_REG_HOLD_DATA(4,  uint16,    0,      7, RO, 1, (void*)&pSystem->eSystemState) 
@@ -690,7 +690,7 @@ void vBMS_Init(BMS* pt)
 }
 
 CTOR(BMS)   //BMS构造函数
-    FUNCTION_SETTING(init, vBMS_Init);
+  
 END_CTOR
 
 BMS* BMS_Core()
@@ -698,9 +698,9 @@ BMS* BMS_Core()
     if(psBMS == NULL)
     {
         psBMS = (BMS*)&BMSCore;
-        if(psBMS == NULL)
+        if(psBMS != NULL)
         {
-            psBMS->init(psBMS);
+            vBMS_Init(psBMS);
         }
     }
     return psBMS;

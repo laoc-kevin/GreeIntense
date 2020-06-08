@@ -79,10 +79,9 @@ BOOL xMBSlavePortSerialInit(sMBSlavePort* psMBPort)
     return bInitialized;
 }
 
-BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
+BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte)
 {
-//	UCHAR h;
-//	UCHAR l;
+	UCHAR h, l;
     
 	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
@@ -90,7 +89,7 @@ BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
 //	l=ucByte % 16 ;	
 //	h= (h<10)? h+48: h+87;
 //	l= (l<10)? l+48: l+87;	
-	
+//	
 //    myprintf("TX:%c%c\n", h,l);
 	
 	UART_SendByte(psMBSlaveUart->ID, ucByte);
@@ -99,18 +98,17 @@ BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte )
 
 BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 {
-//	UCHAR h;
-//	UCHAR l;
-	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
+	UCHAR h, l;
     
+	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
 	
-//	h=(* pucByte )>> 4 ;
-//	l=(* pucByte ) % 16 ;	
-//	h= (h<10)? h+48: h+87;
-//	l= (l<10)? l+48: l+87;	
+	h=(* pucByte )>> 4 ;
+	l=(* pucByte ) % 16 ;	
+	h= (h<10)? h+48: h+87;
+	l= (l<10)? l+48: l+87;	
 	
-//    myprintf("RX:%c%c\n", h,l);
+    myprintf("RX:%c%c\n", h,l);
     return TRUE;
 }
 
@@ -121,9 +119,9 @@ BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
  * a new character can be sent. The protocol stack will then call 
  * xMBPortSerialPutByte( ) to send the character.
  */
-void prvvSlaveUARTTxReadyISR(const CHAR* pcMBPortName)
+void prvvSlaveUARTTxReadyISR(const sMBSlavePort* psMBPort)
 {
-    sMBSlaveInfo* psMBSlaveInfo = psMBSlaveFindNodeByPort(pcMBPortName);
+    sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
     if(psMBSlaveInfo != NULL)
     {
         (void)pxMBSlaveFrameCBTransmitterEmptyCur(psMBSlaveInfo);
@@ -136,10 +134,9 @@ void prvvSlaveUARTTxReadyISR(const CHAR* pcMBPortName)
  * protocol stack will then call xMBPortSerialGetByte( ) to retrieve the
  * character.
  */
-void prvvSlaveUARTRxISR(const CHAR* pcMBPortName)
+void prvvSlaveUARTRxISR(const sMBSlavePort* psMBPort)
 {
-    sMBSlaveInfo* psMBSlaveInfo = psMBSlaveFindNodeByPort(pcMBPortName);
-    
+    sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
     if(psMBSlaveInfo != NULL)
     {
         (void)pxMBSlaveFrameCBByteReceivedCur(psMBSlaveInfo);

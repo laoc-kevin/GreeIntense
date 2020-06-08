@@ -62,9 +62,7 @@ void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
 void vModularRoof_InitDefaultData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
-    
-    void* p = (void*)&pThis->eRunningMode;
-    
+   
     DATA_INIT(pThis->eSwitchCmd,  CMD_CLOSE)
     
     DATA_INIT(pThis->usCoolTempSet, 260)
@@ -80,7 +78,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     
     DATA_INIT(pThis->xErrClean,   1)
     
-    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode);
+//    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode);
     
 }
 

@@ -37,7 +37,6 @@
 #include "mbframe.h"
 #include "mbdict_m.h"
 
-
 #ifdef __cplusplus
 PR_BEGIN_EXTERN_C
 #endif
@@ -82,6 +81,7 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_HEART_BEAT_TASK_STK_SIZE  160
 
 #define MB_MASTER_WAITING_DELAY             80    //主栈等待响应时间
+#define MB_MASTER_HEART_BEAT_DELAY_MS       50   //心跳延时
 
 /* ----------------------- Type definitions ---------------------------------*/
 
@@ -152,9 +152,9 @@ typedef  void (*pvDTUScanDev)(void* p_arg);
 
 typedef struct sMBMasterInfo  /* master information */
 {
-    sMBMasterPort       sMBPort;                   //主栈硬件接口信息
-	sMBMasterDevsInfo   sMBDevsInfo;               //主栈从设备信息
-	sMBMasterTask       sMBTask;                   //主栈状态机任务信息
+    sMBMasterPort        sMBPort;                   //主栈硬件接口信息
+	sMBMasterDevsInfo    sMBDevsInfo;               //主栈从设备信息
+	sMBMasterTask        sMBTask;                   //主栈状态机任务信息
     
     USHORT  RegHoldValueList[MB_PDU_SIZE_MAX];
     USHORT* pRegHoldPreValueList[MB_PDU_SIZE_MAX];
@@ -564,11 +564,11 @@ BOOL xMBMasterRemoveDev(sMBMasterInfo* psMBMasterInfo, UCHAR Address);
  *! \ingroup modbus
  *\brief These functions are for Modbus Master slave device timer
  *************************************************************************/
-BOOL xMBMasterInitDevTimer( sMBSlaveDev* psMBDev, USHORT usTimerSec); 
+BOOL xMBMasterInitDevTimer(sMBSlaveDev* psMBDev, USHORT usTimerSec); 
  
-void vMBMastersDevOfflineTmrEnable( sMBSlaveDev* psMBDev);
+void vMBMasterDevOfflineTmrEnable(sMBSlaveDev* psMBDev);
 
-void vMBMastersDevOfflineTmrDel( sMBSlaveDev* psMBDev);
+void vMBMasterDevOfflineTmrDel(sMBSlaveDev* psMBDev);
 
 #ifdef __cplusplus
 PR_END_EXTERN_C

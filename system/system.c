@@ -17,14 +17,14 @@
 
 #define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;continue;}
 
-static System*  psSystem = NULL;
-static System   SystemCore;
+System*  psSystem = NULL;
+System   SystemCore;
 
-static OS_PRIO         SystemTaskPrio = 10;
-static CPU_STK_SIZE    SystemTaskStkSize = 128;
+OS_PRIO         SystemTaskPrio = 10;
+CPU_STK_SIZE    SystemTaskStkSize = 128;
 
-static OS_TCB*   psSystemTaskTCB = NULL;
-static CPU_STK*  psSystemTaskStk = NULL;
+OS_TCB*   psSystemTaskTCB = NULL;
+CPU_STK*  psSystemTaskStk = NULL;
 
 
 
@@ -343,8 +343,6 @@ void vSystem_Init(System* pt)
     vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
     vSystem_RegistEEPROMData(pThis);
 
-    CONNECT( &(BMS_Core()->sValChange), psSystemTaskTCB);  // 绑定BMS变量变化事件
- 
 #if MB_MASTER_DTU_ENABLED  > 0   //GPRS模块功能支持    
     psDTU = DTU_new(psDTU);
     if(psDTU != NULL)
@@ -369,57 +367,59 @@ void vSystem_Init(System* pt)
             CONNECT( &(pModularRoof->sValChange), psSystemTaskTCB);  //绑定主机变量变化事件     
         } 
     }
-//    /*********************排风风机*************************/
-//    for(n=0; n < EX_AIR_FAN_NUM; n++)
-//    {
-//        pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象        
-//        if(pExAirFan != NULL)
-//        {
-//            pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
-//            pThis->psExAirFanList[n] = pExAirFan; 
-//            
-//            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件  
-//        }     
-//    }
-//    /***********************CO2传感器***********************/
-//    for(n=0; n < CO2_SEN_NUM; n++)
-//    {
-//        pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
-//        if(pCO2Sensor != NULL)
-//        {
-//            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2); //向上转型，由子类转为父类
-//            pThis->psCO2SenList[n] = pCO2Sensor;
-//            
-//            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
-//        }
-//    }
-//    /***********************室外温湿度传感器***********************/
-//    for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
-//    {
-//        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
-//        if(pTempHumiSensor != NULL)
-//        {
-//            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT);
-//            pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
-//            
-//            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件 
-//        }          
-//    }
-//    /***********************室内温湿度传感器***********************/
-//    for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
-//    {
-//        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
-//        if(pTempHumiSensor != NULL)
-//        {
-//            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN);
-//            pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
-//            
-//            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
-//        }
-//    } 
-    vSystem_InitDefaultData(pThis);
+    /*********************排风风机*************************/
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象        
+        if(pExAirFan != NULL)
+        {
+            pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
+            pThis->psExAirFanList[n] = pExAirFan; 
+            
+            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件  
+        }     
+    }
+    /***********************CO2传感器***********************/
+    for(n=0; n < CO2_SEN_NUM; n++)
+    {
+        pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
+        if(pCO2Sensor != NULL)
+        {
+            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2); //向上转型，由子类转为父类
+            pThis->psCO2SenList[n] = pCO2Sensor;
+            
+            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
+        }
+    }
+    /***********************室外温湿度传感器***********************/
+    for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
+    {
+        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
+        if(pTempHumiSensor != NULL)
+        {
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT);
+            pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
+            
+            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件 
+        }          
+    }
+    /***********************室内温湿度传感器***********************/
+    for(n=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
+    {
+        pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
+        if(pTempHumiSensor != NULL)
+        {
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN);
+            pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
+            
+            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
+        }
+    } 
     
     (void)xSystem_CreatePollTask(pThis);
+    CONNECT( &(BMS_Core()->sValChange), psSystemTaskTCB);  // 绑定BMS变量变化事件
+    
+    vSystem_InitDefaultData(pThis);
     
 //    vReadEEPROMData();                 //同步记忆参数
 
@@ -443,9 +443,6 @@ void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE 
    
     System_Core();
 }
-
-uint8_t* p = NULL;
-uint16_t A,B,C,D;
 
 System* System_Core()
 {

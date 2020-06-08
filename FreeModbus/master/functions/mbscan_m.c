@@ -22,8 +22,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 	UCHAR n, iIndex, ucSlaveAddr;
     
 	OS_ERR err = OS_ERR_NONE;
-	CPU_TS  ts = 0;
-  
+
 	USHORT msReadInterval = MB_SCAN_SLAVE_INTERVAL_MS;
 
     eMBMasterReqErrCode   errorCode = MB_MRE_NO_ERR;
@@ -31,6 +30,8 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     
 	sMBMasterInfo*       psMBMasterInfo = (sMBMasterInfo*)p_arg;
     sMBMasterDevsInfo*   psMBDevsInfo   = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
+    sMBMasterPort*       psMBPort       = &psMBMasterInfo->sMBPort;
+    
     
     UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
@@ -92,22 +93,22 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 psMBSlaveDev->ucDevCurTestAddr++;
             }
         }
+        /*********************************轮询从设备***********************************/
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {    
-            /*********************************轮询从设备***********************************/
             if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
-                if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucRetryTimes == 0) ) //在线且不处于延时阶段
+                if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucOfflineTimes == 0) ) //在线且不处于延时阶段
                 {
-                    vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
+//                    vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
                 }
                 else if(psMBSlaveDev->xOnLine == FALSE)
                 {
                     pxDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
                 }
-                break;                
-            }
+                myprintf("vMBDevCurStateTest  %d  psMBSlaveDev->xOnLine %d\n", psMBSlaveDev->ucDevAddr, psMBSlaveDev->xOnLine);                 
+            }          
         }      
 	}
 }
@@ -198,7 +199,7 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
-    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
+//    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, ucSlaveAddr); //读保持寄存器 							
@@ -230,7 +231,7 @@ void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr
     OS_ERR err = OS_ERR_NONE;
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
-    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
+//    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);	//写保持寄存器 									
@@ -975,13 +976,13 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
 	
         if( pDiscreteValue->usAddr != (iLastAddr + 1) )     //地址不连续，则发送读请求
 		{
-			if( iCount > 0)
+			if(iCount > 0)
 			{
 				eStatus = eMBMasterReqReadDiscreteInputs(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
                 iCount = 0;
 				iStartAddr = pDiscreteValue->usAddr;
 			}
-			if( pDiscreteValue->ucAccessMode != WO )
+			if(pDiscreteValue->ucAccessMode != WO)
 			{
 				iCount++;
 				iStartAddr = pDiscreteValue->usAddr;
@@ -989,11 +990,11 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
 		}
 		else
 		{
-			if(	iCount == 0 )
+			if(iCount == 0)
 			{
 				iStartAddr = pDiscreteValue->usAddr;
 			}	
-			if( pDiscreteValue->ucAccessMode != WO )
+			if(pDiscreteValue->ucAccessMode != WO)
 			{
 				iCount++;
 			}	
@@ -1004,7 +1005,7 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
              iCount = 0;
              iStartAddr = pDiscreteValue->usAddr;
 		}	
-		if( iCount / 8 >= MB_PDU_SIZE_MAX / 2)                      //数据超过Modbus数据帧最大字节数，则发送读请求
+		if(iCount / 8 >= MB_PDU_SIZE_MAX / 2)                      //数据超过Modbus数据帧最大字节数，则发送读请求
 		{
 			eStatus = eMBMasterReqReadDiscreteInputs(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
 			iCount = 1;

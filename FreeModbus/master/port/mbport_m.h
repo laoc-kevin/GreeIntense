@@ -6,6 +6,7 @@ PR_BEGIN_EXTERN_C
 #endif
 
 #include "port.h"
+//#include "mb_m.h"
 
 /*! \ingroup modbus
  *  \brief TimerMode is Master 3 kind of Timer modes.
@@ -41,23 +42,25 @@ typedef enum
 
 typedef struct                                /* 主栈接口定义  */
 {
-	const sUART_Def* psMBMasterUart;               //主栈通讯串口结构
-	
-	OS_TMR sMasterPortTmr;                        //主栈3.5字符间隔定时器
-    OS_TMR sConvertDelayTmr;                      //主栈转换延时定时器
-    OS_TMR sRespondTimeoutTmr;                    //主栈等待响应定时器
-	
-	eMBMasterEventType  eQueuedEvent;             //主栈事件
-	eMBMasterTimerMode  eCurTimerMode;            //当前定时器模式
-	
-    OS_SEM sMBIdleSem;                            //主栈空闲消息量
-	OS_SEM sMBEventSem;                           //主栈事件消息量
-    OS_SEM sMBWaitFinishSem;                      //主栈等待消息量
-	
-    BOOL   xEventInQueue;                         //主栈有新事件
-    BOOL   xWaitFinishInQueue;                    //主栈有新错误事件
+	const sUART_Def* psMBMasterUart;              //主栈接口通讯串口结构
+	                                                   
+	OS_TMR sMasterPortTmr;                        //主栈接口3.5字符间隔定时器
+    OS_TMR sConvertDelayTmr;                      //主栈接口转换延时定时器
+    OS_TMR sRespondTimeoutTmr;                    //主栈接口等待响应定时器
+	                                                 
+	eMBMasterEventType  eQueuedEvent;             //主栈接口事件
+	eMBMasterTimerMode  eCurTimerMode;            //当前接口定时器模式
+	   
+    OS_SEM sMBIdleSem;                            //主栈接口空闲消息量                    
+	OS_SEM sMBEventSem;                           //主栈接口事件消息量
+    OS_SEM sMBWaitFinishSem;                      //主栈接口等待消息量
+	                                               
+    BOOL   xEventInQueue;                         //主栈接口有新事件
+    BOOL   xWaitFinishInQueue;                    //主栈接口有新错误事件
 	
     const  CHAR* pcMBPortName;                    //主栈接口名称
+    
+    struct sMBMasterInfo* psMBMasterInfo;         //所属的主栈  
 }sMBMasterPort;
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0 
@@ -77,9 +80,9 @@ INLINE BOOL xMBMasterPortSerialGetByte( const sMBMasterPort* psMBPort, CHAR * pu
 
 INLINE BOOL xMBMasterPortSerialPutByte( sMBMasterPort* psMBPort, CHAR ucByte );
 
-void prvvMasterUARTTxReadyISR( const CHAR* pcMBPortName );
+void prvvMasterUARTTxReadyISR(const sMBMasterPort* psMBPort);
 
-void prvvMasterUARTRxISR( const CHAR* pcMBPortName );
+void prvvMasterUARTRxISR(const sMBMasterPort* psMBPort);
 
 
 /* -----------------------Master Serial port event functions ----------------------------*/

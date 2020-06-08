@@ -434,27 +434,27 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
 		    ucFunctionCode = *(ucMBFrame + MB_PDU_FUNC_OFF);              //提取功能码
             eException = MB_EX_ILLEGAL_FUNCTION;
 		
-            for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ )
+            for(i = 0; i < MB_FUNC_HANDLERS_MAX; i++)
             {
                 /* No more function handlers registered. Abort. */
                 if( xFuncHandlers[i].ucFunctionCode == 0 )
                 {
                     break;
                 }
-                else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode )
+                else if(xFuncHandlers[i].ucFunctionCode == ucFunctionCode)
                 {
-                    eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength ); //该结构体将功能码和相应功能的处理函数捆绑在一起。 
+                    eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength); //该结构体将功能码和相应功能的处理函数捆绑在一起。 
                     break;                                                            
                 }
             }
             /*若不是广播命令，则需要发出响应。*/
             if( ucRcvAddress != MB_ADDRESS_BROADCAST )     
             {
-                if( eException != MB_EX_NONE )
+                if(eException != MB_EX_NONE)
                 {
                     /*发生异常，建立一个错误报告帧*/
                     usLength = 0;
-                    *(ucMBFrame + (usLength++)) = (UCHAR)( ucFunctionCode | MB_FUNC_ERROR );    //响应发送数据帧的第二个字节，功能码最高位置1
+                    *(ucMBFrame + (usLength++)) = (UCHAR)(ucFunctionCode | MB_FUNC_ERROR);    //响应发送数据帧的第二个字节，功能码最高位置1
                     *(ucMBFrame + (usLength++)) = eException;                                   //响应发送数据帧的第三个字节为错误码标识
                 }
                  /* eMBRTUSend()进行必要的发送预设后，禁用RX，使能TX。发送操作由USART_DATA（UDR空）中断实现。*/			
@@ -537,6 +537,7 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
         psMBPort = (sMBSlavePort*)(&psMBSlaveInfo->sMBPort);
         if(psMBPort != NULL)
         {
+            psMBPort->psMBSlaveInfo = psMBSlaveInfo;
             psMBPort->psMBSlaveUart = psSlaveNode->psSlaveUart;
             psMBPort->pcMBPortName  = psSlaveNode->pcMBPortName;
         }
