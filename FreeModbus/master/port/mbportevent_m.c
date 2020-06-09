@@ -325,14 +325,22 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
 
 /**********************************************************************
  * @brief  返回modbus主栈最新的事件
- * @param  eEvent  当前事件
- * @return BOOL   
- * @author laoc
- * @date 2019.01.22
  *********************************************************************/
 eMBMasterEventType xMBMasterPortCurrentEvent( const sMBMasterPort* psMBPort )
 {
 	return psMBPort->eQueuedEvent;       	
 }
 
+/**********************************************************************
+ * @brief modbus主栈互锁
+ *********************************************************************/
+void vMBMasterPortLock(sMBMasterPort* psMBPort)
+{
+    OS_ERR err = OS_ERR_NONE;
+    
+	(void)OSSemPend(&psMBPort->sMBIdleSem, 0, OS_OPT_PEND_BLOCKING, NULL, &err);
+    (void)OSSemSet(&psMBPort->sMBIdleSem, 0, &err);
+    (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);       	
+}
+         
 #endif

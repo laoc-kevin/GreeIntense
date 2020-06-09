@@ -336,12 +336,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddr(psMBMasterInfo)) )
 			{
                 psMBMasterInfo->pucMasterPDUCur = ucMBFrame;
-				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_EXECUTE );
+				(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_EXECUTE);
 			}
 			else
 			{
 				vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_RECEIVE_DATA);
-				(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_PROCESS );
+				(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_ERROR_PROCESS);
 			}
             
             if(pvMBMasterReceiveCallback != NULL)

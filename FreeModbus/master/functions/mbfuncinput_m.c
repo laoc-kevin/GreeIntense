@@ -100,14 +100,8 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo,
 		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		 
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-        
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        
-        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT && xHeartBeatTest == FALSE) //如果处于心跳模式
-        {
-            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-        }
-#endif 		
+        vMBMasterPortLock(psMBPort);
+ 		
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
@@ -221,89 +215,80 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
 
     /* it already plus one in modbus function method. */
     usAddress--;
-
-    if ( (usAddress >= REG_INPUT_START) && (usAddress + usNRegs <= REG_INPUT_END) )
-    {
-        iRegIndex = usAddress;
-        
-        while (usNRegs > 0)
-        {
-		    (void)eMBMasterRegInMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegInValue);    //扫描字典
-			
-			usRegInValue = ( (USHORT)(*pucRegBuffer++) ) << 8;
-			usRegInValue |=( (USHORT)(*pucRegBuffer++) ) & 0xFF;
-
-		    if( (pvRegInValue != NULL) && (pvRegInValue->pvValue != NULL) && (pvRegInValue->ucAccessMode != WO) )
-			{
-			    if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1))
-			    {
-			    	usRegInValue = (USHORT)((float)usRegInValue / (float)pvRegInValue->fTransmitMultiple);      //传输因子
-			    }
-				
-				if (pvRegInValue->ucDataType == uint16)
-				{
-					if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
-					{
-						*(USHORT*)pvRegInValue->pvValue  = (USHORT)usRegInValue;
-					}
-					else
-					{
-						eStatus = MB_EINVAL;
-						return eStatus;
-					}								
-				}
-				else if(pvRegInValue->ucDataType == uint8)
-				{			
-					if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
-					{
-						*(UCHAR*)pvRegInValue->pvValue = (UCHAR)usRegInValue;
-					}
-					else
-					{
-						eStatus = MB_EINVAL;
-						return eStatus;
-					}	
-				}
-				else if(pvRegInValue->ucDataType == int16)
-				{	
-					sRegInValue = (SHORT)usRegInValue;
-					if( ( usRegInValue >= (SHORT)pvRegInValue->lMinVal) && ( usRegInValue <= (SHORT)pvRegInValue->lMaxVal) )
-					{		
-						*(SHORT*)pvRegInValue->pvValue = (SHORT)sRegInValue ;			   
-					}
-					else
-					{
-						eStatus = MB_EINVAL;
-						return eStatus;
-					}	
-				}
-                else if(pvRegInValue->ucDataType == int8)
-				{	
-                    cRegInValue = (int8_t)usRegInValue;
-					
-					if( (cRegInValue >= (int8_t)pvRegInValue->lMinVal) && (cRegInValue <= (int8_t)pvRegInValue->lMaxVal) )
-					{		
-						*(CHAR*)pvRegInValue->pvValue = (int8_t)cRegInValue;				   
-					}
-					else
-					{
-						eStatus = MB_EINVAL;
-						return eStatus;
-					}	
-				}
-			}
-			else
-			{
-				eStatus = MB_ENOREG;
-				return eStatus;
-			}	
-            iRegIndex++;
-            usNRegs--;
-        }
-    }
-    else
-    {
+    if( (usAddress < REG_INPUT_START) || (usAddress + usNRegs -1 > REG_INPUT_END) )
+    { 
         eStatus = MB_ENOREG;
+    }
+
+    iRegIndex = usAddress;
+    while (usNRegs > 0)
+    {
+        (void)eMBMasterRegInMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegInValue);    //扫描字典
+    	
+    	usRegInValue = ( (USHORT)(*pucRegBuffer++) ) << 8;
+    	usRegInValue |=( (USHORT)(*pucRegBuffer++) ) & 0xFF;
+    
+        if( (pvRegInValue != NULL) && (pvRegInValue->pvValue != NULL) && (pvRegInValue->ucAccessMode != WO) )
+    	{
+    	    if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1))
+    	    {
+    	    	usRegInValue = (USHORT)((float)usRegInValue / (float)pvRegInValue->fTransmitMultiple);      //传输因子
+    	    }
+    		
+    		if (pvRegInValue->ucDataType == uint16)
+    		{
+    			if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
+    			{
+    				*(USHORT*)pvRegInValue->pvValue  = (USHORT)usRegInValue;
+    			}
+    			else
+    			{
+    				return MB_EINVAL;
+    			}								
+    		}
+    		else if(pvRegInValue->ucDataType == uint8)
+    		{			
+    			if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
+    			{
+    				*(UCHAR*)pvRegInValue->pvValue = (UCHAR)usRegInValue;
+    			}
+    			else
+    			{
+    				return MB_EINVAL;
+    			}	
+    		}
+    		else if(pvRegInValue->ucDataType == int16)
+    		{	
+    			sRegInValue = (SHORT)usRegInValue;
+    			if( ( usRegInValue >= (SHORT)pvRegInValue->lMinVal) && ( usRegInValue <= (SHORT)pvRegInValue->lMaxVal) )
+    			{		
+    				*(SHORT*)pvRegInValue->pvValue = (SHORT)sRegInValue ;			   
+    			}
+    			else
+    			{
+    				return MB_EINVAL;
+    			}	
+    		}
+            else if(pvRegInValue->ucDataType == int8)
+    		{	
+                cRegInValue = (int8_t)usRegInValue;
+    			
+    			if( (cRegInValue >= (int8_t)pvRegInValue->lMinVal) && (cRegInValue <= (int8_t)pvRegInValue->lMaxVal) )
+    			{		
+    				*(CHAR*)pvRegInValue->pvValue = (int8_t)cRegInValue;				   
+    			}
+    			else
+    			{
+    				return MB_EINVAL;
+    			}	
+    		}
+    	}
+    	else
+    	{
+    		return MB_ENOREG;
+    	}	
+        iRegIndex++;
+        usNRegs--;
     }
     return eStatus;
 }

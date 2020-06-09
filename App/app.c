@@ -279,7 +279,7 @@ static  void  AppTaskCreate (void)
 #endif
 
 #if SYSTEM_MONITOR_TASK_EN >0    //系统数据监控功能
-    vEventInit(&SystemMonitorTaskTCB, SYSTEM_MONITOR_TASK_PRIO, SystemMonitorTaskStk, SYSTEM_MONITOR_TASK_STK_SIZE);
+    vMonitorInit(&SystemMonitorTaskTCB, SYSTEM_MONITOR_TASK_PRIO, SystemMonitorTaskStk, SYSTEM_MONITOR_TASK_STK_SIZE);
 #endif
 
 #if MB_SLAVE_TASK_EN > 0         //Modbus RS485 从栈功能 
@@ -306,7 +306,7 @@ static  void  AppTaskCreate (void)
     AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE)
 #endif
 
-     myprintf("Data_Process\n");
+    myprintf("Main_Process\n");
                       
 	OS_CRITICAL_EXIT();              
 }

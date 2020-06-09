@@ -92,6 +92,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usCO2AdjustThr_V;         //CO2浓度调节阈值
     uint16_t      usCO2AdjustDeviat;        //CO2浓度调节偏差
     
+    BOOL          xCommErr;                 //通讯故障
     BOOL          xStopErrFlag;             //停整机故障标志
     BOOL          xErrClean;                //故障清除
     BOOL          xCO2SenErr;               //CO2传感器故障(群控下发)

@@ -46,7 +46,7 @@
 
 //结束数据表申请  
 #define SLAVE_END_DATA_BUF(usStartAddr, usEndAddr)\
-        vMBSlaveDevDataTableInit(psDataTable, &pvDataBuf, usStartAddr, \
+        vMBSlaveDevDataTableInit(psDataTable, (void*)pvDataBuf, usStartAddr, \
                                   usEndAddr, usIndex);     \
         usIndex = 0;     
 #endif

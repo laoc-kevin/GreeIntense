@@ -159,7 +159,7 @@ eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT u
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
+    if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete -1 <= DISCRETE_INPUT_END) )
     {
         /* read current coil values from the protocol stack. */ 
         eStatus = eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);

@@ -12,7 +12,7 @@ void vMeter_RegistMonitor(Meter* pt)
     
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
 
-    MONITOR(&pThis->usTotalEnergy_H, &pThis->sValChange)
+    MONITOR(&pThis->usTotalEnergy_H, uint16, &pThis->sValChange)
 }
 
 /*电表EEPROM数据注册*/

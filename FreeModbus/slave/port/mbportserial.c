@@ -103,12 +103,12 @@ BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
 	
-	h=(* pucByte )>> 4 ;
-	l=(* pucByte ) % 16 ;	
-	h= (h<10)? h+48: h+87;
-	l= (l<10)? l+48: l+87;	
-	
-    myprintf("RX:%c%c\n", h,l);
+//	h=(* pucByte )>> 4 ;
+//	l=(* pucByte ) % 16 ;	
+//	h= (h<10)? h+48: h+87;
+//	l= (l<10)? l+48: l+87;	
+//	
+//    myprintf("RX:%c%c\n", h,l);
     return TRUE;
 }
 

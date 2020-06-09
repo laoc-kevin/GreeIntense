@@ -20,16 +20,16 @@ BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
     {
         switch(usAddr)
         {
-            case 0  :  i =  0 ;  break;
-            case 1  :  i =  1 ;  break;
-            case 2  :  i =  2 ;  break;
-            case 3  :  i =  3 ;  break;
-            case 4  :  i =  4 ;  break;
-            case 11 :  i =  5 ;  break;
-            case 12 :  i =  6 ;  break;
-            case 13 :  i =  7 ;  break;
-            case 14 :  i =  8 ;  break;
-            case 15 :  i =  9 ;  break;
+            case 0	:  i = 0  ;  break;
+            case 1	:  i = 1  ;  break;
+            case 2	:  i = 2  ;  break;
+            case 3	:  i = 3  ;  break;
+            case 4	:  i = 4  ;  break;
+            case 11	:  i = 5  ;  break;
+            case 12	:  i = 6  ;  break;
+            case 13	:  i = 7  ;  break;
+            case 14	:  i = 8  ;  break;
+            case 15	:  i = 9  ;  break;
             case 17	:  i = 10 ;  break;
             case 18	:  i = 11 ;  break;
             case 19	:  i = 12 ;  break;
@@ -63,103 +63,104 @@ BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
             case 67	:  i = 40 ;  break;
             case 68	:  i = 41 ;  break;
             case 69	:  i = 42 ;  break;
-            case 76	:  i = 43 ;  break;
-            case 77	:  i = 44 ;  break;
-            case 78	:  i = 45 ;  break;
-            case 79	:  i = 46 ;  break;
-            case 80	:  i = 47 ;  break;
-            case 81	:  i = 48 ;  break;
-            case 93	:  i = 49 ;  break;
-            case 94	:  i = 50 ;  break;
-            case 95	:  i = 51 ;  break;
-            case 96	:  i = 52 ;  break;
-            case 97	:  i = 53 ;  break;
-            case 98	:  i = 54 ;  break;
-            case 99	:  i = 55 ;  break;
-            case 113:  i = 56 ;  break;
-            case 114:  i = 57 ;  break;
-            case 115:  i = 58 ;  break;
-            case 116:  i = 59 ;  break;
-            case 117:  i = 60 ;  break;
-            case 118:  i = 61 ;  break;
-            case 119:  i = 62 ;  break;
-            case 120:  i = 63 ;  break;
-            case 121:  i = 64 ;  break;
-            case 122:  i = 65 ;  break;
-            case 124:  i = 66 ;  break;
-            case 125:  i = 67 ;  break;
-            case 126:  i = 68 ;  break;
-            case 127:  i = 69 ;  break;
-            case 128:  i = 70 ;  break;
-            case 129:  i = 71 ;  break;
-            case 130:  i = 72 ;  break;
-            case 131:  i = 73 ;  break;
-            case 132:  i = 74 ;  break;
-            case 133:  i = 75 ;  break;
-            case 134:  i = 76 ;  break;
-            case 135:  i = 77 ;  break;
-            case 145:  i = 78 ;  break;
-            case 146:  i = 79 ;  break;
-            case 147:  i = 80 ;  break;
-            case 148:  i = 81 ;  break;
-            case 149:  i = 82 ;  break;
-            case 150:  i = 83 ;  break;
-            case 151:  i = 84 ;  break;
-            case 152:  i = 85 ;  break;
-            case 153:  i = 86 ;  break;
-            case 154:  i = 87 ;  break;
-            case 156:  i = 88 ;  break;
-            case 157:  i = 89 ;  break;
-            case 158:  i = 90 ;  break;
-            case 159:  i = 91 ;  break;
-            case 160:  i = 92 ;  break;
-            case 161:  i = 93 ;  break;
-            case 162:  i = 94 ;  break;
-            case 163:  i = 95 ;  break;
-            case 164:  i = 96 ;  break;
-            case 165:  i = 97 ;  break;
-            case 166:  i = 98 ;  break;
-            case 167:  i = 99 ;  break;
-            case 179:  i = 100;  break;
-            case 181:  i = 101;  break;
-            case 191:  i = 102;  break;
-            case 201:  i = 103;  break;
-            case 211:  i = 104;  break;
-            case 235:  i = 105;  break;
-            case 236:  i = 106;  break;
-            case 237:  i = 107;  break;
-            case 241:  i = 108;  break;
-            case 242:  i = 109;  break;
-            case 250:  i = 110;  break;
-            case 251:  i = 111;  break;
-            case 252:  i = 112;  break;
-            case 253:  i = 113;  break;
-            case 254:  i = 114;  break;
-            case 255:  i = 115;  break;
-            case 256:  i = 116;  break;
-            case 257:  i = 117;  break;
-            case 258:  i = 118;  break;
-            case 259:  i = 119;  break;
-            case 260:  i = 120;  break;
-            case 261:  i = 121;  break;
-            case 268:  i = 122;  break;
-            case 269:  i = 123;  break;
-            case 270:  i = 124;  break;
-            case 271:  i = 125;  break;
-            case 272:  i = 126;  break;
-            case 273:  i = 127;  break;
-            case 274:  i = 128;  break;
-            case 275:  i = 129;  break;
-            case 276:  i = 130;  break;
-            case 277:  i = 131;  break;
-            case 278:  i = 132;  break;
-            case 279:  i = 133;  break;
-            case 286:  i = 134;  break;
-            case 287:  i = 135;  break;
-            case 288:  i = 136;  break;
-            case 305:  i = 137;  break;
-            case 306:  i = 138;  break;
-            case 307:  i = 139;  break;
+            case 75	:  i = 43 ;  break;
+            case 76	:  i = 44 ;  break;
+            case 77	:  i = 45 ;  break;
+            case 78	:  i = 46 ;  break;
+            case 79	:  i = 47 ;  break;
+            case 80	:  i = 48 ;  break;
+            case 81	:  i = 49 ;  break;
+            case 93	:  i = 50 ;  break;
+            case 94	:  i = 51 ;  break;
+            case 95	:  i = 52 ;  break;
+            case 96	:  i = 53 ;  break;
+            case 97	:  i = 54 ;  break;
+            case 98	:  i = 55 ;  break;
+            case 99	:  i = 56 ;  break;
+            case 113:  i = 57 ;  break;
+            case 114:  i = 58 ;  break;
+            case 115:  i = 59 ;  break;
+            case 116:  i = 60 ;  break;
+            case 117:  i = 61 ;  break;
+            case 118:  i = 62 ;  break;
+            case 119:  i = 63 ;  break;
+            case 120:  i = 64 ;  break;
+            case 121:  i = 65 ;  break;
+            case 122:  i = 66 ;  break;
+            case 124:  i = 67 ;  break;
+            case 125:  i = 68 ;  break;
+            case 126:  i = 69 ;  break;
+            case 127:  i = 70 ;  break;
+            case 128:  i = 71 ;  break;
+            case 129:  i = 72 ;  break;
+            case 130:  i = 73 ;  break;
+            case 131:  i = 74 ;  break;
+            case 132:  i = 75 ;  break;
+            case 133:  i = 76 ;  break;
+            case 134:  i = 77 ;  break;
+            case 135:  i = 78 ;  break;
+            case 145:  i = 79 ;  break;
+            case 146:  i = 80 ;  break;
+            case 147:  i = 81 ;  break;
+            case 148:  i = 82 ;  break;
+            case 149:  i = 83 ;  break;
+            case 150:  i = 84 ;  break;
+            case 151:  i = 85 ;  break;
+            case 152:  i = 86 ;  break;
+            case 153:  i = 87 ;  break;
+            case 154:  i = 88 ;  break;
+            case 156:  i = 89 ;  break;
+            case 157:  i = 90 ;  break;
+            case 158:  i = 91 ;  break;
+            case 159:  i = 92 ;  break;
+            case 160:  i = 93 ;  break;
+            case 161:  i = 94 ;  break;
+            case 162:  i = 95 ;  break;
+            case 163:  i = 96 ;  break;
+            case 164:  i = 97 ;  break;
+            case 165:  i = 98 ;  break;
+            case 166:  i = 99 ;  break;
+            case 167:  i = 100;  break;
+            case 179:  i = 101;  break;
+            case 181:  i = 102;  break;
+            case 191:  i = 103;  break;
+            case 201:  i = 104;  break;
+            case 211:  i = 105;  break;
+            case 235:  i = 106;  break;
+            case 236:  i = 107;  break;
+            case 237:  i = 108;  break;
+            case 241:  i = 109;  break;
+            case 242:  i = 110;  break;
+            case 250:  i = 111;  break;
+            case 251:  i = 112;  break;
+            case 252:  i = 113;  break;
+            case 253:  i = 114;  break;
+            case 254:  i = 115;  break;
+            case 255:  i = 116;  break;
+            case 256:  i = 117;  break;
+            case 257:  i = 118;  break;
+            case 258:  i = 119;  break;
+            case 259:  i = 120;  break;
+            case 260:  i = 121;  break;
+            case 261:  i = 122;  break;
+            case 268:  i = 123;  break;
+            case 269:  i = 124;  break;
+            case 270:  i = 125;  break;
+            case 271:  i = 126;  break;
+            case 272:  i = 127;  break;
+            case 273:  i = 128;  break;
+            case 274:  i = 129;  break;
+            case 275:  i = 130;  break;
+            case 276:  i = 131;  break;
+            case 277:  i = 132;  break;
+            case 278:  i = 133;  break;
+            case 279:  i = 134;  break;
+            case 286:  i = 135;  break;
+            case 287:  i = 136;  break;
+            case 288:  i = 137;  break;
+            case 305:  i = 138;  break;
+            case 306:  i = 139;  break;
+            case 307:  i = 140;  break;
 
             default:
     	    	return FALSE;
@@ -311,20 +312,22 @@ void vBMS_InitBMSCommData(BMS* pt)
     BMS*    pThis   = (BMS*)pt;
     System* pSystem = (System*)System_Core();
      
+    void* p =NULL;
+    
 SLAVE_PBUF_INDEX_ALLOC()    
     
-SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable) 
+SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable) 
     
     SLAVE_REG_HOLD_DATA(0,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usUnitID)
-    SLAVE_REG_HOLD_DATA(1,  uint16,    0,  65535, WO, 1, (void*)&pSystem->usProtocolVer)
+    SLAVE_REG_HOLD_DATA(1,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usProtocolVer)
     SLAVE_REG_HOLD_DATA(2,  uint16,    0,      3, RW, 1, (void*)&pThis->eSystemMode)
     SLAVE_REG_HOLD_DATA(3,  uint16,    0,      4, RW, 1, (void*)&pThis->eRunningMode)
     SLAVE_REG_HOLD_DATA(4,  uint16,    0,      7, RO, 1, (void*)&pSystem->eSystemState) 
         
     SLAVE_REG_HOLD_DATA(11,  int16,   -2,     56, RW, 1, (void*)&pSystem->sChickenGrowDays)  
     SLAVE_REG_HOLD_DATA(12,  int16, -300,    450, RW, 1, (void*)&pThis->sTempSet)   
-    SLAVE_REG_HOLD_DATA(13, uint16,    0,      1, RW, 1, (void*)&pThis->usFreAirSet_Vol_H)
-    SLAVE_REG_HOLD_DATA(14, uint16,    0,  64464, RW, 1, (void*)&pThis->usFreAirSet_Vol_L)
+    SLAVE_REG_HOLD_DATA(13, uint16,    0,  64464, RW, 1, (void*)&pThis->usFreAirSet_Vol_L)
+    SLAVE_REG_HOLD_DATA(14, uint16,    0,      1, RW, 1, (void*)&pThis->usFreAirSet_Vol_H)
     SLAVE_REG_HOLD_DATA(15, uint16,    0,    450, RW, 1, (void*)&pSystem->usEnergyTemp)
         
     SLAVE_REG_HOLD_DATA(17, uint16,    0,    550, RW, 1, (void*)&pSystem->usSupAirMax_T)     
@@ -338,11 +341,11 @@ SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTabl
     SLAVE_REG_HOLD_DATA(32, uint16,    0,   3500, RW, 1, (void*)&pSystem->usCO2ExAirDeviat_2)
     SLAVE_REG_HOLD_DATA(33, uint16,    0,   3500, RW, 1, (void*)&pSystem->usCO2PPMAlarm)
     SLAVE_REG_HOLD_DATA(37, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanFreq) 
-        
+     
     SLAVE_REG_HOLD_DATA(38, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanMinFreq)     
     SLAVE_REG_HOLD_DATA(39, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanMaxFreq)  
-    SLAVE_REG_HOLD_DATA(40, uint16,    0,      1, RW, 1, (void*)&pThis->usExAirFanRated_Vol_H)    
-    SLAVE_REG_HOLD_DATA(41, uint16,    0,  34464, RW, 1, (void*)&pThis->usExAirFanRated_Vol_L)  
+    SLAVE_REG_HOLD_DATA(40, uint16,    0,  34464, RW, 1, (void*)&pThis->usExAirFanRated_Vol_L)    
+    SLAVE_REG_HOLD_DATA(41, uint16,    0,      1, RW, 1, (void*)&pThis->usExAirFanRated_Vol_H)  
     SLAVE_REG_HOLD_DATA(42, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanCtrlPeriod)
         
     SLAVE_REG_HOLD_DATA(43, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanRunTimeLeast)
@@ -366,127 +369,129 @@ SLAVE_BEGIN_DATA_BUF(pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTabl
     SLAVE_REG_HOLD_DATA(67, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangePeriod_4)
     SLAVE_REG_HOLD_DATA(68, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangePeriod_5) 
     SLAVE_REG_HOLD_DATA(69, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangePeriod_6)
-    SLAVE_REG_HOLD_DATA(76, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_1)    
-    SLAVE_REG_HOLD_DATA(77, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_2)
+    SLAVE_REG_HOLD_DATA(75, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_0)
+    SLAVE_REG_HOLD_DATA(76, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_1)
         
+    SLAVE_REG_HOLD_DATA(77, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_2)  
     SLAVE_REG_HOLD_DATA(78, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_3)                                                                      
     SLAVE_REG_HOLD_DATA(79, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_4)
     SLAVE_REG_HOLD_DATA(80, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_5) 
     SLAVE_REG_HOLD_DATA(81, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_6)
-    SLAVE_REG_HOLD_DATA(93, uint16,    0,      1, RO, 1, (void*)&pThis->usTotalFreAir_Vol_H) 
         
-    SLAVE_REG_HOLD_DATA(94, uint16,     0,            64464,        RO, 1, (void*)&pThis->usTotalFreAir_Vol_L)   
+    SLAVE_REG_HOLD_DATA(93, uint16,     0,            64464,        RO, 1, (void*)&pThis->usTotalFreAir_Vol_L)     
+    SLAVE_REG_HOLD_DATA(94, uint16,     0,            1,            RO, 1, (void*)&pThis->usTotalFreAir_Vol_H)   
     SLAVE_REG_HOLD_DATA(95, uint16,     MIN_CO2_PPM,  MAX_CO2_PPM,  RO, 1, (void*)&pSystem->usCO2PPM) 
     SLAVE_REG_HOLD_DATA(96,  int16,     MIN_IN_TEMP,  MAX_IN_TEMP,  RO, 1, (void*)&pSystem->sAmbientIn_T) 
     SLAVE_REG_HOLD_DATA(97,  int16,     MIN_OUT_TEMP, MAX_OUT_TEMP, RO, 1, (void*)&pSystem->sAmbientOut_T)
-    SLAVE_REG_HOLD_DATA(98, uint16,     MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H) 
         
-    SLAVE_REG_HOLD_DATA(99,  uint16,    0,    100, RO, 1, (void*)&pSystem->usAmbientOut_H)  
-    SLAVE_REG_HOLD_DATA(113, uint16,    0,  65535, RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
-    SLAVE_REG_HOLD_DATA(114, uint16,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
-    SLAVE_REG_HOLD_DATA(115, uint16,    0,      3, RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
-    SLAVE_REG_HOLD_DATA(116, uint16,    0,   5000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCO2PPMSelf)
+    SLAVE_REG_HOLD_DATA(98, uint16,     MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
+    SLAVE_REG_HOLD_DATA(99,  uint16,    0,              100,        RO, 1, (void*)&pSystem->usAmbientOut_H)  
+    SLAVE_REG_HOLD_DATA(113, uint16,    0,            65535,        RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
+    SLAVE_REG_HOLD_DATA(114, uint16,    0,            65535,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
+    SLAVE_REG_HOLD_DATA(115, uint16,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
         
+    SLAVE_REG_HOLD_DATA(116, uint16,    0,   5000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCO2PPMSelf)     
     SLAVE_REG_HOLD_DATA(117,  int16, -200,   1400, RO, 1, (void*)&pSystem->psModularRoofList[0]->sRetAir_T)   
     SLAVE_REG_HOLD_DATA(118,  int16, -200,   1400, RO, 1, (void*)&pSystem->psModularRoofList[0]->sSupAir_T)
     SLAVE_REG_HOLD_DATA(119, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usRetAir_Vol)    
-    SLAVE_REG_HOLD_DATA(120, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usSupAir_Vol)   
-    SLAVE_REG_HOLD_DATA(121, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAir_Vol) 
+    SLAVE_REG_HOLD_DATA(120, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usSupAir_Vol)
         
+    SLAVE_REG_HOLD_DATA(121, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAir_Vol)   
     SLAVE_REG_HOLD_DATA(122, uint16,    0,  65000, RW, 1, (void*)&pSystem->psModularRoofList[0]->usFreAirSet_Vol)
     SLAVE_REG_HOLD_DATA(124, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAirDamper_Ang)
     SLAVE_REG_HOLD_DATA(125, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCoolTempSet) 
     SLAVE_REG_HOLD_DATA(126, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[0]->usHeatTempSet) 
-    SLAVE_REG_HOLD_DATA(127,  int16, -400,    700, RO, 1, (void*)&pSystem->psModularRoofList[0]->sAmbientInSelf_T)
         
+    SLAVE_REG_HOLD_DATA(127,  int16, -400,    700, RO, 1, (void*)&pSystem->psModularRoofList[0]->sAmbientInSelf_T)   
     SLAVE_REG_HOLD_DATA(128,  int16, -400,    700, RO, 1, (void*)&pSystem->psModularRoofList[0]->sAmbientOutSelf_T)        
     SLAVE_REG_HOLD_DATA(129, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[0]->usAmbientInSelf_H) 
     SLAVE_REG_HOLD_DATA(130, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[0]->usAmbientOutSelf_H) 
     SLAVE_REG_HOLD_DATA(131,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->ucModularState)
-    SLAVE_REG_HOLD_DATA(132,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->ucModularState)
         
+    SLAVE_REG_HOLD_DATA(132,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->ucModularState)   
     SLAVE_REG_HOLD_DATA(133,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(134,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->ucModularState)
     SLAVE_REG_HOLD_DATA(135,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
     SLAVE_REG_HOLD_DATA(145, uint16,    0,  65535, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
-    SLAVE_REG_HOLD_DATA(146, uint16,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode) 
         
+    SLAVE_REG_HOLD_DATA(146, uint16,    0, 65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
     SLAVE_REG_HOLD_DATA(147, uint16,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
     SLAVE_REG_HOLD_DATA(148, uint16,    0,  5000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCO2PPMSelf)                                                                                      
     SLAVE_REG_HOLD_DATA(149,  int16, -200,  1400, RO, 1, (void*)&pSystem->psModularRoofList[1]->sRetAir_T)   
     SLAVE_REG_HOLD_DATA(150,  int16, -200,  1400, RO, 1, (void*)&pSystem->psModularRoofList[1]->sSupAir_T)
-    SLAVE_REG_HOLD_DATA(151, uint16,    0, 65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usRetAir_Vol) 
         
+    SLAVE_REG_HOLD_DATA(151, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usRetAir_Vol)       
     SLAVE_REG_HOLD_DATA(152, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usSupAir_Vol)   
     SLAVE_REG_HOLD_DATA(153, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usFreAir_Vol)                                                                                        
     SLAVE_REG_HOLD_DATA(154, uint16,    0,  65000, RW, 1, (void*)&pSystem->psModularRoofList[1]->usFreAirSet_Vol)
     SLAVE_REG_HOLD_DATA(156, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[1]->usFreAirDamper_Ang)
-    SLAVE_REG_HOLD_DATA(157, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCoolTempSet) 
         
+    SLAVE_REG_HOLD_DATA(157, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCoolTempSet) 
     SLAVE_REG_HOLD_DATA(158, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[1]->usHeatTempSet) 
     SLAVE_REG_HOLD_DATA(159,  int16, -400,    700, RO, 1, (void*)&pSystem->psModularRoofList[1]->sAmbientInSelf_T)                                                                                      
     SLAVE_REG_HOLD_DATA(160,  int16, -400,    700, RO, 1, (void*)&pSystem->psModularRoofList[1]->sAmbientOutSelf_T)        
     SLAVE_REG_HOLD_DATA(161, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[1]->usAmbientInSelf_H) 
-    SLAVE_REG_HOLD_DATA(162, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[1]->usAmbientOutSelf_H) 
         
+    SLAVE_REG_HOLD_DATA(162, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[1]->usAmbientOutSelf_H) 
     SLAVE_REG_HOLD_DATA(163,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->ucModularState)
     SLAVE_REG_HOLD_DATA(164,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->ucModularState)                                                                                        
     SLAVE_REG_HOLD_DATA(165,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(166,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->ucModularState)
+        
     SLAVE_REG_HOLD_DATA(167,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->Device.usRunTime_H)   
-
     SLAVE_REG_HOLD_DATA(179, uint16,    0,    500, RO, 1, (void*)&pSystem->pExAirFanVariate->usRunningFreq); 
     SLAVE_REG_HOLD_DATA(181, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[0]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(191, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[1]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(201, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[2]->Device.usRunTime_H);
-    SLAVE_REG_HOLD_DATA(211, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[3]->Device.usRunTime_H);
-
+    
+    SLAVE_REG_HOLD_DATA(211, uint16, 0,            65535,        RO, 1, (void*)&pSystem->psExAirFanList[3]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(235, uint16, MIN_CO2_PPM,  MAX_CO2_PPM,  RO, 1, (void*)&pSystem->psCO2SenList[0]->usAvgCO2PPM) 
     SLAVE_REG_HOLD_DATA(236, uint16, MIN_CO2_PPM,  MAX_CO2_PPM,  RO, 1, (void*)&pSystem->psCO2SenList[1]->usAvgCO2PPM)  
     SLAVE_REG_HOLD_DATA(237, uint16, MIN_CO2_PPM,  MAX_CO2_PPM,  RO, 1, (void*)&pSystem->psCO2SenList[2]->usAvgCO2PPM)
-    SLAVE_REG_HOLD_DATA(241,  int16, MIN_OUT_TEMP, MAX_OUT_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenOutList[0]->sAvgTemp) 
-    SLAVE_REG_HOLD_DATA(242, uint16, MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->psTempHumiSenOutList[0]->usAvgHumi)     
-    
+    SLAVE_REG_HOLD_DATA(241,  int16, MIN_OUT_TEMP, MAX_OUT_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenOutList[0]->sAvgTemp)
+        
+    SLAVE_REG_HOLD_DATA(242, uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenOutList[0]->usAvgHumi)     
     SLAVE_REG_HOLD_DATA(250,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[0]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(251,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[1]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(252,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[2]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(253,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[3]->sAvgTemp)
-    SLAVE_REG_HOLD_DATA(254,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[4]->sAvgTemp)    
-                              
+        
+    SLAVE_REG_HOLD_DATA(254,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[4]->sAvgTemp)                           
     SLAVE_REG_HOLD_DATA(255,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[5]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(256,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[6]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(257,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[7]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(258,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[8]->sAvgTemp)
-    SLAVE_REG_HOLD_DATA(259,  int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[9]->sAvgTemp)
-                              
+        
+    SLAVE_REG_HOLD_DATA(259,   int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[9]->sAvgTemp)                           
     SLAVE_REG_HOLD_DATA(260,   int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[10]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(261,   int16, MIN_IN_TEMP, MAX_IN_TEMP, RO, 1, (void*)&pSystem->psTempHumiSenInList[11]->sAvgTemp)
     SLAVE_REG_HOLD_DATA(268,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[0]->usAvgHumi)    
     SLAVE_REG_HOLD_DATA(269,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[1]->usAvgHumi) 
-    SLAVE_REG_HOLD_DATA(270,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[2]->usAvgHumi)
-                              
+        
+    SLAVE_REG_HOLD_DATA(270,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[2]->usAvgHumi)                      
     SLAVE_REG_HOLD_DATA(271,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[3]->usAvgHumi)    
     SLAVE_REG_HOLD_DATA(272,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[4]->usAvgHumi) 
     SLAVE_REG_HOLD_DATA(273,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[5]->usAvgHumi)
-    SLAVE_REG_HOLD_DATA(274,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[6]->usAvgHumi)    
-    SLAVE_REG_HOLD_DATA(275,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[7]->usAvgHumi)
-                              
+    SLAVE_REG_HOLD_DATA(274,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[6]->usAvgHumi) 
+        
+    SLAVE_REG_HOLD_DATA(275,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[7]->usAvgHumi)                         
     SLAVE_REG_HOLD_DATA(276,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[8]->usAvgHumi)
     SLAVE_REG_HOLD_DATA(277,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[9]->usAvgHumi)    
     SLAVE_REG_HOLD_DATA(278,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[10]->usAvgHumi) 
     SLAVE_REG_HOLD_DATA(279,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[11]->usAvgHumi)
-    SLAVE_REG_HOLD_DATA(286,  uint16, 0,           65535,       RO, 1, (void*)&pSystem->pUnitMeter->usPower)
-                              
-    SLAVE_REG_HOLD_DATA(287,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_H)
-    SLAVE_REG_HOLD_DATA(288,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_L)
+        
+    SLAVE_REG_HOLD_DATA(286,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usPower)                      
+    SLAVE_REG_HOLD_DATA(287,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_L)
+    SLAVE_REG_HOLD_DATA(288,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_H)
     SLAVE_REG_HOLD_DATA(305,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usPower)
-    SLAVE_REG_HOLD_DATA(306,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usTotalEnergy_H)
-    SLAVE_REG_HOLD_DATA(307,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usTotalEnergy_L)   
+    SLAVE_REG_HOLD_DATA(306,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usTotalEnergy_L)
+        
+    SLAVE_REG_HOLD_DATA(307,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usTotalEnergy_H)   
     
 SLAVE_END_DATA_BUF(0, 307)    
     
     /******************************线圈数据域*************************/ 
-SLAVE_BEGIN_DATA_BUF(pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
+SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     
     SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pSystem->xAlarmEnable) 
     SLAVE_COIL_BIT_DATA(16, RO, (void*)&pSystem->xTempSenInErr) 
@@ -498,7 +503,7 @@ SLAVE_BEGIN_DATA_BUF(pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     SLAVE_COIL_BIT_DATA(26, RO, (void*)&pSystem->psModularRoofList[0]->xStopErrFlag)
     SLAVE_COIL_BIT_DATA(27, RO, (void*)&pSystem->psModularRoofList[0]->Device.xErrFlag) 
     SLAVE_COIL_BIT_DATA(28, RO, (void*)&pSystem->psModularRoofList[0]->Device.xAlarmFlag)
-    SLAVE_COIL_BIT_DATA(29, RO, (void*)&pSystem->psModularRoofList[0]->sMBSlaveDev.xOnLine)
+    SLAVE_COIL_BIT_DATA(29, RO, (void*)&pSystem->psModularRoofList[0]->xCommErr)
     
     SLAVE_COIL_BIT_DATA(30, RO, (void*)&pSystem->psModularRoofList[0]->psSupAirFan->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(31, RO, (void*)&pSystem->psModularRoofList[0]->xSupAirDamperState)    
@@ -545,7 +550,7 @@ SLAVE_BEGIN_DATA_BUF(pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     SLAVE_COIL_BIT_DATA(90, RO, (void*)&pSystem->psModularRoofList[1]->xStopErrFlag)
     SLAVE_COIL_BIT_DATA(91, RO, (void*)&pSystem->psModularRoofList[1]->Device.xErrFlag) 
     SLAVE_COIL_BIT_DATA(92, RO, (void*)&pSystem->psModularRoofList[1]->Device.xAlarmFlag)
-    SLAVE_COIL_BIT_DATA(93, RO, (void*)&pSystem->psModularRoofList[1]->sMBSlaveDev.xOnLine)                                                            
+    SLAVE_COIL_BIT_DATA(93, RO, (void*)&pSystem->psModularRoofList[1]->xCommErr)                                                            
     SLAVE_COIL_BIT_DATA(94, RO, (void*)&pSystem->psModularRoofList[1]->psSupAirFan->Device.eRunningState)
         
     SLAVE_COIL_BIT_DATA(95,  RO, (void*)&pSystem->psModularRoofList[1]->xSupAirDamperState)    
@@ -638,9 +643,8 @@ SLAVE_BEGIN_DATA_BUF(pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     SLAVE_COIL_BIT_DATA(234, RO, (void*)&pSystem->psTempHumiSenInList[10]->xHumiSenErr)     
     SLAVE_COIL_BIT_DATA(235, RO, (void*)&pSystem->psTempHumiSenInList[11]->xHumiSenErr)   
         
-SLAVE_END_DATA_BUF(0, 235)    
-    
-
+SLAVE_END_DATA_BUF(0, 240)    
+   
     pThis->sBMSCommData.pxSlaveDataMapIndex = xBMS_DevDataMapIndex;         //绑定映射函数
     pThis->psBMSInfo->sMBCommInfo.psSlaveCurData = &pThis->sBMSCommData;
 }
@@ -653,32 +657,57 @@ void vBMS_MonitorRegist(BMS* pt)
 
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
-    MONITOR(&pThis->eSystemMode,  &pThis->sValChange)
-    MONITOR(&pThis->eRunningMode, &pThis->sValChange)
+    MONITOR(&pThis->eSystemMode,  uint8, &pThis->sValChange)
+    MONITOR(&pThis->eRunningMode, uint8, &pThis->sValChange)
     
-    MONITOR(&pThis->sTempSet,          &pThis->sValChange)
-    MONITOR(&pThis->usFreAirSet_Vol_H, &pThis->sValChange)
-    MONITOR(&pThis->usFreAirSet_Vol_L, &pThis->sValChange)
+    MONITOR(&pThis->sTempSet,           int16, &pThis->sValChange)
+    MONITOR(&pThis->usFreAirSet_Vol_H, uint16, &pThis->sValChange)
+    MONITOR(&pThis->usFreAirSet_Vol_L, uint16, &pThis->sValChange)
     
-    MONITOR(&pThis->ucExAirCoolRatio, &pThis->sValChange)
-    MONITOR(&pThis->ucExAirHeatRatio, &pThis->sValChange)
+    MONITOR(&pThis->ucExAirCoolRatio, uint8, &pThis->sValChange)
+    MONITOR(&pThis->ucExAirHeatRatio, uint8, &pThis->sValChange)
     
-    MONITOR(&pThis->usHumidityMin, &pThis->sValChange)
-    MONITOR(&pThis->usHumidityMax, &pThis->sValChange)
+    MONITOR(&pThis->usHumidityMin, uint16, &pThis->sValChange)
+    MONITOR(&pThis->usHumidityMax, uint16, &pThis->sValChange)
     
-    MONITOR(&pThis->usCO2AdjustThr_V,  &pThis->sValChange)
-    MONITOR(&pThis->usCO2AdjustDeviat, &pThis->sValChange)
+    MONITOR(&pThis->usCO2AdjustThr_V,  uint16, &pThis->sValChange)
+    MONITOR(&pThis->usCO2AdjustDeviat, uint16, &pThis->sValChange)
     
          
-    MONITOR(&pThis->usExAirFanFreq,    &pThis->sValChange) 
-    MONITOR(&pThis->usExAirFanMinFreq, &pThis->sValChange) 
-    MONITOR(&pThis->usExAirFanMaxFreq, &pThis->sValChange)
+    MONITOR(&pThis->usExAirFanFreq,    uint16, &pThis->sValChange) 
+    MONITOR(&pThis->usExAirFanMinFreq, uint16, &pThis->sValChange) 
+    MONITOR(&pThis->usExAirFanMaxFreq, uint16, &pThis->sValChange)
     
-    MONITOR(&pThis->usExAirFanRated_Vol_H, &pThis->sValChange) 
-    MONITOR(&pThis->usExAirFanRated_Vol_L, &pThis->sValChange)
+    MONITOR(&pThis->usExAirFanRated_Vol_H, uint16, &pThis->sValChange) 
+    MONITOR(&pThis->usExAirFanRated_Vol_L, uint16,&pThis->sValChange)
     
-    MONITOR(&pThis->eExAirFanType, &pThis->sValChange)
+    MONITOR(&pThis->eExAirFanType, uint8, &pThis->sValChange)
 }
+
+/*BMS数据默认值初始化*/
+void vBMS_InitDefaultData(BMS* pt)
+{
+    BMS*    pThis   = (BMS*)pt;
+    
+    DATA_INIT(pThis->eSystemMode, MODE_CLOSE)
+    DATA_INIT(pThis->usHumidityMin,     55)
+    DATA_INIT(pThis->usHumidityMax,     65) 
+    DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
+    DATA_INIT(pThis->usCO2AdjustDeviat, 270)
+
+    DATA_INIT(pThis->usExAirFanRated_Vol_H,  1)
+    DATA_INIT(pThis->usExAirFanRated_Vol_L,  36000)
+    DATA_INIT(pThis->usExAirFanMinFreq,      220)
+    DATA_INIT(pThis->usExAirFanMaxFreq,      500) 
+    DATA_INIT(pThis->eExAirFanType,           1)
+    
+    DATA_INIT(pThis->ucExAirCoolRatio,    90)
+    DATA_INIT(pThis->ucExAirHeatRatio,    90)
+    
+//    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
+}
+
+
 
 void vBMS_Init(BMS* pt)
 {
@@ -686,6 +715,7 @@ void vBMS_Init(BMS* pt)
     pThis->psBMSInfo = psMBGetSlaveInfo();
 
     vBMS_InitBMSCommData(pThis);
+    vBMS_InitDefaultData(pThis);
     vBMS_MonitorRegist(pThis);     
 }
 

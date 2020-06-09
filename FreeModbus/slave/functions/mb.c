@@ -48,6 +48,9 @@
 #include "md_led.h"
 #include "md_input.h"
 
+#include "system.h"
+#include "bms.h"
+
 #if MB_SLAVE_RTU_ENABLED == 1
 #include "mbrtu.h"
 #endif
@@ -455,7 +458,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
                     /*发生异常，建立一个错误报告帧*/
                     usLength = 0;
                     *(ucMBFrame + (usLength++)) = (UCHAR)(ucFunctionCode | MB_FUNC_ERROR);    //响应发送数据帧的第二个字节，功能码最高位置1
-                    *(ucMBFrame + (usLength++)) = eException;                                   //响应发送数据帧的第三个字节为错误码标识
+                    *(ucMBFrame + (usLength++)) = eException;                                 //响应发送数据帧的第三个字节为错误码标识
                 }
                  /* eMBRTUSend()进行必要的发送预设后，禁用RX，使能TX。发送操作由USART_DATA（UDR空）中断实现。*/			
                 eStatus = peMBSlaveFrameSendCur(psMBSlaveInfo, *(psMBCommInfo->pcSlaveAddr), ucMBFrame, usLength); //modbus从机响应函数,发送响应给主机
@@ -641,6 +644,9 @@ void vMBSlavePollTask(void *p_arg)
 {
 	OS_ERR err = OS_ERR_NONE;
     
+    System* pSystem = (System*)System_Core();
+    BMS* psBMS = BMS_Core();
+    
 	eMBErrorCode  eStatus       = MB_ENOERR;
     sMBSlaveInfo* psMBSlaveInfo = (sMBSlaveInfo*)p_arg;; 
     
@@ -654,7 +660,8 @@ void vMBSlavePollTask(void *p_arg)
 			{	
                 (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
 				(void)eMBSlavePoll(psMBSlaveInfo);
-                myprintf("vMBSlavePollTask\n");                   
+                
+//                myprintf("pSystem->ucExAirCoolRatio %d\n", pSystem->ucExAirCoolRatio);              
 			}
 		}			
 	}	

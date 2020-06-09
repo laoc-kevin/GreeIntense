@@ -78,8 +78,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     
     DATA_INIT(pThis->xErrClean,   1)
     
-//    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode);
-    
+//    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode); 
 }
 
 /*通讯映射函数*/
@@ -194,7 +193,7 @@ MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x30
 MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, MODULAR_HEART_BEAT_PERIOD_S, TRUE)  //心跳帧
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
+MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
     MASTER_REG_HOLD_DATA(0, uint16,   0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
     MASTER_REG_HOLD_DATA(2,  uint8,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
@@ -230,12 +229,10 @@ MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRe
     MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usSupAir_Vol)
     MASTER_REG_HOLD_DATA(55, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usRetAir_Vol)
 
-    
-    
 MASTER_END_DATA_BUF(0, 55)
     
     /******************************线圈数据域*************************/ 
-MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable) 
+MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable) 
     
     MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);
     MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
@@ -309,20 +306,20 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
 
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
-    MONITOR(&pThis->Device.eRunningState, &pThis->sValChange)
-    MONITOR(&pThis->sSupAir_T,            &pThis->sValChange)
-    MONITOR(&pThis->usFreAir_Vol,         &pThis->sValChange)
-                                          
-    MONITOR(&pThis->sAmbientInSelf_T,     &pThis->sValChange)
-    MONITOR(&pThis->usAmbientInSelf_H,    &pThis->sValChange)
-                                          
-    MONITOR(&pThis->sAmbientOutSelf_T,    &pThis->sValChange)
-    MONITOR(&pThis->usAmbientOutSelf_H,   &pThis->sValChange)
-                                          
-    MONITOR(&pThis->usCO2PPMSelf,         &pThis->sValChange)
-                                          
-    MONITOR(&pThis->xStopErrFlag,         &pThis->sValChange)
-    MONITOR(&pThis->sMBSlaveDev.xOnLine,  &pThis->sValChange)  
+    MONITOR(&pThis->Device.eRunningState,  uint8, &pThis->sValChange)
+    MONITOR(&pThis->sSupAir_T,             int16, &pThis->sValChange)
+    MONITOR(&pThis->usFreAir_Vol,         uint16, &pThis->sValChange)
+                                       
+    MONITOR(&pThis->sAmbientInSelf_T,      int16, &pThis->sValChange)
+    MONITOR(&pThis->usAmbientInSelf_H,    uint16, &pThis->sValChange)
+                                       
+    MONITOR(&pThis->sAmbientOutSelf_T,     int16, &pThis->sValChange)
+    MONITOR(&pThis->usAmbientOutSelf_H,   uint16, &pThis->sValChange)
+                                       
+    MONITOR(&pThis->usCO2PPMSelf,         uint16, &pThis->sValChange)
+                                        
+    MONITOR(&pThis->xStopErrFlag,          uint8, &pThis->sValChange)
+    MONITOR(&pThis->sMBSlaveDev.xOnLine,   int16, &pThis->sValChange)  
 }
 
 /*机组EEPROM数据注册*/

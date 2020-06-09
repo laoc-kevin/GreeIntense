@@ -52,7 +52,8 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
         pExAirFan->init(pExAirFan, &ExAirFanSet[0]);
         pThis->pExAirFanVariate = NULL;
     }  
-    pThis->eExAirFanType = eExAirFanType;   
+    pThis->eExAirFanType = eExAirFanType;
+    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d\n", pThis->eExAirFanType);    
 }
                                                                             
 /*系统内部消息轮询*/
@@ -77,7 +78,7 @@ void vSystem_PollTask(void *p_arg)
     
     while(DEF_TRUE)
 	{
-        sMsg* psMsg = (sMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
+        sEventMsg* psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
         myprintf("OSTaskQPend\n");
         
         /***********************BMS事件响应***********************/
@@ -323,7 +324,8 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usModeAdjustTemp_4, 15)
     DATA_INIT(pThis->usModeAdjustTemp_5, 15)
     DATA_INIT(pThis->usModeAdjustTemp_6, 15)
-
+    
+//     myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
 }
 
 /*系统初始化*/

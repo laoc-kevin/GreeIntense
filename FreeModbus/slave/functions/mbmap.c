@@ -19,7 +19,7 @@ eMBSlaveRegInMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegInAddr, sMBSlaveRegDat
     sMBSlaveCommData*            psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBRegInTable = &psCurData->sMBRegInTable;
 	
-    if(psCurData->pxSlaveDataMapIndex == NULL)
+    if(psCurData->pxSlaveDataMapIndex == NULL || psMBRegInTable == NULL || psMBRegInTable->pvDataBuf == NULL)
     {
          return MB_EILLSTATE;
     }
@@ -56,13 +56,13 @@ eMBSlaveRegHoldMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usRegHoldAddr, sMBSlaveRe
     sMBSlaveCommData*              psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBRegHoldTable = &psCurData->sMBRegHoldTable;
 
-    if(psCurData->pxSlaveDataMapIndex == NULL)
+    if(psCurData->pxSlaveDataMapIndex == NULL || psMBRegHoldTable == NULL || psMBRegHoldTable->pvDataBuf == NULL)
     {
          return MB_EILLSTATE;
     }
 	if(psCurData->pxSlaveDataMapIndex(RegHoldData, usRegHoldAddr, &usIndex))    //从栈字典映射函数
     {
-        *pvRegHoldValue = (sMBSlaveRegData*)psMBRegHoldTable->pvDataBuf + usIndex;
+        *pvRegHoldValue = (sMBSlaveRegData*)(psMBRegHoldTable->pvDataBuf) + usIndex;
     }
     else
     {
@@ -91,7 +91,7 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 	sMBSlaveCommData*           psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBCoilTable = &psCurData->sMBCoilTable;
     
-    if(psCurData->pxSlaveDataMapIndex == NULL)
+    if(psCurData->pxSlaveDataMapIndex == NULL || psMBCoilTable == NULL || psMBCoilTable->pvDataBuf == NULL)
     {
          return MB_EILLSTATE;
     }
@@ -128,7 +128,7 @@ eMBSlaveDiscreteMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usDiscreteAddr, sMBSlave
 	sMBSlaveCommData*             psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBDiscInTable = &psCurData->sMBDiscInTable;
     
-    if(psCurData->pxSlaveDataMapIndex == NULL)
+    if(psCurData->pxSlaveDataMapIndex == NULL || psMBDiscInTable == NULL || psMBDiscInTable->pvDataBuf == NULL)
     {
          return MB_EILLSTATE;
     }
@@ -163,7 +163,7 @@ eMBSlaveCPNMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCpnName, sMBSlaveCPNData** 
     sMBSlaveCommData*          psCurData  = psMBSlaveInfo->sMBCommInfo.psSlaveCurData;
 	const sMBSlaveDataTable* psMBCPNTable = &psCurData->sMBCPNTable;
     
-    if(psCurData->pxSlaveDataMapIndex == NULL)
+    if(psCurData->pxSlaveDataMapIndex == NULL || psMBCPNTable == NULL || psMBCPNTable->pvDataBuf == NULL)
     {
          return MB_EILLSTATE;
     }
@@ -194,7 +194,13 @@ void vMBSlaveRegDataInit(sMBSlaveRegData* pData, USHORT usAddr, UCHAR ucDataType
     pData->lMaxVal           = lMaxVal;                  
     pData->ucAccessMode      = ucAccessMode;        
     pData->fTransmitMultiple = fTransmitMultiple;
-    pData->pvValue           = pvValue;                  	
+    pData->pvValue           = pvValue;  
+
+//    if(usAddr == 37)
+//    {
+//        myprintf("pData %d  pData->pvValue %d \n",  pData, (uint16_t*)pvValue );
+//    }
+    
 }
 
 /***********************************************************************************

@@ -97,14 +97,9 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 		*(ucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = usNDiscreteIn;
         
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
+        vMBMasterPortLock(psMBPort);
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
-        {
-            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-        }
-#endif         
-		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );
+		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
     return eErrStatus;
@@ -217,7 +212,7 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete <= DISCRETE_INPUT_END) )
+    if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete -1 <= DISCRETE_INPUT_END) )
     {
 		eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
 	}   

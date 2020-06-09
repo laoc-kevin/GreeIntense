@@ -313,7 +313,7 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffe
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if( (usAddress >= COIL_START) && (usAddress + usNCoils <= COIL_END) )
+    if( (usAddress >= COIL_START) && (usAddress + usNCoils -1 <= COIL_END) )
     {
 		switch (eMode)
         {

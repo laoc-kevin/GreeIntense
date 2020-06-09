@@ -38,7 +38,7 @@ sMBMasterInfo     MBMasterInfo;         //主栈接口
 sMBSlaveInfo      MBSlaveInfo;          //从栈接口
 
 BOOL MBMasterLedState = 0;
-BOOL MBSlaveLedState  = 0;
+BOOL MBSlaveLedState  = 1;
 
 sUART_Def MBSlaveUart= { &Uart1Rx, &Uart1Tx, &Uart1DE, &Uart1Inv, UART_1,                /* 从栈串口设置 */
                          {9600, UART_PARITY_NONE, UART_DATABIT_8, UART_STOPBIT_1}        /* 默认串口配置 9600 8n1 */
@@ -84,7 +84,8 @@ void  vModbusMasterSendCallback(void* p_arg)
 ******************************************************************/
 void  vModbusSlaveReceiveCallback(void* p_arg)
 {
-    vLedOn(&LedModbus2);
+    vLedStateChange(&LedModbus2, MBSlaveLedState);
+    MBSlaveLedState = !MBSlaveLedState;
 } 
 
 /******************************************************************
@@ -92,7 +93,8 @@ void  vModbusSlaveReceiveCallback(void* p_arg)
 ******************************************************************/
 void  vModbusSlaveSendCallback(void* p_arg)  
 {
-    vLedOff(&LedModbus2);
+    vLedStateChange(&LedModbus2, MBSlaveLedState);
+    MBSlaveLedState = !MBSlaveLedState;
 } 
 
 /**********************************************************************

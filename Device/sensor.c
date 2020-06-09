@@ -3,6 +3,7 @@
 
 #define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
 #define SENSOR_TIME_OUT_S               1
+#define SENSOR_TIME_OUT_DELAY_S         60
 
 #define SENSOR_CO2_PROTOCOL_TYPE_ID     0
 #define SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID   0
@@ -33,10 +34,8 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensor
     
     pThis->eSensorType = eSensorType;
     
-    //传感器1s周期定时器
-    (void)xTimerRegist(&pThis->sSensorTmr, 0, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis);
-
-      
+    //传感器1s周期定时器,延时启动
+    (void)xTimerRegist(&pThis->sSensorTmr, SENSOR_TIME_OUT_DELAY_S, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis);   
 }
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数
@@ -146,8 +145,8 @@ void vCO2Sensor_RegistMonitor(Sensor* pt)
     
     OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
 
-    MONITOR(&pThis->usAvgCO2PPM, &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xCO2SenErr,   &pThis->Sensor.sValChange)
+    MONITOR(&pThis->usAvgCO2PPM, uint16, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xCO2SenErr,   uint8, &pThis->Sensor.sValChange)
 }
 
 CTOR(CO2Sensor)   //CO2传感器构造函数
@@ -208,12 +207,12 @@ MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
     if(pThis->eSensorType == TYPE_TEMP_HUMI_IN)  
     {
         MASTER_REG_HOLD_DATA(1, int16,  MIN_IN_TEMP, MAX_IN_TEMP, 0, RO, 0, (void*)&pTempHumiSen->sTemp)
-        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI, 0, RO, 0, (void*)&pTempHumiSen->usHumi)
+        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI,    0, RO, 0, (void*)&pTempHumiSen->usHumi)
     }        
     if(pThis->eSensorType == TYPE_TEMP_HUMI_OUT)  
     {
         MASTER_REG_HOLD_DATA(1, int16,  MIN_OUT_TEMP, MAX_OUT_TEMP, 0, RO, 0, (void*)&pTempHumiSen->sTemp)
-        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI, 0, RO, 0, (void*)&pTempHumiSen->usHumi)
+        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,     MAX_HUMI,     0, RO, 0, (void*)&pTempHumiSen->usHumi)
     }    
     MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
         
@@ -295,11 +294,11 @@ void vTempHumiSensor_MonitorRegist(Sensor* pt)
 
     OSSemCreate( &(pThis->Sensor.sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
-    MONITOR(&pThis->sAvgTemp,   &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xTempSenErr, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->sAvgTemp,    int16, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xTempSenErr, uint8, &pThis->Sensor.sValChange)
     
-    MONITOR(&pThis->usAvgHumi,  &pThis->Sensor.sValChange)
-    MONITOR(&pThis->xHumiSenErr, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->usAvgHumi,  uint16, &pThis->Sensor.sValChange)
+    MONITOR(&pThis->xHumiSenErr, uint8, &pThis->Sensor.sValChange)
 }
 
 CTOR(TempHumiSensor)   //温湿度传感器构造函数

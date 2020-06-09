@@ -68,6 +68,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         pThis->eSystemState = STATE_EMERGENCY;
     }
     pThis->eSystemMode = eSystemMode;
+    myprintf("vSystem_ChangeSystemMode %d\n", pThis->eSystemMode); 
 }
 
 /*设定系统目标温度值*/
@@ -86,6 +87,7 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet)
     }
     pThis->sTempSet = sTempSet;
     vSystem_ChangeUnitRunningMode(pThis);
+    myprintf("vSystem_SetTemp %d\n", pThis->sTempSet);
 }
 
 /*设定系统目标新风量*/
@@ -105,6 +107,8 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
+    
+    myprintf("vSystem_SetFreAir  usFreAirSet_Vol_L %d  usFreAirSet_Vol_H %d\n", usFreAirSet_Vol_L, usFreAirSet_Vol_H);
 }
 
 /*设定系统排风机额定风量*/
@@ -114,6 +118,8 @@ void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16
     System* pThis = (System*)pt;
     
     pThis->ulExAirFanRated_Vol = usExAirFanRated_Vol_H*65535 + usExAirFanRated_Vol_L;
+    
+    myprintf("vSystem_SetExAirFanRated  usExAirFanRated_Vol_L %d  usExAirFanRated_Vol_H %d\n", usExAirFanRated_Vol_L, usExAirFanRated_Vol_H);
 }
 
 /*设定系统湿度阈值*/
@@ -131,6 +137,8 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
     }
     pThis->usHumidityMin = usHumidityMin;
     pThis->usHumidityMax = usHumidityMax;
+    
+    myprintf("vSystem_SetHumidity  usHumidityMin %d  usHumidityMax %d\n", pThis->usHumidityMin, pThis->usHumidityMax);
 }
 
 /*设定系统目标CO2浓度值*/
@@ -146,6 +154,8 @@ void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2AdjustThr_V)
         pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
     }
     pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
+    
+    myprintf("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
 }
 
 /*设定系统CO2浓度偏差*/
@@ -161,6 +171,7 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
         pModularRoof->usCO2AdjustDeviat = usCO2AdjustDeviat;
     }
     pThis->usCO2AdjustDeviat = usCO2AdjustDeviat;
+    myprintf("vSystem_SetCO2AdjustDeviat  usCO2AdjustDeviat %d  \n", pThis->usCO2AdjustDeviat);
 }
 
 /*注册声光报警启停接口*/

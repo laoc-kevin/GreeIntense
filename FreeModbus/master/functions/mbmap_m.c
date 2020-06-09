@@ -32,7 +32,7 @@ eMBMasterReqErrCode eMBMasterRegInMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSnd
 		return MB_MRE_ILL_ARG;
 	}
     
-    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL)
+    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL || psMBRegInTable == NULL || psMBRegInTable->pvDataBuf == NULL)
     {
          return MB_MRE_EILLSTATE;
     }
@@ -78,7 +78,7 @@ eMBMasterReqErrCode eMBMasterRegHoldingMap(sMBMasterInfo* psMBMasterInfo, UCHAR 
 	{
 		return MB_MRE_ILL_ARG;
 	}
-    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL)
+    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL || psMBRegHoldTable == NULL || psMBRegHoldTable->pvDataBuf == NULL)
     {
          return MB_MRE_EILLSTATE;
     }
@@ -124,7 +124,7 @@ eMBMasterReqErrCode eMBMasterCoilMap(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndA
 	{
 		return MB_MRE_ILL_ARG;
 	}
-    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL)
+    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL || psMBCoilTable == NULL || psMBCoilTable->pvDataBuf == NULL)
     {
          return MB_MRE_EILLSTATE;
     }    
@@ -169,7 +169,7 @@ eMBMasterReqErrCode eMBMasterDiscreteMap(sMBMasterInfo* psMBMasterInfo, UCHAR uc
 	{
 		return MB_MRE_ILL_ARG;
 	}
-    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL)
+    if(psMBSlaveDevCur->psDevCurData->pxDevDataMapIndex == NULL || psMBDiscInTable == NULL || psMBDiscInTable->pvDataBuf == NULL)
     {
          return MB_MRE_EILLSTATE;
     }    

@@ -114,7 +114,8 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
         break;
         default:break;
     }        
-    pThis->eRunningMode = eRunMode; 
+    pThis->eRunningMode = eRunMode;
+    myprintf("vSystem_SetUnitRunningMode %d\n", pThis->eRunningMode);    
 }
 
 /*/调整机组运行模式*/
@@ -535,12 +536,17 @@ void vSystem_UnitErr(System* pt)
             pModularRoof->IDevSwitch.switchClose(SUPER_PTR(pModularRoof, IDevSwitch)); 
             ucStopErrNum++; 
         }
-        //(1)群控控制器与空调机组通讯故障        
+        //(1)空调机组在线    
         if(pModularRoof->sMBSlaveDev.xOnLine == TRUE) 
         {
             ucOnLineNum++;
-            pOnlineUnit = pModularRoof;            
-        }  
+            pOnlineUnit = pModularRoof;
+            pModularRoof->xCommErr = FALSE;            
+        }
+        else //(1)群控控制器与空调机组通讯故障    
+        {
+            pModularRoof->xCommErr = TRUE;
+        }            
     }
     if(ucOnLineNum != 0 && ucOnLineNum != MODULAR_ROOF_NUM ) //其中一台机组通讯故障
     {

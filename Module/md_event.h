@@ -20,7 +20,7 @@ typedef struct  /*消息结构封装*/
 {
     OS_SEM*        psSem; 
     void*          pvArg;     
-}sMsg;
+}sEventMsg;
 
 
 void vEventRegist(OS_SEM* psSem, OS_TCB* psTCB);

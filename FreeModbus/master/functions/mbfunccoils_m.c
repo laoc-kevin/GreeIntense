@@ -114,14 +114,9 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		*(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) = usNCoils;               //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
+        vMBMasterPortLock(psMBPort);
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
-        {
-            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-        }
-#endif 
-		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );     //主栈发送请求
+		(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );     //主栈发送请求
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                     //等待数据响应，会阻塞线程
     }
     return eErrStatus;
@@ -252,15 +247,10 @@ eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usMBBitData;                     //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
-        
-#if MB_MASTER_HEART_BEAT_ENABLED >0    
-        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
-        {
-            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-        }
-#endif 		
-		( void ) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );       //主栈发送请求
-		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                       //等待数据响应，会阻塞线程
+        vMBMasterPortLock(psMBPort);
+		
+		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);       //主栈发送请求
+		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                   //等待数据响应，会阻塞线程
     }
     return eErrStatus;
 }
@@ -390,14 +380,8 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
 			*ucMBFrame++ = (UCHAR)( *(pucDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
+        vMBMasterPortLock(psMBPort);
         
-#if MB_MASTER_HEART_BEAT_ENABLED >0  
-        
-        if(psMBMasterInfo->eMBRunMode == STATE_HEART_BEAT) //如果处于心跳模式
-        {
-            (void)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, NULL, NULL, &err);
-        }
-#endif           
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
  
@@ -513,7 +497,7 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if ((usAddress >= COIL_START) && (usAddress + usNCoils <= COIL_END))
+    if ((usAddress >= COIL_START) && (usAddress + usNCoils -1 <= COIL_END))
     {
 		 switch (eMode)
         {

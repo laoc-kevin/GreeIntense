@@ -157,7 +157,7 @@ eMBSlaveRegInputCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAd
 
     /* it already plus one in modbus function method. */
     usAddress--;
-    if( (usAddress < REG_INPUT_START) || (usAddress + usNRegs > REG_INPUT_END) )
+    if( (usAddress < REG_INPUT_START) || (usAddress + usNRegs -1 > REG_INPUT_END) )
     { 
         return MB_ENOREG;
     }

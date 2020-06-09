@@ -537,6 +537,8 @@ void vMBMasterSetErrorType( sMBMasterInfo* psMBMasterInfo, eMBMasterErrorEventTy
 eMBMasterEventType xMBMasterPortCurrentEvent( const sMBMasterPort* psMBPort );
 eMBMasterReqErrCode eMBMasterWaitRequestFinish( sMBMasterPort* psMBPort );
 
+void vMBMasterPortLock(sMBMasterPort* psMBPort);
+
 /************************************************************************! 
  *! \ingroup modbus
  *\brief These functions are register node for Modbus Master

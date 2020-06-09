@@ -44,6 +44,8 @@
 #include "mbdict.h"
 #include "mbmap.h"
 
+#include "system.h"
+
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 /* ----------------------- Defines ------------------------------------------*/
@@ -299,7 +301,6 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
             /* Make callback to update the register values. */
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_READWRITE_WRITE_VALUES_OFF,
                                               usRegWriteAddress, usRegWriteCount, MB_REG_WRITE);
-
             if(eRegStatus == MB_ENOERR)
             {
                 /* Set the current PDU data pointer to the beginning. */
@@ -374,7 +375,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     /* it already plus one in modbus function method. */
     usAddress--;
 
-    if( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs > REG_HOLDING_END) )
+    if( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs -1 > REG_HOLDING_END) )
     {
         return  MB_ENOREG;
     }
@@ -387,7 +388,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
         while (usNRegs > 0)
         {
             (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue);
-    
+      
             if(pvRegHoldValue->ucAccessMode == WO)
             {
                 return MB_ENOREG;
@@ -454,7 +455,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                     {		
                         if ( usRegHoldValue != *(USHORT*)pvRegHoldValue->pvValue ) //更新数据
                         {
-                            *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;	
+                            *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;	       
                         }	
                     }
                     else
@@ -517,7 +518,6 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     break;
 	default: break;
     }
-    
     return eStatus;
 }
 
