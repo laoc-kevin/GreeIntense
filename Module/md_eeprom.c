@@ -72,6 +72,7 @@
 #define E32_WRITE_INTV	        7200    //能耗统计uint32类型的参数记忆周期
 
 BOOL     EEPROMDataReady = FALSE;
+BOOL     EEPROMFirstRun  = TRUE; //主板第一次上电
 
 uint8_t  DataBufUint8Count = 0;
 uint8_t  DataBufInt8Count  = 0;
@@ -453,6 +454,39 @@ void vWriteEEPROMData(void)
 }
 
 /**********************************************************************
+* @brief  首次上电写EEPROM数据
+ *********************************************************************/
+void vWriteEEPROMDataFirstTime(void)
+{
+    OS_ERR err = OS_ERR_NONE;
+    
+    EEPROM_Write(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+      
+    EEPROM_Write(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+           
+    EEPROM_Write(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+
+    EEPROM_Write(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+
+    EEPROM_Write(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+
+    EEPROM_Write(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+
+    EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+
+    EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+}
+
+
+/**********************************************************************
  * @brief  注册EEPROM数据
  *********************************************************************/
 BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
@@ -471,6 +505,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_UINT_8 over\n");
                 return FALSE;
             }                
         break;
@@ -483,6 +518,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_INT_8 over\n");
                 return FALSE;
             }                
         break;
@@ -495,6 +531,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_UINT_16 over\n");
                 return FALSE;
             }                
         break;    
@@ -507,6 +544,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_INT_16 over\n");
                 return FALSE;
             }                
         break;            
@@ -519,6 +557,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_UINT_32 over\n");
                 return FALSE;
             }                
         break;    
@@ -531,6 +570,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_INT_32 over\n");
                 return FALSE;
             }                
         break; 
@@ -543,6 +583,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_RUNTIME over\n");
                 return FALSE;
             }                
         break; 
@@ -555,6 +596,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             }
             else
             {
+                myprintf("TYPE_E32 over\n");
                 return FALSE;
             }                
         break;               
@@ -571,8 +613,14 @@ void vEEPROMDataTask(void * p_arg)
     OS_ERR err = OS_ERR_NONE;
     
     EEPROM_Init(); 
-
     vReadEEPROMData();
+    
+//    if(EEPROMFirstRun == TRUE)//首次上电
+//    {
+//        EEPROMFirstRun = FALSE;
+//        vWriteEEPROMDataFirstTime();
+//    }
+    
     
     while(DEF_TRUE)
 	{
@@ -586,5 +634,6 @@ void vEEPROMDataTask(void * p_arg)
  *********************************************************************/
 void vEEPROMInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size)
 {
+     EEPROM_DATA(TYPE_UINT_8, EEPROMFirstRun);
      (void)eTaskCreate(p_tcb, vEEPROMDataTask, NULL, prio, p_stk_base, stk_size);
 }

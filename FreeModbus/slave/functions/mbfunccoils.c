@@ -161,10 +161,11 @@ eMBException
 eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
     USHORT          usRegAddress;
-    UCHAR           ucBuf[2];
-
+    
     eMBErrorCode    eRegStatus;
     eMBException    eStatus = MB_EX_NONE;
+    
+    UCHAR ucBuf[2] = {0};
     
     if( *usLen == ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
@@ -178,7 +179,7 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
             ucBuf[1] = 0;
             if( *(pucFrame + MB_PDU_FUNC_WRITE_VALUE_OFF) == 0xFF )
             {
-                ucBuf[0] = 1 << (usRegAddress - 1);
+                ucBuf[0] = 1 << (usRegAddress % 8 - 1);
             }
             else
             {
@@ -298,7 +299,7 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, 
+eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, 
                                 USHORT usAddress, USHORT usNCoils, eMBRegisterMode eMode)
 {
 	USHORT          COIL_START, COIL_END;

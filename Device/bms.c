@@ -480,7 +480,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(278,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[10]->usAvgHumi) 
     SLAVE_REG_HOLD_DATA(279,  uint16, MIN_HUMI,    MAX_HUMI,    RO, 1, (void*)&pSystem->psTempHumiSenInList[11]->usAvgHumi)
         
-    SLAVE_REG_HOLD_DATA(286,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usPower)                      
+    SLAVE_REG_HOLD_DATA(286,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usPower)
     SLAVE_REG_HOLD_DATA(287,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_L)
     SLAVE_REG_HOLD_DATA(288,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pUnitMeter->usTotalEnergy_H)
     SLAVE_REG_HOLD_DATA(305,  uint16, 0, 65535, RO, 1, (void*)&pSystem->pExAirFanMeter->usPower)
@@ -593,18 +593,18 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable
     SLAVE_COIL_BIT_DATA(141, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->xHumiSenOutErr)
     SLAVE_COIL_BIT_DATA(152, RO, (void*)&pSystem->pUnitMeter->sMBSlaveDev.xOnLine)     
     SLAVE_COIL_BIT_DATA(153, RO, (void*)&pSystem->pExAirFanMeter->sMBSlaveDev.xOnLine) 
-    SLAVE_COIL_BIT_DATA(160, RO, (void*)&pSystem->psExAirFanList[0]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(160, RW, (void*)&pSystem->psExAirFanList[0]->eSwitchCmd)
 
     SLAVE_COIL_BIT_DATA(161, RO, (void*)&pSystem->psExAirFanList[0]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(162, RO, (void*)&pSystem->psExAirFanList[0]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(168, RO, (void*)&pSystem->psExAirFanList[1]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(168, RW, (void*)&pSystem->psExAirFanList[1]->eSwitchCmd)
     SLAVE_COIL_BIT_DATA(169, RO, (void*)&pSystem->psExAirFanList[1]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(170, RO, (void*)&pSystem->psExAirFanList[1]->Device.eRunningState)    
      
-    SLAVE_COIL_BIT_DATA(176, RO, (void*)&pSystem->psExAirFanList[2]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(176, RW, (void*)&pSystem->psExAirFanList[2]->eSwitchCmd)
     SLAVE_COIL_BIT_DATA(177, RO, (void*)&pSystem->psExAirFanList[2]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(178, RO, (void*)&pSystem->psExAirFanList[2]->Device.eRunningState)  
-    SLAVE_COIL_BIT_DATA(184, RO, (void*)&pSystem->psExAirFanList[3]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(184, RW, (void*)&pSystem->psExAirFanList[3]->eSwitchCmd)
     SLAVE_COIL_BIT_DATA(185, RO, (void*)&pSystem->psExAirFanList[3]->xExAirFanErr)    
         
     SLAVE_COIL_BIT_DATA(186, RO, (void*)&pSystem->psExAirFanList[3]->Device.eRunningState)  
@@ -672,8 +672,7 @@ void vBMS_MonitorRegist(BMS* pt)
     
     MONITOR(&pThis->usCO2AdjustThr_V,  uint16, &pThis->sValChange)
     MONITOR(&pThis->usCO2AdjustDeviat, uint16, &pThis->sValChange)
-    
-         
+        
     MONITOR(&pThis->usExAirFanFreq,    uint16, &pThis->sValChange) 
     MONITOR(&pThis->usExAirFanMinFreq, uint16, &pThis->sValChange) 
     MONITOR(&pThis->usExAirFanMaxFreq, uint16, &pThis->sValChange)

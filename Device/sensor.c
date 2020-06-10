@@ -197,7 +197,6 @@ void vTempHumiSensor_InitDevCommData(IDevCom* pt)
     sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
     sMBTestDevCmd*            psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
   
-    
 MASTER_PBUF_INDEX_ALLOC()
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     

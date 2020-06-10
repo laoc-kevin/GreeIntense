@@ -98,6 +98,8 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 	if(psCurData->pxSlaveDataMapIndex(CoilData, usCoilAddr, &usIndex))    //从栈字典映射函数
     {
         *pvCoilValue = (sMBSlaveBitData*)psMBCoilTable->pvDataBuf + usIndex;
+        
+//      myprintf("pvDataBuf %d, *pvCoilValue %d  usIndex %d\n", (sMBSlaveBitData*)psMBCoilTable->pvDataBuf, *pvCoilValue , usIndex);  
     }
 	else
     {
@@ -110,7 +112,6 @@ eMBSlaveCoilsMap(sMBSlaveInfo* psMBSlaveInfo, USHORT usCoilAddr, sMBSlaveBitData
 #endif
 
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
-
 /***********************************************************************************
  * @brief  离散量字典映射
  * @param  usCoilAddr    线圈地址
@@ -212,7 +213,12 @@ void vMBSlaveBitDataInit(sMBSlaveBitData* pData, USHORT usAddr, UCHAR ucAccessMo
 {
     pData->usAddr        = usAddr;                            
     pData->ucAccessMode  = ucAccessMode;        
-    pData->pvValue       = pvValue;                  	
+    pData->pvValue       = pvValue; 
+
+    if(usAddr == 160)
+    {
+        myprintf("pData %d  pData->pvValue %d \n",  pData, (uint16_t*)pvValue );
+    }    
 }
 
 /***********************************************************************************

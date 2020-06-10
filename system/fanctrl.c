@@ -236,7 +236,10 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq)
         pExAirFanVariate->IDevFreq.setFreq(SUPER_PTR(pExAirFanVariate, IDevFreq), usFreq);  //设置频率 
     } 
     pThis->usExAirFanFreq = usFreq;
+    
+#if DEBUG_ENABLE > 0 
     myprintf("vSystem_AdjustExAirFanFreq  usExAirFanFreq %d\n", pThis->usExAirFanFreq);
+#endif
 }
 
 /*系统定频+变频排风风机控制*/
@@ -384,7 +387,10 @@ void vSystem_ExAirSet_Vol(System* pt)
     }
     vSystem_ExAirFanCtrl(pThis);
     
+#if DEBUG_ENABLE > 0
     myprintf("vSystem_ExAirSet_Vol  ucExAirCoolRatio %d  ucExAirHeatRatio %d\n", pThis->ucExAirCoolRatio, pThis->ucExAirHeatRatio);
+#endif    
+    
 }
 
 /*设置变频风机频率范围*/
@@ -406,7 +412,10 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
             pExAirFan->IDevFreq.setFreqRange(SUPER_PTR(pExAirFan, IDevFreq), usMinFreq, usMaxFreq);   
         } 
     }
+#if DEBUG_ENABLE > 0
     myprintf("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
+#endif
+    
 }
 
 /*设置风机故障*/

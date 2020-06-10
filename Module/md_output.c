@@ -48,8 +48,8 @@ void vAnalogOutputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 {
 	if( (ucChannel > 0) && (ucChannel <= AO_NUM) )
 	{
-		AnalogOutputData[ucChannel-1].lMax    = lMax;
-		AnalogOutputData[ucChannel-1].lMin    = lMin;
+		AnalogOutputData[ucChannel-1].lMax = lMax;
+		AnalogOutputData[ucChannel-1].lMin = lMin;
 	}
 }
 
@@ -63,7 +63,7 @@ void vDigitalOutputInit(void)
     
 	for(i = 0; i < DO_NUM; i++)
 	{
-		(void)PINSEL_ConfigPin( DO_IOList[i]->Port, DO_IOList[i]->Pin, 0);
+		(void)PINSEL_ConfigPin(DO_IOList[i]->Port, DO_IOList[i]->Pin, 0);
 
 		ulBitVal = 1 << DO_IOList[i]->Pin;
         
@@ -94,14 +94,14 @@ void vDigitalOutputCtrl( uint8_t ucChannel, eCtrlEn eCtrl)
     if((ucChannel > 0) && (ucChannel <= AO_NUM))
     {
         const IODef*    psIO = DO_IOList[ucChannel-1];
-	    uint32_t ulPortVal = GPIO_ReadValue(psIO->Port);
+	    uint32_t   ulPortVal = GPIO_ReadValue(psIO->Port);
         
 	    if(eCtrl > 0)
 	    {
 	    	if( ((ulPortVal >> psIO->Pin) & 0x01) == OFF )   
             {
 	    		GPIO_SetValue(psIO->Port, 1 << psIO->Pin );    //输出开启，继电器闭合
-	    		myprintf("GPIO_SetValue Port: %d   Pin: %d\n",psIO->Port, psIO->Pin);
+	    		myprintf("GPIO_SetValue ucChannel %d  Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);
 	    	}			
 	    }
 	    else
@@ -109,7 +109,7 @@ void vDigitalOutputCtrl( uint8_t ucChannel, eCtrlEn eCtrl)
 	    	if( ((ulPortVal >> psIO->Pin) & 0x01) == ON )
             {	
 	    		GPIO_ClearValue(psIO->Port, 1 << psIO->Pin );	//输出关闭，继电器断开
-	    		myprintf("GPIO_ClearValue Port: %d   Pin: %d\n",psIO->Port, psIO->Pin);	
+	    		myprintf("GPIO_ClearValue ucChannel %d Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);	
 	    	}			
 	    }
     }
@@ -184,11 +184,11 @@ void vSendDataToDAC7760(uint8_t ucSuperIO, uint32_t ulData)
 	
 	if( ucSuperIO == 1)
 	{
-		SET_VALUE_DAC7760_CLR1;												//CLR管脚置高电平，清空7760输入								
-		SET_VALUE_DAC7760_LATCH1;											//LATCH管脚置高电平
-		MyDelay(20);														//延时保证DAC7760输出清零
-		
-		CLR_VALUE_DAC7760_CLR1;												//CLR管脚置低电平，以便输入新的数据
+		SET_VALUE_DAC7760_CLR1;	  //CLR管脚置高电平，清空7760输入								
+		SET_VALUE_DAC7760_LATCH1; //LATCH管脚置高电平
+		MyDelay(20);			  //延时保证DAC7760输出清零
+		                         
+		CLR_VALUE_DAC7760_CLR1;	 //CLR管脚置低电平，以便输入新的数据
 		MyDelay(20);
 		
 		for(i = 0; i <= 2; i++)
@@ -197,11 +197,11 @@ void vSendDataToDAC7760(uint8_t ucSuperIO, uint32_t ulData)
 		}
 		/* 等待数据发送完毕 */
 
-		while( (LPC_SSP1->SR & 0x01) == 0) {}				//等待数据发送完毕
-		CLR_VALUE_DAC7760_LATCH1;							//置LATCH为低电平
+		while( (LPC_SSP1->SR & 0x01) == 0) {}  //等待数据发送完毕
+		CLR_VALUE_DAC7760_LATCH1;			   //置LATCH为低电平
 		MyDelay(50);
 			
-		SET_VALUE_DAC7760_LATCH1;							//产生上升沿，将发送到DAC7760的数据转化为输出
+		SET_VALUE_DAC7760_LATCH1;			   //产生上升沿，将发送到DAC7760的数据转化为输出
 		MyDelay(50);
 	}
 	else if( ucSuperIO == 2 )
@@ -342,7 +342,6 @@ void vPWM1Init(void)
 	PWM_Init(1, PWM_MODE_TIMER, (void *)&PWMTimerCfg);
 	
 	//管脚功能配置
-    
     for (pwmChannel = 0; pwmChannel < PWM_NUM; pwmChannel++)
     {
         (void)PINSEL_ConfigPin(PWM_IOList[pwmChannel]->Port, PWM_IOList[pwmChannel]->Pin, 2);

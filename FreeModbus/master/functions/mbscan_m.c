@@ -101,13 +101,13 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
                 if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucOfflineTimes == 0) ) //在线且不处于延时阶段
                 {
-//                    vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
+                    vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
                 }
                 else if(psMBSlaveDev->xOnLine == FALSE)
                 {
                     pxDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
                 }
-                myprintf("vMBDevCurStateTest  %d  psMBSlaveDev->xOnLine %d\n", psMBSlaveDev->ucDevAddr, psMBSlaveDev->xOnLine);                 
+//                myprintf("vMBDevCurStateTest  %d  psMBSlaveDev->xOnLine %d\n", psMBSlaveDev->ucDevAddr, psMBSlaveDev->xOnLine);                 
             }          
         }      
 	}
@@ -149,9 +149,7 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
     UCHAR               ucSlaveAddr  = psMBSlaveDev->ucDevAddr;           //通讯地址
-    
-//    myprintf("ucSlaveAddr %d  vMBMasterScanSlaveDev\n", ucSlaveAddr);
-    
+
     psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;                         //当前从设备
     if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
     {
@@ -181,7 +179,7 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
         }
-//        myprintf("***ucSlaveAddr %d  xDataReady %d  xSynchronized %d***\n", 
+//        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
 //        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);
     }		
 }
@@ -488,7 +486,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
                		{		
                			if( (usRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (usRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
                			{
-                            myprintf("usRegHoldValue %d  iIndex %d\n", usRegHoldValue, iIndex);
+//                            myprintf("usRegHoldValue %d  iIndex %d\n", usRegHoldValue, iIndex);
                             
                				RegHoldValueList[iChangedRegs]  = (USHORT)usRegHoldValue;
                			    pRegHoldPreValueList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );	

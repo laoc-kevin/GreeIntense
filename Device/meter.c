@@ -81,20 +81,27 @@ MASTER_END_DATA_BUF(1, 0x30)
 }
 
 /*电表初始化*/
-void vMeter_Init(Meter* pt)
+void vMeter_Init(Meter* pt, sMBMasterInfo* psMBMasterInfo)
 {
     Meter* pThis = (Meter*)pt;
+    
+    pThis->psMBMasterInfo = psMBMasterInfo;
     
     vMeter_RegistEEPROMData(pThis);   //EEPROM数据注册
     vMeter_RegistMonitor(pThis);      //注册监控数据
 
     vMeter_InitDevCommData(pThis);    //初始化设备通讯数据表 
     vMeter_RegistDev(pThis);          //向通讯主栈中注册设备
+
+#if DEBUG_ENABLE > 0     
+    pThis->usTotalEnergy_H = 1;       //耗电量(高位) 
+    pThis->usTotalEnergy_L = 100;     //耗电量(低位)
+    pThis->usPower = 166;             //耗电功率(有功功率)
+#endif    
 }
 
 
 CTOR(Meter)    //电表构造函数
-    SUPER_CTOR(Device);
-    
+    SUPER_CTOR(Device); 
     FUNCTION_SETTING(init, vMeter_Init);
 END_CTOR

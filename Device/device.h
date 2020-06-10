@@ -4,6 +4,8 @@
 #include "lw_oopc.h"
 #include "stdint.h"
 
+#include "app_config.h"
+
 #include "mb.h"
 #include "mb_m.h"
 #include "mbmap_m.h"

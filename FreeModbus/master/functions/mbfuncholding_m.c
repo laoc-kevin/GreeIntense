@@ -109,6 +109,8 @@ eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;   //从设备状态信息
 	sMBMasterPort*        psMBPort     = &psMBMasterInfo->sMBPort;      //硬件结构
     
+    vMBMasterPortLock(psMBPort);
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -128,7 +130,6 @@ eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usRegData ;
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
-        vMBMasterPortLock(psMBPort);
         
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
@@ -204,6 +205,8 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 	sMBMasterDevsInfo*  psMBDevsInfo  = &psMBMasterInfo->sMBDevsInfo;   //从设备状态信息
 	sMBMasterPort*      psMBPort      = &psMBMasterInfo->sMBPort;      //硬件结构
     
+    vMBMasterPortLock(psMBPort); 
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -234,8 +237,6 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
         
 //	    myprintf("ucSlaveAddr %d  eMBMasterReqWriteMultipleHoldingRegister    \n",ucSndAddr);
             
-        vMBMasterPortLock(psMBPort); 
-
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
@@ -322,6 +323,8 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
     sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
 	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
 
+    vMBMasterPortLock(psMBPort);
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -341,9 +344,9 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE);
-        vMBMasterPortLock(psMBPort);
-
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
+        
+//        myprintf("eMBMasterReqWriteMultipleHoldingRegister  ucSlaveAddr %d usRegAddr %d usNRegs %d\n",ucSndAddr, usRegAddr, usNRegs);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
     return eErrStatus;
@@ -440,6 +443,8 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 	sMBMasterDevsInfo*    psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;    //从设备状态信息
     sMBMasterPort*            psMBPort = &psMBMasterInfo->sMBPort;      //硬件结构
 	
+    vMBMasterPortLock(psMBPort); 
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -470,8 +475,7 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 			*ucMBFrame++ = (UCHAR)( *(pusDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READWRITE_SIZE_MIN + 2*usNWriteRegs);  
-        vMBMasterPortLock(psMBPort); 
-        
+          
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }

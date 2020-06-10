@@ -89,7 +89,7 @@ uint32_t ulAnalogInputSampling(void)
         
 		if(i > 0)
 		{
-			if(1 == i)
+			if(i == 1)
 			{
 				max = hits[i];
 				min = hits[i];
@@ -239,15 +239,16 @@ void vInputReceive(void)
 			(void)OSTimeDlyHMSM(0, 0, 0, 10, OS_OPT_TIME_HMSM_STRICT, &err);
 			n++;
 		};
-			
-		SaInputTmp |= (uint8_t)(GPIO_ReadValue(0)>>28 & 1) << i;
+		SaInputTmp     |= (uint8_t)(GPIO_ReadValue(0)>>28 & 1) << i;
 		LogicInput1Tmp |= (uint8_t)(GPIO_ReadValue(0)>>29 & 1) << i;
 		LogicInput2Tmp |= (uint8_t)(GPIO_ReadValue(1)>>19 & 1) << i;
 				
 		AnalogInputTmp[i] = ulAnalogInputSampling();			
-		AnalogInputuA[i] = sAnalogInputToUA(AnalogInputTmp[i]);		
+		AnalogInputuA[i]  = sAnalogInputToUA(AnalogInputTmp[i]);
 	}
-	
+//    myprintf("LogicInput1Tmp %d\n", LogicInput1Tmp);
+//    myprintf("LogicInput2Tmp %d\n", LogicInput2Tmp);
+    
 	SaInput = SaInputTmp;
 	LogicInput1 = LogicInput1Tmp;
 	LogicInput2 = LogicInput2Tmp;
@@ -263,7 +264,7 @@ void vInputReceive(void)
 	{
 		if( DigitalInputData[i].pvDIVal !=NULL )
 		{
-			*(uint8_t*)(DigitalInputData[i].pvDIVal) = ucDigitalInputGetRealVal(i+1);
+			*(uint8_t*)(DigitalInputData[i].pvDIVal) = !ucDigitalInputGetRealVal(i+1); /* DI接通为低电平，断开为高电平 */
 		}
     }
     ControllerID = ucSaInputConvertToID();

@@ -340,7 +340,7 @@ void vMBMasterPortLock(sMBMasterPort* psMBPort)
     
 	(void)OSSemPend(&psMBPort->sMBIdleSem, 0, OS_OPT_PEND_BLOCKING, NULL, &err);
     (void)OSSemSet(&psMBPort->sMBIdleSem, 0, &err);
-    (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);       	
+    (void)OSTimeDlyHMSM(0, 0, 0, 80, OS_OPT_TIME_HMSM_STRICT, &err);       	
 }
          
 #endif

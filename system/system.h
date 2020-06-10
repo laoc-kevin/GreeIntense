@@ -165,7 +165,8 @@ CLASS(System)   /*系统*/
       
     Meter*            pUnitMeter;               //机组电表  
     Meter*            pExAirFanMeter;           //排风机电表  
-     
+    
+    ExAirFan*         pExAirFanCostant;                              //定频风机    
     ExAirFan*         pExAirFanVariate;                              //变频风机
     ExAirFan*         psExAirFanList[EX_AIR_FAN_NUM];                //排风机列表
     CO2Sensor*        psCO2SenList  [CO2_SEN_NUM];                   //CO2传感器列表

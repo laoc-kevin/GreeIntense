@@ -29,7 +29,6 @@
         vMBSlaveRegDataInit((sMBSlaveRegData*)pvDataBuf + usIndex, arg1, arg2, arg3, arg4, arg5, arg6, arg7); \
         usIndex++;
 
-
 //线圈数据申请  
 #define SLAVE_COIL_BIT_DATA(arg1, arg2, arg3) \
         vMBSlaveBitDataInit((sMBSlaveBitData*)pvDataBuf + usIndex, arg1, arg2, arg3); \

@@ -464,7 +464,7 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
 	sMBMasterTask*         psMBTask   = &psMBMasterInfo->sMBTask;      //主栈状态机任务信息
     sMBMasterDevsInfo* psMBDevsInfo   = &psMBMasterInfo->sMBDevsInfo;  //主栈从设备信息
     
-    if(psMBMasterInfo == NULL)
+    if(psMBMasterInfo == NULL || psMasterNode == NULL)
     {
         return FALSE;
     }
@@ -658,25 +658,28 @@ sMBSlaveDev* psMBMasterGetDev(const sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAd
 BOOL xMBMasterRegistDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBNewDev)
 {
     sMBSlaveDev*       psMBDev      = NULL;
-    sMBMasterDevsInfo* psMBDevsInfo =&psMBMasterInfo->sMBDevsInfo;    //从设备信息
+    sMBMasterDevsInfo* psMBDevsInfo = NULL;
     
-    if(psMBNewDev != NULL) 
+    if(psMBMasterInfo == NULL || psMBNewDev == NULL)
     {
-        psMBNewDev->psMBMasterInfo = psMBMasterInfo;
-        psMBNewDev->pNext = NULL;
-        
-        if(psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
-        {
-            psMBDevsInfo->psMBSlaveDevsList = psMBNewDev;
-        }
-        else //有节结点
-        {
-            psMBDev = psMBDevsInfo->psMBSlaveDevsList->pLast;   //尾节点
-            psMBDev->pNext = psMBNewDev;
-        }
-        psMBDevsInfo->psMBSlaveDevsList->pLast = psMBNewDev;
-        psMBDevsInfo->ucSlaveDevCount++;
+        return FALSE;
     }
+    psMBDevsInfo =&psMBMasterInfo->sMBDevsInfo;    //从设备信息
+    psMBNewDev->psMBMasterInfo = psMBMasterInfo;
+    psMBNewDev->pNext = NULL;
+    
+    if(psMBDevsInfo->psMBSlaveDevsList == NULL)   //无任何结点
+    {
+        psMBDevsInfo->psMBSlaveDevsList = psMBNewDev;
+    }
+    else //有节结点
+    {
+        psMBDev = psMBDevsInfo->psMBSlaveDevsList->pLast;   //尾节点
+        psMBDev->pNext = psMBNewDev;
+    }
+    psMBDevsInfo->psMBSlaveDevsList->pLast = psMBNewDev;
+    psMBDevsInfo->ucSlaveDevCount++;
+   
     return TRUE;
 }
 

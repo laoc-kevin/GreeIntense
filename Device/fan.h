@@ -63,7 +63,8 @@ CLASS(ExAirFan)           /*排风风机*/
     OS_SEM       sValChange;    //变量变化事件
     OS_TMR       sExAirFanTmr;  //风机内部定时器
     
-    void (*init)(ExAirFan* pt, sFanInfo* psFan); 
+    void (*init)(ExAirFan* pt, sFanInfo* psFan);
+    void (*changeFreqType)(ExAirFan* pt, eFreqType eFanFreqType);    
 };
 
 

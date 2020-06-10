@@ -115,7 +115,10 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
         default:break;
     }        
     pThis->eRunningMode = eRunMode;
-    myprintf("vSystem_SetUnitRunningMode %d\n", pThis->eRunningMode);    
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_SetUnitRunningMode %d\n", pThis->eRunningMode); 
+#endif         
 }
 
 /*/调整机组运行模式*/

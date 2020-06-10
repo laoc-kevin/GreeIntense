@@ -26,7 +26,6 @@ typedef struct       /* 从栈线圈和离散量数据结构 */
 	void*     pvValue;          //变量指针     
 }sMBSlaveBitData;  
 
-
 typedef struct        /*CPN数据结构 */
 {
 	USHORT  usAddr;              //地址
@@ -35,8 +34,8 @@ typedef struct        /*CPN数据结构 */
     LONG    lMinVal;             //最小值
     LONG    lMaxVal;             //最大值
     UCHAR   ucAccessMode;        //访问权限
-    float   fTransmitMultiple;   //传输因子
-    void*   pvValue;             //变量指针   
+    void*   pvValue;             //变量指针
+    float   fTransmitMultiple;   //传输因子    
 }sMBSlaveCPNData;  						
 
 

@@ -94,6 +94,7 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
     sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
 	
+    vMBMasterPortLock(psMBPort);
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -114,7 +115,6 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		*(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) = usNCoils;               //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
-        vMBMasterPortLock(psMBPort);
         
 		(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_FRAME_SENT );     //主栈发送请求
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                     //等待数据响应，会阻塞线程
@@ -222,7 +222,9 @@ eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
 	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
     sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
-	
+    
+    vMBMasterPortLock(psMBPort);	
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -247,8 +249,7 @@ eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usMBBitData;                     //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
-        vMBMasterPortLock(psMBPort);
-		
+
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);       //主栈发送请求
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);                   //等待数据响应，会阻塞线程
     }
@@ -341,6 +342,8 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
 	sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;          //从设备状态表
     sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;
 
+    vMBMasterPortLock(psMBPort);
+    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
@@ -380,8 +383,7 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
 			*ucMBFrame++ = (UCHAR)( *(pucDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
-        vMBMasterPortLock(psMBPort);
-        
+       
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
  

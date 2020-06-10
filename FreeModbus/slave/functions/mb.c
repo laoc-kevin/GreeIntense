@@ -527,7 +527,7 @@ BOOL xMBSlaveRegistNode(sMBSlaveInfo* psMBSlaveInfo, sMBSlaveNodeInfo* psSlaveNo
 	sMBSlaveTask*         psMBTask = &psMBSlaveInfo->sMBTask;   //从栈状态机任务信息
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;   //从栈通讯信息
     
-    if(psMBSlaveInfo == NULL)
+    if(psMBSlaveInfo == NULL || psSlaveNode == NULL)
     {
         return FALSE;
     }
