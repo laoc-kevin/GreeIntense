@@ -70,7 +70,7 @@
 eMBMasterReqErrCode
 eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
 {
-    UCHAR  *ucMBFrame = NULL;
+    UCHAR  *pucMBFrame = NULL;
 	OS_ERR  err = OS_ERR_NONE;
     
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
@@ -89,14 +89,14 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
         
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_DISCRETE_INPUTS;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usDiscreteAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usDiscreteAddr;
-		*(ucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF)     = usNDiscreteIn >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = usNDiscreteIn;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_DISCRETE_INPUTS;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usDiscreteAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usDiscreteAddr;
+		*(pucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF)     = usNDiscreteIn >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = usNDiscreteIn;
         
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
@@ -120,7 +120,7 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     USHORT usRegAddress, usDiscreteCnt;
 
     UCHAR  ucNBytes;
-    UCHAR *ucMBFrame;
+    UCHAR *pucMBFrame;
 
     eMBErrorCode    eRegStatus;
     eMBException    eStatus = MB_EX_NONE;
@@ -132,13 +132,13 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     }
     else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegAddress = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
+    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+        usRegAddress = ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
+        usRegAddress |= ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usDiscreteCnt = ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF] << 8 );
-        usDiscreteCnt |= ( USHORT )( ucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] );
+        usDiscreteCnt = ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF] << 8 );
+        usDiscreteCnt |= ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] );
 
         /* Test if the quantity of coils is a multiple of 8. If not last
          * byte is only partially field with unused coils set to zero. */

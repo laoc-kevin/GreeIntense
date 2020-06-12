@@ -70,10 +70,9 @@
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatTest)
+eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut)
 {
-    UCHAR  *ucMBFrame = NULL;
+    UCHAR  *pucMBFrame = NULL;
 	OS_ERR err = OS_ERR_NONE;
     
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
@@ -92,14 +91,14 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo,
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
 		
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_READ_INPUT_REGISTER;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)       = usRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)   = usRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)     = usNRegs >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_READ_INPUT_REGISTER;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)       = usRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)   = usRegAddr;
+		*(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)     = usNRegs >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		 
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
@@ -120,7 +119,7 @@ eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo,
 eMBException
 eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen )
 {
-    UCHAR          *ucMBFrame;
+    UCHAR          *pucMBFrame;
     USHORT          usRegAddress;
     USHORT          usRegCount;
 
@@ -134,13 +133,13 @@ eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame,
 	}
 	else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegAddress  = (USHORT)( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
-        usRegAddress |= (USHORT)( ucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+        usRegAddress  = (USHORT)( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
+        usRegAddress |= (USHORT)( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usRegCount  = (USHORT)( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF] << 8 );
-        usRegCount |= (USHORT)( ucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF + 1] );
+        usRegCount  = (USHORT)( pucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF] << 8 );
+        usRegCount |= (USHORT)( pucMBFrame[MB_PDU_REQ_READ_REGCNT_OFF + 1] );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception.

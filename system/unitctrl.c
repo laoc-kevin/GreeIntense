@@ -108,10 +108,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
             pThis->eSystemState = STATE_HEAT;
         break;
         case RUN_MODE_FAN:
-            if(pThis->eSystemMode != MODE_EMERGENCY)
-            {
-                pThis->eSystemState = STATE_FAN;
-            }
+            pThis->eSystemState = STATE_FAN;
         break;
         case RUN_MODE_WET:
             pThis->eSystemState = STATE_WET;
@@ -518,6 +515,22 @@ void vSystem_UnitState(System* pt)
         pModularRoof = pThis->psModularRoofList[n];
         if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
         {
+            switch(pThis->eRunningMode)
+            {
+                case RUN_MODE_COOL:
+                    pThis->eSystemState = STATE_COOL;
+                break;
+                case RUN_MODE_HEAT:
+                    pThis->eSystemState = STATE_HEAT;
+                break;
+                case RUN_MODE_FAN:
+                    pThis->eSystemState = STATE_FAN;
+                break;
+                case RUN_MODE_WET:
+                    pThis->eSystemState = STATE_WET;
+                break;
+                default:break;
+            }        
             return;
         }   
     }
@@ -526,6 +539,7 @@ void vSystem_UnitState(System* pt)
         pExAirFan = pThis->psExAirFanList[n];
         if(pExAirFan->Device.eRunningState == STATE_RUN)
         {
+            pThis->eSystemState = STATE_EX_FAN;
             return;
         }   
     }

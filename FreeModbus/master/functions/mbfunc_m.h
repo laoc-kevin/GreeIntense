@@ -57,21 +57,21 @@ eMBException    eMBMasterFuncReportSlaveID( UCHAR * pucFrame, USHORT * usLen );
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
 eMBMasterReqErrCode eMBMasterReqReadInputRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                  USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode);
+                                                  USHORT usNRegs, LONG lTimeOut);
 eMBException    eMBMasterFuncReadInputRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 
 #if MB_FUNC_READ_HOLDING_ENABLED > 0
 eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                     USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatMode);
+                                                     USHORT usNRegs, LONG lTimeOut);
 eMBException    eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 
 
 #if MB_FUNC_WRITE_HOLDING_ENABLED > 0
 eMBMasterReqErrCode eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                     USHORT usRegData, LONG lTimeOut, BOOL xHeartBeatMode);
+                                                     USHORT usRegData, LONG lTimeOut);
 eMBException    eMBMasterFuncWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen );
 #endif
 

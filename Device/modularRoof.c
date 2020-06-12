@@ -89,7 +89,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
     DATA_INIT(pThis->usCO2AdjustDeviat,   50)
     
-    DATA_INIT(pThis->xErrClean,   1)
+//    DATA_INIT(pThis->xErrClean,   1)
 
 //    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode); 
 }

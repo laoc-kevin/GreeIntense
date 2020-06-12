@@ -78,14 +78,12 @@ typedef enum   /*运行模式*/
 
 typedef enum   /*系统状态*/
 {
-    STATE_MANUAL    = 0,    //手动模式
+    STATE_CLOSED    = 0,    //已关闭
     STATE_COOL      = 1,    //制冷运行
     STATE_HEAT      = 2,    //制热运行
     STATE_FAN       = 3,    //送风运行
     STATE_WET       = 4,    //湿膜运行
-    STATE_EMERGENCY = 5,    //紧急送风模式
-    STATE_CLOSING   = 6,    //正在关机 
-    STATE_CLOSED    = 7,    //已关闭
+    STATE_EX_FAN    = 5,    //排风运行
 }eSystemState;
 
 INTERFACE(IDevSwitch)    /*设备启停接口*/

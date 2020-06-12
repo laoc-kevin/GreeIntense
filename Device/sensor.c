@@ -1,11 +1,11 @@
 #include "sensor.h"
 #include "md_timer.h"
 
-#define TMR_TICK_PER_SECOND             OS_CFG_TMR_TASK_RATE_HZ
-#define SENSOR_TIME_OUT_S               1
-#define SENSOR_TIME_OUT_DELAY_S         60
+#define TMR_TICK_PER_SECOND                 OS_CFG_TMR_TASK_RATE_HZ
+#define SENSOR_TIME_OUT_S                   1
+#define SENSOR_TIME_OUT_DELAY_S             5
 
-#define SENSOR_CO2_PROTOCOL_TYPE_ID     0
+#define SENSOR_CO2_PROTOCOL_TYPE_ID         0
 #define SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID   0
 
 /*************************************************************
@@ -58,8 +58,8 @@ BOOL xCO2Sensor_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT 
             {
                 switch(usAddr)
                 {
-                    case 1	  :  i = 0 ;  break;
-                    case 0X30 :  i = 1 ;  break;
+                    case 1 :  i = 0;  break;
+                    case 2 :  i = 1;  break;
                        
                     default:
                 		return FALSE;
@@ -82,17 +82,16 @@ void vCO2Sensor_InitDevCommData(IDevCom* pt)
     sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
     sMBTestDevCmd*            psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
     
-    
 MASTER_PBUF_INDEX_ALLOC()
-MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
+MASTER_TEST_CMD_INIT(psMBCmd, 2, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
     
-    MASTER_REG_HOLD_DATA(1,   uint16, MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 0, (void*)&pCO2Sen->usCO2PPM)
-    MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
+    MASTER_REG_HOLD_DATA(1, uint16, MIN_CO2_PPM, MAX_CO2_PPM, 0, RO,                            0, (void*)&pCO2Sen->usCO2PPM)
+    MASTER_REG_HOLD_DATA(2,  uint8,           1,         255, 0, RO, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
         
-MASTER_END_DATA_BUF(1, 0x30)
+MASTER_END_DATA_BUF(1, 2)
     
     pCO2Sen->usMaxPPM = MAX_CO2_PPM;
     pCO2Sen->usMinPPM = MIN_CO2_PPM;
@@ -102,28 +101,12 @@ MASTER_END_DATA_BUF(1, 0x30)
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData); 
 }
 
-
 void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
 {
     Sensor*       pThis = (Sensor*)p_arg;
     CO2Sensor* psCO2Sen = SUB_PTR(pThis, Sensor, CO2Sensor);
     
-    uint8_t*        pcSampleIndex = &pThis->ucSampleIndex;
-    
-    //对传感器参数进行采样
-    if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
-    {
-        psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
-        psCO2Sen->usSampleCO2PPM[*pcSampleIndex]  = psCO2Sen->usCO2PPM;
-        psCO2Sen->usTotalCO2PPM  = psCO2Sen->usTotalCO2PPM + psCO2Sen->usCO2PPM;
-     
-        (*pcSampleIndex)++;
-    }
-    else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
-    {
-        *pcSampleIndex = 0;
-    }
-    psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
+    uint8_t* pcSampleIndex = &pThis->ucSampleIndex;
     
     //判断传感器是否故障
     if( (psCO2Sen->usAvgCO2PPM < psCO2Sen->usMinPPM) || (psCO2Sen->usAvgCO2PPM > psCO2Sen->usMaxPPM) ||
@@ -134,6 +117,28 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     else
     {
         psCO2Sen->xCO2SenErr = FALSE;
+    }
+    
+     //对传感器参数进行采样
+    if(psCO2Sen->xCO2SenErr == FALSE)
+    {
+        if(*pcSampleIndex < SENSOR_SAMPLE_NUM)
+        {
+            psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
+            psCO2Sen->usSampleCO2PPM[*pcSampleIndex]  = psCO2Sen->usCO2PPM;
+            psCO2Sen->usTotalCO2PPM  = psCO2Sen->usTotalCO2PPM + psCO2Sen->usCO2PPM;
+         
+            (*pcSampleIndex)++;
+        }
+        else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
+        {
+            *pcSampleIndex = 0;
+        }
+        psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
+        
+#if DEBUG_ENABLE > 0
+    myprintf("vCO2Sensor_TimeoutInd usTotalCO2PPM %d  usAvgCO2PPM %d\n", psCO2Sen->usTotalCO2PPM , psCO2Sen->usAvgCO2PPM);
+#endif 
     }
 }
 

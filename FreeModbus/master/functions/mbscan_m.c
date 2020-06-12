@@ -300,7 +300,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 		{
 			if( iCount > 0)
 			{
-				eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY, FALSE);
+				eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
                 iCount = 0;	
 			}
            	if( psRegInputValue->ucAccessMode != WO )
@@ -322,13 +322,12 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 		}
         if( ((psRegInputValue->ucAccessMode == WO) || (iIndex == psMBRegInTable->usDataCount-1)) && (iCount > 0) )  //如果寄存器为只写，发送读请求
         {
-        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, 
-                                                    MB_MASTER_WAITING_DELAY, FALSE);
+        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
             iCount = 0; 
         }
         if( iCount * 4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
         {
-        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY, FALSE);
+        	eStatus = eMBMasterReqReadInputRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
         	iCount = 1;
             iStartAddr = psRegInputValue->usAddr;				
         }
@@ -387,7 +386,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
         {
         	if( iCount > 0)
         	{
-        		eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY, FALSE);
+        		eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
                 iCount = 0;
         	}
             if( psRegHoldValue->ucAccessMode != WO )
@@ -412,7 +411,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		{
 			if( iCount > 1)
 			{
-				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY, FALSE);
+				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);
                 iCount = 0;	                                                                                          	
 			}
 			else
@@ -422,12 +421,12 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		}
         if( ((psRegHoldValue->ucAccessMode == WO) || (iIndex == psMBRegHoldTable->usDataCount-1)) && ( iCount > 0))  //如果寄存器为只写，发送读请求
         {
-        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY, FALSE);
+        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
             iCount = 0;	 
         }
         if( iCount * 4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
         {
-        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY, FALSE);
+        	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
         	iCount = 1;
             iStartAddr = psRegHoldValue->usAddr;		
         }
@@ -437,7 +436,27 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 }
 #endif
 
-#if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 
+#if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0
+
+/***********************************************************************************
+ * @brief  写保持寄存器
+ *************************************************************************************/
+eMBMasterReqErrCode 
+eMBMasterReqWriteHoldReg(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, USHORT usNRegs, USHORT* pusDataBuffer, LONG lTimeOut)
+{
+    eMBMasterReqErrCode eStatus = MB_MRE_NO_ERR;
+    
+    if(usNRegs == 1)      //写单个寄存器
+    {
+        eStatus = eMBMasterReqWriteHoldingRegister(psMBMasterInfo, ucSndAddr, usRegAddr, *(USHORT*)pusDataBuffer, lTimeOut);
+    }
+    else if(usNRegs > 1) //写多个寄存器
+    {
+        eStatus = eMBMasterReqWriteMultipleHoldingRegister(psMBMasterInfo, ucSndAddr, usRegAddr, usNRegs, pusDataBuffer, lTimeOut);
+    }
+    return eStatus;
+}
+
 /***********************************************************************************
  * @brief  轮询写保持寄存器
  * @param  ucSndAddr            从栈地址
@@ -462,8 +481,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
     sMBSlaveDev*     psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
 	
-    USHORT*  RegHoldValueList     = psMBMasterInfo->RegHoldValueList;
-    USHORT** pRegHoldPreValueList = psMBMasterInfo->pRegHoldPreValueList;
+    USHORT*  RegHoldValList     = psMBMasterInfo->RegHoldValList;
+    USHORT** pRegHoldPreValList = psMBMasterInfo->pRegHoldPreValList;
     
 	iLastAddr = 0;
 	iStartAddr = 0;
@@ -505,9 +524,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
                			if( (usRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (usRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
                			{
 //                            myprintf("usRegHoldValue %d  iIndex %d\n", usRegHoldValue, iIndex);
-                            
-               				RegHoldValueList[iChangedRegs]  = (USHORT)usRegHoldValue;
-               			    pRegHoldPreValueList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );	
+               				RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
+               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );	
                			    iChangedRegs++;
                         }
                		}	
@@ -522,8 +540,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
                		{
                			if( (usRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (usRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValueList[iChangedRegs]  = (USHORT)usRegHoldValue;
-               			    pRegHoldPreValueList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
+               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
                			    iChangedRegs++;
                			}			
                		}	
@@ -538,8 +556,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
                		{
                			if( (sRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (sRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValueList[iChangedRegs]  = (USHORT)sRegHoldValue;
-               			    pRegHoldPreValueList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				RegHoldValList[iChangedRegs]  = (USHORT)sRegHoldValue;
+               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
                			    iChangedRegs++;
                			}
                		}		
@@ -554,8 +572,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
                		{
                			if( (cRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (cRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValueList[iChangedRegs]  = (USHORT)cRegHoldValue;
-               			    pRegHoldPreValueList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				RegHoldValList[iChangedRegs]  = (USHORT)cRegHoldValue;
+               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
                			    iChangedRegs++;
                			}		
                		}	
@@ -574,8 +592,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	    nRegs = iChangedRegs;
        	    if(iRegs == iChangedRegs)
        	    {
-       	    	eStatus = eMBMasterReqWriteMultipleHoldingRegister(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs-1, 
-       	                                                      (USHORT*)RegHoldValueList, MB_MASTER_WAITING_DELAY);	//写寄存器
+       	    	eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs-1, 
+       	                                          (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
        	    	iChangedRegs = 1;
        	        iRegs = 1;
        	    	bStarted = TRUE;
@@ -583,8 +601,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	    }
        	    else
        	    {
-       	    	eStatus = eMBMasterReqWriteMultipleHoldingRegister(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
-       	                                                      (USHORT*)RegHoldValueList, MB_MASTER_WAITING_DELAY);	//写寄存器
+       	    	eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
+       	                                          (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
        	    	iChangedRegs = 0;
        	        iRegs = 0;
        	    	bStarted = FALSE;
@@ -593,11 +611,11 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	    {	
        	    	for(i = nRegs ; i > 0; i--)
        	    	{
-       	    		*pRegHoldPreValueList[i-1] = RegHoldValueList[i-1];
+       	    		*pRegHoldPreValList[i-1] = RegHoldValList[i-1];
        	    	}
        	    }
-       	    RegHoldValueList[0]  = RegHoldValueList[nRegs-1];
-            pRegHoldPreValueList[0] = pRegHoldPreValueList[nRegs-1];   
+       	    RegHoldValList[0]  = RegHoldValList[nRegs-1];
+            pRegHoldPreValList[0] = pRegHoldPreValList[nRegs-1];   
         }
 		
 		if(iChangedRegs > 0)
@@ -606,8 +624,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
 			if( (iRegs != iChangedRegs) || (iIndex == psMBRegHoldTable->usDataCount-1) || (iChangedRegs*4 >= MB_PDU_SIZE_MAX)) 
             {                                                                                                                  
                 nRegs = iChangedRegs;
-                eStatus = eMBMasterReqWriteMultipleHoldingRegister(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
-             	                                                  (USHORT*)RegHoldValueList, MB_MASTER_WAITING_DELAY);	//写寄存器
+                eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
+             	                                  (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
                 iChangedRegs = 0;
              	iRegs = 0;
              	bStarted = FALSE;
@@ -616,7 +634,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
              	{	
              		for(i = nRegs ; i > 0; i--)
              		{
-             			*pRegHoldPreValueList[i-1] = RegHoldValueList[i-1];
+             			*pRegHoldPreValList[i-1] = RegHoldValList[i-1];
              		}
              	}    
             }	
@@ -651,7 +669,6 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 	iStartAddr = 0;
 	iCount = 0;
 
-	
     if(psMBSlaveDevCur->ucDevAddr != ucSndAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucSndAddr);
@@ -662,65 +679,63 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 	{
 		return MB_MRE_ILL_ARG;
 	}
-	
 //	myprintf("ucSlaveAddr %d  eMBMasterScanReadCoils \n",ucSndAddr);	
 	
-	for(iIndex = 0; iIndex < psMBCoilTable->usDataCount ; iIndex++)
+	for(iIndex = 0; iIndex < psMBCoilTable->usDataCount; iIndex++)
 	{
-		 psCoilValue = (sMasterBitCoilData*)psMBCoilTable->pvDataBuf + iIndex;
+        psCoilValue = (sMasterBitCoilData*)psMBCoilTable->pvDataBuf + iIndex;
         
         /***************************** 读线圈 **********************************/
-         if( psCoilValue->usAddr != (iLastAddr + 1) )     //地址不连续，则发送读请求
-         {
-             if( iCount > 0)
-             {
-                 eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
-                 iCount = 0;
-                 iStartAddr = psCoilValue->usAddr;
-             }
-             if( psCoilValue->ucAccessMode != WO )
-             {
-                 iCount++;
-                 iStartAddr = psCoilValue->usAddr;
-             }
-         }
-         else
-         {
-         	if(	iCount == 0 )
-         	{
-         		iStartAddr = psCoilValue->usAddr;
-         	}	
-         	if( psCoilValue->ucAccessMode != WO )
-         	{
-         		iCount++;
-         	}	
-         }
-		 if( (psCoilValue->ucAccessMode == RW) && (psCoilValue->ucPreVal != *(UCHAR*)psCoilValue->pvValue ) ) 
-		 {
-			 if( iCount > 1)
-			 {
-				 eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);	
-                 iCount = 0;   	
-			 }
-			 else
-             {
-				 iCount = 0;	   
-			 }   
-		 }
-         if( ((psCoilValue->ucAccessMode == WO) || (iIndex== psMBCoilTable->usDataCount-1)) && ( iCount > 0) )  //如果为只写，发送读请求
-         {
-         	
-             eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
-             iCount = 0;
-             iStartAddr = psCoilValue->usAddr;   
-         }	
-       
-         if( iCount >= MB_PDU_SIZE_MAX * 4)    //数据超过Modbus数据帧最大字节数，则发送读请求
-         {
-             eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
-         	 iCount = 1;
-         	 iStartAddr = psCoilValue->usAddr;			
-         }
+        if( psCoilValue->usAddr != iLastAddr+1 )     //地址不连续，则发送读请求
+        {
+            if(iCount>0)
+            {
+                eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
+                iCount = 0;
+                iStartAddr = psCoilValue->usAddr;
+            }
+            if( psCoilValue->ucAccessMode != WO )
+            {
+                iCount++;
+                iStartAddr = psCoilValue->usAddr;
+            }
+        }
+        else  //连续
+        {
+        	if(iCount == 0)
+        	{
+        		iStartAddr = psCoilValue->usAddr;
+        	}	
+        	if( psCoilValue->ucAccessMode != WO )
+        	{
+        		iCount++;
+        	}	
+        }
+        /*****主要针对可读写的变量，当变量发生变化要保证先写后读，所以遇到这种情况该线圈不读了，得先写完再读****/
+		if( psCoilValue->ucAccessMode == RW && psCoilValue->ucPreVal != *(UCHAR*)psCoilValue->pvValue ) 
+		{
+	        if( iCount > 1)
+	        {
+	            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);	
+                iCount = 0;   	
+	        }
+	        else
+            {
+	            iCount = 0;	   
+	        }   
+		}
+        if( (psCoilValue->ucAccessMode == WO || iIndex == psMBCoilTable->usDataCount-1) && iCount>0 )  //如果为只写，发送读请求
+        {
+            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
+            iCount = 0;
+            iStartAddr = psCoilValue->usAddr;   
+        }	
+        if( iCount >= MB_PDU_SIZE_MAX*4 )    //数据超过Modbus数据帧最大字节数，则发送读请求
+        {
+            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+        	iCount = 1;
+        	iStartAddr = psCoilValue->usAddr;			
+        }
         iLastAddr = psCoilValue->usAddr ;		
 	}
 	return eStatus;
@@ -730,10 +745,6 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0
 /*************************************************************************************
  * @brief  写线圈
- * @param  ucSndAddr            从栈地址
- * @return eMBMasterReqErrCode  错误码
- * @author laoc
- * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr,
                                        USHORT usNCoils, UCHAR* pucDataBuffer, LONG lTimeOut)
@@ -747,11 +758,11 @@ eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSn
     {
         usMBBitData = (*(UCHAR*)pucDataBuffer >0) ? 0xFF00 : 0x0000;
         
-        if(usCoilAddr == 10)
-        {
-             myprintf("eMBMasterReqWriteCoil usCoilAddr %d  usMBBitData %d %d %d\n", 
-            usCoilAddr, usMBBitData, *(UCHAR*)pucDataBuffer, pSystem->psModularRoofList[0]->xErrClean);
-        }   
+//        if(usCoilAddr == 10)
+//        {
+//             myprintf("eMBMasterWriteCoil ucSndAddr  %d usCoilAddr %d  usMBBitData %d %d %d\n\n",ucSndAddr, 
+//            usCoilAddr, usMBBitData, *(UCHAR*)pucDataBuffer, pSystem->psModularRoofList[0]->xErrClean);
+//        }   
 
         eStatus = eMBMasterReqWriteCoil(psMBMasterInfo, ucSndAddr, usCoilAddr, usMBBitData, lTimeOut);   
     }
@@ -760,6 +771,35 @@ eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSn
         eStatus = eMBMasterReqWriteMultipleCoils(psMBMasterInfo, ucSndAddr, usCoilAddr, usNCoils, (UCHAR*)pucDataBuffer, lTimeOut);	      
     }
     return eStatus;
+}
+
+/***********************************************************************************
+ * @brief  更新线圈值
+ *************************************************************************************/
+void vMBMasterFreshCoils(sMBMasterInfo* psMBMasterInfo, USHORT iChangedBytes, USHORT iChangedBits)
+{
+    USHORT i, n, iBitInByte;
+    UCHAR*  pBitCoilPreVal =NULL;
+
+    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )   //如果写入成功，更新数据
+    {	
+        for(i=0, n=0; i<iChangedBits; i++)
+        {
+            iBitInByte = i%8;
+         
+            pBitCoilPreVal  = psMBMasterInfo->pBitCoilPreValList[i];
+            *pBitCoilPreVal = ( psMBMasterInfo->BitCoilByteValList[n] & (1<<iBitInByte) ) >> iBitInByte;
+            	
+            if(iBitInByte==0 && i>7 && n<iChangedBytes)
+            {
+                psMBMasterInfo->BitCoilByteValList[n] = 0;
+                n++;
+                
+            }
+        }
+//        myprintf("vMBMasterFreshCoils BitCoilByteValList %d\n\n", psMBMasterInfo->BitCoilByteValList[0]);
+//        myprintf("vMBMasterFreshCoils pBitCoilPreVal %d iChangedBytes %d iChangedBits %d %d\n\n", *pBitCoilPreVal,iChangedBytes, iChangedBits, n);     
+    }		
 }
 
 /***********************************************************************************
@@ -773,7 +813,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 {
 	UCHAR  iBitInByte, cByteValue;
 	USHORT i, nBits, bStarted, nSlaveTypes;
-	USHORT iIndex, iLastAddr, iStartAddr, iStartBit, iCount, iChangedBytes, iChangedBits, iBits;
+	USHORT iIndex, iLastAddr, iStartAddr, iChangedBytes, iChangedBits, iBits;
   
 	eMBMasterReqErrCode      eStatus = MB_MRE_NO_ERR;
 	sMasterBitCoilData*  psCoilValue = NULL;
@@ -781,14 +821,12 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
     sMBSlaveDev*     psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备 
     sMBDevDataTable* psMBCoilTable   = &psMBSlaveDevCur->psDevCurData->sMBCoilTable;    //从设备通讯协议表
    
-    UCHAR*  BitCoilByteValueList = psMBMasterInfo->BitCoilByteValueList;
-    UCHAR** pBitCoilPreValueList = psMBMasterInfo->pBitCoilPreValueList;
     
 	iLastAddr = 0;
 	iStartAddr = 0;
-	iCount = 0;
 	iChangedBits = 0;
 	iChangedBytes = 0;
+    iBitInByte = 0;
 	iBits = 0;
 	bStarted = FALSE;
 	
@@ -809,156 +847,114 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 	{
 		psCoilValue = (sMasterBitCoilData*)(psMBCoilTable->pvDataBuf) + iIndex;
         
+//        if(psCoilValue->usAddr == 10)
+//        {
+//             myprintf("psCoilValue  ucSndAddr %d  usCoilAddr %d pvValue %d ucPreVal %d\n\n",
+//                    ucSndAddr, psCoilValue->usAddr, *(UCHAR*)psCoilValue->pvValue, psCoilValue->ucPreVal);
+//        }
+
         /******************* 写线圈，如果对应的变量发生变化则写线圈 ***************************/
-        if ( (psCoilValue->pvValue != NULL) && (psCoilValue->ucAccessMode != RO) )
+        if ( (psCoilValue->pvValue != NULL) && (psCoilValue->ucAccessMode != RO) )   //非只读
 		{
-			if( (psCoilValue->ucPreVal != *(UCHAR*)(psCoilValue->pvValue)) || (bCheckPreValue == FALSE) )  //线圈地址发生变化或者不检查是否发生变化
+			if( psCoilValue->ucPreVal != *(UCHAR*)(psCoilValue->pvValue) || bCheckPreValue == FALSE ) //线圈发生变化或者不检查是否发生变化
             {
-                 myprintf("eMBMasterReqWriteCoil usCoilAddr %d  usMBBitData %d %d %d\n")
-                
-				if(iBitInByte % 8 ==0)   //8bit
+				if(iBitInByte%8 ==0)   //byte中bit的偏移
 			    {
 			    	cByteValue = 0;
 			    	iBitInByte = 0;
-			    	iChangedBytes++;  //字节+1
+			    	iChangedBytes++;     //字节+1  8bit就增加1byte
 			    }
-				if( *(UCHAR*)psCoilValue->pvValue > 0 )    //线圈状态为1
+				if( *(UCHAR*)psCoilValue->pvValue > 0 )  //线圈状态为1
 			    {
-			    	cByteValue |= (1 << iBitInByte);	//组成一个字节		
+			    	cByteValue |= (1<<iBitInByte);	//组成一个字节		
 			    }
-				iBitInByte++;   //偏移+1
+                iBitInByte++;   //byte中bit的偏移+1
 			    iChangedBits++;	//发生变化的线圈数量+1
-
-			    pBitCoilPreValueList[iChangedBits-1]  =  (UCHAR*)( &(psCoilValue->ucPreVal) );  //记录先前值地址
-			    BitCoilByteValueList[iChangedBytes-1] = cByteValue;	  //记录要下发的数据
+                
+			    psMBMasterInfo->pBitCoilPreValList[iChangedBits-1]  = (UCHAR*)(&psCoilValue->ucPreVal);  //记录先前值地址
+			    psMBMasterInfo->BitCoilByteValList[iChangedBytes-1] = cByteValue;	                     //记录要下发的byte数据
 			}				
 		}
-		iBits++;  //线圈地址+1
+		iBits++;  //线圈计数+1
        
-		if( iChangedBits == 1 && bStarted != TRUE )    //记录首地址
+		if( iChangedBits == 1 && bStarted == FALSE )    
 		{
-			iStartBit = psCoilValue->usAddr;
+			iStartAddr = psCoilValue->usAddr;     //记录线圈起始地址
 			bStarted = TRUE;
 			iBits = 1;
 			iChangedBytes = 1;
 		}	
-		if( (psCoilValue->usAddr != (iLastAddr + 1)) && (iChangedBits > 0) && (iBits > 1) )    //地址不连续，则发送写请求
+		if( psCoilValue->usAddr != iLastAddr + 1 )   //地址不连续
 		{
-			if(iBits == iChangedBits)   //线圈地址不连续，且该线圈地址也发生了变化
-			{
-				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits - 1, 
-											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	  //写线圈
-			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新数据
-			    {	
-			    	for( i = iChangedBits; i > 0; i--)
-			    	{
-						nBits = i%8;
-						if( nBits ==0 )
-						{
-							nBits = 7;
-						}
-						else if(nBits > 0)
-						{
-							nBits -= 1;
-						}
-			    		*(UCHAR*)pBitCoilPreValueList[i- 1] = (BitCoilByteValueList[iChangedBytes-1] & (1<<nBits)) >> nBits;
-						 BitCoilByteValueList[iChangedBytes-1] = 0;	
-						
-						if( (nBits ==7) && (iChangedBytes > 0))
-						{
-							iChangedBytes -= 1;
-						}
-			    	}
-			    }		
-				iChangedBits = 1;
-				iChangedBytes = 1;
-				iBits = 1;
-				
-				cByteValue = 0;
-			    iBitInByte = 0;
-				bStarted = TRUE;
-				iStartBit = psCoilValue->usAddr;  //写完一帧得复位所有状态
-				
-				if( *(UCHAR*)psCoilValue->pvValue > 0 ) //重新记录，以该线圈地址为第一个地址
+            if( iChangedBits>0 && iBits>1 )
+            {
+                if(iBits == iChangedBits)   //线圈地址不连续，且该线圈地址也发生了变化
 			    {
-			    	cByteValue |= ( 1 << iBitInByte);			
-			    }		
-			    pBitCoilPreValueList[iChangedBits-1] =  (UCHAR*)( &(psCoilValue->ucPreVal) ); //重新记录
-			    BitCoilByteValueList[iChangedBytes-1] = cByteValue;	
-			    iBitInByte++;
-			}
-			else if(iBits > iChangedBits)  //线圈地址不连续，但该线圈地址没发生变化
-			{
-				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
-                                             (UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
-			
-			    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )  //如果写入成功，更新数据
-			    {	
-			    	for(i = iChangedBits; i > 0; i--)
-			    	{
-						nBits = i%8;
-						if( nBits ==0 )
-						{
-							nBits = 7;
-						}
-						else if(nBits > 0)
-						{
-							nBits -= 1;
-						}
-			    		*(UCHAR*)pBitCoilPreValueList[i- 1] = (BitCoilByteValueList[iChangedBytes-1] & (1<<nBits)) >> nBits;
-						 BitCoilByteValueList[iChangedBytes-1] = 0;
-						if( (nBits ==7) && (iChangedBytes > 0))
-						{
-							iChangedBytes -= 1;
-						}
-			    	}
+//                    myprintf("eMBMasterScanWriteCoils 1111 ucSndAddr %d  usCoilAddr %d cByteValue %d iChangedBits %d iBits %d\n\n",
+//                    ucSndAddr, iStartAddr, psMBMasterInfo->BitCoilByteValList[0], iChangedBits, iBits);
+                    
+			        eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartAddr, iChangedBits-1, 
+			                                     psMBMasterInfo->BitCoilByteValList, MB_MASTER_WAITING_DELAY);	     //写线圈
+			        vMBMasterFreshCoils(psMBMasterInfo, iChangedBytes, iChangedBits-1);
+                 
+			        iChangedBits = 1;    //写完一帧得复位所有状态,
+			        iChangedBytes = 1;
+			        iBits = 1;
+			        cByteValue = 0;
+			        iBitInByte = 0;
+			        bStarted = TRUE;
+                     
+			        iStartAddr = psCoilValue->usAddr;       //以该线圈地址为第一个地址
+			        if( *(UCHAR*)psCoilValue->pvValue > 0 ) //重新记录，
+			        {
+			            cByteValue |= (1 << iBitInByte);			
+			        }		
+			        psMBMasterInfo->pBitCoilPreValList[0]  = (UCHAR*)(&psCoilValue->ucPreVal); //重新记录
+			        psMBMasterInfo->BitCoilByteValList[0]  = cByteValue;	
+			        iBitInByte++;  
 			    }
-				iChangedBits = 0;
-				iChangedBytes = 0;
-				iBits = 0;
-				cByteValue = 0;
-			    iBitInByte = 0;
-				bStarted = FALSE;   //写完一帧得复位所有状态
-			}
+			    else if(iBits > iChangedBits)  //线圈地址不连续，但该线圈没发生变化
+			    {
+//                    myprintf("eMBMasterScanWriteCoils 222 ucSndAddr %d  usCoilAddr %d cByteValue %d  iChangedBits %d\n\n",
+//                    ucSndAddr, iStartAddr, psMBMasterInfo->BitCoilByteValList[0], iChangedBits);
+                    
+			    	eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartAddr, iChangedBits, 
+                                                 psMBMasterInfo->BitCoilByteValList, MB_MASTER_WAITING_DELAY);	//写线圈
+			        vMBMasterFreshCoils(psMBMasterInfo, iChangedBytes, iChangedBits);
+                    
+			    	iChangedBits = 0;      //写完一帧得复位所有状态
+			    	iChangedBytes = 0;
+			    	iBits = 0;
+			    	cByteValue = 0;
+			        iBitInByte = 0;
+			    	bStarted = FALSE;   
+			    }
+            }
 		}  
-		if(iChangedBits > 0) //地址连续
+		else //地址连续
 		{
-			if( (iBits != iChangedBits) || (iIndex == psMBCoilTable->usDataCount-1) 
-				|| (iChangedBits >= MB_PDU_SIZE_MAX*4) ) //地址到达字典最后或者数据超过Modbus数据帧最大字节数，则发送写请求
-		    {                                                                                                                                                             			
-				eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartBit, iChangedBits, 
-		    											(UCHAR*)BitCoilByteValueList, MB_MASTER_WAITING_DELAY);	//写线圈
-				
-		    	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS ) //如果写入成功，更新数据
-		    	{	
-		    		for( i = iChangedBits; i > 0; i--)
-			    	{
-						nBits = i%8;
-						if( nBits ==0 )
-						{
-							nBits = 7;
-						}
-						else if(nBits > 0)
-						{
-							nBits -= 1;
-						}
-			    		*(UCHAR*)pBitCoilPreValueList[i- 1] = (BitCoilByteValueList[iChangedBytes-1] & (1<<nBits)) >> nBits;
-						 BitCoilByteValueList[iChangedBytes-1] = 0;
-						if( (nBits ==7) && (iChangedBytes > 0))
-						{
-							iChangedBytes -= 1;
-						}
-			    	}
-		    	}
-				iChangedBits = 0;
-				iChangedBytes = 0;
-		    	iBits = 0;
-		    	bStarted = FALSE;
-		    	cByteValue = 0;
-			    iBitInByte = 0;
-		    }
+            if(iChangedBits > 0)
+            {
+                //1. 未发生变化  2.地址到达字典最后 3.数据超过Modbus数据帧最大字节数，则发送写请求
+                if( (iBits > iChangedBits) || (iIndex == psMBCoilTable->usDataCount-1) || (iChangedBits >= MB_PDU_SIZE_MAX*4) ) 
+                {     
+//                    myprintf("eMBMasterScanWriteCoils 333 ucSndAddr %d  usCoilAddr %d cByteValue %d iChangedBits %d\n\n",
+//                    ucSndAddr, iStartAddr, psMBMasterInfo->BitCoilByteValList[0], iChangedBits);
+                    
+                    eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartAddr, iChangedBits, 
+                                                 psMBMasterInfo->BitCoilByteValList, MB_MASTER_WAITING_DELAY);	//写线圈	
+                    vMBMasterFreshCoils(psMBMasterInfo, iChangedBytes, iChangedBits);
+                    
+                    iChangedBits = 0;
+                    iChangedBytes = 0;
+                    iBits = 0;
+                    bStarted = FALSE;
+                    cByteValue = 0;
+                    iBitInByte = 0;    
+                }
+            }                
 		}
-        iLastAddr = psCoilValue->usAddr ;		
+        iLastAddr = psCoilValue->usAddr;
 	}
 	return eStatus;
 }

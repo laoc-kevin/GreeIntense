@@ -156,11 +156,11 @@ typedef struct sMBMasterInfo  /* master information */
 	sMBMasterDevsInfo    sMBDevsInfo;               //主栈从设备信息
 	sMBMasterTask        sMBTask;                   //主栈状态机任务信息
     
-    USHORT  RegHoldValueList[MB_PDU_SIZE_MAX];
-    USHORT* pRegHoldPreValueList[MB_PDU_SIZE_MAX];
+    USHORT  RegHoldValList[MB_PDU_SIZE_MAX];
+    USHORT* pRegHoldPreValList[MB_PDU_SIZE_MAX];
     
-    UCHAR   BitCoilByteValueList[MB_PDU_SIZE_MAX];
-    UCHAR*  pBitCoilPreValueList[MB_PDU_SIZE_MAX * 8];
+    UCHAR   BitCoilByteValList[MB_PDU_SIZE_MAX];
+    UCHAR*  pBitCoilPreValList[MB_PDU_SIZE_MAX * 8];
     
 #ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
     BOOL                bDTUEnable;    

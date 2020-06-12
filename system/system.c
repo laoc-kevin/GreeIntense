@@ -82,10 +82,11 @@ void vSystem_PollTask(void *p_arg)
     psSystem = System_Core();
     
     while(DEF_TRUE)
-	{
+	{      
+       
         sEventMsg* psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
         myprintf("OSTaskQPend\n");
-        
+begin:        
         /***********************BMS事件响应***********************/
         HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
         HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
@@ -147,7 +148,7 @@ void vSystem_PollTask(void *p_arg)
             pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
             
             HANDLE(pCO2Sensor->usAvgCO2PPM, vSystem_CO2PPM(psSystem);break) 
-            HANDLE(pCO2Sensor->xCO2SenErr,   vSystem_CO2SensorErr(psSystem);break)
+            HANDLE(pCO2Sensor->xCO2SenErr,  vSystem_CO2SensorErr(psSystem);break)
         }
         
         /***********************室外温湿度传感器事件响应***********************/
@@ -403,25 +404,25 @@ void vSystem_Init(System* pt)
             CONNECT( &(pExAirFan->sValChange), psSystemTaskTCB);  //绑定风机变量变化事件  
         }     
     }
-    /*********************电表*************************/
-    pThis->pUnitMeter     = (Meter*)Meter_new();     //机组电表  
-    pThis->pExAirFanMeter = (Meter*)Meter_new();     //排风机电表 
+//    /*********************电表*************************/
+//    pThis->pUnitMeter     = (Meter*)Meter_new();     //机组电表  
+//    pThis->pExAirFanMeter = (Meter*)Meter_new();     //排风机电表 
 
-    pThis->pUnitMeter->init(pThis->pUnitMeter, pThis->psMBMasterInfo);
-    pThis->pExAirFanMeter->init(pThis->pExAirFanMeter, pThis->psMBMasterInfo);    
+//    pThis->pUnitMeter->init(pThis->pUnitMeter, pThis->psMBMasterInfo);
+//    pThis->pExAirFanMeter->init(pThis->pExAirFanMeter, pThis->psMBMasterInfo);    
     
-//    /***********************CO2传感器***********************/
-//    for(n=0; n < CO2_SEN_NUM; n++)
-//    {
-//        pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
-//        if(pCO2Sensor != NULL)
-//        {
-//            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2); //向上转型，由子类转为父类
-//            pThis->psCO2SenList[n] = pCO2Sensor;
-//            
-//            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
-//        }
-//    }
+    /***********************CO2传感器***********************/
+    for(n=0; n < CO2_SEN_NUM; n++)
+    {
+        pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
+        if(pCO2Sensor != NULL)
+        {
+            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2); //向上转型，由子类转为父类
+            pThis->psCO2SenList[n] = pCO2Sensor;
+            
+            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
+        }
+    }
 //    /***********************室外温湿度传感器***********************/
 //    for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
 //    {

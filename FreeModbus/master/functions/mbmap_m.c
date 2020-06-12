@@ -211,7 +211,7 @@ void vMBMasterDevRegHoldDataInit(sMasterRegHoldData* pData, USHORT usAddr, UCHAR
  * @date 2019.01.22
  *************************************************************************************/
 void vMBMasterDevRegInDataInit(sMasterRegInData* pData, USHORT usAddr, UCHAR ucDataType, LONG lMinVal, 
-                            LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
+                               LONG lMaxVal, UCHAR ucAccessMode, float fTransmitMultiple, void* pvValue)                                  
 {
     pData->usAddr            = usAddr;              //地址  
     pData->ucDataType        = ucDataType;          //数据类型         

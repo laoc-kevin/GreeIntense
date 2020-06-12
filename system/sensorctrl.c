@@ -41,6 +41,10 @@ void vSystem_CO2PPM(System* pt)
         vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
     }
     vSystem_ExAirFanCtrl(pThis);
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_CO2PPM  pThis->usCO2PPM %d  usAvgCO2PPM %d\n", pThis->usCO2PPM, pCO2Sensor->usAvgCO2PPM);
+#endif    
 }
 
 /*系统CO2传感器故障*/

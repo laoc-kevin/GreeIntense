@@ -7,7 +7,7 @@
 
 /* -----------------------Master Defines -------------------------------------*/
 #define MB_MASTER_MIN_DEV_ADDR    1    //主栈从设备最小通讯地址
-#define MB_MASTER_MAX_DEV_ADDR    2    //主栈从设备最大通讯地址
+#define MB_MASTER_MAX_DEV_ADDR    3    //主栈从设备最大通讯地址
 
 #define MB_HEART_BEAT_DELAY_MS    10   //主栈心跳延时
 

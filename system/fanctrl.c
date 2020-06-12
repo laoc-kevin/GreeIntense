@@ -424,7 +424,7 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
 /*风机状态变化*/
 void vSystem_ExAirFanState(System* pt)
 {
-    uint8_t  n;
+     uint8_t  n;
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
@@ -435,6 +435,22 @@ void vSystem_ExAirFanState(System* pt)
         pModularRoof = pThis->psModularRoofList[n];
         if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
         {
+            switch(pThis->eRunningMode)
+            {
+                case RUN_MODE_COOL:
+                    pThis->eSystemState = STATE_COOL;
+                break;
+                case RUN_MODE_HEAT:
+                    pThis->eSystemState = STATE_HEAT;
+                break;
+                case RUN_MODE_FAN:
+                    pThis->eSystemState = STATE_FAN;
+                break;
+                case RUN_MODE_WET:
+                    pThis->eSystemState = STATE_WET;
+                break;
+                default:break;
+            }        
             return;
         }   
     }
@@ -443,6 +459,7 @@ void vSystem_ExAirFanState(System* pt)
         pExAirFan = pThis->psExAirFanList[n];
         if(pExAirFan->Device.eRunningState == STATE_RUN)
         {
+            pThis->eSystemState = STATE_EX_FAN;
             return;
         }   
     }

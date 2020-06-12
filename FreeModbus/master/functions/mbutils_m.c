@@ -43,7 +43,7 @@
 #include "mbmap_m.h"
 
 /* ----------------------- Defines ------------------------------------------*/
-#define BITS_UCHAR      8U
+#define BITS_UCHAR      8
 
 /* ----------------------- Start implementation -----------------------------*/
 
@@ -73,9 +73,9 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
     usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
-	while (iNReg > 0)
+	while(iNReg > 0)
 	{
-		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
+		if( (iNReg == 1) && (usNPreBits > 0) ) //未满8个bit
 		{
 			iBits = usNPreBits;
 		}
@@ -84,36 +84,41 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 			iBits = BITS_UCHAR;
 		}
 		
-        for( i = 0; i < iBits; i++ )
+        for(i=0; i<iBits; i++)
         {
         	switch(eDataType)
         	{
 #if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0						
                 case CoilData:
-                 //扫描，找到对应点位
-                (void)eMBMasterCoilMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitCoilData);     
-                
-                if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO))
-                {
-                    ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	
-                    if( *(UCHAR*)(pucBitCoilData->pvValue) != ucBit )
-                    {	 
-                        *(UCHAR*)(pucBitCoilData->pvValue) = (UCHAR)ucBit;
-                    	pucBitCoilData->ucPreVal  = (UCHAR)ucBit;
-                    }						
-                }
-                else
-                {
-                    usAddress++;
-                	break;
-                }
+                    
+                    (void)eMBMasterCoilMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitCoilData);   //扫描，找到对应点位   
+                    if( (pucBitCoilData != NULL) && (pucBitCoilData->pvValue != NULL) && (pucBitCoilData->ucAccessMode != WO))
+                    {
+                        ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	
+                        if( *(UCHAR*)(pucBitCoilData->pvValue) != ucBit )
+                        {	 
+                            *(UCHAR*)(pucBitCoilData->pvValue) = (UCHAR)ucBit;
+                        	pucBitCoilData->ucPreVal  = (UCHAR)ucBit;
+                        }					
+                    }
+                    else
+                    {
+                        usAddress++;
+                    	break;
+                    }
+//                    if(usAddress ==10)
+//                    {
+//                        myprintf("eMBMasterUtilSetBits  ucSndAddr %d  usAddress %d ucPreVal %d  usMBBitData %d\n\n", 
+//                        ucMBDestAddr, pucBitCoilData->usAddr, pucBitCoilData->ucPreVal, *(UCHAR*)(pucBitCoilData->pvValue));
+//                    }	
+                    
                 break;
 #endif
 						
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
                 case DiscInData:
+                    
                     (void)eMBMasterDiscreteMap(psMBMasterInfo, ucMBDestAddr, usAddress, &pucBitDiscreteData);
-                
                     if( (pucBitDiscreteData != NULL) && (pucBitDiscreteData->pvValue != NULL) && (pucBitDiscreteData->ucAccessMode != WO))
                     {
                         ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	

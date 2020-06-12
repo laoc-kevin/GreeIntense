@@ -37,11 +37,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
-    
-    if(eSystemMode == MODE_MANUAL)    //手动模式
-    {
-        pThis->eSystemState = STATE_MANUAL; 
-    }        
+          
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
@@ -57,15 +53,12 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     }
     if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
-        pThis->eSystemState = STATE_CLOSING; 
         vSystem_SwitchClose(pThis);
     }
     if(eSystemMode == MODE_EMERGENCY) //紧急模式
     {
         vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
-        
-        pThis->eSystemState = STATE_EMERGENCY;
     }
     pThis->eSystemMode = eSystemMode;
     

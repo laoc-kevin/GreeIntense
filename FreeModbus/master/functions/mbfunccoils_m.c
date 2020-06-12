@@ -87,7 +87,7 @@
 eMBMasterReqErrCode
 eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usNCoils, LONG lTimeOut)
 {
-    UCHAR  *ucMBFrame  = NULL;
+    UCHAR  *pucMBFrame  = NULL;
     OS_ERR  err        = OS_ERR_NONE;
     
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
@@ -105,14 +105,14 @@ eMBMasterReqReadCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 	}		
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
 		
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_COILS;     //功能码01
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usCoilAddr >> 8;        //线圈地址高位
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usCoilAddr;             //线圈地址低位
-		*(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF )    = usNCoils >> 8;          //线圈个数高位
-		*(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) = usNCoils;               //线圈个数低位
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_COILS;     //功能码01
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usCoilAddr >> 8;        //线圈地址高位
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usCoilAddr;             //线圈地址低位
+		*(pucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF )    = usNCoils >> 8;          //线圈个数高位
+		*(pucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) = usNCoils;               //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
@@ -138,7 +138,7 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
     UCHAR  ucByteCount;
     USHORT usRegAddress, usCoilCount;
 
-    UCHAR* ucMBFrame = NULL;
+    UCHAR* pucMBFrame = NULL;
 
     eMBErrorCode    eRegStatus = MB_ENOERR;
     eMBException    eStatus    = MB_EX_NONE;
@@ -150,18 +150,18 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
     }
     else if ( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		
-        usRegAddress  = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF) << 8 );   //赋值地址
-        usRegAddress |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1) );
+        usRegAddress  = (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF) << 8 );   //赋值地址
+        usRegAddress |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usCoilCount  = (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF) << 8 );  //线圈数量
-        usCoilCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) );
+        usCoilCount  = (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF) << 8 );  //线圈数量
+        usCoilCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_COILCNT_OFF + 1) );
 
         /* Test if the quantity of coils is a multiple of 8. If not last
          * byte is only partially field with unused coils set to zero. */
-        if( ( usCoilCount & 0x0007 ) != 0 )
+        if( (usCoilCount & 0x0007) != 0 )
         {
         	ucByteCount = (UCHAR)(usCoilCount/8 + 1);
         }
@@ -216,7 +216,7 @@ eMBMasterFuncReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT 
 eMBMasterReqErrCode
 eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usCoilAddr, USHORT usMBBitData, LONG lTimeOut)
 {
-    UCHAR  *ucMBFrame  = NULL;
+    UCHAR  *pucMBFrame  = NULL;
     OS_ERR  err        = OS_ERR_NONE;
 
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
@@ -239,14 +239,14 @@ eMBMasterReqWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usC
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
 		
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_WRITE_SINGLE_COIL;       //功能码05
-		*(ucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF)      = usCoilAddr >> 8;                 //线圈地址高位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF + 1)  = usCoilAddr;                      //线圈地址低位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF )    = usMBBitData >> 8;                //线圈个数高位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usMBBitData;                     //线圈个数低位
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_WRITE_SINGLE_COIL;       //功能码05
+		*(pucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF)      = usCoilAddr >> 8;                 //线圈地址高位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF + 1)  = usCoilAddr;                      //线圈地址低位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF )    = usMBBitData >> 8;                //线圈个数高位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usMBBitData;                     //线圈个数低位
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
 
@@ -335,7 +335,7 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
     UCHAR  ucByteCount;
     USHORT usRegIndex = 0;
     
-    UCHAR  *ucMBFrame  = NULL;
+    UCHAR  *pucMBFrame  = NULL;
     OS_ERR  err        = OS_ERR_NONE;
     
     eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
@@ -358,14 +358,14 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
 		
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                      = MB_FUNC_WRITE_MULTIPLE_COILS;     //功能码15
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF)        = usCoilAddr >> 8;                  //线圈地址高位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1)    = usCoilAddr;                       //线圈地址低位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_COILCNT_OFF)     = usNCoils >> 8;                    //线圈个数高位
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_COILCNT_OFF + 1) = usNCoils ;                        //线圈个数低位
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                      = MB_FUNC_WRITE_MULTIPLE_COILS;     //功能码15
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF)        = usCoilAddr >> 8;                  //线圈地址高位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1)    = usCoilAddr;                       //线圈地址低位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_COILCNT_OFF)     = usNCoils >> 8;                    //线圈个数高位
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_COILCNT_OFF + 1) = usNCoils ;                        //线圈个数低位
 		
 		if( (usNCoils & 0x0007) != 0 )
         {
@@ -375,12 +375,12 @@ eMBMasterReqWriteMultipleCoils(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, U
         {
         	ucByteCount = (UCHAR)(usNCoils/8);
         }
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF) = ucByteCount;
-		ucMBFrame += MB_PDU_REQ_WRITE_MUL_VALUES_OFF;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF) = ucByteCount;
+		pucMBFrame += MB_PDU_REQ_WRITE_MUL_VALUES_OFF;
 		
 		while( ucByteCount > usRegIndex)
 		{
-			*ucMBFrame++ = (UCHAR)( *(pucDataBuffer + (usRegIndex++)) );
+			*pucMBFrame++ = (UCHAR)( *(pucDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + ucByteCount );
        
@@ -405,7 +405,7 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
 {
     USHORT usRegAddress, usCoilCnt;
     UCHAR  ucByteCount, ucByteCountVerify;
-    UCHAR *ucMBFrame;
+    UCHAR *pucMBFrame;
 
     eMBErrorCode    eRegStatus;
     eMBException    eStatus = MB_EX_NONE;
@@ -413,7 +413,7 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     /* If this request is broadcast, the *usLen is not need check. */
     if( (*usLen == MB_PDU_FUNC_WRITE_MUL_SIZE) || xMBMasterRequestIsBroadcast(psMBMasterInfo) )
     {
-    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );   //赋值地址
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
@@ -422,7 +422,7 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
         usCoilCnt  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );  //线圈数量
         usCoilCnt |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF + 1) );
 
-        ucByteCount = *(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF);
+        ucByteCount = *(pucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF);
 
         /* Compute the number of expected bytes in the request. */
         if( ( usCoilCnt & 0x0007 ) != 0 )
@@ -436,7 +436,7 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
 
         if( (usCoilCnt >= 1) && (ucByteCountVerify == ucByteCount) )
         {
-            eRegStatus = eMBMasterRegCoilsCB( psMBMasterInfo, ucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
+            eRegStatus = eMBMasterRegCoilsCB( psMBMasterInfo, pucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
                                               usRegAddress, usCoilCnt, MB_REG_WRITE );     //线圈功能函数
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
@@ -506,6 +506,8 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
         /* read current register values from the protocol stack. */
         case MB_REG_READ: 
 		    eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
+        
+            
 		break;
 		
 		case MB_REG_WRITE:

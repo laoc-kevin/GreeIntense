@@ -99,10 +99,9 @@
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode
-eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                 USHORT usRegData, LONG lTimeOut, BOOL xHeartBeatTest)
+eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, USHORT usRegData, LONG lTimeOut)
 {
-    UCHAR *ucMBFrame = NULL;
+    UCHAR *pucMBFrame = NULL;
 	OS_ERR err = OS_ERR_NONE;
     
     eMBMasterReqErrCode   eErrStatus   = MB_MRE_NO_ERR;
@@ -115,19 +114,19 @@ eMBMasterReqWriteHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr,
 	{
 		eErrStatus = MB_MRE_ILL_ARG;
 	}		
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) 
+    else if ( xMBMasterRunResTake(lTimeOut) == FALSE ) 
 	{
 		eErrStatus = MB_MRE_MASTER_BUSY;
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_WRITE_REGISTER;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF)      = usRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF + 1)  = usRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF)     = usRegData >> 8;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usRegData ;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_WRITE_REGISTER;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF)      = usRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_ADDR_OFF + 1)  = usRegAddr;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF)     = usRegData >> 8;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_VALUE_OFF + 1) = usRegData ;
 		
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_SIZE );
         
@@ -172,14 +171,13 @@ eMBMasterFuncWriteHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR* pucFram
     else
     {
         /* Can't be a valid request because the length is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
     return eStatus;
 }
 #endif
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
-
  /***********************************************************************************
  * @brief  主栈写多个保持寄存器
  * @param  ucSndAddr      从栈地址
@@ -196,7 +194,7 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 {
     UCHAR a,b;
     
-    UCHAR  *ucMBFrame = NULL;
+    UCHAR  *pucMBFrame = NULL;
     USHORT  usRegIndex = 0;
     
 	OS_ERR err = OS_ERR_NONE;
@@ -217,23 +215,23 @@ eMBMasterReqErrCode eMBMasterReqWriteMultipleHoldingRegister(sMBMasterInfo* psMB
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                     = MB_FUNC_WRITE_MULTIPLE_REGISTERS;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF)       = usRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1)   = usRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF)     = usNRegs >> 8;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF + 1) = usNRegs ;
-		*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF)   = usNRegs * 2;
-		ucMBFrame += MB_PDU_REQ_WRITE_MUL_VALUES_OFF;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                     = MB_FUNC_WRITE_MULTIPLE_REGISTERS;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF)       = usRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1)   = usRegAddr;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF)     = usNRegs >> 8;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF + 1) = usNRegs ;
+		*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF)   = usNRegs * 2;
+		pucMBFrame += MB_PDU_REQ_WRITE_MUL_VALUES_OFF;
 		
 		while( usNRegs > usRegIndex)
 		{
-			*ucMBFrame++ = (UCHAR)( *(pusDataBuffer + usRegIndex) >> 8);
-			*ucMBFrame++ = (UCHAR)( *(pusDataBuffer + (usRegIndex++)) );
+			*pucMBFrame++ = (UCHAR)( *(pusDataBuffer + usRegIndex) >> 8);
+			*pucMBFrame++ = (UCHAR)( *(pusDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_WRITE_MUL_SIZE_MIN + 2*usNRegs);
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
         
 //	    myprintf("ucSlaveAddr %d  eMBMasterReqWriteMultipleHoldingRegister    \n",ucSndAddr);
             
@@ -257,7 +255,7 @@ eMBMasterFuncWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR*
     UCHAR  ucRegByteCount;
     USHORT usRegAddress, usRegCount;
     
-    UCHAR *ucMBFrame = NULL;
+    UCHAR *pucMBFrame = NULL;
     
     eMBErrorCode    eRegStatus = MB_ENOERR;
     eMBException    eStatus    = MB_EX_NONE;
@@ -265,19 +263,19 @@ eMBMasterFuncWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR*
     /* If this request is broadcast, the *usLen is not need check. */
     if( ( *usLen == MB_PDU_SIZE_MIN + MB_PDU_FUNC_WRITE_MUL_SIZE ) || xMBMasterRequestIsBroadcast(psMBMasterInfo) )
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegAddress = ( USHORT )( (*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF )) << 8 );
-        usRegAddress |= ( USHORT )( *(ucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1) );
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+        usRegAddress = ( USHORT )( (*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF )) << 8 );
+        usRegAddress |= ( USHORT )( *(pucMBFrame + MB_PDU_REQ_WRITE_MUL_ADDR_OFF + 1) );
         usRegAddress++;
 
-        usRegCount  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF )) << 8 );
-        usRegCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF + 1) );
-        ucRegByteCount = *(ucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF);
+        usRegCount  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF )) << 8 );
+        usRegCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_WRITE_MUL_REGCNT_OFF + 1) );
+        ucRegByteCount = *(pucMBFrame + MB_PDU_REQ_WRITE_MUL_BYTECNT_OFF);
 
-        if(ucRegByteCount == 2 * usRegCount)
+        if(ucRegByteCount == 2*usRegCount)
         {
             /* Make callback to update the register values. */
-            eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, ucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
+            eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, pucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
                                                usRegAddress, usRegCount, MB_REG_WRITE);
 
             /* If an error occured convert it into a Modbus exception. */
@@ -311,10 +309,9 @@ eMBMasterFuncWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR*
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, 
-                                                     USHORT usNRegs, LONG lTimeOut, BOOL xHeartBeatTest)
+eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usRegAddr, USHORT usNRegs, LONG lTimeOut)
 {
-    UCHAR* ucMBFrame = NULL;
+    UCHAR* pucMBFrame = NULL;
     OS_ERR err = OS_ERR_NONE;
     
     OS_MSG_SIZE  msgSize = 0;
@@ -335,13 +332,13 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_READ_HOLDING_REGISTER;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)       = usRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)   = usRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)     = usNRegs >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                = MB_FUNC_READ_HOLDING_REGISTER;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)       = usRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)   = usRegAddr;
+		*(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)     = usNRegs >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) = usNRegs;
 		
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE);
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
@@ -365,7 +362,7 @@ eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFram
 {
     USHORT usRegAddress, usRegCount;
     
-    UCHAR *ucMBFrame = NULL;
+    UCHAR *pucMBFrame = NULL;
     
     eMBErrorCode    eRegStatus = MB_ENOERR;
     eMBException    eStatus    = MB_EX_NONE;
@@ -377,13 +374,13 @@ eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFram
     }
     else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegAddress  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)) << 8 );
-        usRegAddress |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1) ) ;
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+        usRegAddress  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)) << 8 );
+        usRegAddress |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1) ) ;
         usRegAddress++;
 
-        usRegCount  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)) << 8 );
-        usRegCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) );
+        usRegCount  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF)) << 8 );
+        usRegCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READ_REGCNT_OFF + 1) );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception.
@@ -434,7 +431,7 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 		                                      USHORT usReadRegAddr, USHORT usNReadRegs, USHORT * pusDataBuffer,
 		                                      USHORT usWriteRegAddr, USHORT usNWriteRegs, LONG lTimeOut )
 {
-    UCHAR  *ucMBFrame = NULL;
+    UCHAR  *pucMBFrame = NULL;
     USHORT  usRegIndex = 0;
     
 	OS_ERR err = OS_ERR_NONE;
@@ -455,24 +452,29 @@ eMBMasterReqReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCH
 	}
     else
     {
-		vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
+		vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
 		vMBMasterSetDestAddress(psMBMasterInfo, ucSndAddr);
-		*(ucMBFrame + MB_PDU_FUNC_OFF)                           = MB_FUNC_READWRITE_MULTIPLE_REGISTERS;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF)        = usReadRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF + 1)    = usReadRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF)      = usNReadRegs >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF + 1)  = usNReadRegs ;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF)       = usWriteRegAddr >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF + 1)   = usWriteRegAddr;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF)     = usNWriteRegs >> 8;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF + 1) = usNWriteRegs ;
-		*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_BYTECNT_OFF)    = usNWriteRegs * 2;
-		ucMBFrame += MB_PDU_REQ_READWRITE_WRITE_VALUES_OFF;
+		*(pucMBFrame + MB_PDU_FUNC_OFF)                           = MB_FUNC_READWRITE_MULTIPLE_REGISTERS;
+        
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF)        = usReadRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF + 1)    = usReadRegAddr;
+        
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF)      = usNReadRegs >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF + 1)  = usNReadRegs ;
+        
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF)       = usWriteRegAddr >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF + 1)   = usWriteRegAddr;
+        
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF)     = usNWriteRegs >> 8;
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF + 1) = usNWriteRegs ;
+        
+		*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_BYTECNT_OFF)    = usNWriteRegs * 2;
+		pucMBFrame += MB_PDU_REQ_READWRITE_WRITE_VALUES_OFF;
 		
 		while( usNWriteRegs > usRegIndex)
 		{
-			*ucMBFrame++ = (UCHAR)( *(pusDataBuffer + usRegIndex) >> 8);
-			*ucMBFrame++ = (UCHAR)( *(pusDataBuffer + (usRegIndex++)) );
+			*pucMBFrame++ = (UCHAR)( *(pusDataBuffer + usRegIndex) >> 8);
+			*pucMBFrame++ = (UCHAR)( *(pusDataBuffer + (usRegIndex++)) );
 		}
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READWRITE_SIZE_MIN + 2*usNWriteRegs);  
           
@@ -495,7 +497,7 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
 {
     USHORT usRegReadAddress, usRegReadCount, usRegWriteAddress, usRegWriteCount;
     
-    UCHAR *ucMBFrame = NULL;
+    UCHAR *pucMBFrame = NULL;
     OS_ERR err = OS_ERR_NONE;
     
     eMBException eStatus    = MB_EX_NONE;
@@ -508,25 +510,25 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
     }
     else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READWRITE_SIZE_MIN )
     {
-    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &ucMBFrame);
-        usRegReadAddress  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF)) << 8U );
-        usRegReadAddress |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF + 1) );
+    	vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+        usRegReadAddress  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF)) << 8U );
+        usRegReadAddress |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READWRITE_READ_ADDR_OFF + 1) );
         usRegReadAddress++;
 
-        usRegReadCount  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF)) << 8U );
-        usRegReadCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF + 1) );
+        usRegReadCount  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF)) << 8U );
+        usRegReadCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READWRITE_READ_REGCNT_OFF + 1) );
 
-        usRegWriteAddress  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF)) << 8U );
-        usRegWriteAddress |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF + 1) );
+        usRegWriteAddress  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF)) << 8U );
+        usRegWriteAddress |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_ADDR_OFF + 1) );
         usRegWriteAddress++;
 
-        usRegWriteCount  = (USHORT)( (*(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF)) << 8U );
-        usRegWriteCount |= (USHORT)( *(ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF + 1) );
+        usRegWriteCount  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF)) << 8U );
+        usRegWriteCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF + 1) );
 
         if( ( 2 * usRegReadCount ) == *(pucFrame + MB_PDU_FUNC_READWRITE_READ_BYTECNT_OFF) )
         {
             /* Make callback to update the register values. */
-            eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, ucMBFrame + MB_PDU_REQ_READWRITE_WRITE_VALUES_OFF,
+            eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_VALUES_OFF,
                                            usRegWriteAddress, usRegWriteCount, MB_REG_WRITE );
 
             if(eRegStatus == MB_ENOERR)
@@ -634,7 +636,9 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     				}							
     				else
     				{
-    					return MB_EINVAL;
+                        iRegIndex++;
+                        usNRegs--;
+    				    continue;
     				}						
     			}
     			else if(pvRegHoldValue->ucDataType == uint8)
@@ -646,7 +650,9 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     				}
     				else
     				{
-    					return MB_EINVAL;
+                        iRegIndex++;
+                        usNRegs--;
+    				    continue;
     				}	
     			}
     			else if (pvRegHoldValue->ucDataType == int16)
@@ -660,7 +666,9 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     				}
     				else
     				{
-    					return MB_EINVAL;
+                        iRegIndex++;
+                        usNRegs--;
+    				    continue;
     				}						
     			}
     			else if(pvRegHoldValue->ucDataType == int8)
@@ -674,13 +682,17 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     				}
     				else
     				{
-    					return MB_EINVAL;
+                        iRegIndex++;
+                        usNRegs--;
+    				    continue;
     				}	
     			}
     		}
     		else
     		{
-    			return MB_ENOREG;
+    			iRegIndex++;
+                usNRegs--;
+    		    continue;
     		}
             iRegIndex++;
             usNRegs--;
