@@ -54,18 +54,50 @@ typedef struct  /*设备模拟量接口类型*/
 }sDigital_IO;
 
 
+typedef enum   /*风机类型*/
+{
+    Type_CONSTANT = 0,              //定频
+    Type_CONSTANT_VARIABLE = 1      //定频 + 变频
+}eExAirFanType;
+
+typedef enum   /*系统模式*/
+{
+    MODE_CLOSE     = 0,     //关闭模式
+    MODE_MANUAL    = 1,     //手动模式
+    MODE_AUTO      = 2,     //自动模式
+    MODE_EMERGENCY = 3,     //紧急送风模式
+}eSystemMode;
+
+typedef enum   /*运行模式*/
+{
+    RUN_MODE_COOL    = 1,      //制冷
+    RUN_MODE_HEAT    = 2,      //制热
+    RUN_MODE_FAN     = 3,      //送风   
+    RUN_MODE_WET     = 4,      //湿膜
+}eRunningMode;
+
+typedef enum   /*系统状态*/
+{
+    STATE_MANUAL    = 0,    //手动模式
+    STATE_COOL      = 1,    //制冷运行
+    STATE_HEAT      = 2,    //制热运行
+    STATE_FAN       = 3,    //送风运行
+    STATE_WET       = 4,    //湿膜运行
+    STATE_EMERGENCY = 5,    //紧急送风模式
+    STATE_CLOSING   = 6,    //正在关机 
+    STATE_CLOSED    = 7,    //已关闭
+}eSystemState;
+
 INTERFACE(IDevSwitch)    /*设备启停接口*/
 {                                                         
     void    (*switchOpen)(IDevSwitch* pt);        //开启
     void    (*switchClose)(IDevSwitch* pt);        //关闭
-    
 };
 
 INTERFACE(IDevFreq)      /*设备频率接口*/
 {
     void         (*setFreq)(IDevFreq* pt, uint16_t usFreq);                              //设置频率
     void    (*setFreqRange)(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq);       //设置频率上下限
-
 };
 
 INTERFACE(IDevCom)      /*设备通讯接口*/

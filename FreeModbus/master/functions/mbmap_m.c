@@ -233,6 +233,11 @@ void vMBMasterDevCoilDataInit(sMasterBitCoilData* pData, USHORT usAddr, UCHAR uc
     pData->ucPreVal      = ucPreVal;         //先前值
     pData->ucAccessMode  = ucAccessMode;     //访问权限
     pData->pvValue       = pvValue;          //变量指针
+    
+//    if(usAddr ==0)
+//    {
+//         myprintf("vMBMasterDevCoilDataInit %d  pvValue %d \n", pData, pvValue);
+//    }
 }                                                        
 
 /***********************************************************************************

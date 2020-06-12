@@ -7,6 +7,8 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
+#include "system.h"
+
 #define MB_SCAN_SLAVE_DELAY_MS             50    //主栈扫描从设备
 #define MB_SCAN_SLAVE_INTERVAL_MS          50
 
@@ -100,7 +102,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
             {
                 vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
                 if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucOfflineTimes == 0) ) //在线且不处于延时阶段
-                {
+                {                  
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
                 }
                 else if(psMBSlaveDev->xOnLine == FALSE)
@@ -162,7 +164,7 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
             if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从设备数据
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从设备数据		
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从设备数据	
                 psMBSlaveDev->xSynchronized = TRUE;                              //同步完成
             }
             else   //同步完成后，先写后读
@@ -179,6 +181,8 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
         }
+        psMBSlaveDev->eScanMode = (psMBSlaveDev->eScanMode == SCAN_WRITE) ? SCAN_READ:SCAN_WRITE; //切换轮询模式
+
 //        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
 //        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);
     }		
@@ -195,8 +199,14 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
 void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
 {
     OS_ERR err = OS_ERR_NONE;
-    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
+    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
+    sMBSlaveDev*    psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+
+    if(psMBSlaveDevCur->eScanMode == SCAN_WRITE)
+    {
+        return;
+    }
 //    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 			
@@ -213,6 +223,7 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
+    
 #endif  
 }
 
@@ -227,22 +238,29 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
 void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, UCHAR bCheckPreValue)
 {
     OS_ERR err = OS_ERR_NONE;
-    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     
+    eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
+    sMBSlaveDev*    psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
+    
+    if(psMBSlaveDevCur->eScanMode == SCAN_READ)
+    {
+        return;
+    }
 //    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
-
+    
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);	//写保持寄存器 									
 #endif
 					
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
     errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);            //写线圈 
-#endif     
+#endif 
+   
 }
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
 /***********************************************************************************
- * @brief  轮询输入寄存器字典
+ * @brief  轮询输入寄存器
  * @param  ucSndAddr            从栈地址
  * @return eMBMasterReqErrCode  错误码
  * @author laoc
@@ -322,7 +340,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
 
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 
 /***********************************************************************************
- * @brief  轮询读保持寄存器字典
+ * @brief  轮询读保持寄存器
  * @param  ucSndAddr            从栈地址
  * @return eMBMasterReqErrCode  错误码
  * @author laoc
@@ -421,7 +439,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 
 #if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 
 /***********************************************************************************
- * @brief  轮询写保持寄存器字典
+ * @brief  轮询写保持寄存器
  * @param  ucSndAddr            从栈地址
  * @param  bCheckPreValue       检查先前值
  * @return eMBMasterReqErrCode  错误码
@@ -612,7 +630,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
 
 #if MB_FUNC_READ_COILS_ENABLED > 0 
 /***********************************************************************************
- * @brief  轮询读线圈字典
+ * @brief  轮询读线圈
  * @param  ucSndAddr            从栈地址
  * @return eMBMasterReqErrCode  错误码
  * @author laoc
@@ -654,17 +672,17 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
         /***************************** 读线圈 **********************************/
          if( psCoilValue->usAddr != (iLastAddr + 1) )     //地址不连续，则发送读请求
          {
-         	if( iCount > 0)
-         	{
-         		eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
-                iCount = 0;
-         		iStartAddr = psCoilValue->usAddr;
-         	}
-         	if( psCoilValue->ucAccessMode != WO )
-         	{
-         		iCount++;
-         		iStartAddr = psCoilValue->usAddr;
-         	}
+             if( iCount > 0)
+             {
+                 eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
+                 iCount = 0;
+                 iStartAddr = psCoilValue->usAddr;
+             }
+             if( psCoilValue->ucAccessMode != WO )
+             {
+                 iCount++;
+                 iStartAddr = psCoilValue->usAddr;
+             }
          }
          else
          {
@@ -723,9 +741,18 @@ eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSn
     eMBMasterReqErrCode eStatus = MB_MRE_NO_ERR;
     USHORT usMBBitData = 0;
     
+     System* pSystem = (System*)System_Core();
+    
     if(usNCoils == 1)      //写单个线圈
     {
         usMBBitData = (*(UCHAR*)pucDataBuffer >0) ? 0xFF00 : 0x0000;
+        
+        if(usCoilAddr == 10)
+        {
+             myprintf("eMBMasterReqWriteCoil usCoilAddr %d  usMBBitData %d %d %d\n", 
+            usCoilAddr, usMBBitData, *(UCHAR*)pucDataBuffer, pSystem->psModularRoofList[0]->xErrClean);
+        }   
+
         eStatus = eMBMasterReqWriteCoil(psMBMasterInfo, ucSndAddr, usCoilAddr, usMBBitData, lTimeOut);   
     }
     else if(usNCoils > 1)  //写多个线圈
@@ -781,11 +808,14 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 	for(iIndex = 0; iIndex < psMBCoilTable->usDataCount; iIndex++)
 	{
 		psCoilValue = (sMasterBitCoilData*)(psMBCoilTable->pvDataBuf) + iIndex;
+        
         /******************* 写线圈，如果对应的变量发生变化则写线圈 ***************************/
         if ( (psCoilValue->pvValue != NULL) && (psCoilValue->ucAccessMode != RO) )
 		{
 			if( (psCoilValue->ucPreVal != *(UCHAR*)(psCoilValue->pvValue)) || (bCheckPreValue == FALSE) )  //线圈地址发生变化或者不检查是否发生变化
             {
+                 myprintf("eMBMasterReqWriteCoil usCoilAddr %d  usMBBitData %d %d %d\n")
+                
 				if(iBitInByte % 8 ==0)   //8bit
 			    {
 			    	cByteValue = 0;
@@ -796,7 +826,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 			    {
 			    	cByteValue |= (1 << iBitInByte);	//组成一个字节		
 			    }
-				iBitInByte++;  //偏移+1
+				iBitInByte++;   //偏移+1
 			    iChangedBits++;	//发生变化的线圈数量+1
 
 			    pBitCoilPreValueList[iChangedBits-1]  =  (UCHAR*)( &(psCoilValue->ucPreVal) );  //记录先前值地址
@@ -805,7 +835,7 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 		}
 		iBits++;  //线圈地址+1
        
-		if( iChangedBits == 1 && ( bStarted != TRUE))    //记录首地址
+		if( iChangedBits == 1 && bStarted != TRUE )    //记录首地址
 		{
 			iStartBit = psCoilValue->usAddr;
 			bStarted = TRUE;

@@ -6,6 +6,7 @@
 #include "sensor.h"
 #include "modularRoof.h"
 #include "meter.h"
+#include "bms.h"
 #include "md_timer.h"
 
 #define EX_AIR_FAN_NUM          4        //排风机数量
@@ -15,37 +16,7 @@
 #define TEMP_HUMI_SEN_OUT_NUM   1        //室外温湿度传感器数量
 #define TEMP_HUMI_SEN_IN_NUM    12       //室内温湿度传感器数量
 
-
-
-typedef enum   /*风机类型*/
-{
-    Type_CONSTANT = 0,              //定频
-    Type_CONSTANT_VARIABLE = 1      //定频 + 变频
-}eExAirFanType;
-
-typedef enum   /*系统模式*/
-{
-    MODE_CLOSE     = 0,     //关闭模式
-    MODE_MANUAL    = 1,     //手动模式
-    MODE_AUTO      = 2,     //自动模式
-    MODE_EMERGENCY = 3,     //紧急送风模式
-}eSystemMode;
-
-typedef enum   /*系统状态*/
-{
-    STATE_MANUAL    = 0,    //手动模式
-    STATE_COOL      = 1,    //制冷运行
-    STATE_HEAT      = 2,    //制热运行
-    STATE_FAN       = 3,    //送风运行
-    STATE_WET       = 4,    //湿膜运行
-    STATE_EMERGENCY = 5,    //紧急送风模式
-    STATE_CLOSING   = 6,    //正在关机 
-    STATE_CLOSED    = 7,    //已关闭
-}eSystemState;
-
 CLASS(System)   /*系统*/
-
-//typedef struct System
 {
     EXTENDS(Device);         /*继承设备抽象类*/ 
 
@@ -83,7 +54,7 @@ CLASS(System)   /*系统*/
     uint16_t          usModeAdjustTemp_5;       //模式调节温度T5
     uint16_t          usModeAdjustTemp_6;       //模式调节温度T6
 
-    int16_t           sTempSet;                 //目标温度值设定
+    uint16_t          usTempSet;                //目标温度值设定
     uint16_t          usEnergyTemp;             //节能温度
     uint16_t          usTempDeviat;             //温度偏差
     uint16_t          usSupAirMax_T;            //送风最大温度  
@@ -161,7 +132,8 @@ CLASS(System)   /*系统*/
     BOOL              xHumiSenInErr;            //室内湿度传感器故障
     
     sDigital_IO       sAlarm_DO;                //声光报警DO                                            
-    DTU*              psDTU;                    //DTU模块        
+    DTU*              psDTU;                    //DTU模块
+    BMS*              psBMS;                    //BMS接口  
       
     Meter*            pUnitMeter;               //机组电表  
     Meter*            pExAirFanMeter;           //排风机电表  

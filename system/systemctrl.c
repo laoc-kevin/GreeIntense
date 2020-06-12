@@ -45,7 +45,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
-        if(pThis->sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_0)
+        if(pThis->sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_0)
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
         }
@@ -75,7 +75,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
 }
 
 /*设定系统目标温度值*/
-void vSystem_SetTemp(System* pt, int16_t sTempSet)
+void vSystem_SetTemp(System* pt, uint16_t usTempSet)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
@@ -85,14 +85,14 @@ void vSystem_SetTemp(System* pt, int16_t sTempSet)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        pModularRoof->usCoolTempSet = sTempSet;
-        pModularRoof->usHeatTempSet = sTempSet;
+        pModularRoof->usCoolTempSet = usTempSet;
+        pModularRoof->usHeatTempSet = usTempSet;
     }
-    pThis->sTempSet = sTempSet;
+    pThis->usTempSet = usTempSet;
     vSystem_ChangeUnitRunningMode(pThis);
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetTemp %d\n", pThis->sTempSet);
+    myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif
     
 }
@@ -104,15 +104,47 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    ModularRoof* pUnit        = NULL;
+    
+    uint16_t usFreAirSet_Vol = 0;
     uint32_t ulFreAirSet_Vol = usFreAirSet_Vol_H*65535 + usFreAirSet_Vol_L;
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
-        pModularRoof = pThis->psModularRoofList[n];        
-        pModularRoof->usFreAirSet_Vol = ulFreAirSet_Vol / MODULAR_ROOF_NUM;
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->sMBSlaveDev.xOnLine == TRUE && pModularRoof->xStopErrFlag == FALSE)  //机组在线且无故障
+        {
+            ucUnitNum++;           
+        }
+    } 
+    myprintf("MODULAR_ROOF_NUM \n");
+    
+    if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //只有一台机组可用
+    {
+        if(pThis->ulFreAirSet_Vol > 65000)    //保证新风量
+        {
+            pUnit->usFreAirSet_Vol = 65000;
+        }
+        else
+        {
+            pUnit->usFreAirSet_Vol = pThis->ulFreAirSet_Vol;
+        }
     }
+    else if(ucUnitNum == MODULAR_ROOF_NUM)  //两台
+    {
+        usFreAirSet_Vol = (uint16_t)(ulFreAirSet_Vol / MODULAR_ROOF_NUM);
+        
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
+        }  
+    }
+
+    myprintf("ulFreAirSet_Vol \n");
     
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
+    
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
     
 #if DEBUG_ENABLE > 0

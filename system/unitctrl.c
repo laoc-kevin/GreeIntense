@@ -76,9 +76,13 @@ void vSystem_ChangeEnergyTemp(System* pt)
                     T=【节能温度】-【温度偏差】（默认0.5℃）；*/
     if(sAmbientIn_T < pThis->usEnergyTemp)
     {
-        pThis->sTempSet = usEnergyTemp - usTempDeviat;
+        pThis->usTempSet = usEnergyTemp - usTempDeviat;
     }
-    vSystem_SetTemp(pThis, pThis->sTempSet);
+    vSystem_SetTemp(pThis, pThis->usTempSet);
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_ChangeEnergyTemp %d\n", pThis->usEnergyTemp); 
+#endif       
 }
 
 /*设定机组运行模式*/
@@ -86,7 +90,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
-    
+
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
@@ -115,6 +119,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
         default:break;
     }        
     pThis->eRunningMode = eRunMode;
+    pThis->psBMS->eRunningMode = eRunMode;
     
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetUnitRunningMode %d\n", pThis->eRunningMode); 
@@ -136,7 +141,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
     {
         //室内温度>室内目标温度+ T1（默认1.5℃），持续满足t1(默认5min)时间，
         //且满足【模式切换间隔时间1】（默认10min）则机组切换为湿膜模式；
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_1) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_1) && 
             (usGetTmrState(&pThis->sModeChangeTmr_1) != OS_TMR_STATE_RUNNING) &&
             (usGetTmrState(&pThis->sModeChangePeriodTmr_1) != OS_TMR_STATE_RUNNING) )
         {
@@ -147,7 +152,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
         }
         //室内温度<室内目标温度- T2（默认1.5℃），持续满足t2(默认5min)时间，
         //且满足【模式切换间隔时间2】（默认10min）则机组切换为制热模式；
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_2) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_2) && 
             (usGetTmrState(&pThis->sModeChangeTmr_2) != OS_TMR_STATE_RUNNING) &&
             (usGetTmrState(&pThis->sModeChangePeriodTmr_2) != OS_TMR_STATE_RUNNING) )
         {
@@ -164,7 +169,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
 
         //室内温度>T+ T3（默认1.5℃），持续满足t3(默认5min)时间，
         //且满足【模式切换间隔时间3】（默认10min）则机组切换为制冷模式；
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_3) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_3) && 
             (usGetTmrState(&pThis->sModeChangeTmr_3) != OS_TMR_STATE_RUNNING) && 
             (usGetTmrState(&pThis->sModeChangePeriodTmr_3) != OS_TMR_STATE_RUNNING) )
         {
@@ -175,7 +180,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
         }
         //室内温度<室内目标温度- T4（默认1.5℃），持续满足t4(默认5min)时间，
         //且满足【模式切换间隔时间4】（默认10min）则机组切换为送风模式；
-        if( (sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_4) && 
+        if( (sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_4) && 
             (usGetTmrState(&pThis->sModeChangeTmr_4) != OS_TMR_STATE_RUNNING) &&
             (usGetTmrState(&pThis->sModeChangePeriodTmr_4) != OS_TMR_STATE_RUNNING) )
         {
@@ -190,7 +195,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
     {
         //室内温度<室内目标温度- T5（默认1.5℃）持续满足t5(默认5min)时间
         //且满足【模式切换间隔时间5】（默认10min）机组切换为湿膜模式。
-        if( (sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_5) && 
+        if( (sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_5) && 
             (usGetTmrState(&pThis->sModeChangeTmr_5) != OS_TMR_STATE_RUNNING) &&
             (usGetTmrState(&pThis->sModeChangePeriodTmr_5) != OS_TMR_STATE_RUNNING) )
         {
@@ -218,7 +223,7 @@ void vSystem_AdjustUnitRunningMode(void* p_tmr, void* p_arg)
     {
         //室内温度<室内目标温度- T6（默认1.5℃）持续满足t6(默认5min)时间
         //且满足【模式切换间隔时间6】（默认10min）则机组切换为送风模式；
-        if( (sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_6) && 
+        if( (sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_6) && 
             (usGetTmrState(&pThis->sModeChangeTmr_6) != OS_TMR_STATE_RUNNING) &&
              (usGetTmrState(&pThis->sModeChangePeriodTmr_6) != OS_TMR_STATE_RUNNING) )
         {
@@ -258,14 +263,14 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     if(pThis->eRunningMode == RUN_MODE_FAN)
     {
         //室内温度>室内目标温度+ T1（默认1.5℃），持续满足t1(默认5min)时间
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_1) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_1) && 
             (usGetTmrState(&pThis->sModeChangeTmr_1) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1, 
                                0, OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
         }
         //室内温度<室内目标温度- T2（默认1.5℃），持续满足t2(默认5min)时间
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_2) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_2) && 
             (usGetTmrState(&pThis->sModeChangeTmr_2) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2, 
@@ -278,7 +283,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         vSystem_ChangeEnergyTemp(pThis);
 
         //室内温度>T+ T3（默认1.5℃），持续满足t3(默认5min)时间
-        if( (sAmbientIn_T > pThis->sTempSet + pThis->usModeAdjustTemp_3) && 
+        if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_3) && 
             (usGetTmrState(&pThis->sModeChangeTmr_3) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->usModeChangeTime_3, 
@@ -286,7 +291,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
             return;
         }
         //室内温度<室内目标温度- T4（默认1.5℃），持续满足t2(默认5min)时间
-        if( (pThis->sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_4) && 
+        if( (pThis->sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_4) && 
             (usGetTmrState(&pThis->sModeChangeTmr_4) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_4, pThis->usModeChangeTime_4, 
@@ -298,7 +303,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     if(pThis->eRunningMode == RUN_MODE_COOL)
     {
         //室内温度<室内目标温度- T5（默认1.5℃）持续满足t5(默认5min)时间
-        if( (sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_5) && 
+        if( (sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_5) && 
             (usGetTmrState(&pThis->sModeChangeTmr_5) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_5, pThis->usModeChangeTime_5, 
@@ -321,7 +326,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     if(pThis->eRunningMode == RUN_MODE_HEAT)
     {
         //室内温度<室内目标温度- T6（默认1.5℃）持续满足t6(默认5min)时间
-        if( (sAmbientIn_T > pThis->sTempSet - pThis->usModeAdjustTemp_6) && 
+        if( (sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_6) && 
             (usGetTmrState(&pThis->sModeChangeTmr_6) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_6, pThis->usModeChangeTime_6, 
@@ -503,10 +508,11 @@ void vSystem_UnitTempHumiIn(System* pt)
 void vSystem_UnitState(System* pt)
 {
     uint8_t  n;
- 
     System* pThis = (System*)pt;
+    
     ModularRoof* pModularRoof = NULL;
- 
+    ExAirFan*    pExAirFan    = NULL;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
@@ -515,10 +521,15 @@ void vSystem_UnitState(System* pt)
             return;
         }   
     }
-    if(pThis->eSystemMode == MODE_CLOSE)   //系统关闭模式下
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
-        pThis->eSystemState = STATE_CLOSED;
-    }   
+        pExAirFan = pThis->psExAirFanList[n];
+        if(pExAirFan->Device.eRunningState == STATE_RUN)
+        {
+            return;
+        }   
+    }
+    pThis->eSystemState = STATE_CLOSED;
 }
 
 /*机组故障处理*/
@@ -551,7 +562,7 @@ void vSystem_UnitErr(System* pt)
             pModularRoof->xCommErr = TRUE;
         }            
     }
-    if(ucOnLineNum != 0 && ucOnLineNum != MODULAR_ROOF_NUM ) //其中一台机组通讯故障
+    if(ucOnLineNum > 0 && ucOnLineNum < MODULAR_ROOF_NUM ) //其中一台机组通讯故障
     {
         if(pOnlineUnit->xStopErrFlag == FALSE)  //且无故障
         {

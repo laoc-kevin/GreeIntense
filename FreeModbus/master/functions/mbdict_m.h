@@ -18,6 +18,12 @@ typedef enum      /* 测试模式 */
 	WRITE_REG_HOLD,
 }eMasterCmdMode;
 
+typedef enum   /*轮询模式*/
+{
+    SCAN_WRITE    = 0,     //轮询写
+    SCAN_READ     = 1,     //轮询读
+}eScanMode;
+
 typedef struct        /* 主栈保持寄存器数据结构 */
 {
 	USHORT            usAddr;            //地址
@@ -106,14 +112,17 @@ typedef struct sMBSlaveDevCommData   /* 从设备通讯字典数据结构 */
 
 typedef struct sMBSlaveDev   /* 从设备信息列表 */   
 {
-    UCHAR   ucDevAddr;             //设备通讯地址
-    UCHAR   ucDevCurTestAddr;      //设备当前测试地址
-	UCHAR   ucOfflineTimes;        //掉线次数
-	BOOL    xOnLine;               //是否在线
-	BOOL    xDataReady;            //数据是否准备好
-    UCHAR   ucProtocolID;          //协议ID
-	BOOL    xSynchronized;         //是否同步
-    BOOL    xDevOnTimeout;         //是否处于延时
+    UCHAR     ucProtocolID;          //协议ID
+    UCHAR     ucDevAddr;             //设备通讯地址
+    UCHAR     ucDevCurTestAddr;      //设备当前测试地址
+	UCHAR     ucOfflineTimes;        //掉线次数
+	BOOL      xOnLine;               //是否在线
+	BOOL      xDataReady;            //数据是否准备好
+	BOOL      xSynchronized;         //是否同步
+    BOOL      xDevOnTimeout;         //是否处于延时
+    
+    eScanMode eScanMode;             //当前轮询模式
+    
     OS_TMR  sDevOfflineTmr;        //设备掉线定时器
     
 #if MB_MASTER_HEART_BEAT_ENABLED >0

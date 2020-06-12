@@ -311,28 +311,26 @@ void vBMS_InitBMSCommData(BMS* pt)
 {
     BMS*    pThis   = (BMS*)pt;
     System* pSystem = (System*)System_Core();
-     
-    void* p =NULL;
     
-SLAVE_PBUF_INDEX_ALLOC()    
-    
+SLAVE_PBUF_INDEX_ALLOC()  
+ 
 SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTable) 
     
     SLAVE_REG_HOLD_DATA(0,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usUnitID)
     SLAVE_REG_HOLD_DATA(1,  uint16,    0,  65535, RO, 1, (void*)&pSystem->usProtocolVer)
-    SLAVE_REG_HOLD_DATA(2,  uint16,    0,      3, RW, 1, (void*)&pThis->eSystemMode)
-    SLAVE_REG_HOLD_DATA(3,  uint16,    0,      4, RW, 1, (void*)&pThis->eRunningMode)
-    SLAVE_REG_HOLD_DATA(4,  uint16,    0,      7, RO, 1, (void*)&pSystem->eSystemState) 
+    SLAVE_REG_HOLD_DATA(2,   uint8,    0,      3, RW, 1, (void*)&pThis->eSystemMode)
+    SLAVE_REG_HOLD_DATA(3,   uint8,    1,      4, RW, 1, (void*)&pThis->eRunningMode)
+    SLAVE_REG_HOLD_DATA(4,   uint8,    0,      7, RO, 1, (void*)&pSystem->eSystemState) 
         
     SLAVE_REG_HOLD_DATA(11,  int16,   -2,     56, RW, 1, (void*)&pSystem->sChickenGrowDays)  
-    SLAVE_REG_HOLD_DATA(12,  int16, -300,    450, RW, 1, (void*)&pThis->sTempSet)   
+    SLAVE_REG_HOLD_DATA(12, uint16,  160,    350, RW, 1, (void*)&pThis->usTempSet)   
     SLAVE_REG_HOLD_DATA(13, uint16,    0,  64464, RW, 1, (void*)&pThis->usFreAirSet_Vol_L)
     SLAVE_REG_HOLD_DATA(14, uint16,    0,      1, RW, 1, (void*)&pThis->usFreAirSet_Vol_H)
     SLAVE_REG_HOLD_DATA(15, uint16,    0,    450, RW, 1, (void*)&pSystem->usEnergyTemp)
         
     SLAVE_REG_HOLD_DATA(17, uint16,    0,    550, RW, 1, (void*)&pSystem->usSupAirMax_T)     
-    SLAVE_REG_HOLD_DATA(18, uint16,    0,    100, RW, 1, (void*)&pSystem->usHumidityMax)   
-    SLAVE_REG_HOLD_DATA(19, uint16,    0,    100, RW, 1, (void*)&pSystem->usHumidityMin)
+    SLAVE_REG_HOLD_DATA(18, uint16,    0,    100, RW, 1, (void*)&pThis->usHumidityMax)   
+    SLAVE_REG_HOLD_DATA(19, uint16,    0,    100, RW, 1, (void*)&pThis->usHumidityMin)
     SLAVE_REG_HOLD_DATA(20, uint16,    0,    100, RW, 1, (void*)&pSystem->usTempDeviat)     
     SLAVE_REG_HOLD_DATA(29, uint16,    0,   3500, RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
         
@@ -349,7 +347,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(42, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanCtrlPeriod)
         
     SLAVE_REG_HOLD_DATA(43, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanRunTimeLeast)
-    SLAVE_REG_HOLD_DATA(44, uint16,    0,      1, RW, 1, (void*)&pThis->eExAirFanType) 
+    SLAVE_REG_HOLD_DATA(44,  uint8,    0,      1, RW, 1, (void*)&pThis->eExAirFanType) 
     SLAVE_REG_HOLD_DATA(45,  uint8,    0,    100, RW, 1, (void*)&pThis->ucExAirCoolRatio)    
     SLAVE_REG_HOLD_DATA(46,  uint8,    0,    100, RW, 1, (void*)&pThis->ucExAirHeatRatio)    
     SLAVE_REG_HOLD_DATA(52, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangeTime_1)
@@ -384,11 +382,11 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(96,  int16,     MIN_IN_TEMP,  MAX_IN_TEMP,  RO, 1, (void*)&pSystem->sAmbientIn_T) 
     SLAVE_REG_HOLD_DATA(97,  int16,     MIN_OUT_TEMP, MAX_OUT_TEMP, RO, 1, (void*)&pSystem->sAmbientOut_T)
         
-    SLAVE_REG_HOLD_DATA(98, uint16,     MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
-    SLAVE_REG_HOLD_DATA(99,  uint16,    0,              100,        RO, 1, (void*)&pSystem->usAmbientOut_H)  
-    SLAVE_REG_HOLD_DATA(113, uint16,    0,            65535,        RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
-    SLAVE_REG_HOLD_DATA(114, uint16,    0,            65535,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
-    SLAVE_REG_HOLD_DATA(115, uint16,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
+    SLAVE_REG_HOLD_DATA(98,  uint16,    MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
+    SLAVE_REG_HOLD_DATA(99,  uint16,    0,               100,       RO, 1, (void*)&pSystem->usAmbientOut_H)  
+    SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
+    SLAVE_REG_HOLD_DATA(114,  uint8,    0,                5,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
+    SLAVE_REG_HOLD_DATA(115,  uint8,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
         
     SLAVE_REG_HOLD_DATA(116, uint16,    0,   5000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCO2PPMSelf)     
     SLAVE_REG_HOLD_DATA(117,  int16, -200,   1400, RO, 1, (void*)&pSystem->psModularRoofList[0]->sRetAir_T)   
@@ -398,7 +396,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
         
     SLAVE_REG_HOLD_DATA(121, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAir_Vol)   
     SLAVE_REG_HOLD_DATA(122, uint16,    0,  65000, RW, 1, (void*)&pSystem->psModularRoofList[0]->usFreAirSet_Vol)
-    SLAVE_REG_HOLD_DATA(124, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAirDamper_Ang)
+    SLAVE_REG_HOLD_DATA(124, uint16,    0,   1000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usFreAirDamper_Ang)
     SLAVE_REG_HOLD_DATA(125, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCoolTempSet) 
     SLAVE_REG_HOLD_DATA(126, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[0]->usHeatTempSet) 
         
@@ -412,10 +410,10 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(133,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(134,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->ucModularState)
     SLAVE_REG_HOLD_DATA(135,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
-    SLAVE_REG_HOLD_DATA(145, uint16,    0,  65535, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
+    SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
         
-    SLAVE_REG_HOLD_DATA(146, uint16,    0, 65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
-    SLAVE_REG_HOLD_DATA(147, uint16,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
+    SLAVE_REG_HOLD_DATA(146,  uint8,    0,     5, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
+    SLAVE_REG_HOLD_DATA(147,  uint8,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
     SLAVE_REG_HOLD_DATA(148, uint16,    0,  5000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCO2PPMSelf)                                                                                      
     SLAVE_REG_HOLD_DATA(149,  int16, -200,  1400, RO, 1, (void*)&pSystem->psModularRoofList[1]->sRetAir_T)   
     SLAVE_REG_HOLD_DATA(150,  int16, -200,  1400, RO, 1, (void*)&pSystem->psModularRoofList[1]->sSupAir_T)
@@ -424,7 +422,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(152, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usSupAir_Vol)   
     SLAVE_REG_HOLD_DATA(153, uint16,    0,  65000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usFreAir_Vol)                                                                                        
     SLAVE_REG_HOLD_DATA(154, uint16,    0,  65000, RW, 1, (void*)&pSystem->psModularRoofList[1]->usFreAirSet_Vol)
-    SLAVE_REG_HOLD_DATA(156, uint16,    0,    100, RO, 1, (void*)&pSystem->psModularRoofList[1]->usFreAirDamper_Ang)
+    SLAVE_REG_HOLD_DATA(156, uint16,    0,   1000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usFreAirDamper_Ang)
         
     SLAVE_REG_HOLD_DATA(157, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCoolTempSet) 
     SLAVE_REG_HOLD_DATA(158, uint16,  160,    350, RO, 1, (void*)&pSystem->psModularRoofList[1]->usHeatTempSet) 
@@ -660,7 +658,7 @@ void vBMS_MonitorRegist(BMS* pt)
     MONITOR(&pThis->eSystemMode,  uint8, &pThis->sValChange)
     MONITOR(&pThis->eRunningMode, uint8, &pThis->sValChange)
     
-    MONITOR(&pThis->sTempSet,           int16, &pThis->sValChange)
+    MONITOR(&pThis->usTempSet,         uint16, &pThis->sValChange)
     MONITOR(&pThis->usFreAirSet_Vol_H, uint16, &pThis->sValChange)
     MONITOR(&pThis->usFreAirSet_Vol_L, uint16, &pThis->sValChange)
     
@@ -688,13 +686,19 @@ void vBMS_InitDefaultData(BMS* pt)
 {
     BMS*    pThis   = (BMS*)pt;
     
-    DATA_INIT(pThis->eSystemMode, MODE_CLOSE)
+    DATA_INIT(pThis->eSystemMode,  MODE_CLOSE)
+    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
+    
     DATA_INIT(pThis->usHumidityMin,     55)
     DATA_INIT(pThis->usHumidityMax,     65) 
     DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
     DATA_INIT(pThis->usCO2AdjustDeviat, 270)
 
-    DATA_INIT(pThis->usExAirFanRated_Vol_H,  1)
+    DATA_INIT(pThis->usTempSet,           260)
+    DATA_INIT(pThis->usFreAirSet_Vol_H,     0)
+    DATA_INIT(pThis->usFreAirSet_Vol_L, 60000)
+    
+    DATA_INIT(pThis->usExAirFanRated_Vol_H,  0)
     DATA_INIT(pThis->usExAirFanRated_Vol_L,  36000)
     DATA_INIT(pThis->usExAirFanMinFreq,      220)
     DATA_INIT(pThis->usExAirFanMaxFreq,      500) 
@@ -702,11 +706,11 @@ void vBMS_InitDefaultData(BMS* pt)
     
     DATA_INIT(pThis->ucExAirCoolRatio,    90)
     DATA_INIT(pThis->ucExAirHeatRatio,    90)
+    DATA_INIT(pThis->eExAirFanType,       Type_CONSTANT_VARIABLE)
+    
     
 //    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
 }
-
-
 
 void vBMS_Init(BMS* pt)
 {
@@ -724,10 +728,13 @@ END_CTOR
 
 BMS* BMS_Core()
 {
+    System* pSystem = NULL;
     if(psBMS == NULL)
     {
         psBMS = (BMS*)&BMSCore;
-        if(psBMS != NULL)
+        pSystem = (System*)System_Core();
+        
+        if(psBMS != NULL && pSystem != NULL)
         {
             vBMS_Init(psBMS);
         }

@@ -108,11 +108,17 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
                 ucBit = (UCHAR)( ((*ucByteBuf) & (1 << i) ) >> i );   //取对应位的值
                 if( *(UCHAR*)pucBitData->pvValue != ucBit )
                 {		
-                    (*(UCHAR*)(pucBitData->pvValue)) = (UCHAR)ucBit;			
-                }	
+                    *(UCHAR*)(pucBitData->pvValue) = (UCHAR)ucBit;			
+                }
+
+                if(usAddress == 24)
+                {
+                     myprintf("eMBSlaveUtilSetBits usCoilAddr %d  usMBBitData %d\n", usAddress, *(UCHAR*)(pucBitData->pvValue));
+                }                   
             }
             else
             {
+                usAddress++;
                 break;
             }
             usAddress++;

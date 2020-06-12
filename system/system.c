@@ -63,7 +63,6 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
 }
                                                                             
 /*系统内部消息轮询*/
-
 void vSystem_PollTask(void *p_arg)
 {
     uint8_t n;
@@ -91,7 +90,7 @@ void vSystem_PollTask(void *p_arg)
         HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
         HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
         
-        HANDLE(psBMS->sTempSet,          vSystem_SetTemp(psSystem, psBMS->sTempSet))
+        HANDLE(psBMS->usTempSet,         vSystem_SetTemp(psSystem, psBMS->usTempSet))
         HANDLE(psBMS->usFreAirSet_Vol_H, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
         HANDLE(psBMS->usFreAirSet_Vol_L, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
         
@@ -135,6 +134,13 @@ void vSystem_PollTask(void *p_arg)
             HANDLE(pModularRoof->usCO2PPMSelf, vSystem_UnitCO2PPM(psSystem);break)
         }
         
+        /***********************排风机事件响应***********************/
+        for(n=0; n < EX_AIR_FAN_NUM; n++)  
+        {
+            HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem);break)
+            HANDLE(pExAirFan->Device.eRunningState, vSystem_ExAirFanState(psSystem);break)
+        }
+
         /***********************CO2传感器事件响应***********************/
         for(n=0; n < CO2_SEN_NUM; n++)
         {
@@ -252,6 +258,7 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_5)
     EEPROM_DATA(TYPE_UINT_16, pThis->usModeAdjustTemp_6)
     
+    EEPROM_DATA(TYPE_UINT_16, pThis->usTempSet)
     EEPROM_DATA(TYPE_UINT_16, pThis->usEnergyTemp)
     EEPROM_DATA(TYPE_UINT_16, pThis->usTempDeviat)
     EEPROM_DATA(TYPE_UINT_16, pThis->usSupAirMax_T)
@@ -271,7 +278,7 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usExAirFanCtrlPeriod)
    
     EEPROM_DATA(TYPE_INT_16, pThis->sChickenGrowDays)
-    EEPROM_DATA(TYPE_INT_16, pThis->sTempSet)
+    
     
     EEPROM_DATA(TYPE_UINT_32, pThis->ulExAirFanRated_Vol)
 }
@@ -283,12 +290,14 @@ void vSystem_InitDefaultData(System* pt)
     
     DATA_INIT(pThis->usUnitID,        0x302A)
     DATA_INIT(pThis->usProtocolVer,       10)
-    DATA_INIT(pThis->eSystemMode, MODE_CLOSE)
+    DATA_INIT(pThis->eSystemMode,    MODE_CLOSE)
+    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
 
-    DATA_INIT(pThis->sChickenGrowDays,   -2)
-    DATA_INIT(pThis->usEnergyTemp,      250)
+    DATA_INIT(pThis->sChickenGrowDays,  -2)
+    DATA_INIT(pThis->usEnergyTemp,     250)
     DATA_INIT(pThis->usTempDeviat,       5)
     DATA_INIT(pThis->usSupAirMax_T,    450)
+    DATA_INIT(pThis->usTempSet,        260)
     
     DATA_INIT(pThis->usHumidityMin,    55)
     DATA_INIT(pThis->usHumidityMax,    65)
@@ -298,6 +307,8 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usCO2ExAirDeviat_1, 270)
     DATA_INIT(pThis->usCO2ExAirDeviat_2, 270)
     DATA_INIT(pThis->usCO2PPMAlarm,     3000)
+    
+    DATA_INIT(pThis->ulFreAirSet_Vol,  60000)
     
     DATA_INIT(pThis->eExAirFanType, Type_CONSTANT_VARIABLE)
     DATA_INIT(pThis->usExAirFanMinFreq,  220)
@@ -440,10 +451,9 @@ void vSystem_Init(System* pt)
     CONNECT( &(BMS_Core()->sValChange), psSystemTaskTCB);  // 绑定BMS变量变化事件
     
     vSystem_InitDefaultData(pThis);
-    
-//    vReadEEPROMData();                 //同步记忆参数
-
     vSystem_InitRuntimeTmr(pThis);
+    
+    pThis->psBMS = (BMS*)BMS_Core();
     
     myprintf("vSystem_Init \n");                
 }

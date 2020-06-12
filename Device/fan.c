@@ -173,7 +173,8 @@ void vExAirFan_RegistMonitor(ExAirFan* pt)
 
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
-    MONITOR(&pThis->xExAirFanErr, uint8, &pThis->sValChange)
+    MONITOR(&pThis->xExAirFanErr,         uint8, &pThis->sValChange)
+    MONITOR(&pThis->Device.eRunningState, uint8, &pThis->sValChange)
 }
 
 /*排风机EEPROM数据注册*/

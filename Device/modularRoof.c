@@ -39,13 +39,23 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
     {
         pThis->eSwitchCmd = CMD_OPEN;    
     }
+    
+#if DEBUG_ENABLE > 0
+    pThis->Device.eRunningState = STATE_RUN;
+    myprintf("vModularRoof_SwitchOpen %d\n", pThis->eSwitchCmd);
+#endif
 }
 
 /*机组关闭*/
 void vModularRoof_SwitchClose(IDevSwitch* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
-    pThis->eSwitchCmd = CMD_CLOSE; 
+    pThis->eSwitchCmd = CMD_CLOSE;
+    
+#if DEBUG_ENABLE > 0
+     pThis->Device.eRunningState = STATE_STOP;
+    myprintf("vModularRoof_SwitchClose %d\n", pThis->eSwitchCmd);
+#endif    
 }
 
 /*机组运行状态设置*/
@@ -55,7 +65,10 @@ void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
     if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
     {
         pThis->eRunningMode = eMode; 
-    }  
+    }
+#if DEBUG_ENABLE > 0
+    myprintf("vModularRoof_SetRunningMode %d\n", pThis->eRunningMode);
+#endif      
 }
 
 /*机组数据默认值初始化*/
@@ -77,7 +90,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     DATA_INIT(pThis->usCO2AdjustDeviat,   50)
     
     DATA_INIT(pThis->xErrClean,   1)
-    
+
 //    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode); 
 }
 
@@ -196,8 +209,8 @@ MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0
 MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
     MASTER_REG_HOLD_DATA(0, uint16,   0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
-    MASTER_REG_HOLD_DATA(2,  uint8,   0, 65535,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
-    MASTER_REG_HOLD_DATA(3,  uint8,   0,     4,       0,  RW, 1, (void*)&pThis->eRunningMode)
+    MASTER_REG_HOLD_DATA(2,  uint8,  85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
+    MASTER_REG_HOLD_DATA(3,  uint8,   1,     4,       1,  RW, 1, (void*)&pThis->eRunningMode)
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16, 160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
 
@@ -222,7 +235,7 @@ MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBR
     MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientInSelf_H)
     MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientOutSelf_T) 
     MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientOutSelf_H)
-    MASTER_REG_HOLD_DATA(51, uint16,    0,   100,   100,  RO, 1, (void*)&pThis->usFreAirDamper_Ang)
+    MASTER_REG_HOLD_DATA(51, uint16,    0,  1000,  1000,  RO, 1, (void*)&pThis->usFreAirDamper_Ang)
     MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO, 1, (void*)&pThis->usCO2PPMSelf)         
    
     MASTER_REG_HOLD_DATA(53, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usFreAir_Vol)
@@ -234,7 +247,7 @@ MASTER_END_DATA_BUF(0, 55)
     /******************************线圈数据域*************************/ 
 MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable) 
     
-    MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);   
     MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
     MASTER_COIL_BIT_DATA(2,  0, RO, (void*)&pThis->Device.xErrFlag);
     MASTER_COIL_BIT_DATA(3,  0, RO, (void*)&pThis->Device.xAlarmFlag); 
@@ -283,8 +296,8 @@ MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBC
     
 MASTER_END_DATA_BUF(0, 631)  
     
-    myprintf("&sMBRegHoldTable %d  sModularRoof_RegHoldBuf %d\n", 
-    &pThis->sDevCommData.sMBRegHoldTable, &pThis->sModularRoof_RegHoldBuf);
+//    myprintf("&sMBRegHoldTable %d  sModularRoof_RegHoldBuf %d\n", 
+//    &pThis->sDevCommData.sMBRegHoldTable, &pThis->sModularRoof_RegHoldBuf);
     
     pThis->sDevCommData.ucProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数

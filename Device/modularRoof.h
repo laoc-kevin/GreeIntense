@@ -20,14 +20,6 @@ typedef enum
     CMD_CLOSE = 0x0055,
 }eSwitchCmd;
 
-typedef enum   /*运行模式*/
-{
-    RUN_MODE_COOL    = 1,      //制冷
-    RUN_MODE_HEAT    = 2,      //制热
-    RUN_MODE_FAN     = 3,      //送风   
-    RUN_MODE_WET     = 4,      //湿膜
-}eRunningMode;
-
 typedef enum   /*系统状态*/
 {
     FUNC_HEAT_PUMP      = 0,        //热泵

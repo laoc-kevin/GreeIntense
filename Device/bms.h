@@ -3,7 +3,6 @@
 
 #include "mb.h"
 #include "device.h"
-#include "system.h"
 #include "md_monitor.h"
 
 #define   BMS_REG_HOLD_NUM   200    //BMS通讯数据表保持寄存器数量
@@ -14,8 +13,7 @@ CLASS(BMS)
     eSystemMode       eSystemMode;              //系统模式
     eRunningMode      eRunningMode;             //运行模式 
     
-    int16_t           sTempSet;                 //目标温度值设定
-    
+    uint16_t          usTempSet;                //目标温度值设定 
     uint16_t          usHumidityMax;            //设定湿度max
     uint16_t          usHumidityMin;            //设定湿度min
     

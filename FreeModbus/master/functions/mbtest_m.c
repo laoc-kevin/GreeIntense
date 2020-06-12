@@ -21,8 +21,6 @@ void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
 
     sMBSlaveDev* psMBDev = (sMBSlaveDev*)p_arg;
     psMBDev->xDevOnTimeout = FALSE; 
-
-    myprintf("vMBMasterDevOfflineTimeout\n");       
 }
 
 /**********************************************************************
@@ -401,7 +399,9 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
             psMBSlaveDev->xOnLine       = FALSE;    //从设备掉线
             psMBSlaveDev->xDataReady    = FALSE;    //从设备准备置位
             psMBSlaveDev->xSynchronized = FALSE;    //从设备同步置位
-            psMBSlaveDev->ucDevCurTestAddr  = 0;    //从设备当前测试通讯地址置零 
+            psMBSlaveDev->ucDevCurTestAddr  = 0;    //从设备当前测试通讯地址置零
+
+            myprintf("vMBMasterDevOfflineTimeout ucDevAddr %d\n", psMBSlaveDev->ucDevAddr);                  
         }
         else
         {

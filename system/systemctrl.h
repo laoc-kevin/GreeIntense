@@ -10,7 +10,7 @@ void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO);
 
 void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode);
 
-void vSystem_SetTemp(System* pt, int16_t sTempSet);
+void vSystem_SetTemp(System* pt, uint16_t usTempSet);
 void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAirSet_Vol_L);
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax);
 
@@ -47,6 +47,7 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
 void vSystem_ExAirFanCtrl(System* pt);
 
 void vSystem_ExAirFanErr(System* pt);
+void vSystem_ExAirFanState(System* pt);
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

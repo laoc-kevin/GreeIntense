@@ -147,7 +147,7 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
 }
 
 /*系统启停定频排风风机*/
-void vSystem_ExAirFanConstant(System* pt)
+void vSystem_ExAirFanConstantSwitch(System* pt)
 {
     uint8_t   i, n, m, ucRunningNum;
     System*   pThis = (System*)pt;
@@ -218,7 +218,7 @@ void vSystem_ExAirFanConstantCtrl(System* pt)
     {
         return;
     }
-    vSystem_ExAirFanConstant(pThis);
+    vSystem_ExAirFanConstantSwitch(pThis);
     
     //每个【排风机控制周期】（默认1800s）周期执行一次以下A、B、C逻辑
     (void)xTimerRegist(&pThis->sExAirFanCtrlTmr, 0, pThis->usExAirFanCtrlPeriod,  
@@ -235,10 +235,12 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq)
     {
         pExAirFanVariate->IDevFreq.setFreq(SUPER_PTR(pExAirFanVariate, IDevFreq), usFreq);  //设置频率 
     } 
-    pThis->usExAirFanFreq = usFreq;
-    
-#if DEBUG_ENABLE > 0 
-    myprintf("vSystem_AdjustExAirFanFreq  usExAirFanFreq %d\n", pThis->usExAirFanFreq);
+#if DEBUG_ENABLE > 0
+    if(pExAirFanVariate !=NULL)
+    {
+        pThis->usExAirFanFreq = usFreq;    
+        myprintf("vSystem_AdjustExAirFanFreq  usExAirFanFreq %d\n", pThis->usExAirFanFreq);
+    }
 #endif
 }
 
@@ -249,17 +251,17 @@ void vSystem_ExAirFanBothCtrl(System* pt)
     System*   pThis = (System*)pt;
     ExAirFan* pExAirFan = pThis->pExAirFanVariate;
     
-    uint8_t   ucExAirFanRequstNum = pThis->ucExAirFanRequstNum;
-    uint16_t  usExAirRequest_Vol      = pThis->usExAirRequest_Vol;
-    uint16_t  ulExAirFanRated_Vol = pThis->ulExAirFanRated_Vol;
-    uint16_t  usExAirFanMinFreq   = pThis->usExAirFanMinFreq;
-    uint16_t  usExAirFanCtrlPeriod  = pThis->usExAirFanCtrlPeriod;
+    uint8_t   ucExAirFanRequstNum  = pThis->ucExAirFanRequstNum;
+    uint16_t  usExAirRequest_Vol   = pThis->usExAirRequest_Vol;
+    uint16_t  ulExAirFanRated_Vol  = pThis->ulExAirFanRated_Vol;
+    uint16_t  usExAirFanMinFreq    = pThis->usExAirFanMinFreq;
+    uint16_t  usExAirFanCtrlPeriod = pThis->usExAirFanCtrlPeriod;
     
-    if(pThis->eExAirFanType != Type_CONSTANT_VARIABLE)
+    if(pThis->eExAirFanType != Type_CONSTANT_VARIABLE || pExAirFan == NULL)
     {
         return;
     }
-    vSystem_ExAirFanConstant(pThis);
+    vSystem_ExAirFanConstantSwitch(pThis);
     
     /*当系统排风需求量-【排风机额定风量】*【风机开启需求数】>=【排风机额定风量】*【排风机最小频率】/50，
       只开启变频排风机*/
@@ -304,8 +306,8 @@ void vSystem_ExAirFanCtrl(System* pt)
             }                
         }
     }
-    //非手动模式
-    if(pThis->eSystemMode != MODE_MANUAL)
+    //自动模式
+    if(pThis->eSystemMode == MODE_AUTO)
     {
         /*当室内CO2浓度>【CO2浓度调节阈值】（默认2700PPM）+【CO2浓度排风控制偏差值1】（默认270PPM），
         风机全开，变频风机频率为最大频率。*/
@@ -388,7 +390,8 @@ void vSystem_ExAirSet_Vol(System* pt)
     vSystem_ExAirFanCtrl(pThis);
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirSet_Vol  ucExAirCoolRatio %d  ucExAirHeatRatio %d\n", pThis->ucExAirCoolRatio, pThis->ucExAirHeatRatio);
+    myprintf("vSystem_ExAirSet_Vol  usExAirRequest_Vol %d ucExAirCoolRatio %d  ucExAirHeatRatio %d\n",
+    pThis->usExAirRequest_Vol, pThis->ucExAirCoolRatio, pThis->ucExAirHeatRatio);
 #endif    
     
 }
@@ -418,7 +421,36 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     
 }
 
-/*设置风机故障*/
+/*风机状态变化*/
+void vSystem_ExAirFanState(System* pt)
+{
+    uint8_t  n;
+    System* pThis = (System*)pt;
+    
+    ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
+    
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        {
+            return;
+        }   
+    }
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {
+        pExAirFan = pThis->psExAirFanList[n];
+        if(pExAirFan->Device.eRunningState == STATE_RUN)
+        {
+            return;
+        }   
+    }
+    pThis->eSystemState = STATE_CLOSED;
+}
+
+
+/*风机故障处理*/
 void vSystem_ExAirFanErr(System* pt)
 {
     uint8_t  n = 0; 

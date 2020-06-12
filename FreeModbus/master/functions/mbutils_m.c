@@ -73,8 +73,6 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
     usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
-
-    
 	while (iNReg > 0)
 	{
 		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
@@ -100,13 +98,14 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                     ucBit = (UCHAR)( ((*(UCHAR*)ucByteBuf) & (1 << i) ) >> i );	
                     if( *(UCHAR*)(pucBitCoilData->pvValue) != ucBit )
                     {	 
-                        (*(UCHAR*)(pucBitCoilData->pvValue)) = (UCHAR)ucBit;
+                        *(UCHAR*)(pucBitCoilData->pvValue) = (UCHAR)ucBit;
                     	pucBitCoilData->ucPreVal  = (UCHAR)ucBit;
                     }						
                 }
                 else
                 {
-                	return MB_ENOREG;
+                    usAddress++;
+                	break;
                 }
                 break;
 #endif
@@ -125,7 +124,8 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                     }
                     else
                     {
-                        return MB_ENOREG;
+                        usAddress++;
+                        break;
                     }
                 break;
 #endif
@@ -195,8 +195,7 @@ eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                     }
                     else
                     {
-                        eStatus = MB_ENOREG;
-                     	return eStatus;
+                        *ucByteBuf |= (0 << i);
                     }
                 break;
 #endif
@@ -213,8 +212,7 @@ eMBErrorCode eMBMasterUtilGetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
 				    }
 				    else
 				    {
-				     	eStatus = MB_ENOREG;
-				     	return eStatus;
+				     	*ucByteBuf |= (0 << i);
 				    }
 				break;
 #endif

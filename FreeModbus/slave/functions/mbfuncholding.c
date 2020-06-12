@@ -146,9 +146,9 @@ eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* puc
         usRegCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF + 1) );
 
         ucRegByteCount = *(pucFrame + MB_PDU_FUNC_WRITE_MUL_BYTECNT_OFF);
-
+        
         if( (usRegCount >= 1) && (usRegCount <= MB_PDU_FUNC_WRITE_MUL_REGCNT_MAX) &&
-            (ucRegByteCount == (UCHAR)(2 * usRegCount)) )
+            (ucRegByteCount == (UCHAR)(2*usRegCount)) )
         {
             /* Make callback to update the register values. */
             eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_WRITE_MUL_VALUES_OFF,
@@ -510,6 +510,8 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
             }
             else
             {
+                iRegIndex++;
+                usNRegs--;
                 break; 
             }
             iRegIndex++;
