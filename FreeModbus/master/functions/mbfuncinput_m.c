@@ -234,17 +234,12 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     	    {
     	    	usRegInValue = (USHORT)((float)usRegInValue / (float)pvRegInValue->fTransmitMultiple);      //传输因子
     	    }
-    		
     		if (pvRegInValue->ucDataType == uint16)
     		{
     			if( (usRegInValue >= pvRegInValue->lMinVal) && (usRegInValue <= pvRegInValue->lMaxVal) )
     			{
     				*(USHORT*)pvRegInValue->pvValue  = (USHORT)usRegInValue;
-    			}
-    			else
-    			{
-    				return MB_EINVAL;
-    			}								
+    			}					
     		}
     		else if(pvRegInValue->ucDataType == uint8)
     		{			
@@ -252,10 +247,6 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     			{
     				*(UCHAR*)pvRegInValue->pvValue = (UCHAR)usRegInValue;
     			}
-    			else
-    			{
-    				return MB_EINVAL;
-    			}	
     		}
     		else if(pvRegInValue->ucDataType == int16)
     		{	
@@ -264,29 +255,16 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     			{		
     				*(SHORT*)pvRegInValue->pvValue = (SHORT)sRegInValue ;			   
     			}
-    			else
-    			{
-    				return MB_EINVAL;
-    			}	
     		}
             else if(pvRegInValue->ucDataType == int8)
     		{	
-                cRegInValue = (int8_t)usRegInValue;
-    			
+                cRegInValue = (int8_t)usRegInValue;	
     			if( (cRegInValue >= (int8_t)pvRegInValue->lMinVal) && (cRegInValue <= (int8_t)pvRegInValue->lMaxVal) )
     			{		
     				*(CHAR*)pvRegInValue->pvValue = (int8_t)cRegInValue;				   
     			}
-    			else
-    			{
-    				return MB_EINVAL;
-    			}	
     		}
     	}
-    	else
-    	{
-    		return MB_ENOREG;
-    	}	
         iRegIndex++;
         usNRegs--;
     }

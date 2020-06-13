@@ -34,36 +34,15 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
     sMBMasterDevsInfo*   psMBDevsInfo   = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
     sMBMasterPort*       psMBPort       = &psMBMasterInfo->sMBPort;
     
-    
     UCHAR ucMaxAddr = psMBDevsInfo->ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBDevsInfo->ucSlaveDevMinAddr;
-    
     UCHAR ucAddrSub = ucMaxAddr - ucMinAddr;  //设备地址差
-	BOOL* pxDevAddrOccupy = psMBDevsInfo->xDevAddrOccupy;          //被占用的从设备通讯地址
-    
-    (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    /*************************首次上电后先对从设备进行在线测试，主要收集各从设备通讯地址和在线状态**********************/
-    for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
-    { 
-        for(ucSlaveAddr = ucMinAddr; ucSlaveAddr <= ucMaxAddr; ucSlaveAddr++)
-        {    
-            if(pxDevAddrOccupy[ucSlaveAddr-ucMinAddr] == FALSE)         //该地址未被占用
-            {
-                vMBDevTest(psMBMasterInfo, psMBSlaveDev, ucSlaveAddr);  //确定从设备参数类型测试和设备通讯地址
-                if(psMBSlaveDev->xOnLine == TRUE)
-                {
-                    pxDevAddrOccupy[ucSlaveAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
-                    break;
-                }                            
-            }
-        }
-    }
+
 	while (DEF_TRUE)
 	{
-        (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
-        
-//        myprintf("****************************************************************************\n");   
+//        myprintf("****************************************************************************\n");  
+        (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);    
+ 
 #if MB_MASTER_DTU_ENABLED > 0    //GPRS模块功能支持，特殊处理      
         if( (psMBMasterInfo->bDTUEnable == TRUE) && (psMBMasterInfo->pvDTUScanDevCallBack != NULL))
         {
@@ -75,24 +54,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         {
             if(psMBSlaveDev->xOnLine == FALSE)   //如果设备不在线
             {
-                if(psMBSlaveDev->ucDevCurTestAddr == 0)  //刚掉线,从当前地址开始测试，一个周期只测试一个地址
-                {
-                    psMBSlaveDev->ucDevCurTestAddr = (psMBSlaveDev->ucDevAddr < ucMinAddr) ? ucMinAddr:psMBSlaveDev->ucDevAddr;   
-                }
-                if(psMBSlaveDev->ucDevCurTestAddr > ucMaxAddr)
-                {
-                    psMBSlaveDev->ucDevCurTestAddr = ucMinAddr;  //超过最大地址则重新从最小地址开始测试
-                }                    
-                if(pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] == FALSE)  //该地址未被占用
-                {
-                    vMBDevTest(psMBMasterInfo, psMBSlaveDev, psMBSlaveDev->ucDevCurTestAddr);  //测试
-                    if(psMBSlaveDev->xOnLine == TRUE)
-                    {
-                        pxDevAddrOccupy[psMBSlaveDev->ucDevCurTestAddr-ucMinAddr] = TRUE;  //从设备通讯地址占用
-                        break;
-                    }                      
-                }
-                psMBSlaveDev->ucDevCurTestAddr++;
+                vMBDevTest(psMBMasterInfo, psMBSlaveDev);  //测试  
             }
         }
         /*********************************轮询从设备***********************************/
@@ -105,13 +67,10 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 {                  
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);
                 }
-                else if(psMBSlaveDev->xOnLine == FALSE)
-                {
-                    pxDevAddrOccupy[psMBSlaveDev->ucDevAddr-ucMinAddr] = FALSE;
-                }
 //                myprintf("vMBDevCurStateTest  %d  psMBSlaveDev->xOnLine %d\n", psMBSlaveDev->ucDevAddr, psMBSlaveDev->xOnLine);                 
             }          
-        }      
+        }
+             
 	}
 }
 
@@ -183,8 +142,11 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
         }
         psMBSlaveDev->eScanMode = (psMBSlaveDev->eScanMode == SCAN_WRITE) ? SCAN_READ:SCAN_WRITE; //切换轮询模式
 
+//        if(ucSlaveAddr == 6)
+//        {
 //        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
-//        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);
+//        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);            
+//        }
     }		
 }
 
@@ -207,8 +169,9 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
     {
         return;
     }
-//    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);
-    
+
+//    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);        
+
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 			
     errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, ucSlaveAddr); //读保持寄存器 							
 #endif
@@ -223,7 +186,6 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
-    
 #endif  
 }
 
@@ -375,8 +337,11 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 	{
 		return MB_MRE_ILL_ARG;
 	}
-//	myprintf("ucSlaveAddr %d  eMBMasterScanReadHoldingRegister\n",ucSndAddr);	
-
+//    if(ucSndAddr == 6)
+//    {
+//	    myprintf("ucSndAddr %d  eMBMasterScanReadHoldingRegister\n", ucSndAddr);        
+//    }
+    
 	for(iIndex = 0; iIndex < psMBRegHoldTable->usDataCount; iIndex++)  //轮询
 	{
 		psRegHoldValue = (sMasterRegHoldData*)psMBRegHoldTable->pvDataBuf + iIndex;
@@ -419,12 +384,12 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 				iCount = 0;	   
 			}   
 		}
-        if( ((psRegHoldValue->ucAccessMode == WO) || (iIndex == psMBRegHoldTable->usDataCount-1)) && ( iCount > 0))  //如果寄存器为只写，发送读请求
+        if( ((psRegHoldValue->ucAccessMode == WO) || (iIndex == psMBRegHoldTable->usDataCount-1)) && (iCount > 0) )  //如果寄存器为只写，发送读请求
         {
         	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
             iCount = 0;	 
         }
-        if( iCount * 4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
+        if( iCount*4 >= MB_PDU_SIZE_MAX )                      //数据超过Modbus数据帧最大字节数，则发送读请求
         {
         	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
         	iCount = 1;
@@ -436,7 +401,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 }
 #endif
 
-#if  MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0
+#if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0
 
 /***********************************************************************************
  * @brief  写保持寄存器

@@ -101,17 +101,11 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                         	pucBitCoilData->ucPreVal  = (UCHAR)ucBit;
                         }					
                     }
-                    else
-                    {
-                        usAddress++;
-                    	break;
-                    }
 //                    if(usAddress ==10)
 //                    {
 //                        myprintf("eMBMasterUtilSetBits  ucSndAddr %d  usAddress %d ucPreVal %d  usMBBitData %d\n\n", 
 //                        ucMBDestAddr, pucBitCoilData->usAddr, pucBitCoilData->ucPreVal, *(UCHAR*)(pucBitCoilData->pvValue));
-//                    }	
-                    
+//                    }	 
                 break;
 #endif
 						
@@ -126,11 +120,6 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                         {	 
                             (*(UCHAR*)(pucBitDiscreteData->pvValue)) = (UCHAR)ucBit;
                         }						
-                    }
-                    else
-                    {
-                        usAddress++;
-                        break;
                     }
                 break;
 #endif

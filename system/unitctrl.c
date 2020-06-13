@@ -377,7 +377,7 @@ void vSystem_UnitFreAir(System* pt)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pThis->psModularRoofList[n]->sMBSlaveDev.xOnLine == TRUE) //机组在线
+        if(pModularRoof->xStopErrFlag == FALSE) //机组无故障
         {    
             pThis->ulTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
         }
@@ -598,5 +598,9 @@ void vSystem_UnitErr(System* pt)
     {
         vSystem_DelAlarmRequst(pThis);
     }
+    vSystem_UnitFreAir(pThis);
+    vSystem_UnitCO2PPM(pThis);
+    vSystem_UnitTempHumiOut(pThis);
+    vSystem_UnitTempHumiIn(pThis);
 }
 

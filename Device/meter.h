@@ -21,7 +21,7 @@ CLASS(Meter)          /*电表*/
     sMBSlaveDevCommData  sDevCommData;     //通讯数据表
     sMBSlaveDev          sMBSlaveDev;      //本通讯设备
     
-    sMasterRegHoldData   sSensor_RegHoldBuf[METER_REG_HOLD_NUM];  //保持寄存器数据域
+    sMasterRegHoldData   sMeter_RegHoldBuf[METER_REG_HOLD_NUM];  //保持寄存器数据域
    
     void (*init)(Meter* pt, sMBMasterInfo* psMBMasterInfo); 
 };

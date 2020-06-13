@@ -92,7 +92,7 @@ void vMonitorPollTask(void *p_arg)
         (void)OSTimeDlyHMSM(0, 0, 0, MONITOR_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
         for(psMonitor = MonitorList; psMonitor != NULL; psMonitor = psMonitor->pNext)
         {
-            usDataValue = psMonitor->usDataVal;      
+//            usDataValue = psMonitor->usDataVal;      
             if(psMonitor->ucDataType == uint8)
             {
                 ucValue = *(uint8_t*)psMonitor->pvVal;
@@ -120,7 +120,8 @@ void vMonitorPollTask(void *p_arg)
                 sEventMsg.pvArg = psMonitor->pvVal;
                 psMonitor->usDataVal = usDataValue;     
                 
-                (void)OSTaskQPost(psEventTCB, (void*)&sEventMsg, sizeof(sEventMsg), OS_OPT_POST_FIFO, &err);  //转发到特定的Task          
+                (void)OSTaskQPost(psEventTCB, (void*)&sEventMsg, sizeof(sEventMsg), OS_OPT_POST_FIFO, &err);  //转发到特定的Task            
+                 myprintf("vMonitorPollTask  sEventMsg.pvArg %d  err %d\n", sEventMsg.pvArg, err);                
             }
         }
     }

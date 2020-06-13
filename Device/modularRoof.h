@@ -115,7 +115,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
     sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域
 
-    void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo);
+    void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr);
     void (*setRunningMode)(ModularRoof* pt, eRunningMode eMode);
 };
 

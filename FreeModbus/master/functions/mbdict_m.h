@@ -6,8 +6,6 @@
 #include "port.h"
 
 /* -----------------------Master Defines -------------------------------------*/
-#define MB_MASTER_MIN_DEV_ADDR    1    //主栈从设备最小通讯地址
-#define MB_MASTER_MAX_DEV_ADDR    3    //主栈从设备最大通讯地址
 
 #define MB_HEART_BEAT_DELAY_MS    10   //主栈心跳延时
 
@@ -114,7 +112,6 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
 {
     UCHAR     ucProtocolID;          //协议ID
     UCHAR     ucDevAddr;             //设备通讯地址
-    UCHAR     ucDevCurTestAddr;      //设备当前测试地址
 	UCHAR     ucOfflineTimes;        //掉线次数
 	BOOL      xOnLine;               //是否在线
 	BOOL      xDataReady;            //数据是否准备好
@@ -123,7 +120,7 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     
     eScanMode eScanMode;             //当前轮询模式
     
-    OS_TMR  sDevOfflineTmr;        //设备掉线定时器
+    OS_TMR  sDevOfflineTmr;          //设备掉线定时器
     
 #if MB_MASTER_HEART_BEAT_ENABLED >0
     OS_TMR  sDevHeartBeatTmr;      //心跳间隔定时器
@@ -144,9 +141,7 @@ typedef struct    /* 主栈从设备状态结构  */
     UCHAR         ucSlaveDevCount;    //从设备总数量        
     UCHAR         ucSlaveDevMinAddr;  //从设备最小通讯地址
 	UCHAR         ucSlaveDevMaxAddr;  //从设备最大通讯地址
-    
-    BOOL          xDevAddrOccupy[MB_MASTER_MAX_DEV_ADDR - MB_MASTER_MIN_DEV_ADDR + 1];
-    
+   
 	sMBSlaveDev*  psMBSlaveDevsList;  //当前在线从设备列表
     sMBSlaveDev*  psMBSlaveDevCur;    //当前活动的设备
        

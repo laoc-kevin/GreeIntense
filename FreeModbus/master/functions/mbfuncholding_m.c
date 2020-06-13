@@ -595,7 +595,6 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
 	{
 		return MB_ENOREG;
 	}
-    
 	REG_HOLDING_START = psMBRegHoldTable->usStartAddr;
     REG_HOLDING_END = psMBRegHoldTable->usEndAddr;
 	
@@ -633,13 +632,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     				{ 
     					*(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;    //更新对应点位
                         pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;							
-    				}							
-    				else
-    				{
-                        iRegIndex++;
-                        usNRegs--;
-    				    continue;
-    				}						
+    				}										
     			}
     			else if(pvRegHoldValue->ucDataType == uint8)
     			{  
@@ -648,51 +641,25 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucReg
     					*(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;
                         pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;							
     				}
-    				else
-    				{
-                        iRegIndex++;
-                        usNRegs--;
-    				    continue;
-    				}	
     			}
     			else if (pvRegHoldValue->ucDataType == int16)
     			{
     				sRegHoldValue = (SHORT)usRegHoldValue;
-    				
     				 if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
     				{
     					*(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;
-    					 pvRegHoldValue->usPreVal = (USHORT)sRegHoldValue;
-    				}
-    				else
-    				{
-                        iRegIndex++;
-                        usNRegs--;
-    				    continue;
-    				}						
+    					pvRegHoldValue->usPreVal = (USHORT)sRegHoldValue;
+    				}			
     			}
     			else if(pvRegHoldValue->ucDataType == int8)
     			{  	
                     cRegHoldValue = (int8_t)usRegHoldValue;
-    				
     				if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )		
     				{
     					*(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;
-                         pvRegHoldValue->usPreVal = (USHORT)cRegHoldValue;							
+                        pvRegHoldValue->usPreVal = (USHORT)cRegHoldValue;							
     				}
-    				else
-    				{
-                        iRegIndex++;
-                        usNRegs--;
-    				    continue;
-    				}	
     			}
-    		}
-    		else
-    		{
-    			iRegIndex++;
-                usNRegs--;
-    		    continue;
     		}
             iRegIndex++;
             usNRegs--;

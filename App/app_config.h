@@ -29,19 +29,23 @@
 
 
 /****************************任务优先级配置********************************/                                                            
-#define INPUT_RECEIVE_TASK_PRIO		  4
-        
-#define SEGMENT_TASK_PRIO  			  5
-#define EEPROM_DATA_TASK_PRIO         6
- 
-#define SYSTEM_EVENT_TASK_PRIO        7 
-#define SYSTEM_MONITOR_TASK_PRIO      8
+#define SYSTEM_MAIN_CTRL_TASK_PRIO    4
+
+#define INPUT_RECEIVE_TASK_PRIO		  5       
+#define SEGMENT_TASK_PRIO  			  6
+
+
     
-#define MB_SLAVE_POLL_TASK_PRIO  	  10
-#define MB_MASTER_HEART_TASK_PRIO  	  11
-#define MB_MASTER_POLL_TASK_PRIO  	  12
-#define MB_MASTER_SCAN_TASK_PRIO  	  13
-        
+#define MB_SLAVE_POLL_TASK_PRIO  	  7
+#define MB_MASTER_HEART_TASK_PRIO  	  8
+#define MB_MASTER_POLL_TASK_PRIO  	  9
+#define MB_MASTER_SCAN_TASK_PRIO  	  10
+
+#define SYSTEM_EVENT_TASK_PRIO        11 
+#define SYSTEM_MONITOR_TASK_PRIO      12
+
+#define EEPROM_DATA_TASK_PRIO         15
+
 #define CANOPEN_CONFIG_TASK_PRIO	  12
 #define CANOPEN_SENDSDO_TASK_PRIO  	  13
 #define CAN1_SENDDATA_TASK_PRIO  	  14
@@ -49,13 +53,10 @@
 #define LWIP_CREATE_TASK_PRIO  	      15
 #define TCP_SERVER_TASK_PRIO          16                                                                                                        
 #define TCP_CLIENT_TASK_PRIO          17
-        
-#define SYSTEM_MAIN_CTRL_TASK_PRIO    9
-        
+     
 #define WATCHDOG_FEED_TASK_PRIO  	  20
 #define TASK_STACK_WATCH_TASK_PRIO    21 
         
-
 /****************************任务堆栈大小**********************************/ 
 #define INPUT_RECEIVE_TASK_STK_SIZE       128
 
@@ -64,7 +65,7 @@
 
 #define SYSTEM_EVENT_TASK_STK_SIZE        160
 #define SYSTEM_MONITOR_TASK_STK_SIZE      160
-#define SYSTEM_MAIN_CTRL_TASK_STK_SIZE	  160
+#define SYSTEM_MAIN_CTRL_TASK_STK_SIZE	  256
 
 #define CANOPEN_CONFIG_TASK_STK_SIZE      128
 #define CANOPEN_SENDSDO_TASK_STK_SIZE     128

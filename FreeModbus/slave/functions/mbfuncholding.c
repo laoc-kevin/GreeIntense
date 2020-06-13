@@ -469,7 +469,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 	 {
                 	 	 if(usRegHoldValue != *(UCHAR*)pvRegHoldValue->pvValue)
                 	 	 {
-                            *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;					
+                             *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;					
                 	 	 }							
                 	 }
                 	 else
@@ -507,12 +507,6 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                         return MB_EINVAL;
                     }
                 }	
-            }
-            else
-            {
-                iRegIndex++;
-                usNRegs--;
-                break; 
             }
             iRegIndex++;
             usNRegs--;

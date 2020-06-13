@@ -25,6 +25,9 @@
 #include "port.h"
 #include "my_rtt_printf.h"
 
+#define MB_MASTER_MIN_DEV_ADDR    1    //主栈从设备最小通讯地址(1~255)
+#define MB_MASTER_MAX_DEV_ADDR    18   //主栈从设备最大通讯地址(1~255)
+
 #define MB_DEFAULT_SLAVE_POLL_TASK_PRIO          9
 
 #define MB_DEFAULT_MASTER_HEART_BEAT_TASK_PRIO   10

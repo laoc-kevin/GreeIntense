@@ -60,16 +60,14 @@ BOOL xMeter_DevDataMapIndex(eDataType eDataType, UCHAR ucProtocolID, USHORT usAd
 void vMeter_InitDevCommData(Meter* pt)
 {
     Meter* pThis = (Meter*)pt;
-
-    sMBDevDataTable* psMBRegHoldTable = &pThis->sDevCommData.sMBRegHoldTable; 
-    sMBTestDevCmd*            psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
+    sMBTestDevCmd* psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
     
     
 MASTER_PBUF_INDEX_ALLOC()
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(pThis->sSensor_RegHoldBuf, psMBRegHoldTable)
+MASTER_BEGIN_DATA_BUF(&pThis->sMeter_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable; )
     
     MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
         

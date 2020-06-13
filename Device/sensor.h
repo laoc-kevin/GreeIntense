@@ -32,6 +32,7 @@ ABS_CLASS(Sensor)          /*传感器*/
     IMPLEMENTS(IDevCom);            //设备通讯接口
     
     uint8_t              ucSampleIndex;    //采样次数
+    uint8_t              ucSampleIndex_2;  //采样次数
     
     eSensorType          eSensorType;      //传感器类型
     
@@ -44,7 +45,7 @@ ABS_CLASS(Sensor)          /*传感器*/
     
     sMasterRegHoldData   sSensor_RegHoldBuf[SENSOR_REG_HOLD_NUM];  //保持寄存器数据域
     
-    void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType);
+    void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr);
     void (*registMonitor)(Sensor* pt);
     void (*timeoutInd)(void * p_tmr, void * p_arg);  //定时器中断服务函数
 };

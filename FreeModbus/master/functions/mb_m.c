@@ -485,14 +485,6 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
         psMBDevsInfo = (sMBMasterDevsInfo*)(&psMBMasterInfo->sMBDevsInfo);
         if(psMBDevsInfo != NULL)
         {
-            if(psMasterNode->ucMaxAddr > MB_MASTER_MAX_DEV_ADDR)
-            {
-                psMasterNode->ucMaxAddr = MB_MASTER_MAX_DEV_ADDR;
-            }
-            if(psMasterNode->ucMinAddr < MB_MASTER_MIN_DEV_ADDR)
-            {
-                psMasterNode->ucMinAddr = MB_MASTER_MIN_DEV_ADDR;
-            }
             psMBDevsInfo->ucSlaveDevMinAddr = psMasterNode->ucMinAddr;
             psMBDevsInfo->ucSlaveDevMaxAddr = psMasterNode->ucMaxAddr;
         }
