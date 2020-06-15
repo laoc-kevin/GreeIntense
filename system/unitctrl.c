@@ -344,24 +344,21 @@ void vSystem_ChangeUnitRunningMode(System* pt)
 }
 
 /*机组送风温度变化*/
-void vSystem_UnitSupAirTemp(System* pt)
+void vSystem_UnitSupAirTemp(System* pt, ModularRoof* pModularRoof)
 {
     uint8_t  n = 0; 
     System* pThis = (System*)pt;
    
-    ModularRoof* pModularRoof = NULL;
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+       
+    //(3)当送风温度大于【送风温度最大值】（默认45℃）,声光报警
+    if(pModularRoof->sSupAir_T > pThis->usSupAirMax_T)
     {
-        pModularRoof = pThis->psModularRoofList[n];
-        
-        //(3)当送风温度大于【送风温度最大值】（默认45℃）,声光报警
-        if(pModularRoof->sSupAir_T > pThis->usSupAirMax_T)
-        {
-            vSystem_SetAlarm(pThis);
-            return;            
-        }         
+        vSystem_SetAlarm(pThis);           
     }
-    vSystem_DelAlarmRequst(pThis); //所有机组送风温度恢复正常，申请消除声光报警
+    else
+    {
+        vSystem_DelAlarmRequst(pThis); //机组送风温度恢复正常，申请消除声光报警
+    }         
 }
 
 /*机组新风量变化*/
@@ -369,11 +366,11 @@ void vSystem_UnitFreAir(System* pt)
 {
     uint8_t  n = 0; 
 
-    System* pThis = (System*)pt;
+    System*      pThis        = (System*)pt;
+    BMS*         psBMS        = BMS_Core();
     ModularRoof* pModularRoof = NULL;
     
-    BMS* psBMS = BMS_Core();
-    
+    pThis->ulTotalFreAir_Vol = 0;
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
@@ -502,38 +499,34 @@ void vSystem_UnitTempHumiIn(System* pt)
 }
 
 /*机组状态变化*/
-void vSystem_UnitState(System* pt)
+void vSystem_UnitState(System* pt, ModularRoof* pModularRoof)
 {
     uint8_t  n;
-    System* pThis = (System*)pt;
     
-    ModularRoof* pModularRoof = NULL;
-    ExAirFan*    pExAirFan    = NULL;
+    System*   pThis     = (System*)pt;
+    ExAirFan* pExAirFan = NULL;
     
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
     {
-        pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        switch(pThis->eRunningMode)
         {
-            switch(pThis->eRunningMode)
-            {
-                case RUN_MODE_COOL:
-                    pThis->eSystemState = STATE_COOL;
-                break;
-                case RUN_MODE_HEAT:
-                    pThis->eSystemState = STATE_HEAT;
-                break;
-                case RUN_MODE_FAN:
-                    pThis->eSystemState = STATE_FAN;
-                break;
-                case RUN_MODE_WET:
-                    pThis->eSystemState = STATE_WET;
-                break;
-                default:break;
-            }        
-            return;
-        }   
-    }
+            case RUN_MODE_COOL:
+                pThis->eSystemState = STATE_COOL;
+            break;
+            case RUN_MODE_HEAT:
+                pThis->eSystemState = STATE_HEAT;
+            break;
+            case RUN_MODE_FAN:
+                pThis->eSystemState = STATE_FAN;
+            break;
+            case RUN_MODE_WET:
+                pThis->eSystemState = STATE_WET;
+            break;
+            default:break;
+        }        
+        return;
+    }   
+ 
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];
@@ -576,6 +569,7 @@ void vSystem_UnitErr(System* pt)
             pModularRoof->xCommErr = TRUE;
         }            
     }
+    
     if(ucOnLineNum > 0 && ucOnLineNum < MODULAR_ROOF_NUM ) //其中一台机组通讯故障
     {
         if(pOnlineUnit->xStopErrFlag == FALSE)  //且无故障

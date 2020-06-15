@@ -254,6 +254,7 @@ void vSystem_DelAlarmRequst(System* pt)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
     
     if(pThis->xAlarmEnable == FALSE)
     {
@@ -274,6 +275,15 @@ void vSystem_DelAlarmRequst(System* pt)
             return;            
         }         
     }
+    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    {
+        pExAirFan = pThis->psExAirFanList[n]; 
+        if(pExAirFan->xExAirFanErr == TRUE)
+        {
+            return;
+        }
+    }
+    
     //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
     if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
     {

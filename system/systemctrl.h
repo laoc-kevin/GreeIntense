@@ -23,12 +23,12 @@ void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16
 void vSystem_OpenUnits(System* pt);
 void vSystem_CloseUnits(System* pt);
 
-void vSystem_UnitState(System* pt);
+void vSystem_UnitState(System* pt, ModularRoof* pModularRoof);
 
 void vSystem_ChangeUnitRunningMode(System* pt);
 void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode);
 
-void vSystem_UnitSupAirTemp(System* pt);
+void vSystem_UnitSupAirTemp(System* pt, ModularRoof* pModularRoof);
 void vSystem_UnitErr(System* pt);
 
 void vSystem_UnitTempHumiOut(System* pt);
@@ -46,8 +46,8 @@ void vSystem_ExAirSet_Vol(System* pt);
 void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
 void vSystem_ExAirFanCtrl(System* pt);
 
-void vSystem_ExAirFanErr(System* pt);
-void vSystem_ExAirFanState(System* pt);
+void vSystem_ExAirFanErr(System* pt, ExAirFan* pExAirFan);
+void vSystem_ExAirFanState(System* pt, ExAirFan* pExAirFan);
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

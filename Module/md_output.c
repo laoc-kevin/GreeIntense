@@ -89,7 +89,7 @@ eCtrlEn eGetDORealValue(uint8_t ucChannel)
 *@param  Channel    通道，DO1~DO13
 *@param  eCtrl      IO输出控制： 0：off   1：on  								
 ***************************************************/
-void vDigitalOutputCtrl( uint8_t ucChannel, eCtrlEn eCtrl)
+void vDigitalOutputCtrl(uint8_t ucChannel, eCtrlEn eCtrl)
 {
     if((ucChannel > 0) && (ucChannel <= AO_NUM))
     {

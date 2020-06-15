@@ -422,13 +422,13 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
 }
 
 /*风机状态变化*/
-void vSystem_ExAirFanState(System* pt)
+void vSystem_ExAirFanState(System* pt, ExAirFan* pExAirFan)
 {
-     uint8_t  n;
+    uint8_t  n;
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    ExAirFan*    pExAirFan    = NULL;
+
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
@@ -454,33 +454,29 @@ void vSystem_ExAirFanState(System* pt)
             return;
         }   
     }
-    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    if(pExAirFan->Device.eRunningState == STATE_RUN)
     {
-        pExAirFan = pThis->psExAirFanList[n];
-        if(pExAirFan->Device.eRunningState == STATE_RUN)
-        {
-            pThis->eSystemState = STATE_EX_FAN;
-            return;
-        }   
-    }
+        pThis->eSystemState = STATE_EX_FAN;
+        return;
+    }   
+   
     pThis->eSystemState = STATE_CLOSED;
 }
 
 
 /*风机故障处理*/
-void vSystem_ExAirFanErr(System* pt)
+void vSystem_ExAirFanErr(System* pt, ExAirFan* pExAirFan)
 {
     uint8_t  n = 0; 
-    
-    System*   pThis     = (System*)pt;
-    ExAirFan* pExAirFan = NULL;
-    
-    for(n=0; n < EX_AIR_FAN_NUM; n++)
+    System*  pThis = (System*)pt;
+
+    if(pExAirFan->xExAirFanErr == TRUE)  
     {
-        pExAirFan = pThis->psExAirFanList[n];       
-        if(pExAirFan->xExAirFanErr == TRUE)  
-        {
-            pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭排风机
-        } 
+        pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭排风机
+        vSystem_SetAlarm(pThis);
     }
+    else
+    {
+        vSystem_DelAlarmRequst(pThis);
+    }        
 }

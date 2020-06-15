@@ -12,7 +12,6 @@ void vSystem_CO2PPM(System* pt)
     ModularRoof* pModularRoof = NULL;
     CO2Sensor*   pCO2Sensor   = NULL;
 
-    
     for(n=0, ucCO2Num=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
@@ -210,7 +209,6 @@ void vSystem_TempHumiIn(System* pt)
             ucHumiNum++;
         }            
     }
-
     if(ucTempNum != 0)
     {
          pThis->sAmbientIn_T  = sTotalTemp / ucTempNum;  //室内平均环境温度
@@ -228,8 +226,8 @@ void vSystem_TempHumiIn(System* pt)
     vSystem_ChangeUnitRunningMode(pThis);  //模式切换逻辑
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_TempHumiIn  sAmbientIn_T %d  usAmbientIn_H %d ucTempNum %d ucHumiNum %d  sTotalTemp %d usTotalHumi %d\n", 
-             pThis->sAmbientIn_T, pThis->usAmbientIn_H, ucTempNum, ucHumiNum, sTotalTemp, usTotalHumi);
+//    myprintf("vSystem_TempHumiIn  sAmbientIn_T %d  usAmbientIn_H %d ucTempNum %d ucHumiNum %d  sTotalTemp %d usTotalHumi %d\n", 
+//             pThis->sAmbientIn_T, pThis->usAmbientIn_H, ucTempNum, ucHumiNum, sTotalTemp, usTotalHumi);
 #endif        
 }
 

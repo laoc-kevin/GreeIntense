@@ -193,12 +193,10 @@ eMBErrorCode eMBMasterRegInputCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegB
     sMBDevDataTable*   psMBRegInTable = &psMBSlaveDevCur->psDevCurData->sMBRegInTable;    //从设备通讯协议表
     UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);         //从设备通讯地址
     
-     /* 主栈处于测试从设备状态 */		
-    if(psMBMasterInfo->eMBRunMode == STATE_TEST_DEV) //测试从设备模式
-    {  
+    if(psMBMasterInfo->eMBRunMode != STATE_SCAN_DEV) //非轮询从设备模式
+    {
         return MB_ENOERR;
-    }  
-   
+    }	
     if(psMBSlaveDevCur->ucDevAddr != ucMBDestAddr) //如果当前从设备地址与要轮询从设备地址不一致，则更新从设备
     {
         psMBSlaveDevCur = psMBMasterGetDev(psMBMasterInfo, ucMBDestAddr);

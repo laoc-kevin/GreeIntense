@@ -112,8 +112,6 @@ BOOL xMBMasterPortEventGet(sMBMasterPort* psMBPort, eMBMasterEventType* eEvent)
         psMBPort->xEventInQueue = FALSE;
         xEventHappened = TRUE;
     }
-    
-    
     return xEventHappened;
 }
 /**
@@ -307,7 +305,7 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         }
         case EV_MASTER_ERROR_EXECUTE_FUNCTION:
         {
-//             myprintf(" EV_MASTER_ERROR_EXECUTE_FUNCTION \n");
+//            myprintf(" EV_MASTER_ERROR_EXECUTE_FUNCTION \n");
         	eErrStatus = MB_MRE_EXE_FUN;
         	break;
         }	
@@ -316,10 +314,8 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
 		}
 	}
 	psMBPort->xWaitFinishInQueue = FALSE;
-
-//    (void)OSTaskQPost(&psMBMasterInfo->sMBTask.sMasterScanTCB, NULL, 0, OS_OPT_POST_ALL, &err);    
-    (void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);
     
+    (void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);  
     return eErrStatus;
 }
 
@@ -342,5 +338,14 @@ void vMBMasterPortLock(sMBMasterPort* psMBPort)
     (void)OSSemSet(&psMBPort->sMBIdleSem, 0, &err);
     (void)OSTimeDlyHMSM(0, 0, 0, 80, OS_OPT_TIME_HMSM_STRICT, &err);       	
 }
-         
+ 
+/**********************************************************************
+ * @brief modbus主栈释放锁
+ *********************************************************************/
+void vMBMasterPortUnLock(sMBMasterPort* psMBPort)
+{
+    OS_ERR err = OS_ERR_NONE;
+	(void)OSSemPost(&psMBPort->sMBIdleSem, OS_OPT_POST_ALL, &err);	
+}
+
 #endif

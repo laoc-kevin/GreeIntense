@@ -2,6 +2,8 @@
 #include "md_event.h"
 #include "my_rtt_printf.h"
 
+#include "system.h"
+
 #define MONITOR_DATA_MAX_NUM        200     //最大可监控点位数，根据实际情况调整
 #define MONITOR_POLL_INTERVAL_MS    100     //
 
@@ -24,6 +26,7 @@ void vMonitorRegist(void* pvVal, uint8_t ucDataType, OS_SEM* psSem)
     sMonitorInfo* psMonitor = NULL; 
     if(MonitorID >= MONITOR_DATA_MAX_NUM)
     {
+        myprintf("vMonitorRegist MonitorID %d  \n", MonitorID);  
         return ;
     }
     psMonitor = &MonitorBuf[MonitorID];
@@ -87,6 +90,9 @@ void vMonitorPollTask(void *p_arg)
     
     OS_TCB* psEventTCB = psGetEventTCB();
     
+     System* psSystem = System_Core();
+    
+    
     while(DEF_TRUE)
 	{
         (void)OSTimeDlyHMSM(0, 0, 0, MONITOR_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
@@ -120,8 +126,12 @@ void vMonitorPollTask(void *p_arg)
                 sEventMsg.pvArg = psMonitor->pvVal;
                 psMonitor->usDataVal = usDataValue;     
                 
+//                if(&psSystem->psTempHumiSenInList[11]->sAvgTemp == psMonitor->pvVal)
+//                {
+//                    myprintf("vMonitorPollTask  sEventMsg.pvArg %d  sAvgTemp %d\n", sEventMsg.pvArg, &psSystem->psTempHumiSenInList[11]->sAvgTemp);  
+//                }
                 (void)OSTaskQPost(psEventTCB, (void*)&sEventMsg, sizeof(sEventMsg), OS_OPT_POST_FIFO, &err);  //转发到特定的Task            
-                 myprintf("vMonitorPollTask  sEventMsg.pvArg %d  err %d\n", sEventMsg.pvArg, err);                
+                              
             }
         }
     }

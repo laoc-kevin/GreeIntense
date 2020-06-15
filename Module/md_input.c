@@ -266,6 +266,8 @@ void vInputReceive(void)
 		{
 			*(uint8_t*)(DigitalInputData[i].pvDIVal) = !ucDigitalInputGetRealVal(i+1); /* DI接通为低电平，断开为高电平 */
 		}
+        
+       
     }
     ControllerID = ucSaInputConvertToID();
 }
@@ -499,7 +501,7 @@ uint8_t ucDigitalInputGetRealVal(uint8_t ucChannel)
 /******************************************************************
 *@brief 输入量所有管脚初始化								
 ******************************************************************/
-static void AppInputIOInit(void)
+static void vInputIOInit(void)
 {
 	GPIO_Init();
 	
@@ -543,7 +545,7 @@ void vInputReceiveTask(void *p_arg)
 {
 	OS_ERR err = OS_ERR_NONE;
 	
-    AppInputIOInit();
+    vInputIOInit();
 	
 	while(DEF_TRUE)
 	{

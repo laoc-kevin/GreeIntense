@@ -292,10 +292,10 @@ eMBErrorCode eMBMasterDisable(sMBMasterInfo* psMBMasterInfo)
  * @return eMBErrorCode    协议栈错误
  * @author laoc
  * @date 2019.01.22
- *********************************************************************/
+*********************************************************************/
 eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 {
-    static UCHAR   *ucMBFrame;
+    static UCHAR   *pucMBFrame;
     static UCHAR    ucRcvAddress;
     static UCHAR    ucFunctionCode;
     static USHORT   usLength;
@@ -307,12 +307,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
     eMBMasterEventType      eEvent;
     eMBMasterErrorEventType errorType;
     
-    eMBErrorCode            eStatus = MB_ENOERR;  
-	sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;   //硬件结构
+    eMBErrorCode       eStatus      = MB_ENOERR;  
+	sMBMasterPort*     psMBPort     = &psMBMasterInfo->sMBPort;   //硬件结构
 	sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;   //从设备状态表
-	
-    UCHAR*               pcPDUCur    = NULL;
+    UCHAR*             pcPDUCur     = NULL;
      
+//    pucMBFrame = NULL;
     
     /* Check if the protocol stack is ready. */
     if(psMBMasterInfo->eMBState != STATE_ENABLED)
@@ -331,11 +331,11 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 
         case EV_MASTER_FRAME_RECEIVED:
             
-			eStatus = peMBMasterFrameReceiveCur(psMBMasterInfo, &ucRcvAddress, &ucMBFrame, &usLength);  
+			eStatus = peMBMasterFrameReceiveCur(psMBMasterInfo, &ucRcvAddress, &pucMBFrame, &usLength);  
 			/* Check if the frame is for us. If not ,send an error process event. */
 			if ( (eStatus == MB_ENOERR) && (ucRcvAddress == ucMBMasterGetDestAddr(psMBMasterInfo)) )
 			{
-                psMBMasterInfo->pucMasterPDUCur = ucMBFrame;
+                psMBMasterInfo->pucMasterPDUCur = pucMBFrame;
 				(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_EXECUTE);
 			}
 			else
@@ -351,12 +351,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         break;
           
         case EV_MASTER_EXECUTE:
-            ucFunctionCode = *(ucMBFrame + MB_PDU_FUNC_OFF);
-            eException = MB_EX_ILLEGAL_FUNCTION;
+            ucFunctionCode = *(pucMBFrame + MB_PDU_FUNC_OFF);
+            eException = MB_EX_NONE;
             /* If receive frame has exception .The receive function code highest bit is 1.*/
             if(ucFunctionCode >> 7) 
 			{
-            	eException = (eMBException)( *(ucMBFrame + MB_PDU_DATA_OFF) );
+            	eException = (eMBException)( *(pucMBFrame + MB_PDU_DATA_OFF) );
             }
 			else
 			{
@@ -378,12 +378,12 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 							for(j = psMBDevsInfo->ucSlaveDevMinAddr; j <= psMBDevsInfo->ucSlaveDevMaxAddr; j++)
 							{
 								vMBMasterSetDestAddress(psMBMasterInfo, j);
-								eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, ucMBFrame, &usLength);
+								eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, pucMBFrame, &usLength);
 							}
 						}
 						else 
 						{
-							eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, ucMBFrame, &usLength);
+							eException = xMasterFuncHandlers[i].pxHandler(psMBMasterInfo, pucMBFrame, &usLength);
 						}
 						break;
 					}
@@ -393,7 +393,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
             if (eException != MB_EX_NONE) 
 			{
             	vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_EXECUTE_FUNCTION);
-            	(void) xMBMasterPortEventPost( psMBPort, EV_MASTER_ERROR_PROCESS );
+            	(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_ERROR_PROCESS );
             }
             else 
 			{
@@ -404,11 +404,11 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
 
         case EV_MASTER_FRAME_SENT:     //主栈发送请求
         	/* Master is busy now. */
-        	vMBMasterGetPDUSndBuf( psMBMasterInfo, &ucMBFrame );
+        	vMBMasterGetPDUSndBuf( psMBMasterInfo, &pucMBFrame );
 		
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0		
 			eStatus = peMBMasterFrameSendCur( psMBMasterInfo,ucMBMasterGetDestAddr(psMBMasterInfo), 
-		                                      ucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo) );    //发送数据帧     
+		                                      pucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo) );    //发送数据帧     
 #endif
             if(pvMBMasterSendCallback != NULL)
             {
@@ -419,23 +419,23 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         case EV_MASTER_ERROR_PROCESS:    //主栈处理错误
         	/* Execute specified error process callback function. */
 			errorType = eMBMasterGetErrorType(psMBMasterInfo);
-			vMBMasterGetPDUSndBuf( psMBMasterInfo, &ucMBFrame );
+			vMBMasterGetPDUSndBuf( psMBMasterInfo, &pucMBFrame );
 			switch (errorType) 
 			{
 			    case EV_ERROR_RESPOND_TIMEOUT:    //等待超时
 			    	vMBMasterErrorCBRespondTimeout( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo),
-			    			                        ucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo));
+			    			                        pucMBFrame, usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_RECEIVE_DATA:      //接收数据出错
-			    	vMBMasterErrorCBReceiveData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBReceiveData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), pucMBFrame, 
 			                                     usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_EXECUTE_FUNCTION:   //处理数据出错
-			    	vMBMasterErrorCBExecuteFunction( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBExecuteFunction( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), pucMBFrame, 
 			                                         usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    case EV_ERROR_RESPOND_DATA:      //接收响应数据出错
-			    	vMBMasterErrorCBRespondData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), ucMBFrame, 
+			    	vMBMasterErrorCBRespondData( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo), pucMBFrame, 
 			                                     usMBMasterGetPDUSndLength(psMBMasterInfo));
 			    	break;
 			    default:break;

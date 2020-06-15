@@ -31,8 +31,8 @@ void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunS
     pThis->sRunState_DI.ucChannel = ucRunState_DI;
     pThis->sErr_DI.ucChannel = ucErr_DI;
     
-    vDigitalInputRegister(ucSwitch_DO, &pThis->Device.eRunningState);
-    vDigitalInputRegister(ucErr_DI, &pThis->xExAirFanErr);
+    vDigitalInputRegister(ucRunState_DI, (void*)&pThis->Device.eRunningState);
+    vDigitalInputRegister(ucErr_DI, (void*)&pThis->xExAirFanErr);
     
 #if DEBUG_ENABLE > 0        
     myprintf("ucSwitch_DO %d ucRunState_DI %d  ucErr_DI %d\n", ucSwitch_DO, ucRunState_DI, ucErr_DI); 
@@ -43,6 +43,7 @@ void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunS
 /*注册风机模拟量接口*/
 void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI, uint16_t usMinFreq, uint16_t usMaxFreq)
 {
+    
     ExAirFan* pThis = (ExAirFan*)pt;
 
     if(pThis->eFanFreqType == VARIABLE_FREQ)
@@ -69,6 +70,7 @@ void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI
 /*开启风机*/
 void vExAirFan_SwitchOpen(IDevSwitch* pt)    
 {
+    OS_ERR err = OS_ERR_NONE;
     ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
     
     if(pThis->xExAirFanErr == FALSE)  //无故障
@@ -78,11 +80,16 @@ void vExAirFan_SwitchOpen(IDevSwitch* pt)
 #if DEBUG_ENABLE > 0 
         if(pThis->Device.eRunningState == STATE_STOP)
         {
-            pThis->Device.eRunningState = STATE_RUN;
-            myprintf("vExAirFan_SwitchOpen  eRunningState %d\n", pThis->Device.eRunningState);
+//            pThis->Device.eRunningState = STATE_RUN;
+            myprintf("vExAirFan_SwitchOpen  eRunningState %d  %d\n", pThis->Device.eRunningState, &pThis->Device.eRunningState);
+            
+            vDigitalOutputCtrl(5, ON);  //输出开启,继电器闭合
+            vDigitalOutputCtrl(6, ON);  //输出开启,继电器闭合
+            vDigitalOutputCtrl(7, ON);  //输出开启,继电器闭合
+            vDigitalOutputCtrl(8, ON);  //输出开启,继电器闭合
         }            
 #endif
-    }
+    } 
 }
 
 /*关闭风机*/
@@ -94,8 +101,11 @@ void vExAirFan_SwitchClose(IDevSwitch* pt)
 #if DEBUG_ENABLE > 0 
     if(pThis->Device.eRunningState == STATE_RUN)
     {
-        pThis->Device.eRunningState = STATE_STOP;
-        myprintf("vExAirFan_SwitchClose  eRunningState %d\n", pThis->Device.eRunningState);    
+//        pThis->Device.eRunningState = STATE_STOP;
+        myprintf("vExAirFan_SwitchClose  eRunningState %d\n", pThis->Device.eRunningState); 
+        
+
+        
     }            
 #endif
 }
@@ -150,11 +160,11 @@ void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
 {
     ExAirFan* pThis = (ExAirFan*)p_arg;
      
-    if(pThis->eSwitchCmd == ON)
+    if(pThis->eSwitchCmd == ON && pThis->Device.eRunningState == STATE_STOP)
     {
         vExAirFan_SwitchOpen(SUPER_PTR(pThis, IDevSwitch));  //开启排风机
     }
-    if(pThis->eSwitchCmd == OFF)
+    if(pThis->eSwitchCmd == OFF && pThis->Device.eRunningState == STATE_RUN)
     {
         vExAirFan_SwitchClose(SUPER_PTR(pThis, IDevSwitch));  //关闭排风机
     }

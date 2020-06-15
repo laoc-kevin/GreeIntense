@@ -33,12 +33,10 @@
 
 #define INPUT_RECEIVE_TASK_PRIO		  5       
 #define SEGMENT_TASK_PRIO  			  6
-
-
     
 #define MB_SLAVE_POLL_TASK_PRIO  	  7
-#define MB_MASTER_HEART_TASK_PRIO  	  8
-#define MB_MASTER_POLL_TASK_PRIO  	  9
+#define MB_MASTER_HEART_TASK_PRIO  	  9
+#define MB_MASTER_POLL_TASK_PRIO  	  8
 #define MB_MASTER_SCAN_TASK_PRIO  	  10
 
 #define SYSTEM_EVENT_TASK_PRIO        11 

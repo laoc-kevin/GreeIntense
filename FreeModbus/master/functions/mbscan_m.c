@@ -40,7 +40,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
 
 	while (DEF_TRUE)
 	{
-//        myprintf("****************************************************************************\n");  
+        myprintf("****************************************************************************\n");  
         (void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);    
  
 #if MB_MASTER_DTU_ENABLED > 0    //GPRS模块功能支持，特殊处理      
@@ -60,9 +60,12 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         /*********************************轮询从设备***********************************/
         for(psMBSlaveDev = psMBDevsInfo->psMBSlaveDevsList; psMBSlaveDev != NULL; psMBSlaveDev = psMBSlaveDev->pNext)
         {    
-            if(psMBSlaveDev->xOnLine == TRUE && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
+            if( psMBSlaveDev->xOnLine == TRUE  && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
-                vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
+                if(psMBSlaveDev->eScanMode == SCAN_READ || psMBSlaveDev->ucOfflineTimes > 0) //处于读模式或者上次检查掉线
+                {
+                    vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
+                }
                 if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucOfflineTimes == 0) ) //在线且不处于延时阶段
                 {                  
                     vMBMasterScanSlaveDev(psMBMasterInfo, psMBSlaveDev);

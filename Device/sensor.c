@@ -3,7 +3,7 @@
 
 #define TMR_TICK_PER_SECOND                 OS_CFG_TMR_TASK_RATE_HZ
 #define SENSOR_TIME_OUT_S                   1
-#define SENSOR_TIME_OUT_DELAY_S             5
+#define SENSOR_TIME_OUT_DELAY_S             10
 
 #define SENSOR_CO2_PROTOCOL_TYPE_ID         0
 #define SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID   0
