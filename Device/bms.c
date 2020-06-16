@@ -437,7 +437,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(166,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->ucModularState)
         
     SLAVE_REG_HOLD_DATA(167,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->Device.usRunTime_H)   
-    SLAVE_REG_HOLD_DATA(179, uint16,    0,    500, RO, 1, (void*)&pSystem->pExAirFanVariate->usRunningFreq); 
+    SLAVE_REG_HOLD_DATA(179, uint16,    0,    500, RO, 1, (void*)&pSystem->psExAirFanList[0]->usRunningFreq); 
     SLAVE_REG_HOLD_DATA(181, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[0]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(191, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[1]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(201, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[2]->Device.usRunTime_H);

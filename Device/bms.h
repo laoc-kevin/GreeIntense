@@ -5,6 +5,7 @@
 #include "device.h"
 #include "md_monitor.h"
 
+#define   EX_AIR_FAN_NUM     4
 #define   BMS_REG_HOLD_NUM   200    //BMS通讯数据表保持寄存器数量
 #define   BMS_BIT_COIL_NUM   200    //BMS通讯数据表线圈数量
 
@@ -45,6 +46,8 @@ CLASS(BMS)
     
     uint16_t          usUnitPower;              //机组耗电功率
     uint16_t          usExAirFanPower;          //排风机耗电功率
+    
+    eCtrlEn           eExAirFanCmdList[EX_AIR_FAN_NUM];
     
     sMBSlaveInfo*     psBMSInfo;          //从栈接口
     sMBSlaveCommData  sBMSCommData;       //系统从栈通讯数据表

@@ -105,8 +105,10 @@ INTERFACE(IDevCom)      /*设备通讯接口*/
 
 ABS_CLASS(Device)        /*设备抽象类*/
 {
-    uint32_t        ulRunTime_S;       //运行时间(s)
+    uint32_t        ulRunTime_S;     //运行时间(s)
     uint16_t        usRunTime_H;     //运行时间(h)
+    
+    uint8_t         ucDevIndex;      //设备标示
     
     BOOL            xErrFlag;        //总故障标志
     BOOL            xAlarmFlag;      //总报警标志

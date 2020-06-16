@@ -22,7 +22,7 @@ void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
     sMBSlaveDev* psMBSlaveDev = (sMBSlaveDev*)p_arg;
     psMBSlaveDev->xDevOnTimeout = FALSE; 
 
-    myprintf("vMBMasterDevOfflineTimeout  ucDevAddr %d \n", psMBSlaveDev->ucDevAddr);
+//    myprintf("vMBMasterDevOfflineTimeout  ucDevAddr %d \n", psMBSlaveDev->ucDevAddr);
 }
 
 /**********************************************************************
@@ -338,7 +338,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             break; 				
         } 
     }
-//    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
+    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
     if(errorCode != MB_MRE_NO_ERR) //证明从设备无反应
     {
         (void)xMBMasterDevOfflineTmrEnable(psMBSlaveDev);  
@@ -409,7 +409,6 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
                 psMBSlaveDev->xOnLine        = TRUE;  //从设备反馈正确，则设备在线
                 psMBSlaveDev->xDataReady     = TRUE;
                 psMBSlaveDev->ucOfflineTimes = 0;     //测试次数清零
-                psMBSlaveDev->eScanMode      = SCAN_WRITE;
             }
         }
         else
@@ -417,7 +416,6 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
             psMBSlaveDev->xOnLine        = TRUE;  //从设备反馈正确，则设备在线
             psMBSlaveDev->xDataReady     = TRUE;
             psMBSlaveDev->ucOfflineTimes = 0;     //测试次数清零
-            psMBSlaveDev->eScanMode      = SCAN_WRITE;
         }
 
         if(psMBSlaveDev->psDevCurData->sMBDevHeartBeat.xHeartBeatEnable == TRUE && psMBSlaveDev->xOnLine == TRUE)

@@ -19,7 +19,7 @@ void vSensor_RegistDev(Sensor* pt)
     (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
 }
 
-void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr)
+void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex)
 {
     OS_ERR err = OS_ERR_NONE;
     
@@ -29,6 +29,8 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensor
     pThis->psMBMasterInfo        = psMBMasterInfo; //所属通讯主栈
     pThis->sMBSlaveDev.ucDevAddr = ucDevAddr;
     pThis->eSensorType           = eSensorType; 
+    pThis->Device.ucDevIndex     = ucDevIndex;
+    
     pThis->registMonitor(pThis);            //注册监控数据
     
     pDevCom->initDevCommData(pDevCom);      //通讯数据初始化

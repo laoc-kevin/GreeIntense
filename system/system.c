@@ -10,7 +10,7 @@
 /*************************************************************
 *                         系统                               *
 **************************************************************/
-#define SYSTEM_ALARM_DO          6       //系统声光报警DO接口
+#define SYSTEM_ALARM_DO          5       //系统声光报警DO接口
 
 #define TMR_TICK_PER_SECOND      OS_CFG_TMR_TASK_RATE_HZ
 #define RUNNING_TIME_OUT_S       1
@@ -44,13 +44,19 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
 
     if(eExAirFanType == Type_CONSTANT_VARIABLE)     //定频 + 变频
     {
-        pExAirFan->init(pExAirFan, &ExAirFanVariate);
+        pExAirFan->init(pExAirFan, &ExAirFanVariate, 0);
         pExAirFan->changeFreqType(pExAirFan, VARIABLE_FREQ);
         pThis->pExAirFanVariate = pExAirFan;
+        
+        pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), 350);
+        
+      
+         myprintf("vSystem_ChangeExAirFanType usMinFreq %d usMaxFreq %d \n", pThis->pExAirFanVariate->usMinFreq, pThis->pExAirFanVariate->usMaxFreq);  
+        
     }
     else   //定频
     {
-        pExAirFan->init(pExAirFan, &ExAirFanSet[0]);
+        pExAirFan->init(pExAirFan, &ExAirFanSet[0], 0);
         pExAirFan->changeFreqType(pExAirFan, CONSTANT_FREQ);
         pThis->pExAirFanVariate = NULL;
     }  
@@ -388,7 +394,7 @@ void vSystem_Init(System* pt)
         
         if(pModularRoof != NULL)
         {
-            pModularRoof->init(pModularRoof, pThis->psMBMasterInfo, ucDevAddr++); //初始化
+            pModularRoof->init(pModularRoof, pThis->psMBMasterInfo, ucDevAddr++, n); //初始化
             pThis->psModularRoofList[n] = pModularRoof;
         
             CONNECT( &(pModularRoof->sValChange), psSystemTaskTCB);  //绑定主机变量变化事件     
@@ -400,7 +406,7 @@ void vSystem_Init(System* pt)
         pExAirFan = (ExAirFan*)ExAirFan_new();  //实例化对象        
         if(pExAirFan != NULL)
         {
-            pExAirFan->init(pExAirFan, &ExAirFanSet[n]);
+            pExAirFan->init(pExAirFan, &ExAirFanSet[n], n);
             pThis->psExAirFanList[n] = pExAirFan; 
             
             CONNECT( &(pExAirFan->sValChange), psSystemTaskTCB);  //绑定风机变量变化事件  
@@ -412,7 +418,7 @@ void vSystem_Init(System* pt)
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
         if(pCO2Sensor != NULL)
         {
-            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2, ucDevAddr++); //向上转型，由子类转为父类
+            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2, ucDevAddr++, n); //向上转型，由子类转为父类
             pThis->psCO2SenList[n] = pCO2Sensor;
             
             CONNECT( &(pCO2Sensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件
@@ -424,7 +430,7 @@ void vSystem_Init(System* pt)
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         if(pTempHumiSensor != NULL)
         {
-            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT, ucDevAddr++);
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT, ucDevAddr++, n);
             pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
             
             CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件 
@@ -436,7 +442,7 @@ void vSystem_Init(System* pt)
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         if(pTempHumiSensor != NULL)
         {
-            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN, ucDevAddr++);
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN, ucDevAddr++, n);
             pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
             
             CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSystemTaskTCB);  //绑定传感器变量变化事件

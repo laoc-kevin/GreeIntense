@@ -120,7 +120,8 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetUnitRunningMode %d\n", pThis->eRunningMode); 
-#endif         
+#endif  
+    vSystem_ExAirSet_Vol(pThis);   //排风需求量变化    
 }
 
 /*/调整机组运行模式*/
@@ -263,15 +264,15 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_1) && 
             (usGetTmrState(&pThis->sModeChangeTmr_1) != OS_TMR_STATE_RUNNING) )
         {
-            (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1, 
-                               0, OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
+            (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1, 0, 
+                                OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
         }
         //室内温度<室内目标温度- T2（默认1.5℃），持续满足t2(默认5min)时间
         if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_2) && 
             (usGetTmrState(&pThis->sModeChangeTmr_2) != OS_TMR_STATE_RUNNING) )
         {
-            (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2, 
-                               0, OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
+            (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2, 0, 
+                                OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
         }
     }
     //（2）系统湿膜模式运行，按照以下切换
@@ -283,16 +284,16 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_3) && 
             (usGetTmrState(&pThis->sModeChangeTmr_3) != OS_TMR_STATE_RUNNING) )
         {
-            (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->usModeChangeTime_3, 
-                               0, OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
+            (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->usModeChangeTime_3, 0, 
+                                OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
             return;
         }
         //室内温度<室内目标温度- T4（默认1.5℃），持续满足t2(默认5min)时间
         if( (pThis->sAmbientIn_T > pThis->usTempSet - pThis->usModeAdjustTemp_4) && 
             (usGetTmrState(&pThis->sModeChangeTmr_4) != OS_TMR_STATE_RUNNING) )
         {
-            (void)xTimerRegist(&pThis->sModeChangeTmr_4, pThis->usModeChangeTime_4, 
-                               0, OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
+            (void)xTimerRegist(&pThis->sModeChangeTmr_4, pThis->usModeChangeTime_4, 0, 
+                                OS_OPT_TMR_ONE_SHOT, vSystem_AdjustUnitRunningMode, pThis);
             return;
         }
     }

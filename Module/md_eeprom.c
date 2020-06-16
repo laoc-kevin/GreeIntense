@@ -489,8 +489,11 @@ void vWriteEEPROMDataFirstTime(void)
 /**********************************************************************
  * @brief  注册EEPROM数据
  *********************************************************************/
+
 BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
 {
+    uint16_t usIndex = 0;
+    
     if(pData == NULL)
     {
         return FALSE;
@@ -498,6 +501,14 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
     switch(eDataType)
     {
         case TYPE_UINT_8:
+            
+            for(usIndex=0; usIndex<DataBufUint8Count; usIndex++)
+            {
+                if(pDataBufUint8[usIndex] == (uint8_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufUint8Count < UINT8_SAVE_COUNT)
             {
                 pDataBufUint8[DataBufUint8Count] = (uint8_t*)pData;
@@ -511,6 +522,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break;
         
         case TYPE_INT_8:
+            for(usIndex=0; usIndex<DataBufInt8Count; usIndex++)
+            {
+                if(pDataBufInt8[usIndex] == (int8_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufInt8Count < INT8_SAVE_COUNT)
             {
                 pDataBufInt8[DataBufInt8Count] = (int8_t*)pData;
@@ -524,6 +542,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break;
         
         case TYPE_UINT_16:
+            for(usIndex=0; usIndex<DataBufUint16Count; usIndex++)
+            {
+                if(pDataBufUint16[usIndex] == (uint16_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufUint16Count < UINT16_SAVE_COUNT)
             {
                 pDataBufUint16[DataBufUint16Count] = (uint16_t*)pData;
@@ -537,6 +562,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break;    
         
         case TYPE_INT_16:
+            for(usIndex=0; usIndex<DataBufInt16Count; usIndex++)
+            {
+                if(pDataBufInt16[usIndex] == (int16_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufInt16Count < INT16_SAVE_COUNT)
             {
                 pDataBufInt16[DataBufInt16Count] = (int16_t*)pData;
@@ -550,6 +582,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break;            
            
          case TYPE_UINT_32:
+            for(usIndex=0; usIndex<DataBufUint32Count; usIndex++)
+            {
+                if(pDataBufUint32[usIndex] == (uint32_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufUint32Count < UINT32_SAVE_COUNT)
             {
                 pDataBufUint32[DataBufUint32Count] = (uint32_t*)pData;
@@ -563,6 +602,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break;    
         
         case TYPE_INT_32:
+            for(usIndex=0; usIndex<DataBufInt32Count; usIndex++)
+            {
+                if(pDataBufInt32[usIndex] == (int32_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufInt32Count < INT32_SAVE_COUNT)
             {
                 pDataBufInt32[DataBufInt32Count] = (int32_t*)pData;
@@ -576,6 +622,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break; 
 
         case TYPE_RUNTIME:
+            for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)
+            {
+                if(pDataBufRuntime[usIndex] == (uint32_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufRuntimeCount < RUNTIME_SAVE_COUNT)
             {
                 pDataBufRuntime[DataBufRuntimeCount] = (uint32_t*)pData;
@@ -589,6 +642,13 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
         break; 
 
         case TYPE_E32:
+            for(usIndex=0; usIndex<DataBufE32Count; usIndex++)
+            {
+                if(pDataBufE32[usIndex] == (uint32_t*)pData)
+                {
+                    return FALSE;
+                }
+            }
             if(DataBufE32Count < E32_SAVE_COUNT)
             {
                 pDataBufE32[DataBufE32Count] = (uint32_t*)pData;

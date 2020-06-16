@@ -344,7 +344,7 @@ void vModularRoof_RegistEEPROMData(ModularRoof* pt)
 }
 
 /*机组初始化*/
-void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr)
+void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr, uint8_t ucDevIndex)
 {
     uint8_t n = 0;
     ModularRoof* pThis     = (ModularRoof*)pt;
@@ -353,6 +353,7 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
     pThis->psMBMasterInfo        = psMBMasterInfo;
     pThis->psSupAirFan           = (SupAirFan*)SupAirFan_new();  //送风风机
     pThis->sMBSlaveDev.ucDevAddr = ucDevAddr;
+    pThis->Device.ucDevIndex     = ucDevIndex;
     
     for(n=0; n < MODULAR_NUM; n++)
     {

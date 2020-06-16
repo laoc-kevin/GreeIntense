@@ -82,11 +82,11 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
         pModularRoof->usHeatTempSet = usTempSet;
     }
     pThis->usTempSet = usTempSet;
-    vSystem_ChangeUnitRunningMode(pThis);
-    
+  
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif
+    vSystem_ChangeUnitRunningMode(pThis);
     
 }
 
@@ -110,8 +110,6 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
             ucUnitNum++;           
         }
     } 
-    myprintf("MODULAR_ROOF_NUM \n");
-    
     if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //只有一台机组可用
     {
         if(pThis->ulFreAirSet_Vol > 65000)    //保证新风量
@@ -133,17 +131,12 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
             pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
         }  
     }
-
-    myprintf("ulFreAirSet_Vol \n");
-    
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
-    
-    vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
     
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetFreAir  usFreAirSet_Vol_L %d  usFreAirSet_Vol_H %d\n", usFreAirSet_Vol_L, usFreAirSet_Vol_H);
 #endif    
-    
+    vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
 }
 
 /*设定系统排风机额定风量*/

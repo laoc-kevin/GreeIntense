@@ -51,19 +51,22 @@ CLASS(ExAirFan)           /*排风风机*/
     uint16_t     usMaxFreq;     //频率上限 = 实际值*10
     uint16_t     usMinFreq;     //频率下限 = 实际值*10
     
+    uint8_t      ucTimeCount;   //时间计数
+    
     sAnalog_IO   sFreq_AO;      //频率输出AO   
     sAnalog_IO   sFreq_AI;      //频率输入AI
     
     sDigital_IO  sSwitch_DO;    //启停DO
     sDigital_IO  sRunState_DI;  //运行状态DI通道 
     sDigital_IO  sErr_DI;       //故障DI通道 
-        
+    
+    BOOL         xExAirFanCmd;  //有风机命令    
     BOOL         xExAirFanErr;  //风机故障
     
     OS_SEM       sValChange;    //变量变化事件
     OS_TMR       sExAirFanTmr;  //风机内部定时器
     
-    void (*init)(ExAirFan* pt, sFanInfo* psFan);
+    void (*init)(ExAirFan* pt, sFanInfo* psFan, uint8_t ucDevIndex);
     void (*changeFreqType)(ExAirFan* pt, eFreqType eFanFreqType);    
 };
 

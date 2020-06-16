@@ -101,7 +101,7 @@ void vDigitalOutputCtrl(uint8_t ucChannel, eCtrlEn eCtrl)
 	    	if( ((ulPortVal >> psIO->Pin) & 0x01) == OFF )   
             {
 	    		GPIO_SetValue(psIO->Port, 1 << psIO->Pin );    //输出开启，继电器闭合
-	    		myprintf("GPIO_SetValue ucChannel %d  Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);
+//	    		myprintf("GPIO_SetValue ucChannel %d  Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);
 	    	}			
 	    }
 	    else
@@ -109,7 +109,7 @@ void vDigitalOutputCtrl(uint8_t ucChannel, eCtrlEn eCtrl)
 	    	if( ((ulPortVal >> psIO->Pin) & 0x01) == ON )
             {	
 	    		GPIO_ClearValue(psIO->Port, 1 << psIO->Pin );	//输出关闭，继电器断开
-	    		myprintf("GPIO_ClearValue ucChannel %d Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);	
+//	    		myprintf("GPIO_ClearValue ucChannel %d Port: %d   Pin: %d\n",ucChannel, psIO->Port, psIO->Pin);	
 	    	}			
 	    }
     }
