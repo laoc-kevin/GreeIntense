@@ -262,6 +262,8 @@ static  void  AppTaskCreate (void)
     
 	OS_CRITICAL_ENTER();
 
+     myprintf("****************************************************************************\n"); 
+    
 #if OUTPUT_SET_TASK_EN > 0     //IO输出数据接收功能 
     vOutputInit();   
 #endif

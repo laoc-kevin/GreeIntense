@@ -26,33 +26,27 @@ CPU_STK_SIZE    SystemTaskStkSize = 128;
 OS_TCB*   psSystemTaskTCB = NULL;
 CPU_STK*  psSystemTaskStk = NULL;
 
-
-
 /*系统排风机配置信息*/
-sFanInfo ExAirFanVariate = {VARIABLE_FREQ, 250, 500, 1, 1, 1, 1, 5};
+const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, 220, 500, 1, 1, 1, 1, 5};
 
-sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 5},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 6},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 7},
-                                         {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 8},
-                                       };
+const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 5},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 6},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 7},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 8},
+                                             };
 /*系统排风机类型切换*/
 void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
 {
-    System* pThis = (System*)pt; 
+    System*   pThis     = (System*)pt; 
     ExAirFan* pExAirFan = pThis->psExAirFanList[0];
 
-    if(eExAirFanType == Type_CONSTANT_VARIABLE)     //定频 + 变频
+    if(eExAirFanType == TYPE_CONSTANT_VARIABLE)     //定频 + 变频
     {
         pExAirFan->init(pExAirFan, &ExAirFanVariate, 0);
         pExAirFan->changeFreqType(pExAirFan, VARIABLE_FREQ);
         pThis->pExAirFanVariate = pExAirFan;
         
-        pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), 350);
-        
-      
-         myprintf("vSystem_ChangeExAirFanType usMinFreq %d usMaxFreq %d \n", pThis->pExAirFanVariate->usMinFreq, pThis->pExAirFanVariate->usMaxFreq);  
-        
+        pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), 220);
     }
     else   //定频
     {
@@ -63,7 +57,7 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
     pThis->eExAirFanType = eExAirFanType;
    
 #if DEBUG_ENABLE > 0        
-    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d\n", pThis->eExAirFanType);
+    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
 #endif    
         
 }
@@ -228,7 +222,7 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
 void vSystem_InitRuntimeTmr(System* pt)
 {
     System* pThis = (System*)pt; 
-    (void)xTimerRegist(&pThis->sRuntimeTmr, 0, RUNNING_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vSystem_RuntimeTmrCallback, pThis);                       
+    (void)xTimerRegist(&pThis->sRuntimeTmr, 0, RUNNING_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vSystem_RuntimeTmrCallback, pThis, FALSE);                       
 }
  
 /*系统EEPROM数据注册*/
@@ -286,7 +280,6 @@ void vSystem_RegistEEPROMData(System* pt)
    
     EEPROM_DATA(TYPE_INT_16, pThis->sChickenGrowDays)
     
-    
     EEPROM_DATA(TYPE_UINT_32, pThis->ulExAirFanRated_Vol)
 }
 
@@ -317,7 +310,8 @@ void vSystem_InitDefaultData(System* pt)
     
     DATA_INIT(pThis->ulFreAirSet_Vol,  60000)
     
-    DATA_INIT(pThis->eExAirFanType, Type_CONSTANT_VARIABLE)
+    DATA_INIT(pThis->eExAirFanType, TYPE_CONSTANT_VARIABLE)
+    DATA_INIT(pThis->usExAirFanFreq,     220)
     DATA_INIT(pThis->usExAirFanMinFreq,  220)
     DATA_INIT(pThis->usExAirFanMaxFreq,  500)
     DATA_INIT(pThis->ucExAirCoolRatio,    90)
@@ -352,6 +346,8 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usModeAdjustTemp_6, 15)
     
     vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
+    vSystem_SetExAirFanFreqRange(pThis, pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
+//    myprintf("vSystem_InitDefaultData usMinFreq %d usMaxFreq %d \n", pThis->psExAirFanList[0]->usMinFreq, pThis->psExAirFanList[0]->usMaxFreq);
 }
 
 /*系统初始化*/
@@ -466,7 +462,7 @@ void vSystem_Init(System* pt)
     
     pThis->psBMS = (BMS*)BMS_Core();
     
-    myprintf("vSystem_Init \n");                
+    myprintf("vSystem_Init \n");   
 }
 
 CTOR(System)   //系统构造函数

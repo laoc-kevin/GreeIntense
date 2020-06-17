@@ -56,8 +56,8 @@ typedef struct  /*设备模拟量接口类型*/
 
 typedef enum   /*风机类型*/
 {
-    Type_CONSTANT = 0,              //定频
-    Type_CONSTANT_VARIABLE = 1      //定频 + 变频
+    TYPE_CONSTANT = 0,              //定频
+    TYPE_CONSTANT_VARIABLE = 1      //定频 + 变频
 }eExAirFanType;
 
 typedef enum   /*系统模式*/

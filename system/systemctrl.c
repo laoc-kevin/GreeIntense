@@ -100,7 +100,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     ModularRoof* pUnit        = NULL;
     
     uint16_t usFreAirSet_Vol = 0;
-    uint32_t ulFreAirSet_Vol = usFreAirSet_Vol_H*65535 + usFreAirSet_Vol_L;
+    uint32_t ulFreAirSet_Vol = (uint32_t)usFreAirSet_Vol_H*65535 + (uint32_t)usFreAirSet_Vol_L;
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
@@ -134,7 +134,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetFreAir  usFreAirSet_Vol_L %d  usFreAirSet_Vol_H %d\n", usFreAirSet_Vol_L, usFreAirSet_Vol_H);
+    myprintf("vSystem_SetFreAir  ulFreAirSet_Vol %ld \n", pThis->ulFreAirSet_Vol);
 #endif    
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
 }

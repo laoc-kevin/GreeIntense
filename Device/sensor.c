@@ -37,7 +37,8 @@ void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensor
     vSensor_RegistDev(pThis);               //向通讯主栈中注册设备
 
     //传感器1s周期定时器,延时启动
-    (void)xTimerRegist(&pThis->sSensorTmr, SENSOR_TIME_OUT_DELAY_S, SENSOR_TIME_OUT_S, OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis);   
+    (void)xTimerRegist(&pThis->sSensorTmr, SENSOR_TIME_OUT_DELAY_S, SENSOR_TIME_OUT_S, 
+                        OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis, FALSE);   
 }
 
 ABS_CTOR(Sensor)  //传感器抽象类构造函数

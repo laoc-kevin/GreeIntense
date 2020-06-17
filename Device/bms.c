@@ -700,13 +700,14 @@ void vBMS_InitDefaultData(BMS* pt)
     
     DATA_INIT(pThis->usExAirFanRated_Vol_H,  0)
     DATA_INIT(pThis->usExAirFanRated_Vol_L,  36000)
+    DATA_INIT(pThis->usExAirFanFreq,         220)
     DATA_INIT(pThis->usExAirFanMinFreq,      220)
     DATA_INIT(pThis->usExAirFanMaxFreq,      500) 
     DATA_INIT(pThis->eExAirFanType,           1)
     
     DATA_INIT(pThis->ucExAirCoolRatio,    90)
     DATA_INIT(pThis->ucExAirHeatRatio,    90)
-    DATA_INIT(pThis->eExAirFanType,       Type_CONSTANT_VARIABLE)
+    DATA_INIT(pThis->eExAirFanType,       TYPE_CONSTANT_VARIABLE)
     
     
 //    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);

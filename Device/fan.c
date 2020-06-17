@@ -19,7 +19,6 @@ CTOR(SupAirFan)    //送风机构造函数
     SUPER_CTOR(Device);
 END_CTOR
 
-
 /*************************************************************
 *                         排风机                             *
 **************************************************************/
@@ -34,9 +33,9 @@ void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunS
     vDigitalInputRegister(ucRunState_DI, (void*)&pThis->Device.eRunningState);
     vDigitalInputRegister(ucErr_DI, (void*)&pThis->xExAirFanErr);
     
-#if DEBUG_ENABLE > 0        
-    myprintf("ucSwitch_DO %d ucRunState_DI %d  ucErr_DI %d\n", ucSwitch_DO, ucRunState_DI, ucErr_DI); 
-#endif    
+//#if DEBUG_ENABLE > 0        
+//    myprintf("ucSwitch_DO %d ucRunState_DI %d  ucErr_DI %d\n", ucSwitch_DO, ucRunState_DI, ucErr_DI); 
+//#endif    
       
 }
 
@@ -52,19 +51,17 @@ void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI
         
         //频率输出
         pThis->sFreq_AO.ucChannel = ucFreq_AO;
-        pThis->sFreq_AO.lMax = usMaxFreq;
-        pThis->sFreq_AO.lMin = usMinFreq;
+        pThis->sFreq_AO.lMax = (int32_t)usMaxFreq;
+        pThis->sFreq_AO.lMin = (int32_t)usMinFreq;
         vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq);
         
         //频率输入
         pThis->sFreq_AI.ucChannel = ucFreq_AI;
-        pThis->sFreq_AI.lMax = usMaxFreq;
-        pThis->sFreq_AI.lMin = usMinFreq;
+        pThis->sFreq_AI.lMax = (int32_t)usMaxFreq;
+        pThis->sFreq_AI.lMin = (int32_t)usMinFreq;
         
-        vAnalogInputRegister(ucFreq_AI, usMinFreq, usMaxFreq, &pThis->usRunningFreq); 
-        vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq); 
-
-        myprintf("vExFan_SetFreq usMinFreq %d usMaxFreq %d \n", pThis->usMinFreq, pThis->usMaxFreq);        
+        vAnalogInputRegister(ucFreq_AI, usMinFreq, usMaxFreq, (void*)&pThis->usRunningFreq); 
+        vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq);         
     }   
 }
 
@@ -112,7 +109,6 @@ void vExFan_SetFreq(IDevFreq* pt, uint16_t usFreq)
     
     if(pThis->eFanFreqType == VARIABLE_FREQ && pThis->xExAirFanErr == FALSE)
     {
-        myprintf("vExFan_SetFreq usMinFreq %d usMaxFreq %d usFreq %d\n",pThis->usMinFreq, pThis->usMaxFreq, usFreq);
         if(usFreq < pThis->usMinFreq)
         {
             usFreq = pThis->usMinFreq;
@@ -142,21 +138,20 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
         pThis->usMaxFreq = usMaxFreq;
         pThis->usMinFreq = usMinFreq;
     
-        pThis->sFreq_AO.lMax = usMaxFreq;
-        pThis->sFreq_AO.lMin = usMinFreq;
+        pThis->sFreq_AO.lMax = (int32_t)usMaxFreq;
+        pThis->sFreq_AO.lMin = (int32_t)usMinFreq;
         
-        pThis->sFreq_AI.lMax = usMaxFreq;
-        pThis->sFreq_AI.lMin = usMinFreq;
+        pThis->sFreq_AI.lMax = (int32_t)usMaxFreq;
+        pThis->sFreq_AI.lMin = (int32_t)usMinFreq;
         
         vAnalogOutputSetRange(pThis->sFreq_AO.ucChannel, usMinFreq, usMaxFreq);
     }
 #if DEBUG_ENABLE > 0 
     if(pThis->eFanFreqType == VARIABLE_FREQ)
     {
-        myprintf("vExFan_SetFreq usMinFreq %d usMaxFreq %d \n",pThis->usMinFreq, pThis->usMaxFreq);
+        myprintf("vExFan_SetFreqRange usMinFreq %d usMaxFreq %d \n",pThis->usMinFreq, pThis->usMaxFreq);
     } 
-#endif      
-    
+#endif        
 }
 
 void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
@@ -194,11 +189,12 @@ void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
         pThis->eSwitchCmd = OFF;
         vExAirFan_SwitchClose(SUPER_PTR(pThis, IDevSwitch));  //关闭排风机
     }
-    
+
 #if DEBUG_ENABLE > 0 
     if(pThis->eFanFreqType == VARIABLE_FREQ)
     {
-//        myprintf("vExAirFan_TimeoutInd  pThis->usRunningFreq %d\n", pThis->usRunningFreq);  
+//        myprintf("vExAirFan_TimeoutInd ucDevIndex %d usRunningFreq %d usMinFreq %d usMaxFreq %d \n",
+//        pThis->Device.ucDevIndex, pThis->usRunningFreq, pThis->usMinFreq, pThis->usMaxFreq); 
     } 
 #endif      
 }
@@ -224,7 +220,7 @@ void vExAirFan_RegistEEPROMData(ExAirFan* pt)
 }
 
 /*排风机初始化*/
-void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan, uint8_t ucDevIndex)
+void vExAirFan_Init(ExAirFan* pt, const sFanInfo* psFan, uint8_t ucDevIndex)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
     
@@ -240,7 +236,7 @@ void vExAirFan_Init(ExAirFan* pt, sFanInfo* psFan, uint8_t ucDevIndex)
     } 
     
     //排风机2s周期定时器
-    (void)xTimerRegist(&pThis->sExAirFanTmr, 0, EX_AIR_FAN_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vExAirFan_TimeoutInd, pThis); 
+    (void)xTimerRegist(&pThis->sExAirFanTmr, 0, EX_AIR_FAN_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vExAirFan_TimeoutInd, pThis, FALSE); 
 }
 
 /*排风机类型切换*/

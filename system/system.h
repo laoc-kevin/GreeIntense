@@ -67,10 +67,10 @@ CLASS(System)   /*系统*/
     uint16_t          usCO2ExAirDeviat_2;       //CO2浓度排风控制偏差2
     uint16_t          usCO2PPMAlarm;            //CO2浓度报警值
      
-     
-    uint16_t          usExAirRequest_Vol;       //系统排风需求量
+    uint32_t          ulExAirRequest_Vol;       //系统排风需求量
     uint32_t          ulFreAirSet_Vol;          //系统目标新风风量设定
     uint32_t          ulTotalFreAir_Vol;        //系统新风风量 
+    uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
     
     uint16_t          usHumidityMax;            //设定湿度max
     uint16_t          usHumidityMin;            //设定湿度min
@@ -82,18 +82,17 @@ CLASS(System)   /*系统*/
     uint16_t          usAmbientIn_H;            //室内环境湿度
     uint16_t          usAmbientOut_H;           //室外环境湿度
     
+    uint16_t          usExAirFanRunTimeLeast;   //排风机最小运行时间  
     uint16_t          usExAirFanFreq;           //排风机频率设定    
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
-    uint32_t          ulExAirFanRated_Vol;      //排风机额定风量
-    
-    uint16_t          usExAirFanRunTimeLeast;   //排风机最小运行时间    
+     
+    uint32_t          ulExAirFanRequestTime;    //排风机运行需求时间    
     uint16_t          usExAirFanCtrlPeriod;     //排风机控制周期
-    uint16_t          usExAirFanRequestTime;    //排风机运行需求时间
     
     uint8_t           ucExAirCoolRatio;         //制冷排风百分比
     uint8_t           ucExAirHeatRatio;         //制热排风百分比
-    uint8_t           ucConstantFanRequestNum;      //定频排风机需求个数
+    uint8_t           ucConstantFanRequestNum;  //定频排风机需求个数
 
     eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)
     

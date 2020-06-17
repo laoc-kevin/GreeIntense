@@ -8,8 +8,8 @@
 
 #define TIMER_HANDLE uint16_t
 
-BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint16_t usPeriod_s, OS_OPT opt, 
-                  OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg);
+BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint32_t ulPeriod_s, OS_OPT opt, 
+                  OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg, uint8_t xExcuteCallback);
                       
 uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr);
 OS_STATE usGetTmrState(OS_TMR *p_tmr);
