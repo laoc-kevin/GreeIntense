@@ -197,8 +197,11 @@ static  void  AppTaskStart (void *p_arg)
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN  >0                 //系统逻辑控制功能
-    OS_TCB      SystemMainCtrlTCB;		
-    CPU_STK     SystemMainCtrlStk [SYSTEM_MAIN_CTRL_TASK_STK_SIZE];
+    OS_TCB      SystemEventPollTCB;		
+    CPU_STK     SystemEventPollStk [SYSTEM_EVENT_POLL_TASK_STK_SIZE];
+    
+    OS_TCB      SystemPollTCB;		
+    CPU_STK     SystemPollStk [SYSTEM_POLL_TASK_STK_SIZE];
 #endif	
 
 #if WATCHDOG_FEED_TASK_EN >0                     //喂狗功能
@@ -293,7 +296,8 @@ static  void  AppTaskCreate (void)
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 
-    vSystemInit(&SystemMainCtrlTCB, SYSTEM_MAIN_CTRL_TASK_PRIO, SystemMainCtrlStk, SYSTEM_MAIN_CTRL_TASK_STK_SIZE); 
+    vSystemInit(&SystemEventPollTCB, SYSTEM_EVENT_POLL_TASK_PRIO, SystemEventPollStk, SYSTEM_EVENT_POLL_TASK_STK_SIZE,
+                &SystemPollTCB, SYSTEM_POLL_TASK_PRIO, SystemPollStk, SYSTEM_POLL_TASK_STK_SIZE); 
 #endif	
 
 #if EEPROM_DATA_TASK_EN >0       //eeprom参数记忆功能

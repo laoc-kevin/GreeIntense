@@ -18,8 +18,8 @@ typedef struct        /**DI数据结构**/
 	void*           pvDIVal;       //当前实际值       
 }sDIData; 
 
-void     vDigitalInputRegister(uint8_t ucChannel, void* pvVal);
-void     vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);
+void     vDigitalInputRegist(uint8_t ucChannel, void* pvVal);
+void     vAnalogInputRegist(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal);
          
 void     vAnalogInputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax);
 

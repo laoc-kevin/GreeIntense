@@ -29,18 +29,20 @@
 
 
 /****************************任务优先级配置********************************/                                                            
-#define SYSTEM_MAIN_CTRL_TASK_PRIO    4
+#define SYSTEM_EVENT_POLL_TASK_PRIO   4
 
-#define MB_SLAVE_POLL_TASK_PRIO  	  5
-#define MB_MASTER_HEART_TASK_PRIO  	  6
-#define MB_MASTER_POLL_TASK_PRIO  	  7
-#define MB_MASTER_SCAN_TASK_PRIO  	  8
+#define SYSTEM_EVENT_TASK_PRIO        5 
+#define SYSTEM_MONITOR_TASK_PRIO      6
 
-#define SYSTEM_EVENT_TASK_PRIO        9 
-#define SYSTEM_MONITOR_TASK_PRIO      10
+#define MB_SLAVE_POLL_TASK_PRIO  	  7
+#define MB_MASTER_HEART_TASK_PRIO  	  8
+#define MB_MASTER_POLL_TASK_PRIO  	  9
+#define MB_MASTER_SCAN_TASK_PRIO  	  10
 
-#define INPUT_RECEIVE_TASK_PRIO		  11       
-#define SEGMENT_TASK_PRIO  			  12
+#define SYSTEM_POLL_TASK_PRIO         11
+
+#define INPUT_RECEIVE_TASK_PRIO		  12       
+#define SEGMENT_TASK_PRIO  			  13
 
 #define EEPROM_DATA_TASK_PRIO         15
 
@@ -63,7 +65,9 @@
 
 #define SYSTEM_EVENT_TASK_STK_SIZE        160
 #define SYSTEM_MONITOR_TASK_STK_SIZE      160
-#define SYSTEM_MAIN_CTRL_TASK_STK_SIZE	  256
+
+#define SYSTEM_POLL_TASK_STK_SIZE	      128
+#define SYSTEM_EVENT_POLL_TASK_STK_SIZE	  256
 
 #define CANOPEN_CONFIG_TASK_STK_SIZE      128
 #define CANOPEN_SENDSDO_TASK_STK_SIZE     128

@@ -5,6 +5,28 @@
 #include "md_modbus.h"
 #include "md_timer.h"
 
+#define  SYSTEM_POLL_INTERVAL_S   10
+
+#define  MAX_EX_FAN_RATED_VOL     100000l
+#define  MAX_FRE_AIR_SET_VOL      130000l
+
+void vSystem_PollTimeCallBack(void* p_tmr, void* p_arg)
+{
+    OS_ERR err = OS_ERR_NONE;
+    System* pThis = (System*)p_arg;
+    
+//    while (DEF_TRUE)
+//    {
+//        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+
+        if(pThis->eSystemState != STATE_CLOSED)
+        {
+            myprintf("********************vSystem_PollTask***********************\n");
+            vSystem_ChangeUnitRunningMode(pThis);
+        }            
+//    }           
+}
+
 /*系统开启*/
 void vSystem_SwitchOpen(System* pt)
 {
@@ -32,12 +54,15 @@ void vSystem_SwitchClose(System* pt)
 /*切换系统模式*/
 void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
 {
-    uint8_t  n = 0; 
+    uint8_t  n   = 0;
+    OS_ERR   err = OS_ERR_NONE;
+    
     System* pThis = (System*)pt;
     
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
-          
+    pThis->eSystemMode = eSystemMode;   
+    
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
@@ -50,6 +75,11 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
         }
         vSystem_SwitchOpen(pThis);  //开启系统
+        
+        if(OSTmrStateGet(&pThis->sSystemPollTmr, &err) != OS_TMR_STATE_RUNNING)
+        {
+            (void)xTimerRegist(&pThis->sSystemPollTmr, 0, SYSTEM_POLL_INTERVAL_S, OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE);
+        } 
     }
     if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
@@ -60,8 +90,6 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
-    pThis->eSystemMode = eSystemMode;
-    
 #if DEBUG_ENABLE > 0  
     myprintf("vSystem_ChangeSystemMode %d\n", pThis->eSystemMode);
 #endif    
@@ -74,6 +102,7 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    pThis->usTempSet = usTempSet;
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
@@ -81,13 +110,10 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
         pModularRoof->usCoolTempSet = usTempSet;
         pModularRoof->usHeatTempSet = usTempSet;
     }
-    pThis->usTempSet = usTempSet;
-  
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif
-    vSystem_ChangeUnitRunningMode(pThis);
-    
+    vSystem_ChangeUnitRunningMode(pThis); 
 }
 
 /*设定系统目标新风量*/
@@ -95,12 +121,21 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
 {
     uint8_t  n, ucUnitNum; 
     System* pThis = (System*)pt;
+    BMS*    psBMS = BMS_Core();
     
     ModularRoof* pModularRoof = NULL;
     ModularRoof* pUnit        = NULL;
     
     uint16_t usFreAirSet_Vol = 0;
     uint32_t ulFreAirSet_Vol = (uint32_t)usFreAirSet_Vol_H*65535 + (uint32_t)usFreAirSet_Vol_L;
+    
+    if(ulFreAirSet_Vol > MAX_FRE_AIR_SET_VOL)
+    {
+        psBMS->usFreAirSet_Vol_L = pThis->ulFreAirSet_Vol % 65535;
+        psBMS->usFreAirSet_Vol_H = pThis->ulFreAirSet_Vol / 65535;
+        return;
+    }
+    pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
@@ -131,8 +166,6 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
             pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
         }  
     }
-    pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
-    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetFreAir  ulFreAirSet_Vol %ld \n", pThis->ulFreAirSet_Vol);
 #endif    
@@ -142,15 +175,22 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
 /*设定系统排风机额定风量*/
 void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16_t usExAirFanRated_Vol_L)  
 {
-    uint8_t  n, ucUnitNum; 
     System* pThis = (System*)pt;
+    BMS*    psBMS = BMS_Core();
     
-    pThis->ulExAirFanRated_Vol = usExAirFanRated_Vol_H*65535 + usExAirFanRated_Vol_L;
+    uint32_t ulExAirFanRated_Vol = (uint32_t)usExAirFanRated_Vol_H*65535 + (uint32_t)usExAirFanRated_Vol_L;
     
+    if(ulExAirFanRated_Vol > MAX_EX_FAN_RATED_VOL)
+    {
+        psBMS->usExAirFanRated_Vol_H = pThis->ulExAirFanRated_Vol % 65535;
+        psBMS->usExAirFanRated_Vol_L = pThis->ulExAirFanRated_Vol / 65535;
+        return;
+    }
+    pThis->ulExAirFanRated_Vol = ulExAirFanRated_Vol;
+
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetExAirFanRated  usExAirFanRated_Vol_L %d  usExAirFanRated_Vol_H %d\n", usExAirFanRated_Vol_L, usExAirFanRated_Vol_H);
 #endif    
-    
 }
 
 /*设定系统湿度阈值*/
@@ -160,19 +200,18 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    pThis->usHumidityMin = usHumidityMin;
+    pThis->usHumidityMax = usHumidityMax;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
         pModularRoof->usHumidityMin = usHumidityMin;
         pModularRoof->usHumidityMax = usHumidityMax;
     }
-    pThis->usHumidityMin = usHumidityMin;
-    pThis->usHumidityMax = usHumidityMax;
-    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetHumidity  usHumidityMin %d  usHumidityMax %d\n", pThis->usHumidityMin, pThis->usHumidityMax);
-#endif    
-    
+#endif        
 }
 
 /*设定系统目标CO2浓度值*/
@@ -182,17 +221,16 @@ void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2AdjustThr_V)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
         pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
     }
-    pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
-    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
-#endif    
-    
+#endif       
 }
 
 /*设定系统CO2浓度偏差*/
@@ -202,17 +240,69 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
+    pThis->usCO2AdjustDeviat = usCO2AdjustDeviat;
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
         pModularRoof->usCO2AdjustDeviat = usCO2AdjustDeviat;
     }
-    pThis->usCO2AdjustDeviat = usCO2AdjustDeviat;
-    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_SetCO2AdjustDeviat  usCO2AdjustDeviat %d  \n", pThis->usCO2AdjustDeviat);
-#endif
+#endif   
+}
+
+
+
+
+/*系统设备运行状态变化*/
+void vSystem_DeviceRunningState(System* pt)
+{
+    uint8_t  n   = 0;
+    OS_ERR   err = OS_ERR_NONE;
     
+    System* pThis = (System*)pt;
+    
+    ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
+    
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        {
+            switch(pThis->eRunningMode)
+            {
+                case RUN_MODE_COOL:
+                    pThis->eSystemState = STATE_COOL;
+                break;
+                case RUN_MODE_HEAT:
+                    pThis->eSystemState = STATE_HEAT;
+                break;
+                case RUN_MODE_FAN:
+                    pThis->eSystemState = STATE_FAN;
+                break;
+                case RUN_MODE_WET:
+                    pThis->eSystemState = STATE_WET;
+                break;
+                default:break;
+            }
+
+            return;
+        }   
+    }
+    OSTmrStop(&pThis->sSystemPollTmr, OS_OPT_TMR_NONE, NULL, &err);
+    
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {
+        pExAirFan = pThis->psExAirFanList[n];
+        if(pExAirFan->Device.eRunningState == STATE_RUN)
+        {
+            pThis->eSystemState = STATE_EX_FAN;
+            return;
+        }   
+    }
+    pThis->eSystemState = STATE_CLOSED;
 }
 
 /*注册声光报警启停接口*/
@@ -276,7 +366,6 @@ void vSystem_DelAlarmRequst(System* pt)
             return;
         }
     }
-    
     //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
     if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
     {

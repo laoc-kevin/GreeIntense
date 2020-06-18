@@ -324,7 +324,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
         
     SLAVE_REG_HOLD_DATA(11,  int16,   -2,     56, RW, 1, (void*)&pSystem->sChickenGrowDays)  
     SLAVE_REG_HOLD_DATA(12, uint16,  160,    350, RW, 1, (void*)&pThis->usTempSet)   
-    SLAVE_REG_HOLD_DATA(13, uint16,    0,  64464, RW, 1, (void*)&pThis->usFreAirSet_Vol_L)
+    SLAVE_REG_HOLD_DATA(13, uint16,    0,  65535, RW, 1, (void*)&pThis->usFreAirSet_Vol_L)
     SLAVE_REG_HOLD_DATA(14, uint16,    0,      1, RW, 1, (void*)&pThis->usFreAirSet_Vol_H)
     SLAVE_REG_HOLD_DATA(15, uint16,    0,    450, RW, 1, (void*)&pSystem->usEnergyTemp)
         
@@ -342,7 +342,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
      
     SLAVE_REG_HOLD_DATA(38, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanMinFreq)     
     SLAVE_REG_HOLD_DATA(39, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanMaxFreq)  
-    SLAVE_REG_HOLD_DATA(40, uint16,    0,  34464, RW, 1, (void*)&pThis->usExAirFanRated_Vol_L)    
+    SLAVE_REG_HOLD_DATA(40, uint16,    0,  65535, RW, 1, (void*)&pThis->usExAirFanRated_Vol_L)    
     SLAVE_REG_HOLD_DATA(41, uint16,    0,      1, RW, 1, (void*)&pThis->usExAirFanRated_Vol_H)  
     SLAVE_REG_HOLD_DATA(42, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanCtrlPeriod)
         
@@ -376,7 +376,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(80, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_5) 
     SLAVE_REG_HOLD_DATA(81, uint16,    0,    100, RW, 1, (void*)&pSystem->usModeAdjustTemp_6)
         
-    SLAVE_REG_HOLD_DATA(93, uint16,     0,            64464,        RO, 1, (void*)&pThis->usTotalFreAir_Vol_L)     
+    SLAVE_REG_HOLD_DATA(93, uint16,     0,            65535,        RO, 1, (void*)&pThis->usTotalFreAir_Vol_L)     
     SLAVE_REG_HOLD_DATA(94, uint16,     0,            1,            RO, 1, (void*)&pThis->usTotalFreAir_Vol_H)   
     SLAVE_REG_HOLD_DATA(95, uint16,     MIN_CO2_PPM,  MAX_CO2_PPM,  RO, 1, (void*)&pSystem->usCO2PPM) 
     SLAVE_REG_HOLD_DATA(96,  int16,     MIN_IN_TEMP,  MAX_IN_TEMP,  RO, 1, (void*)&pSystem->sAmbientIn_T) 
@@ -700,9 +700,9 @@ void vBMS_InitDefaultData(BMS* pt)
     
     DATA_INIT(pThis->usExAirFanRated_Vol_H,  0)
     DATA_INIT(pThis->usExAirFanRated_Vol_L,  36000)
-    DATA_INIT(pThis->usExAirFanFreq,         220)
-    DATA_INIT(pThis->usExAirFanMinFreq,      220)
-    DATA_INIT(pThis->usExAirFanMaxFreq,      500) 
+    DATA_INIT(pThis->usExAirFanFreq,         MIN_FAN_FREQ)
+    DATA_INIT(pThis->usExAirFanMinFreq,      MIN_FAN_FREQ)
+    DATA_INIT(pThis->usExAirFanMaxFreq,      MAX_FAN_FREQ) 
     DATA_INIT(pThis->eExAirFanType,           1)
     
     DATA_INIT(pThis->ucExAirCoolRatio,    90)

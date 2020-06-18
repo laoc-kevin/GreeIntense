@@ -30,7 +30,7 @@ typedef struct
 }sDOData; 
 
 void vOutputInit(void);
-void vAnalogOutputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax);
+void vAnalogOutputRegist(uint8_t ucChannel, int32_t lMin, int32_t lMax);
 
 void vDigitalOutputCtrl( uint8_t ucChannel, eCtrlEn eCtrl);
 void vDigitalOutputDataToggle(uint8_t ucChannel);

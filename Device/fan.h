@@ -3,6 +3,9 @@
 
 #include "device.h"
 
+#define MIN_FAN_FREQ   100
+#define MAX_FAN_FREQ   500
+
 typedef enum   /*系统状态*/
 {
     MODE_REAL_TIME   = 0,        //实时新风量 

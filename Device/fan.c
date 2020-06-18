@@ -30,8 +30,8 @@ void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunS
     pThis->sRunState_DI.ucChannel = ucRunState_DI;
     pThis->sErr_DI.ucChannel = ucErr_DI;
     
-    vDigitalInputRegister(ucRunState_DI, (void*)&pThis->Device.eRunningState);
-    vDigitalInputRegister(ucErr_DI, (void*)&pThis->xExAirFanErr);
+    vDigitalInputRegist(ucRunState_DI, (void*)&pThis->Device.eRunningState);
+    vDigitalInputRegist(ucErr_DI, (void*)&pThis->xExAirFanErr);
     
 //#if DEBUG_ENABLE > 0        
 //    myprintf("ucSwitch_DO %d ucRunState_DI %d  ucErr_DI %d\n", ucSwitch_DO, ucRunState_DI, ucErr_DI); 
@@ -53,15 +53,15 @@ void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI
         pThis->sFreq_AO.ucChannel = ucFreq_AO;
         pThis->sFreq_AO.lMax = (int32_t)usMaxFreq;
         pThis->sFreq_AO.lMin = (int32_t)usMinFreq;
-        vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq);
+        vAnalogOutputRegist(ucFreq_AO, usMinFreq, usMaxFreq);
         
         //频率输入
         pThis->sFreq_AI.ucChannel = ucFreq_AI;
         pThis->sFreq_AI.lMax = (int32_t)usMaxFreq;
         pThis->sFreq_AI.lMin = (int32_t)usMinFreq;
         
-        vAnalogInputRegister(ucFreq_AI, usMinFreq, usMaxFreq, (void*)&pThis->usRunningFreq); 
-        vAnalogOutputRegister(ucFreq_AO, usMinFreq, usMaxFreq);         
+        vAnalogInputRegist(ucFreq_AI, pThis->sFreq_AI.lMin, pThis->sFreq_AI.lMax, (void*)&pThis->usRunningFreq); 
+        vAnalogOutputRegist(ucFreq_AO, pThis->sFreq_AO.lMin, pThis->sFreq_AO.lMax);         
     }   
 }
 
@@ -131,6 +131,7 @@ void vExFan_SetFreq(IDevFreq* pt, uint16_t usFreq)
 /*设置频率上下限*/
 void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq) 
 {
+    uint16_t usFreq = 0;
     ExAirFan* pThis = SUB_PTR(pt, IDevFreq, ExAirFan);
     
     if(pThis->eFanFreqType == VARIABLE_FREQ)
@@ -144,12 +145,23 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
         pThis->sFreq_AI.lMax = (int32_t)usMaxFreq;
         pThis->sFreq_AI.lMin = (int32_t)usMinFreq;
         
-        vAnalogOutputSetRange(pThis->sFreq_AO.ucChannel, usMinFreq, usMaxFreq);
+        vAnalogOutputSetRange(pThis->sFreq_AO.ucChannel, pThis->sFreq_AO.lMin, pThis->sFreq_AO.lMax);
+        vAnalogInputSetRange(pThis->sFreq_AI.ucChannel, pThis->sFreq_AI.lMin, pThis->sFreq_AI.lMax);
+        
+        if(pThis->usRunningFreq < pThis->usMinFreq)
+        {
+            usFreq = pThis->usMinFreq;
+        }
+        if(pThis->usRunningFreq > pThis->usMaxFreq)
+        {
+            usFreq = pThis->usMaxFreq;
+        }
+        vExFan_SetFreq(SUPER_PTR(pThis, IDevFreq), usFreq);
     }
 #if DEBUG_ENABLE > 0 
     if(pThis->eFanFreqType == VARIABLE_FREQ)
     {
-        myprintf("vExFan_SetFreqRange usMinFreq %d usMaxFreq %d \n",pThis->usMinFreq, pThis->usMaxFreq);
+        myprintf("vExFan_SetFreqRange  usMinFreq %d usMaxFreq %d \n", pThis->usMinFreq, pThis->usMaxFreq);
     } 
 #endif        
 }
@@ -209,13 +221,13 @@ void vExAirFan_RegistMonitor(ExAirFan* pt)
     
     MONITOR(&pThis->xExAirFanErr,         uint8, &pThis->sValChange)
     MONITOR(&pThis->Device.eRunningState, uint8, &pThis->sValChange)
+    MONITOR(&pThis->usRunningFreq,        uint16, &pThis->sValChange)
 }
 
 /*排风机EEPROM数据注册*/
 void vExAirFan_RegistEEPROMData(ExAirFan* pt)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
-    
     EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
 }
 

@@ -2,7 +2,7 @@
 #include "modularRoof.h"
 
 #define MODULAR_ROOF_PROTOCOL_TYPE_ID   0
-#define MODULAR_HEART_BEAT_PERIOD_S     5
+#define MODULAR_HEART_BEAT_PERIOD_S     20
 
 /*************************************************************
 *                         模块                               *

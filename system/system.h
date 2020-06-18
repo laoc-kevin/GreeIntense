@@ -24,7 +24,7 @@ CLASS(System)   /*系统*/
     uint16_t          usProtocolVer;            //协议版本
     
     eSystemMode       eSystemMode;              //系统模式
-    eSystemState      eSystemState;
+    eSystemState      eSystemState;             //系统状态
     eRunningMode      eRunningMode;             //运行模式                                            
     eSwitchCmd        eSwitchCmd;               //启停命令 
                     
@@ -116,6 +116,8 @@ CLASS(System)   /*系统*/
     OS_TMR            sModeChangePeriodTmr_5;   //模式切换间隔t5(min)定时器
     OS_TMR            sModeChangePeriodTmr_6;   //模式切换间隔t6(min)定时器
     
+    OS_TMR            sSystemPollTmr;            //系统轮询定时器
+    
     BOOL              xCompFirstRun;            //压缩机首次开启
     BOOL              xStopErrFlag;             //停系统故障标志
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
@@ -151,7 +153,8 @@ CLASS(System)   /*系统*/
     void   (*init)( System* pt);
 };
 
-void vSystemInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE stk_size);
+void vSystemInit( OS_TCB* psEventPollTaskTcb, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize,
+                  OS_TCB* psPollTaskTcb, OS_PRIO ucPollTaskPrio, CPU_STK* psPollTaskStkBase, CPU_STK_SIZE usPollTaskStkSize );
 
 System* System_Core();    //获取全局唯一对象，单例设计模式
 

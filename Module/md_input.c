@@ -42,7 +42,7 @@ sDIData DigitalInputData[DI_NUM];  //DI接口数据
 /**************************************************************
 *@brief DI接口变量注册
 ***************************************************************/
-void vDigitalInputRegister(uint8_t ucChannel, void* pvVal)
+void vDigitalInputRegist(uint8_t ucChannel, void* pvVal)
 {
 	if( (ucChannel > 0) && (ucChannel <= DI_NUM) && (pvVal != NULL))
 	{
@@ -53,7 +53,7 @@ void vDigitalInputRegister(uint8_t ucChannel, void* pvVal)
 /**************************************************************
 *@brief AI接口变量注册
 ***************************************************************/
-void vAnalogInputRegister(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal)
+void vAnalogInputRegist(uint8_t ucChannel, int32_t lMin, int32_t lMax, void* pvVal)
 {
 	if( (ucChannel > 0) && (ucChannel <= AI_NUM) && (pvVal != NULL))
 	{
@@ -410,7 +410,7 @@ uint32_t ulAnalogInputGetRealVal(uint8_t ucChannel)
 ******************************************************************/
 void vAnalogInputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 {
-	if( (ucChannel > 0) && (ucChannel <= AI_NUM)  )
+	if( (ucChannel > 0) && (ucChannel <= AI_NUM) )
 	{
 		AnalogInputData[ucChannel-1].lMax = lMax;
 		AnalogInputData[ucChannel-1].lMin = lMin;
