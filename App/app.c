@@ -214,7 +214,7 @@ static  void  AppTaskStart (void *p_arg)
     CPU_STK     TaskStackWatchStk[TASK_STACK_WATCH_TASK_STK_SIZE];
 #endif
 
-#if TASK_STACK_WATCH_EN > 0
+#if TASK_STACK_WATCH_TASK_EN > 0
 
 void  AppTaskStackWatch(void *p_arg)
 {
@@ -228,7 +228,7 @@ void  AppTaskStackWatch(void *p_arg)
           
         OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
            
-        OSTaskStkChk (&AppMbSlavePollTaskTCB,&free,&used,&err);   //需要监控的任务堆栈，根据需要编写
+        OSTaskStkChk (&SystemEventPollTCB,&free,&used,&err);   //需要监控的任务堆栈，根据需要编写
         myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
         
         OS_CRITICAL_EXIT(); //退出临界区	
@@ -309,7 +309,7 @@ static  void  AppTaskCreate (void)
 #endif
 
 #if TASK_STACK_WATCH_TASK_EN > 0      //内存监控功能
-    AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE)
+    AppTaskStackWatchInit(&TaskStackWatchTCB, TASK_STACK_WATCH_TASK_PRIO, TaskStackWatchStk, TASK_STACK_WATCH_TASK_STK_SIZE);
 #endif
 
     myprintf("Main_Process\n");

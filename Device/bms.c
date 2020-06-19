@@ -713,6 +713,13 @@ void vBMS_InitDefaultData(BMS* pt)
 //    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
 }
 
+/*BMS数据默认值初始化*/
+void vBMS_SetValue(BMS* pt, void* pData, int32_t lValue)
+{
+    
+}
+
+
 void vBMS_Init(BMS* pt)
 {
     BMS* pThis = (BMS*)pt;  

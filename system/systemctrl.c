@@ -61,6 +61,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
+    
     pThis->eSystemMode = eSystemMode;   
     
     if(eSystemMode == MODE_AUTO)    //自动模式
@@ -76,10 +77,10 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         }
         vSystem_SwitchOpen(pThis);  //开启系统
         
-        if(OSTmrStateGet(&pThis->sSystemPollTmr, &err) != OS_TMR_STATE_RUNNING)
-        {
-            (void)xTimerRegist(&pThis->sSystemPollTmr, 0, SYSTEM_POLL_INTERVAL_S, OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE);
-        } 
+//        if(OSTmrStateGet(&pThis->sSystemPollTmr, &err) != OS_TMR_STATE_RUNNING)
+//        {
+//            (void)xTimerRegist(&pThis->sSystemPollTmr, 0, SYSTEM_POLL_INTERVAL_S, OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE);
+//        } 
     }
     if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
@@ -104,15 +105,16 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
     ModularRoof* pModularRoof = NULL;
     pThis->usTempSet = usTempSet;
     
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
+#endif
+    
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
         pModularRoof->usCoolTempSet = usTempSet;
         pModularRoof->usHeatTempSet = usTempSet;
     }
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
-#endif
     vSystem_ChangeUnitRunningMode(pThis); 
 }
 
@@ -128,7 +130,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     
     uint16_t usFreAirSet_Vol = 0;
     uint32_t ulFreAirSet_Vol = (uint32_t)usFreAirSet_Vol_H*65535 + (uint32_t)usFreAirSet_Vol_L;
-    
+
     if(ulFreAirSet_Vol > MAX_FRE_AIR_SET_VOL)
     {
         psBMS->usFreAirSet_Vol_L = pThis->ulFreAirSet_Vol % 65535;
@@ -252,9 +254,6 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
 #endif   
 }
 
-
-
-
 /*系统设备运行状态变化*/
 void vSystem_DeviceRunningState(System* pt)
 {
@@ -291,8 +290,6 @@ void vSystem_DeviceRunningState(System* pt)
             return;
         }   
     }
-    OSTmrStop(&pThis->sSystemPollTmr, OS_OPT_TMR_NONE, NULL, &err);
-    
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];

@@ -5,7 +5,7 @@
 #include "system.h"
 
 #define MONITOR_DATA_MAX_NUM        200     //最大可监控点位数，根据实际情况调整
-#define MONITOR_POLL_INTERVAL_MS    100     //
+#define MONITOR_POLL_INTERVAL_MS    500     //
 
 sMonitorInfo* MonitorList = NULL;
 sMonitorInfo  MonitorBuf[MONITOR_DATA_MAX_NUM];
@@ -130,6 +130,7 @@ void vMonitorPollTask(void *p_arg)
 //                {
 //                    myprintf("vMonitorPollTask  sEventMsg.pvArg %d  sAvgTemp %d\n", sEventMsg.pvArg, &psSystem->psTempHumiSenInList[11]->sAvgTemp);  
 //                }
+//                (void)OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);
                 (void)OSTaskQPost(psEventTCB, (void*)&sEventMsg, sizeof(sEventMsg), OS_OPT_POST_FIFO, &err);  //转发到特定的Task            
                               
             }

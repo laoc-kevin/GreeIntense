@@ -3,20 +3,20 @@
 
 #include "device.h"
 
-#define SENSOR_SAMPLE_NUM   10
-#define SENSOR_REG_HOLD_NUM 3
+#define SENSOR_SAMPLE_NUM      5
+#define SENSOR_REG_HOLD_NUM    3
 
-#define MAX_IN_TEMP  1200
-#define MIN_IN_TEMP  -400
+#define MAX_IN_TEMP     1200
+#define MIN_IN_TEMP     -400
+                        
+#define MAX_OUT_TEMP    600
+#define MIN_OUT_TEMP    -200
 
-#define MAX_OUT_TEMP  600
-#define MIN_OUT_TEMP  -200
+#define MAX_HUMI        100
+#define MIN_HUMI        0
 
-#define MAX_HUMI  100
-#define MIN_HUMI  0
-
-#define MAX_CO2_PPM  5000
-#define MIN_CO2_PPM  0
+#define MAX_CO2_PPM     5000
+#define MIN_CO2_PPM     0
 
 typedef enum   /*传感器类型*/
 {

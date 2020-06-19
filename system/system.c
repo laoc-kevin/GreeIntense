@@ -20,7 +20,7 @@
 #define MODE_CHANGE_PERIOD       3
 #define MODE_ADJUST_TEMP         15
 
-#define HANDLE(p_arg1, p_arg2) if((USHORT*)psMsg->pvArg == (USHORT*)(&p_arg1)) {p_arg2;continue;}
+#define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) ) {p_arg2;goto begin;}
 
 System*  psSystem = NULL;
 System   SystemCore;
@@ -89,15 +89,11 @@ void vSystem_PollTask(void *p_arg)
 //    }           
 }
 
-
-
-
 /*系统内部消息轮询*/
 void vSystem_EventPollTask(void *p_arg)
 {
     uint8_t n;
     
-    CPU_TS            ts = 0;
     OS_MSG_SIZE  msgSize = 0;
     OS_ERR           err = OS_ERR_NONE;
     
@@ -107,15 +103,17 @@ void vSystem_EventPollTask(void *p_arg)
     ExAirFan*       pExAirFan       = NULL;
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
+    sEventMsg*      psMsg           = NULL;
     
     BMS* psBMS = BMS_Core();
     psSystem = System_Core();
     
     while(DEF_TRUE)
-	{      
-        sEventMsg* psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, &ts, &err);
-//        myprintf("OSTaskQPend\n");
+	{ 
 begin:        
+        myprintf("******************************OSTaskQPend******************************\n");
+        psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, NULL, &err);
+       
         /***********************BMS事件响应***********************/
         HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
         HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
@@ -147,21 +145,21 @@ begin:
         {
             pModularRoof = pThis->psModularRoofList[n]; 
             
-            HANDLE(pModularRoof->Device.eRunningState,    vSystem_DeviceRunningState(psSystem);break)
+            HANDLE(pModularRoof->Device.eRunningState,    vSystem_DeviceRunningState(psSystem))
             
-            HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem, pModularRoof);break)
-            HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem);break)            
+            HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem, pModularRoof))
+            HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem))            
  
-            HANDLE(pModularRoof->xStopErrFlag,        vSystem_UnitErr(psSystem);break)
-            HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem);break)
+            HANDLE(pModularRoof->xStopErrFlag,        vSystem_UnitErr(psSystem))
+            HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem))
             
-            HANDLE(pModularRoof->sAmbientInSelf_T,  vSystem_UnitTempHumiIn(psSystem);break)
-            HANDLE(pModularRoof->usAmbientInSelf_H, vSystem_UnitTempHumiIn(psSystem);break)
+            HANDLE(pModularRoof->sAmbientInSelf_T,  vSystem_UnitTempHumiIn(psSystem))
+            HANDLE(pModularRoof->usAmbientInSelf_H, vSystem_UnitTempHumiIn(psSystem))
             
-            HANDLE(pModularRoof->sAmbientOutSelf_T,  vSystem_UnitTempHumiOut(psSystem);break)
-            HANDLE(pModularRoof->usAmbientOutSelf_H, vSystem_UnitTempHumiOut(psSystem);break)
+            HANDLE(pModularRoof->sAmbientOutSelf_T,  vSystem_UnitTempHumiOut(psSystem))
+            HANDLE(pModularRoof->usAmbientOutSelf_H, vSystem_UnitTempHumiOut(psSystem))
             
-            HANDLE(pModularRoof->usCO2PPMSelf, vSystem_UnitCO2PPM(psSystem);break)
+            HANDLE(pModularRoof->usCO2PPMSelf, vSystem_UnitCO2PPM(psSystem))
         }
         
         /***********************排风机事件响应***********************/
@@ -169,8 +167,8 @@ begin:
         {
             pExAirFan =  pThis->psExAirFanList[n];
             
-            HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem, pExAirFan);break)
-            HANDLE(pExAirFan->Device.eRunningState, vSystem_DeviceRunningState(psSystem);break)
+            HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem, pExAirFan))
+            HANDLE(pExAirFan->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
         }
 
         /***********************CO2传感器事件响应***********************/
@@ -178,8 +176,8 @@ begin:
         {
             pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
             
-            HANDLE(pCO2Sensor->usAvgCO2PPM, vSystem_CO2PPM(psSystem);break) 
-            HANDLE(pCO2Sensor->xCO2SenErr,  vSystem_CO2SensorErr(psSystem);break)
+            HANDLE(pCO2Sensor->usAvgCO2PPM, vSystem_CO2PPM(psSystem)) 
+            HANDLE(pCO2Sensor->xCO2SenErr,  vSystem_CO2SensorErr(psSystem))
         }
         
         /***********************室外温湿度传感器事件响应***********************/
@@ -187,11 +185,11 @@ begin:
         {
             pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
             
-            HANDLE(pTempHumiSensor->sAvgTemp,    vSystem_TempHumiOut(psSystem);break) 
-            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiOutErr(psSystem);break)
+            HANDLE(pTempHumiSensor->sAvgTemp,    vSystem_TempHumiOut(psSystem)) 
+            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiOutErr(psSystem))
             
-            HANDLE(pTempHumiSensor->usAvgHumi,   vSystem_TempHumiOut(psSystem);break) 
-            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiOutErr(psSystem);break)
+            HANDLE(pTempHumiSensor->usAvgHumi,   vSystem_TempHumiOut(psSystem)) 
+            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiOutErr(psSystem))
         }
         
         /***********************室内温湿度传感器事件响应***********************/
@@ -199,11 +197,12 @@ begin:
         {
             pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenInList[n];  
 
-            HANDLE(pTempHumiSensor->sAvgTemp,    vSystem_TempHumiIn(psSystem);break)                 
-            HANDLE(pTempHumiSensor->usAvgHumi,   vSystem_TempHumiIn(psSystem);break)
-            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiInErr(psSystem);break)            
-            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiInErr(psSystem);break)
+            HANDLE(pTempHumiSensor->sAvgTemp,    vSystem_TempHumiIn(psSystem))                 
+            HANDLE(pTempHumiSensor->usAvgHumi,   vSystem_TempHumiIn(psSystem))
+            HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiInErr(psSystem))            
+            HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiInErr(psSystem))
         }
+        myprintf("******************************OSTaskOver******************************\n");
     }
 }
 
