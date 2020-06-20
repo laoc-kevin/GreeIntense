@@ -3,7 +3,7 @@
 
 #define TMR_TICK_PER_SECOND                 OS_CFG_TMR_TASK_RATE_HZ
 #define SENSOR_TIME_OUT_S                   1
-#define SENSOR_TIME_OUT_DELAY_S             10
+#define SENSOR_TIME_OUT_DELAY_S             20
 
 #define SENSOR_CO2_PROTOCOL_TYPE_ID         0
 #define SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID   0
@@ -277,9 +277,7 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
             pTempHumiSen->sAvgTemp = pTempHumiSen->sTotalTemp / SENSOR_SAMPLE_NUM;  //取平均值
             *pcSampleIndex = 0;
         }
-       
     }
-    
     if(pTempHumiSen->xHumiSenErr == FALSE)
     { 
         if(*pcSampleIndex_2 < SENSOR_SAMPLE_NUM)

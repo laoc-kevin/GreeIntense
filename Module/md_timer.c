@@ -1,5 +1,5 @@
 #include "md_timer.h"
-
+#include "my_rtt_printf.h"
 /**************************************************************
 *@brief 定时器注册
 ***************************************************************/
@@ -20,13 +20,9 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint32_t ulPeriod_s, OS_O
     {
         if(sTmrState == OS_TMR_STATE_RUNNING)
         {
-            OSTmrStop(p_tmr, OS_OPT_TMR_NONE, NULL, &err);
+            OSTmrDel(p_tmr, &err);
+            OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err);
         }
-        p_tmr->Dly = dly;
-        p_tmr->Period = period;
-        p_tmr->Opt = opt;
-        p_tmr->CallbackPtr = p_callback;
-        p_tmr->CallbackPtrArg = p_callback_arg; 
     }
     if(err == OS_ERR_NONE)
     {
@@ -36,6 +32,7 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint32_t ulPeriod_s, OS_O
         }
         OSTmrStart(p_tmr, &err);
     }
+//    myprintf("xTimerRegist usDlyTime_s %d  ulPeriod_s %d\n", usDlyTime_s, ulPeriod_s);
     return err == OS_ERR_NONE;
 }
 

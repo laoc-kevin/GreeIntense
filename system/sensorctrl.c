@@ -12,7 +12,7 @@ void vSystem_CO2PPM(System* pt)
     ModularRoof* pModularRoof = NULL;
     CO2Sensor*   pCO2Sensor   = NULL;
     
-    for(n=0, ucCO2Num=0, usTotalCO2PPM=0; n < CO2_SEN_NUM; n++)
+    for(n=0, ucCO2Num=0, usTotalCO2PPM=0, usCO2PPM=0; n < CO2_SEN_NUM; n++)
     {
         pCO2Sensor = (CO2Sensor*)pThis->psCO2SenList[n];
         if(pCO2Sensor->xCO2SenErr == FALSE)
@@ -110,7 +110,7 @@ void vSystem_TempHumiOut(System* pt)
     ucTempNum = 0;
     ucHumiNum = 0;
     
-    for(n=0,sTotalTemp=0,usTotalHumi=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
+    for(n=0,sTotalTemp=0,usTotalHumi=0, sAmbientOut_T=0, usAmbientOut_H=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
         if(pTempHumiSensor->xTempSenErr == FALSE)
@@ -151,8 +151,8 @@ void vSystem_TempHumiOutErr(System* pt)
 {
     BOOL xTempSenOutErr, xHumiSenOutErr;
     uint8_t  n, ucTempNum, ucHumiNum;
-    System* pThis = (System*)pt;
     
+    System*         pThis = (System*)pt;
     TempHumiSensor* pTempHumiSensor = NULL;
     
     ucTempNum = 0;
@@ -170,7 +170,6 @@ void vSystem_TempHumiOutErr(System* pt)
             ucHumiNum++;
         }           
     }
-
     //传感器全部故障
     xTempSenOutErr = (ucTempNum == 0) ? TRUE:FALSE;
     xHumiSenOutErr = (ucHumiNum == 0) ? TRUE:FALSE;
@@ -213,7 +212,7 @@ void vSystem_TempHumiIn(System* pt)
     ucTempNum = 0;
     ucHumiNum = 0;
     
-    for(n=0, sTotalTemp=0, usTotalHumi=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
+    for(n=0, sTotalTemp=0, usTotalHumi=0, sAmbientIn_T=0, usAmbientIn_H=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenInList[n]; 
         if(pTempHumiSensor->xTempSenErr == FALSE)
@@ -284,7 +283,6 @@ void vSystem_TempHumiInErr(System* pt)
             ucHumiNum++;
         }            
     }
-    
     //传感器全部故障
     xTempSenInErr = (ucTempNum == 0) ? TRUE:FALSE;
     xHumiSenInErr = (ucHumiNum == 0) ? TRUE:FALSE;

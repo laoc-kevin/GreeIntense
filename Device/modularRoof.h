@@ -46,7 +46,6 @@ CLASS(Modular)   /*模块*/
 CLASS(ModularRoof)   /*屋顶机机组*/
 {
     EXTENDS(Device);         /*继承设备抽象类*/ 
-    
     IMPLEMENTS(IDevSwitch);     //设备启停接口
 
     uint16_t      usUnitID;                 //机型ID
@@ -103,6 +102,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min
     OS_SEM        sValChange;               //变量变化事件
+    OS_TMR        sModularRoofTmr;          //机组内部定时器
     
     SupAirFan*     psSupAirFan;                      //机组送风机
     Modular*       psModularList[MODULAR_NUM];       //模块列表

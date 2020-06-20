@@ -119,7 +119,8 @@ CLASS(System)   /*系统*/
     OS_TMR            sSystemPollTmr;            //系统轮询定时器
     
     BOOL              xCompFirstRun;            //压缩机首次开启
-    BOOL              xStopErrFlag;             //停系统故障标志
+    BOOL              xUnitErrFlag;             //机组总故障标志
+    BOOL              xExFanErrFlag;            //排风机总故障标志
     BOOL              xAlarmEnable;             //声光报警使能                                                                        
     BOOL              xCO2SenErr;               //CO2传感器故障
     

@@ -338,7 +338,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             break; 				
         } 
     }
-    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
+//    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
     if(errorCode != MB_MRE_NO_ERR) //证明从设备无反应
     {
         (void)xMBMasterDevOfflineTmrEnable(psMBSlaveDev);  

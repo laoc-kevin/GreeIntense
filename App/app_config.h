@@ -36,9 +36,9 @@
 #define MB_MASTER_POLL_TASK_PRIO  	  7
 #define MB_MASTER_SCAN_TASK_PRIO  	  8
 
-#define SYSTEM_EVENT_TASK_PRIO        9 
-#define SYSTEM_MONITOR_TASK_PRIO      10
-#define SYSTEM_POLL_TASK_PRIO         11
+#define SYSTEM_EVENT_TASK_PRIO        10 
+#define SYSTEM_MONITOR_TASK_PRIO      11
+#define SYSTEM_POLL_TASK_PRIO         12
 
 #define INPUT_RECEIVE_TASK_PRIO		  13       
 #define SEGMENT_TASK_PRIO  			  14

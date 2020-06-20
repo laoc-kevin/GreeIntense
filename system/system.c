@@ -20,7 +20,7 @@
 #define MODE_CHANGE_PERIOD       3
 #define MODE_ADJUST_TEMP         15
 
-#define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) ) {p_arg2;goto begin;}
+#define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) ) {p_arg2; myprintf("**********************HANDLE*********************\n");goto begin;}
 
 System*  psSystem = NULL;
 System   SystemCore;
@@ -110,10 +110,14 @@ void vSystem_EventPollTask(void *p_arg)
     
     while(DEF_TRUE)
 	{ 
-begin:        
-        myprintf("******************************OSTaskQPend******************************\n");
+begin:       
         psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, NULL, &err);
-       
+//        (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);
+//        myprintf("**********************OSTaskQPend*********************\n");
+        if(psMsg == NULL || err != OS_ERR_NONE)
+        {
+            continue;
+        }
         /***********************BMS事件响应***********************/
         HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
         HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
@@ -150,8 +154,8 @@ begin:
             HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem, pModularRoof))
             HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem))            
  
-            HANDLE(pModularRoof->xStopErrFlag,        vSystem_UnitErr(psSystem))
-            HANDLE(pModularRoof->sMBSlaveDev.xOnLine, vSystem_UnitErr(psSystem))
+            HANDLE(pModularRoof->xStopErrFlag, vSystem_UnitErr(psSystem))
+            HANDLE(pModularRoof->xCommErr,     vSystem_UnitErr(psSystem))
             
             HANDLE(pModularRoof->sAmbientInSelf_T,  vSystem_UnitTempHumiIn(psSystem))
             HANDLE(pModularRoof->usAmbientInSelf_H, vSystem_UnitTempHumiIn(psSystem))
@@ -167,7 +171,7 @@ begin:
         {
             pExAirFan =  pThis->psExAirFanList[n];
             
-            HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem, pExAirFan))
+            HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem))
             HANDLE(pExAirFan->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
         }
 
@@ -424,7 +428,7 @@ void vSystem_Init(System* pt)
             pModularRoof->init(pModularRoof, pThis->psMBMasterInfo, ucDevAddr++, n); //初始化
             pThis->psModularRoofList[n] = pModularRoof;
         
-            CONNECT( &(pModularRoof->sValChange), psSysEventPollTaskTCB);  //绑定主机变量变化事件     
+            CONNECT( &pModularRoof->sValChange, psSysEventPollTaskTCB);  //绑定主机变量变化事件     
         } 
     }
     /*********************排风风机*************************/
@@ -436,7 +440,7 @@ void vSystem_Init(System* pt)
             pExAirFan->init(pExAirFan, &ExAirFanSet[n], n);
             pThis->psExAirFanList[n] = pExAirFan; 
             
-            CONNECT( &(pExAirFan->sValChange), psSysEventPollTaskTCB);  //绑定风机变量变化事件  
+            CONNECT( &pExAirFan->sValChange, psSysEventPollTaskTCB);  //绑定风机变量变化事件  
         }     
     }
     /***********************CO2传感器***********************/
@@ -448,7 +452,7 @@ void vSystem_Init(System* pt)
             pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2, ucDevAddr++, n); //向上转型，由子类转为父类
             pThis->psCO2SenList[n] = pCO2Sensor;
             
-            CONNECT( &(pCO2Sensor->Sensor.sValChange), psSysEventPollTaskTCB);  //绑定传感器变量变化事件
+            CONNECT( &pCO2Sensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件
         }
     }
     /***********************室外温湿度传感器***********************/
@@ -460,7 +464,7 @@ void vSystem_Init(System* pt)
             pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT, ucDevAddr++, n);
             pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
             
-            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSysEventPollTaskTCB);  //绑定传感器变量变化事件 
+            CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件 
         }          
     }
     /***********************室内温湿度传感器***********************/
@@ -472,7 +476,7 @@ void vSystem_Init(System* pt)
             pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN, ucDevAddr++, n);
             pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
             
-            CONNECT( &(pTempHumiSensor->Sensor.sValChange), psSysEventPollTaskTCB);  //绑定传感器变量变化事件
+            CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件
                 
         }
     } 

@@ -71,7 +71,6 @@
 #endif
 
 #define MB_SLAVE_POLL_INTERVAL_MS           20
-
 #define MB_CPN_FUNC_WRITE_CODE              0x05
 
 /* ----------------------- Static variables ---------------------------------*/ 

@@ -6,6 +6,7 @@
 
 #define WDT_TIMEOUT 	10000000   //10s
 
+BOOL WatchDogLedState  = 1;
 
 /**
 *@brief 喂狗任务，如果超时则复位芯片
@@ -18,12 +19,16 @@ void vWatchDogFeedTask(void * p_arg)
     
 	while(DEF_TRUE)
 	{
-		vLedOn(&LedMCU);
+//		vLedOn(&LedMCU);
 		OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
         
-		vLedOff(&LedMCU);
-	    OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err);
+//		vLedOff(&LedMCU);
+//	    OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err);
 		WWDT_Feed();
+        
+        vLedStateChange(&LedMCU, WatchDogLedState);
+        WatchDogLedState = !WatchDogLedState;
+        
 	}
 }
 

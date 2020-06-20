@@ -81,7 +81,7 @@ PR_BEGIN_EXTERN_C
 #define MB_MASTER_HEART_BEAT_TASK_STK_SIZE  160
 
 #define MB_MASTER_WAITING_DELAY             80    //主栈等待响应时间
-#define MB_MASTER_HEART_BEAT_DELAY_MS       50   //心跳延时
+#define MB_MASTER_HEART_BEAT_DELAY_MS       100   //心跳延时
 
 /* ----------------------- Type definitions ---------------------------------*/
 

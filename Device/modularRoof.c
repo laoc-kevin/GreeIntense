@@ -1,8 +1,12 @@
 #include "sensor.h"
 #include "modularRoof.h"
+#include "md_timer.h"
 
 #define MODULAR_ROOF_PROTOCOL_TYPE_ID   0
 #define MODULAR_HEART_BEAT_PERIOD_S     20
+
+#define MODULAR_TIME_OUT_S              5
+#define MODULAR_TIME_OUT_DELAY_S        20
 
 /*************************************************************
 *                         模块                               *
@@ -37,13 +41,13 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
     if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
     {
-        pThis->eSwitchCmd = CMD_OPEN;    
-    }
-    
+        pThis->eSwitchCmd = CMD_OPEN;  
+        
 #if DEBUG_ENABLE > 0
     pThis->Device.eRunningState = STATE_RUN;
     myprintf("vModularRoof_SwitchOpen %d\n", pThis->eSwitchCmd);
-#endif
+#endif        
+    }
 }
 
 /*机组关闭*/
@@ -62,10 +66,9 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
 void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
-    if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
-    {
-        pThis->eRunningMode = eMode; 
-    }
+
+    pThis->eRunningMode = eMode; 
+    
 #if DEBUG_ENABLE > 0
     myprintf("vModularRoof_SetRunningMode %d\n", pThis->eRunningMode);
 #endif      
@@ -332,7 +335,7 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
     MONITOR(&pThis->usCO2PPMSelf,         uint16, &pThis->sValChange)
                                         
     MONITOR(&pThis->xStopErrFlag,          uint8, &pThis->sValChange)
-    MONITOR(&pThis->sMBSlaveDev.xOnLine,   int16, &pThis->sValChange)  
+    MONITOR(&pThis->xCommErr,              int16, &pThis->sValChange)  
 }
 
 /*机组EEPROM数据注册*/
@@ -341,6 +344,17 @@ void vModularRoof_RegistEEPROMData(ModularRoof* pt)
     ModularRoof* pThis = (ModularRoof*)pt;
     
     EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
+}
+
+void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
+{
+    ModularRoof* pThis = (ModularRoof*)p_arg;
+    
+    pThis->xCommErr = (pThis->sMBSlaveDev.xOnLine == TRUE) ? FALSE:TRUE;
+    if(pThis->xStopErrFlag == TRUE)
+    {
+        vModularRoof_SwitchClose(SUPER_PTR(pThis, IDevSwitch));
+    }        
 }
 
 /*机组初始化*/
@@ -370,7 +384,11 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
    
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
     vModularRoof_InitDefaultData(pThis);    //初始化默认数据
-    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备 
+    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
+
+    //机组周期定时器
+    (void)xTimerRegist(&pThis->sModularRoofTmr, MODULAR_TIME_OUT_DELAY_S, MODULAR_TIME_OUT_S, 
+                        OS_OPT_TMR_PERIODIC, vModularRoof_TimeoutInd, pThis, FALSE);     
 }
 
 CTOR(ModularRoof)   //屋顶机构造函数

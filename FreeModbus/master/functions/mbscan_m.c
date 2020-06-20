@@ -189,7 +189,8 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
-#endif  
+#endif 
+    (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);    
 }
 
 /**********************************************************************
@@ -220,7 +221,7 @@ void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
     errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);            //写线圈 
 #endif 
-   
+   (void)OSTimeDlyHMSM(0, 0, 0, 20, OS_OPT_TIME_HMSM_STRICT, &err);
 }
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
