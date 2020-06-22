@@ -98,6 +98,7 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     
     BOOL          xSupAirDamperState;       //送风风阀状态
     BOOL          xWetMode;                 //湿膜加湿
+    BOOL          xCompRunning;             //压缩机运行
     
     uint16_t      usHumidityMax;            //设定湿度max
     uint16_t      usHumidityMin;            //设定湿度min

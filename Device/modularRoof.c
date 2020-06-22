@@ -346,15 +346,50 @@ void vModularRoof_RegistEEPROMData(ModularRoof* pt)
     EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
 }
 
+/*机组所有压缩机是否关闭*/
+BOOL xModularRoof_UnitCompsClosed(ModularRoof* pt)
+{
+    uint8_t  n, m;
+    ModularRoof* pThis = (ModularRoof*)pt;
+    
+    Modular*     pModular     = NULL;
+    Compressor*  pComp        = NULL;
+    
+    for(n=0; n< MODULAR_NUM; n++)
+    {
+        pModular = pThis->psModularList[n];
+        for(m=0; m < COMP_NUM; m++)
+        {
+            pComp = pModular->psCompList[m];
+            if(pComp->Device.eRunningState == STATE_RUN)
+            {
+                return FALSE;
+            }
+        }
+    }
+    return TRUE;
+}
+
+
 void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
 {
+    uint8_t n = 0;
     ModularRoof* pThis = (ModularRoof*)p_arg;
-    
+
     pThis->xCommErr = (pThis->sMBSlaveDev.xOnLine == TRUE) ? FALSE:TRUE;
     if(pThis->xStopErrFlag == TRUE)
     {
         vModularRoof_SwitchClose(SUPER_PTR(pThis, IDevSwitch));
-    }        
+    }
+    
+    if(xModularRoof_UnitCompsClosed(pThis) == TRUE) //压缩机是否全部关闭
+    {
+        pThis->xCompRunning = FALSE;
+    }
+    else
+    {
+        pThis->xCompRunning =TRUE;
+    }
 }
 
 /*机组初始化*/

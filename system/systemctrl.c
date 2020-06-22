@@ -40,8 +40,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     uint8_t  n   = 0;
     OS_ERR   err = OS_ERR_NONE;
     
-    System* pThis = (System*)pt;
-    
+    System*      pThis        = (System*)pt;
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     BMS*         psBMS        = BMS_Core();
@@ -50,6 +49,8 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     {
         return;
     }
+    pThis->eSystemMode = eSystemMode;
+    
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
         if(pThis->xUnitErrFlag == TRUE || pThis->xExFanErrFlag == TRUE)
@@ -82,8 +83,6 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
-    pThis->eSystemMode = eSystemMode;
-    
 #if DEBUG_ENABLE > 0  
         myprintf("vSystem_ChangeSystemMode %d %d\n", pThis->eSystemMode, psBMS->eSystemMode);
 #endif 
@@ -92,14 +91,16 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
 /*设定系统目标温度值*/
 void vSystem_SetTemp(System* pt, uint16_t usTempSet)
 {
-    uint8_t  n = 0; 
-    System* pThis = (System*)pt;
+    uint8_t  n = 0;
     
+    System*      pThis = (System*)pt;
     ModularRoof* pModularRoof = NULL;
-    
+
     if( pThis->usTempSet != usTempSet)
     {
         pThis->usTempSet = usTempSet;
+//        psBMS->usTempSet = usTempSet;
+        
 #if DEBUG_ENABLE > 0
         myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif

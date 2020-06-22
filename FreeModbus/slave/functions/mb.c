@@ -70,7 +70,7 @@
 #define MB_PORT_HAS_CLOSE 0
 #endif
 
-#define MB_SLAVE_POLL_INTERVAL_MS           20
+#define MB_SLAVE_POLL_INTERVAL_MS           30
 #define MB_CPN_FUNC_WRITE_CODE              0x05
 
 /* ----------------------- Static variables ---------------------------------*/ 
@@ -379,7 +379,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
-	CPU_SR_ALLOC();
+//	CPU_SR_ALLOC();
 
     /* Check if the protocol stack is ready. */
     if(psMBSlaveInfo->eMBState != STATE_ENABLED)      //检查协议栈是否使能
@@ -396,7 +396,6 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
             break;
 
         case EV_FRAME_RECEIVED:                    //接收到一帧数据，此事件发生
-	
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0	
             /*CRC校验、提取地址、有效数据指针和有效数据长度*/
             eStatus = peMBSlaveFrameReceiveCur(psMBSlaveInfo, &ucRcvAddress, &ucMBFrame, &usLength); /*ucRcvAddress 主站要读取的从站的地址，
@@ -429,8 +428,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
             }
 		break;
 			
-        case EV_EXECUTE:
-			
+        case EV_EXECUTE:	
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0	
            
 		    ucFunctionCode = *(ucMBFrame + MB_PDU_FUNC_OFF);              //提取功能码
@@ -464,22 +462,19 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
             }
 #endif    
 
-#if MB_SLAVE_CPN_ENABLED > 0	
-			
+#if MB_SLAVE_CPN_ENABLED > 0			
 			ucFunctionCode = *(ucMBFrame + MB_CPN_PDU_FUNC_OFF) + MB_CPN_FUNC_CODE_OFF_TO_REAL;  //提取功能码，并加上偏移
 			eException = MB_EX_ILLEGAL_FUNCTION;
 			
-			for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ )
+			for(i = 0; i < MB_FUNC_HANDLERS_MAX; i++)
             {
                 /* No more function handlers registered. Abort. */
-                if( xFuncHandlers[i].ucFunctionCode == 0 )
+                if(xFuncHandlers[i].ucFunctionCode == 0)
                 {
                     break;
                 }
-                else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode )
+                else if(xFuncHandlers[i].ucFunctionCode == ucFunctionCode)
                 {
-					vLedOn(&LedModbus2);
-                    
                 /*xFuncHandlers数组的成员为xMBFunctionHandler结构体,该结构体将功能码和相应功能的处理函数捆绑在一起*/
                     eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength ); 
                     break;                                                            
@@ -496,7 +491,6 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
 			}			
 #endif 			
         break;
-
         case EV_FRAME_SENT:
 			vMBSlavePortSerialEnable(psMBPort, TRUE, FALSE);      //使能接收，禁止发送
         
@@ -504,8 +498,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
             {
                 pvMBSlaveSendCallback((void*)psMBSlaveInfo);
             }
-        break;
-		
+        break;	
 		default: break;
         }
     }

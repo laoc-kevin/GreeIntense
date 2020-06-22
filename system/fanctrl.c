@@ -415,7 +415,6 @@ void vSystem_ExAirFanCtrl(System* pt)
                 pExAirFan = pThis->pExAirFanVariate;
                 pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));  //开启变频排风机
                 vSystem_AdjustExAirFanFreq(pThis, pThis->usExAirFanMaxFreq);         //最大频率
-                
             }
             /******若【排风机类型】为全定频，或者变频风机故障******/
             if(pThis->eExAirFanType == TYPE_CONSTANT || pThis->pExAirFanVariate->xExAirFanErr == TRUE)
