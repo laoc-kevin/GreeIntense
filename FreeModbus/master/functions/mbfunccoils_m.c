@@ -470,8 +470,8 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
  *
  * @return result
  */
-eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress,
-                                 USHORT usNCoils, eMBRegisterMode eMode)
+eMBErrorCode 
+eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegBuffer, USHORT usAddress, USHORT usNCoils, eMBBitMode eMode)
 {
     USHORT          COIL_START, COIL_END;
     eMBErrorCode    eStatus = MB_ENOERR;
@@ -501,20 +501,7 @@ eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBu
 
     if ((usAddress >= COIL_START) && (usAddress + usNCoils -1 <= COIL_END))
     {
-		 switch (eMode)
-        {
-        /* read current register values from the protocol stack. */
-        case MB_REG_READ: 
-		    eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
-        
-            
-		break;
-		
-		case MB_REG_WRITE:
-//			eStatus = eMBMasterUtilSetBits( pucRegBuffer, usAddress, usNCoils, CoilData, MB_REG_WRITE);
-		break;
-		default: break;
-	    }
+        eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNCoils, CoilData, eMode);
     }
     else
     {

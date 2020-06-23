@@ -104,6 +104,11 @@ typedef enum
     MB_REG_WRITE                /*!< Update register values. */
 } eMBRegisterMode;
 
+typedef enum
+{
+    MB_BIT_READ,                /*!< Read Bit values and pass to protocol stack. */
+    MB_BIT_WRITE                /*!< Update Bit values. */
+}eMBBitMode;
 
 /*! \ingroup modbus
  * \brief Errorcodes used by all function in the protocol stack.

@@ -564,19 +564,17 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
 eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegBuffer, USHORT usAddress,
         USHORT usNRegs, eMBRegisterMode eMode)
 {
-    USHORT          iRegIndex, n, m, nSlaveTypes, usProtocolType;
-    USHORT          REG_HOLDING_START, REG_HOLDING_END;
+    USHORT iRegIndex, REG_HOLDING_START, REG_HOLDING_END;
 	
-	USHORT          usRegHoldValue;
-    SHORT           sRegHoldValue;
-	int8_t          cRegHoldValue;
+	USHORT usRegHoldValue = 0;
+    SHORT  sRegHoldValue = 0;
+	int8_t cRegHoldValue = 0;
     
-    eMBErrorCode               eStatus = MB_ENOERR;
-	sMasterRegHoldData* pvRegHoldValue = NULL;
-    
-    sMBSlaveDev*      psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
-    sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
-    UCHAR                ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
+    eMBErrorCode        eStatus          = MB_ENOERR;
+	sMasterRegHoldData* pvRegHoldValue   = NULL;
+    sMBSlaveDev*        psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
+    sMBDevDataTable*    psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
+    UCHAR               ucMBDestAddr     = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
     	
     if(psMBMasterInfo->eMBRunMode != STATE_SCAN_DEV) //非轮询从设备模式
     {
@@ -599,12 +597,12 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
 
     /* it already plus one in modbus function method. */
     usAddress--;
-    if ( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs -1 > REG_HOLDING_END))
+    if ( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs-1 > REG_HOLDING_END))
     {
         return MB_ENOREG;
     }
-    
     iRegIndex = usAddress ;
+    
     switch (eMode)
     {
     /* read current register values from the protocol stack. */
@@ -661,11 +659,53 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
             iRegIndex++;
             usNRegs--;
         }
-        break;
+    break;
         
     /* write current register values with new values from the protocol stack. */
-        case MB_REG_WRITE: break;
-        default: break;
+    case MB_REG_WRITE: 
+        while (usNRegs > 0)          
+        {
+    		(void)eMBMasterRegHoldingMap(psMBMasterInfo, ucMBDestAddr, iRegIndex, &pvRegHoldValue);     //扫描字典中变量，找出对应的变量
+            if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != RO) )
+    		{	
+    			if (pvRegHoldValue->ucDataType == uint16)
+    			{
+                    usRegHoldValue = *(USHORT*)pvRegHoldValue->pvValue; 
+    				if( (usRegHoldValue >= (USHORT)pvRegHoldValue->lMinVal ) && (usRegHoldValue <= (USHORT)pvRegHoldValue->lMaxVal))
+    				{ 
+                        pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;		 //更新对应点位					
+    				}										
+    			}
+    			else if(pvRegHoldValue->ucDataType == uint8)
+    			{  
+                    usRegHoldValue = *(UCHAR*)pvRegHoldValue->pvValue;
+    				if( ((UCHAR)usRegHoldValue >= (UCHAR)pvRegHoldValue->lMinVal ) && ((UCHAR)usRegHoldValue <= (UCHAR)pvRegHoldValue->lMaxVal) )
+    				{
+                        pvRegHoldValue->usPreVal = (USHORT)usRegHoldValue;							
+    				}
+    			}
+    			else if (pvRegHoldValue->ucDataType == int16)
+    			{
+    				sRegHoldValue = *(SHORT*)pvRegHoldValue->pvValue;
+    				if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
+    				{
+    			        pvRegHoldValue->usPreVal = (USHORT)sRegHoldValue;
+    				}			
+    			}
+    			else if(pvRegHoldValue->ucDataType == int8)
+    			{  	
+                    cRegHoldValue = *(int8_t*)pvRegHoldValue->pvValue;
+    				if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )		
+    				{
+                        pvRegHoldValue->usPreVal = (USHORT)cRegHoldValue;							
+    				}
+    			}
+    		}
+            iRegIndex++;
+            usNRegs--;
+        }
+    break;
+    default: break;
     }
     return eStatus;
 }

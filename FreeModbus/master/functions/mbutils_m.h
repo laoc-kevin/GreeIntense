@@ -79,9 +79,8 @@ PR_BEGIN_EXTERN_C
  * xMBUtilSetBits( ucBits, 8, 8, 0x5A);
  * \endcode
  */
-eMBErrorCode
-eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR * ucByteBuf,
-                      USHORT usAddress, UCHAR ucNBits, eDataType eDataType);
+eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBuf,USHORT usAddress, 
+                                   UCHAR ucNBits, eDataType eDataType, eMBBitMode eMode);
 
 /*! \brief Function to read bits in a byte buffer.
  *

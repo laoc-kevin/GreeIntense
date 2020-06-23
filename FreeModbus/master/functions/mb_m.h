@@ -482,8 +482,7 @@ eMBErrorCode eMBMasterRegHoldingCB( sMBMasterInfo* psMBMasterInfo, UCHAR* pucReg
  *       within the requested address range. In this case a
  *       <b>ILLEGAL DATA ADDRESS</b> is sent as a response.
  *************************************************************************/
-eMBErrorCode eMBMasterRegCoilsCB( sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegBuffer, 
-                                  USHORT usAddress, USHORT usNCoils, eMBRegisterMode eMode );
+eMBErrorCode eMBMasterRegCoilsCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegBuffer, USHORT usAddress, USHORT usNCoils, eMBBitMode eMode);
 
 /************************************************************************! 
  *! \ingroup modbus_registers

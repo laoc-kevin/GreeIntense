@@ -311,17 +311,16 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
  * @author laoc
  * @date 2019.01.22
  *************************************************************************************/
-eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr )
+eMBMasterReqErrCode eMBMasterScanReadHoldingRegister(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr)
 {
-	USHORT nSlaveTypes, iIndex, iStartAddr, iStartReg, iLastAddr, iCount;
+    BOOL xPreValChanged;
+	USHORT iIndex, iStartAddr, iStartReg, iLastAddr, iCount;
 	
-    USHORT          usRegHoldValue;
-	ULONG			ulRegHoldValue;
-	LONG            lRegHoldValue;
-    SHORT           sRegHoldValue;
-	int8_t          cRegHoldValue;
+    USHORT          usRegHoldValue = 0;
+    SHORT           sRegHoldValue = 0;
+	int8_t          cRegHoldValue = 0;
 
-	eMBMasterReqErrCode        eStatus = MB_MRE_NO_ERR;
+	eMBMasterReqErrCode eStatus        = MB_MRE_NO_ERR;
     sMasterRegHoldData* psRegHoldValue = NULL;
     
     sMBSlaveDev*      psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
@@ -346,7 +345,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 //	    myprintf("ucSndAddr %d  eMBMasterScanReadHoldingRegister\n", ucSndAddr);        
 //    }
     
-	for(iIndex = 0; iIndex < psMBRegHoldTable->usDataCount; iIndex++)  //轮询
+	for(iIndex= 0; iIndex < psMBRegHoldTable->usDataCount; iIndex++)  //轮询
 	{
 		psRegHoldValue = (sMasterRegHoldData*)psMBRegHoldTable->pvDataBuf + iIndex;
 		
@@ -376,20 +375,33 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
         	}
         }
 		/*****主要针对可读写的变量，当变量发生变化要保证先写后读，所以遇到这种情况该寄存器不读了，得先写完再读****/
-		if( (psRegHoldValue->ucAccessMode == RW) && (psRegHoldValue->usPreVal != *(USHORT*)psRegHoldValue->pvValue) ) 
+		if(psRegHoldValue->ucAccessMode == RW) 
 		{
-			if(iCount > 1)
+            switch (psRegHoldValue->ucDataType)
+            {	
+               	case uint16:	
+               		usRegHoldValue = *(USHORT*)psRegHoldValue->pvValue;
+                    xPreValChanged = (psRegHoldValue->usPreVal == usRegHoldValue) ? FALSE:TRUE;
+               	break;
+               	case uint8: 		
+               		usRegHoldValue = *(UCHAR*)psRegHoldValue->pvValue;
+                    xPreValChanged = (psRegHoldValue->usPreVal == usRegHoldValue) ? FALSE:TRUE;
+               	break;
+               	case int16:		
+               		sRegHoldValue = *(SHORT*)psRegHoldValue->pvValue;
+                    xPreValChanged = (psRegHoldValue->usPreVal == (USHORT)sRegHoldValue) ? FALSE:TRUE;
+               	break;
+               	case int8:
+               		cRegHoldValue = *(int8_t*)psRegHoldValue->pvValue;
+                    xPreValChanged = (psRegHoldValue->usPreVal == (USHORT)cRegHoldValue) ? FALSE:TRUE;
+                break;
+            }    
+			if(iCount>1 && xPreValChanged == TRUE)
 			{
-				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);
-                iCount = 0;	
-                myprintf("usPreVal != pvValue)  ucSndAddr %d iStartAddr %d usPreVal %d pvValue %d\n", 
-                ucSndAddr, iStartAddr, psRegHoldValue->usPreVal,*(USHORT*)psRegHoldValue->pvValue);                
+				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);             
 			}
-			else
-            {
-				iCount = 0;	   
-			}   
-		}
+            iCount = 0;	    
+        }
         if( ((psRegHoldValue->ucAccessMode == WO) || (iIndex == psMBRegHoldTable->usDataCount-1)) && (iCount > 0) )  //如果寄存器为只写，发送读请求
         {
         	eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
@@ -408,7 +420,6 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 #endif
 
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0
-
 /***********************************************************************************
  * @brief  写保持寄存器
  *************************************************************************************/
@@ -580,7 +591,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	        {	
        	        	for(i=0; i<nRegs; i++)
        	        	{
-       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+//       	            *psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
        	        	}
        	        }
                 iChangedRegs = 1;    //记录当前位置
@@ -588,8 +599,8 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	    	bStarted = TRUE;
        	    	iStartReg = psRegHoldValue->usAddr;
                 
-       	        psMBMasterInfo->RegHoldValList[0]     = psMBMasterInfo->RegHoldValList[nRegs];
-                psMBMasterInfo->pRegHoldPreValList[0] = psMBMasterInfo->pRegHoldPreValList[nRegs]; 
+//       	    psMBMasterInfo->RegHoldValList[0]     = psMBMasterInfo->RegHoldValList[nRegs];
+//              psMBMasterInfo->pRegHoldPreValList[0] = psMBMasterInfo->pRegHoldPreValList[nRegs]; 
        	    }
        	    else                         //地址不连续但当前寄存器也没有变化
        	    {
@@ -600,7 +611,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
        	        {	
        	        	for(i=0; i<nRegs; i++)
        	        	{
-       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+//       	            *psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
        	        	}
        	        }
                 iChangedRegs = 0;
@@ -620,7 +631,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
              	{	
              		for(i=0; i<nRegs; i++)
        	        	{
-       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+//       	            *psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
        	        	}
              	}
                 iChangedRegs = 0;

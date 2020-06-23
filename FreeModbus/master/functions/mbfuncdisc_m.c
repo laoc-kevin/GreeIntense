@@ -215,7 +215,7 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
 
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete -1 <= DISCRETE_INPUT_END) )
     {
-		eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+		eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData, MB_BIT_READ);
 	}   
     else
     {
