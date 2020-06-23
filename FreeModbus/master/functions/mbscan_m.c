@@ -351,26 +351,26 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		psRegHoldValue = (sMasterRegHoldData*)psMBRegHoldTable->pvDataBuf + iIndex;
 		
 		 /***************************** 读保持寄存器 **********************************/
-        if( psRegHoldValue->usAddr != (iLastAddr + 1) )    //地址不连续，则发送读请求
+        if( psRegHoldValue->usAddr != iLastAddr + 1 )    //地址不连续，则发送读请求
         {
-        	if( iCount > 0)
+        	if(iCount > 0)
         	{
         		eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
                 iCount = 0;
         	}
-            if( psRegHoldValue->ucAccessMode != WO )
+            if(psRegHoldValue->ucAccessMode != WO)
         	{
         		iCount++;
         	    iStartAddr = psRegHoldValue->usAddr;
         	}
         }
-        else
+        else   //地址连续
         {	
-        	if( (iCount == 0) && (psRegHoldValue->ucAccessMode != WO) )
+        	if( iCount == 0 && psRegHoldValue->ucAccessMode != WO )
         	{
         		iStartAddr = psRegHoldValue->usAddr;
         	}
-        	if( psRegHoldValue->ucAccessMode != WO )
+        	if(psRegHoldValue->ucAccessMode != WO)
         	{
         		iCount++;
         	}
@@ -378,10 +378,12 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister( sMBMasterInfo* psMBMasterI
 		/*****主要针对可读写的变量，当变量发生变化要保证先写后读，所以遇到这种情况该寄存器不读了，得先写完再读****/
 		if( (psRegHoldValue->ucAccessMode == RW) && (psRegHoldValue->usPreVal != *(USHORT*)psRegHoldValue->pvValue) ) 
 		{
-			if( iCount > 1)
+			if(iCount > 1)
 			{
 				eStatus = eMBMasterReqReadHoldingRegister(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);
-                iCount = 0;	                                                                                          	
+                iCount = 0;	
+                myprintf("usPreVal != pvValue)  ucSndAddr %d iStartAddr %d usPreVal %d pvValue %d\n", 
+                ucSndAddr, iStartAddr, psRegHoldValue->usPreVal,*(USHORT*)psRegHoldValue->pvValue);                
 			}
 			else
             {
@@ -427,6 +429,20 @@ eMBMasterReqWriteHoldReg(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT 
 }
 
 /***********************************************************************************
+ * @brief  更新保持寄存器值
+ *************************************************************************************/
+void vMBMasterFreshHoldRegs(sMBMasterInfo* psMBMasterInfo, USHORT nRegs)
+{
+    USHORT i, n, iBitInByte;
+    UCHAR*  pBitCoilPreVal =NULL;
+
+    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )   //如果写入成功，更新数据
+    {	
+            
+    }		
+}
+
+/***********************************************************************************
  * @brief  轮询写保持寄存器
  * @param  ucSndAddr            从栈地址
  * @param  bCheckPreValue       检查先前值
@@ -450,9 +466,6 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
     sMBSlaveDev*     psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
     sMBDevDataTable* psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
 	
-    USHORT*  RegHoldValList     = psMBMasterInfo->RegHoldValList;
-    USHORT** pRegHoldPreValList = psMBMasterInfo->pRegHoldPreValList;
-    
 	iLastAddr = 0;
 	iStartAddr = 0;
 	iCount = 0;
@@ -483,66 +496,65 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
             {	
                	case uint16:	
                		usRegHoldValue = *(USHORT*)psRegHoldValue->pvValue;
-                
                     if( psRegHoldValue->fTransmitMultiple != (float)1 )
 					{
 						usRegHoldValue = (USHORT)( (float)usRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
 					}
-				    if ( ((USHORT)psRegHoldValue->usPreVal != usRegHoldValue) || (bCheckPreValue == FALSE) )  //变量变化且或者不检查是否变化
+				    if( (USHORT)psRegHoldValue->usPreVal != usRegHoldValue || bCheckPreValue == FALSE )  //变量变化且或者不检查是否变化
                		{		
-               			if( (usRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (usRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
+               			if( (usRegHoldValue >= (USHORT)psRegHoldValue->lMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->lMaxVal) )
                			{
 //                            myprintf("usRegHoldValue %d  iIndex %d\n", usRegHoldValue, iIndex);
-               				RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
-               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );	
+               				psMBMasterInfo->RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
+               			    psMBMasterInfo->pRegHoldPreValList[iChangedRegs] = (USHORT*)(&psRegHoldValue->usPreVal);	
                			    iChangedRegs++;
                         }
                		}	
                	break;
                	case uint8: 		
                		usRegHoldValue = *(UCHAR*)psRegHoldValue->pvValue;
-                    if ( psRegHoldValue->fTransmitMultiple != (float)1 )
+                    if( psRegHoldValue->fTransmitMultiple != (float)1 )
 					{
 						usRegHoldValue =  (UCHAR)( (float)usRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
 					}
-               		if ( ((USHORT)psRegHoldValue->usPreVal != usRegHoldValue) || (bCheckPreValue == FALSE) )  //变量变化且或者不检查是否变化
+               		if( (USHORT)psRegHoldValue->usPreVal != usRegHoldValue || bCheckPreValue == FALSE )  //变量变化且或者不检查是否变化
                		{
-               			if( (usRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (usRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
+               			if( (usRegHoldValue >= (USHORT)psRegHoldValue->lMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
-               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				psMBMasterInfo->RegHoldValList[iChangedRegs]  = (USHORT)usRegHoldValue;
+               			    psMBMasterInfo->pRegHoldPreValList[iChangedRegs] = (USHORT*)(&psRegHoldValue->usPreVal);
                			    iChangedRegs++;
                			}			
                		}	
                	break;
                	case int16:		
                		sRegHoldValue = *(SHORT*)psRegHoldValue->pvValue;
-				    if ( psRegHoldValue->fTransmitMultiple != (float)1 )
+				    if( psRegHoldValue->fTransmitMultiple != (float)1 )
 					{
 						 sRegHoldValue = (SHORT)( (float)sRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
 					}
-               		if ( ((SHORT)psRegHoldValue->usPreVal != sRegHoldValue) || (bCheckPreValue == FALSE) )  //变量变化且或者不检查是否变化
+               		if( (SHORT)psRegHoldValue->usPreVal != sRegHoldValue || bCheckPreValue == FALSE )  //变量变化且或者不检查是否变化
                		{
-               			if( (sRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (sRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
+               			if( (sRegHoldValue >= (SHORT)psRegHoldValue->lMinVal) && (sRegHoldValue <= (SHORT)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValList[iChangedRegs]  = (USHORT)sRegHoldValue;
-               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				psMBMasterInfo->RegHoldValList[iChangedRegs]  = (USHORT)sRegHoldValue;
+               			    psMBMasterInfo->pRegHoldPreValList[iChangedRegs] = (USHORT*)(&psRegHoldValue->usPreVal);
                			    iChangedRegs++;
                			}
                		}		
                	break;
                	case int8:
                		cRegHoldValue = *(int8_t*)psRegHoldValue->pvValue;
-				    if ( psRegHoldValue->fTransmitMultiple != (float)1 )
+				    if( psRegHoldValue->fTransmitMultiple != (float)1 )
 					{
 						 cRegHoldValue = (int8_t)( (float)cRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
 					}
-               		if ( ((int8_t)psRegHoldValue->usPreVal != cRegHoldValue) || (bCheckPreValue == FALSE) )  //变量变化且或者不检查是否变化
+               		if( (int8_t)psRegHoldValue->usPreVal != cRegHoldValue || bCheckPreValue == FALSE )  //变量变化且或者不检查是否变化
                		{
-               			if( (cRegHoldValue >= (LONG)psRegHoldValue->lMinVal) && (cRegHoldValue <= (LONG)psRegHoldValue->lMaxVal) )
+               			if( (cRegHoldValue >= (int8_t)psRegHoldValue->lMinVal) && (cRegHoldValue <= (int8_t)psRegHoldValue->lMaxVal) )
                			{
-               				RegHoldValList[iChangedRegs]  = (USHORT)cRegHoldValue;
-               			    pRegHoldPreValList[iChangedRegs] = (USHORT*)( &(psRegHoldValue->usPreVal) );
+               				psMBMasterInfo->RegHoldValList[iChangedRegs]     = (USHORT)cRegHoldValue;
+               			    psMBMasterInfo->pRegHoldPreValList[iChangedRegs] = (USHORT*)(&psRegHoldValue->usPreVal);
                			    iChangedRegs++;
                			}		
                		}	
@@ -550,62 +562,70 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
             }
 		}
         iRegs++;
+        
         if(iChangedRegs == 1 && (bStarted != TRUE))    //记录首地址
         {
-           iStartReg = psRegHoldValue->usAddr;
-           bStarted = TRUE;
-           iRegs = 1;
+            iStartReg = psRegHoldValue->usAddr;
+            bStarted = TRUE;
+            iRegs = 1;
         }
-        if( (psRegHoldValue->usAddr != (iLastAddr+1)) && (iChangedRegs>0) && (iRegs>1) )    //地址不连续，则发送写请求
+        if( psRegHoldValue->usAddr != iLastAddr+1 && iChangedRegs>0 && iRegs>1 )    //地址不连续，则发送写请求
         {
-       	    nRegs = iChangedRegs;
-       	    if(iRegs == iChangedRegs)
+       	    if(iRegs == iChangedRegs)    //地址不连续且当前寄存器也发生了变化
        	    {
+                nRegs = iChangedRegs-1;
        	    	eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs-1, 
-       	                                          (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
-       	    	iChangedRegs = 1;
+       	                                          (USHORT*)psMBMasterInfo->RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
+                if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS)       //如果写入成功，更新数据
+       	        {	
+       	        	for(i=0; i<nRegs; i++)
+       	        	{
+       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+       	        	}
+       	        }
+                iChangedRegs = 1;    //记录当前位置
        	        iRegs = 1;
        	    	bStarted = TRUE;
        	    	iStartReg = psRegHoldValue->usAddr;
+                
+       	        psMBMasterInfo->RegHoldValList[0]     = psMBMasterInfo->RegHoldValList[nRegs];
+                psMBMasterInfo->pRegHoldPreValList[0] = psMBMasterInfo->pRegHoldPreValList[nRegs]; 
        	    }
-       	    else
+       	    else                         //地址不连续但当前寄存器也没有变化
        	    {
+                nRegs = iChangedRegs;
        	    	eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
-       	                                          (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
-       	    	iChangedRegs = 0;
+       	                                          (USHORT*)psMBMasterInfo->RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
+                if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS)       //如果写入成功，更新数据
+       	        {	
+       	        	for(i=0; i<nRegs; i++)
+       	        	{
+       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+       	        	}
+       	        }
+                iChangedRegs = 0;
        	        iRegs = 0;
        	    	bStarted = FALSE;
        	    }
-       	    if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS)            //如果写入成功，更新数据
-       	    {	
-       	    	for(i = nRegs ; i > 0; i--)
-       	    	{
-       	    		*pRegHoldPreValList[i-1] = RegHoldValList[i-1];
-       	    	}
-       	    }
-       	    RegHoldValList[0]  = RegHoldValList[nRegs-1];
-            pRegHoldPreValList[0] = pRegHoldPreValList[nRegs-1];   
         }
-		
-		if(iChangedRegs > 0)
+		else if(iChangedRegs > 0)  //地址连续
 		{
             //发生变化的寄存器不连续或者地址到达字典最后,则写寄存器, 数据超过Modbus数据帧最大字节数，则发送写请求
 			if( (iRegs != iChangedRegs) || (iIndex == psMBRegHoldTable->usDataCount-1) || (iChangedRegs*4 >= MB_PDU_SIZE_MAX)) 
             {                                                                                                                  
                 nRegs = iChangedRegs;
                 eStatus = eMBMasterReqWriteHoldReg(psMBMasterInfo, ucSndAddr, iStartReg, iChangedRegs, 
-             	                                  (USHORT*)RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
-                iChangedRegs = 0;
-             	iRegs = 0;
-             	bStarted = FALSE;
-             	
+             	                                  (USHORT*)psMBMasterInfo->RegHoldValList, MB_MASTER_WAITING_DELAY);	//写寄存器
              	if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )            //如果写入成功，更新当前数据
              	{	
-             		for(i = nRegs ; i > 0; i--)
-             		{
-             			*pRegHoldPreValList[i-1] = RegHoldValList[i-1];
-             		}
-             	}    
+             		for(i=0; i<nRegs; i++)
+       	        	{
+       	        		*psMBMasterInfo->pRegHoldPreValList[i] = psMBMasterInfo->RegHoldValList[i];
+       	        	}
+             	}
+                iChangedRegs = 0;
+             	iRegs = 0;
+             	bStarted = FALSE;                
             }	
 		}
         iLastAddr = psRegHoldValue->usAddr;
@@ -752,7 +772,7 @@ void vMBMasterFreshCoils(sMBMasterInfo* psMBMasterInfo, USHORT iChangedBytes, US
 
     if( xMBMasterPortCurrentEvent(&psMBMasterInfo->sMBPort) == EV_MASTER_PROCESS_SUCCESS )   //如果写入成功，更新数据
     {	
-        for(i=0, n=0; i<iChangedBits; i++)
+        for(i=0, n=0, iBitInByte=0; i<iChangedBits; i++)
         {
             iBitInByte = i%8;
          
@@ -763,7 +783,6 @@ void vMBMasterFreshCoils(sMBMasterInfo* psMBMasterInfo, USHORT iChangedBytes, US
             {
                 psMBMasterInfo->BitCoilByteValList[n] = 0;
                 n++;
-                
             }
         }
 //        myprintf("vMBMasterFreshCoils BitCoilByteValList %d\n\n", psMBMasterInfo->BitCoilByteValList[0]);

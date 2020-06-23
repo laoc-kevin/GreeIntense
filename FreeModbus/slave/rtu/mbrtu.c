@@ -411,9 +411,9 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
 		{
 //            vLedOff(&LedModbus2); 
 //            SlaveLedState = !SlaveLedState;
-//			myprintf("EV_FRAME_RECEIVED_ERROR %d******************\n", psMBSlaveInfo->usRcvBufferPos);
+//			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
 			psMBSlaveInfo->usRcvBufferPos = 0;
-//			eRcvState = STATE_RX_RCV;
+			psMBSlaveInfo->eRcvState = STATE_RX_RCV;
 //			vMBPortTimersEnable();
 //			xRcvStateNeedChange = FALSE;
 		}

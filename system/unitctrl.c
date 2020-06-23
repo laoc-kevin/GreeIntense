@@ -229,7 +229,6 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             (usGetTmrState(&pThis->sModeChangePeriodTmr_2) != OS_TMR_STATE_RUNNING) )
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
-            
             if(xSystem_UnitCompsClosed(pThis) == TRUE)
             {
                 pThis->xCompFirstRun = TRUE;

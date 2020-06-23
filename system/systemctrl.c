@@ -139,7 +139,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     }
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
         if(pModularRoof->sMBSlaveDev.xOnLine == TRUE && pModularRoof->xStopErrFlag == FALSE)  //机组在线且无故障
@@ -161,7 +161,6 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     else if(ucUnitNum == MODULAR_ROOF_NUM)  //两台
     {
         usFreAirSet_Vol = (uint16_t)(ulFreAirSet_Vol / MODULAR_ROOF_NUM);
-        
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
@@ -319,7 +318,7 @@ void vSystem_SetAlarm(System* pt)
     }
 }
 
-/*清除声光报警*/
+/*消除声光报警*/
 void vSystem_DelAlarm(System* pt)
 {
     System* pThis = (System*)pt; 
@@ -374,3 +373,16 @@ void vSystem_DelAlarmRequst(System* pt)
     }   
     vSystem_DelAlarm(pThis); //不满足报警条件，清除声光报警
 }
+
+/*清除声光报警*/
+void vSystem_CleanAlarm(System* pt, BOOL* pxAlarmClean)
+{
+    System* pThis = (System*)pt;
+
+    if(*pxAlarmClean == TRUE)
+    {
+        vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, OFF);   //输出关闭，继电器断开
+        *pxAlarmClean = FALSE;
+    }
+}
+

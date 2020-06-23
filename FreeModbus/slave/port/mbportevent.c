@@ -59,7 +59,6 @@ BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
     psMBPort->eQueuedEvent = eEvent;
 	
     (void)OSSemPost(&psMBPort->sMBEventSem, OS_OPT_POST_ALL, &err);
-//	 (void)OSTaskSemPost(&AppMbSlavePollTaskTCB, OS_OPT_POST_NONE, &err);
     
     return (err == OS_ERR_NONE);
 }

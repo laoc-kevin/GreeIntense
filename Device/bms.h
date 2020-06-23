@@ -49,6 +49,8 @@ CLASS(BMS)
     
     eCtrlEn           eExAirFanCmdList[EX_AIR_FAN_NUM];
     
+    BOOL              xAlarmClean;              //声光报警清除   
+    
     sMBSlaveInfo*     psBMSInfo;          //从栈接口
     sMBSlaveCommData  sBMSCommData;       //系统从栈通讯数据表
     

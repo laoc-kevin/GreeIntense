@@ -171,132 +171,133 @@ BOOL xBMS_DevDataMapIndex(eDataType eDataType, USHORT usAddr, USHORT* psIndex)
     {
         switch(usAddr)
         {
-            case 4  :  i =  0 ;  break;
-            case 16 :  i =  1 ;  break;
-            case 17 :  i =  2 ;  break;
-            case 18 :  i =  3 ;  break;
-            case 24 :  i =  4 ;  break;
-            case 25 :  i =  5 ;  break;
-            case 26 :  i =  6 ;  break;
-            case 27 :  i =  7 ;  break;
-            case 28 :  i =  8 ;  break;
-            case 29 :  i =  9 ;  break;
-            case 30	:  i = 10 ;  break;
-            case 31	:  i = 11 ;  break;
-            case 32	:  i = 12 ;  break;
-            case 34	:  i = 13 ;  break;
-            case 35	:  i = 14 ;  break;
-            case 36	:  i = 15 ;  break;
-            case 37	:  i = 16 ;  break;
-            case 38	:  i = 17 ;  break;
-            case 39	:  i = 18 ;  break;
-            case 48	:  i = 19 ;  break;
-            case 49	:  i = 20 ;  break;
-            case 50	:  i = 21 ;  break;
-            case 51	:  i = 22 ;  break;
-            case 52	:  i = 23 ;  break;
-            case 53	:  i = 24 ;  break;
-            case 56	:  i = 25 ;  break;
-            case 57	:  i = 26 ;  break;
-            case 58	:  i = 27 ;  break;
-            case 59	:  i = 28 ;  break;
-            case 60	:  i = 29 ;  break;
-            case 61	:  i = 30 ;  break;
-            case 64	:  i = 31 ;  break;
-            case 65	:  i = 32 ;  break;
-            case 66	:  i = 33 ;  break;
-            case 67	:  i = 34 ;  break;
-            case 68	:  i = 35 ;  break;
-            case 69	:  i = 36 ;  break;
-            case 72	:  i = 37 ;  break;
-            case 73	:  i = 38 ;  break;
-            case 74	:  i = 39 ;  break;
-            case 75	:  i = 40 ;  break;
-            case 76	:  i = 41 ;  break;
-            case 77	:  i = 42 ;  break;
-            case 88	:  i = 43 ;  break;
-            case 89	:  i = 44 ;  break;
-            case 90	:  i = 45 ;  break;
-            case 91	:  i = 46 ;  break;
-            case 92	:  i = 47 ;  break;
-            case 93	:  i = 48 ;  break;
-            case 94	:  i = 49 ;  break;
-            case 95	:  i = 50 ;  break;
-            case 96	:  i = 51 ;  break;
-            case 98	:  i = 52 ;  break;
-            case 99	:  i = 53 ;  break;
-            case 100:  i = 54 ;  break;
-            case 101:  i = 55 ;  break;
-            case 102:  i = 56 ;  break;
-            case 103:  i = 57 ;  break;
-            case 112:  i = 58 ;  break;
-            case 113:  i = 59 ;  break;
-            case 114:  i = 60 ;  break;
-            case 115:  i = 61 ;  break;
-            case 116:  i = 62 ;  break;
-            case 117:  i = 63 ;  break;
-            case 120:  i = 64 ;  break;
-            case 121:  i = 65 ;  break;
-            case 122:  i = 66 ;  break;
-            case 123:  i = 67 ;  break;
-            case 124:  i = 68 ;  break;
-            case 125:  i = 69 ;  break;
-            case 128:  i = 70 ;  break;
-            case 129:  i = 71 ;  break;
-            case 130:  i = 72 ;  break;
-            case 131:  i = 73 ;  break;
-            case 132:  i = 74 ;  break;
-            case 133:  i = 75 ;  break;
-            case 136:  i = 76 ;  break;
-            case 137:  i = 77 ;  break;
-            case 138:  i = 78 ;  break;
-            case 139:  i = 79 ;  break;
-            case 140:  i = 80 ;  break;
-            case 141:  i = 81 ;  break;
-            case 152:  i = 82 ;  break;
-            case 153:  i = 83 ;  break;
-            case 160:  i = 84 ;  break;
-            case 161:  i = 85 ;  break;
-            case 162:  i = 86 ;  break;
-            case 168:  i = 87 ;  break;
-            case 169:  i = 88 ;  break;
-            case 170:  i = 89 ;  break;
-            case 176:  i = 90 ;  break;
-            case 177:  i = 91 ;  break;
-            case 178:  i = 92 ;  break;
-            case 184:  i = 93 ;  break;
-            case 185:  i = 94 ;  break;
-            case 186:  i = 95 ;  break;
-            case 192:  i = 96 ;  break;
-            case 193:  i = 97 ;  break;
-            case 194:  i = 98 ;  break;
-            case 200:  i = 99 ;  break;
-            case 201:  i = 100;  break;
-            case 208:  i = 101;  break;
-            case 209:  i = 102;  break;
-            case 210:  i = 103;  break;
-            case 211:  i = 104;  break;
-            case 212:  i = 105;  break;
-            case 213:  i = 106;  break;
-            case 214:  i = 107;  break;
-            case 215:  i = 108;  break;
-            case 216:  i = 109;  break;
-            case 217:  i = 110;  break;
-            case 218:  i = 111;  break;
-            case 219:  i = 112;  break;
-            case 224:  i = 113;  break;
-            case 225:  i = 114;  break;
-            case 226:  i = 115;  break;
-            case 227:  i = 116;  break;
-            case 228:  i = 117;  break;
-            case 229:  i = 118;  break;
-            case 230:  i = 119;  break;
-            case 231:  i = 120;  break;
-            case 232:  i = 121;  break;
-            case 233:  i = 122;  break;
-            case 234:  i = 123;  break;
-            case 235:  i = 124;  break;
-                    
+            case 4	:  i = 0  ;  break;
+            case 5	:  i = 1  ;  break;
+            case 16	:  i = 2  ;  break;
+            case 17	:  i = 3  ;  break;
+            case 18	:  i = 4  ;  break;
+            case 24	:  i = 5  ;  break;
+            case 25	:  i = 6  ;  break;
+            case 26	:  i = 7  ;  break;
+            case 27	:  i = 8  ;  break;
+            case 28	:  i = 9  ;  break;
+            case 29	:  i = 10 ;  break;
+            case 30	:  i = 11 ;  break;
+            case 31	:  i = 12 ;  break;
+            case 32	:  i = 13 ;  break;
+            case 34	:  i = 14 ;  break;
+            case 35	:  i = 15 ;  break;
+            case 36	:  i = 16 ;  break;
+            case 37	:  i = 17 ;  break;
+            case 38	:  i = 18 ;  break;
+            case 39	:  i = 19 ;  break;
+            case 48	:  i = 20 ;  break;
+            case 49	:  i = 21 ;  break;
+            case 50	:  i = 22 ;  break;
+            case 51	:  i = 23 ;  break;
+            case 52	:  i = 24 ;  break;
+            case 53	:  i = 25 ;  break;
+            case 56	:  i = 26 ;  break;
+            case 57	:  i = 27 ;  break;
+            case 58	:  i = 28 ;  break;
+            case 59	:  i = 29 ;  break;
+            case 60	:  i = 30 ;  break;
+            case 61	:  i = 31 ;  break;
+            case 64	:  i = 32 ;  break;
+            case 65	:  i = 33 ;  break;
+            case 66	:  i = 34 ;  break;
+            case 67	:  i = 35 ;  break;
+            case 68	:  i = 36 ;  break;
+            case 69	:  i = 37 ;  break;
+            case 72	:  i = 38 ;  break;
+            case 73	:  i = 39 ;  break;
+            case 74	:  i = 40 ;  break;
+            case 75	:  i = 41 ;  break;
+            case 76	:  i = 42 ;  break;
+            case 77	:  i = 43 ;  break;
+            case 88	:  i = 44 ;  break;
+            case 89	:  i = 45 ;  break;
+            case 90	:  i = 46 ;  break;
+            case 91	:  i = 47 ;  break;
+            case 92	:  i = 48 ;  break;
+            case 93	:  i = 49 ;  break;
+            case 94	:  i = 50 ;  break;
+            case 95	:  i = 51 ;  break;
+            case 96	:  i = 52 ;  break;
+            case 98	:  i = 53 ;  break;
+            case 99	:  i = 54 ;  break;
+            case 100:  i = 55 ;  break;
+            case 101:  i = 56 ;  break;
+            case 102:  i = 57 ;  break;
+            case 103:  i = 58 ;  break;
+            case 112:  i = 59 ;  break;
+            case 113:  i = 60 ;  break;
+            case 114:  i = 61 ;  break;
+            case 115:  i = 62 ;  break;
+            case 116:  i = 63 ;  break;
+            case 117:  i = 64 ;  break;
+            case 120:  i = 65 ;  break;
+            case 121:  i = 66 ;  break;
+            case 122:  i = 67 ;  break;
+            case 123:  i = 68 ;  break;
+            case 124:  i = 69 ;  break;
+            case 125:  i = 70 ;  break;
+            case 128:  i = 71 ;  break;
+            case 129:  i = 72 ;  break;
+            case 130:  i = 73 ;  break;
+            case 131:  i = 74 ;  break;
+            case 132:  i = 75 ;  break;
+            case 133:  i = 76 ;  break;
+            case 136:  i = 77 ;  break;
+            case 137:  i = 78 ;  break;
+            case 138:  i = 79 ;  break;
+            case 139:  i = 80 ;  break;
+            case 140:  i = 81 ;  break;
+            case 141:  i = 82 ;  break;
+            case 152:  i = 83 ;  break;
+            case 153:  i = 84 ;  break;
+            case 160:  i = 85 ;  break;
+            case 161:  i = 86 ;  break;
+            case 162:  i = 87 ;  break;
+            case 168:  i = 88 ;  break;
+            case 169:  i = 89 ;  break;
+            case 170:  i = 90 ;  break;
+            case 176:  i = 91 ;  break;
+            case 177:  i = 92 ;  break;
+            case 178:  i = 93 ;  break;
+            case 184:  i = 94 ;  break;
+            case 185:  i = 95 ;  break;
+            case 186:  i = 96 ;  break;
+            case 192:  i = 97 ;  break;
+            case 193:  i = 98 ;  break;
+            case 194:  i = 99 ;  break;
+            case 200:  i = 100;  break;
+            case 201:  i = 101;  break;
+            case 208:  i = 102;  break;
+            case 209:  i = 103;  break;
+            case 210:  i = 104;  break;
+            case 211:  i = 105;  break;
+            case 212:  i = 106;  break;
+            case 213:  i = 107;  break;
+            case 214:  i = 108;  break;
+            case 215:  i = 109;  break;
+            case 216:  i = 110;  break;
+            case 217:  i = 111;  break;
+            case 218:  i = 112;  break;
+            case 219:  i = 113;  break;
+            case 224:  i = 114;  break;
+            case 225:  i = 115;  break;
+            case 226:  i = 116;  break;
+            case 227:  i = 117;  break;
+            case 228:  i = 118;  break;
+            case 229:  i = 119;  break;
+            case 230:  i = 120;  break;
+            case 231:  i = 121;  break;
+            case 232:  i = 122;  break;
+            case 233:  i = 123;  break;
+            case 234:  i = 124;  break;
+            case 235:  i = 125;  break;
+    
             default:
     	    	return FALSE;
     	    break;
@@ -385,7 +386,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(98,  uint16,    MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
     SLAVE_REG_HOLD_DATA(99,  uint16,    0,               100,       RO, 1, (void*)&pSystem->usAmbientOut_H)  
     SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
-    SLAVE_REG_HOLD_DATA(114,  uint8,    0,                5,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
+    SLAVE_REG_HOLD_DATA(114,  uint8,    1,                4,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
     SLAVE_REG_HOLD_DATA(115,  uint8,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
         
     SLAVE_REG_HOLD_DATA(116, uint16,    0,   5000, RO, 1, (void*)&pSystem->psModularRoofList[0]->usCO2PPMSelf)     
@@ -412,7 +413,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(135,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
     SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
         
-    SLAVE_REG_HOLD_DATA(146,  uint8,    0,     5, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
+    SLAVE_REG_HOLD_DATA(146,  uint8,    1,     4, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
     SLAVE_REG_HOLD_DATA(147,  uint8,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
     SLAVE_REG_HOLD_DATA(148, uint16,    0,  5000, RO, 1, (void*)&pSystem->psModularRoofList[1]->usCO2PPMSelf)                                                                                      
     SLAVE_REG_HOLD_DATA(149,  int16, -200,  1400, RO, 1, (void*)&pSystem->psModularRoofList[1]->sRetAir_T)   
@@ -491,154 +492,156 @@ SLAVE_END_DATA_BUF(0, 307)
     /******************************线圈数据域*************************/ 
 SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     
-    SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pSystem->xAlarmEnable) 
+    SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pSystem->xAlarmEnable)
+    SLAVE_COIL_BIT_DATA(5,  RW, (void*)&pThis->xAlarmClean)         
     SLAVE_COIL_BIT_DATA(16, RO, (void*)&pSystem->xTempSenInErr) 
     SLAVE_COIL_BIT_DATA(17, RO, (void*)&pSystem->xHumiSenInErr) 
     SLAVE_COIL_BIT_DATA(18, RO, (void*)&pSystem->xCO2SenErr) 
+        
     SLAVE_COIL_BIT_DATA(24, RW, (void*)&pSystem->psModularRoofList[0]->xErrClean)
-    
     SLAVE_COIL_BIT_DATA(25, RO, (void*)&pSystem->psModularRoofList[0]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(26, RO, (void*)&pSystem->psModularRoofList[0]->xStopErrFlag)
     SLAVE_COIL_BIT_DATA(27, RO, (void*)&pSystem->psModularRoofList[0]->Device.xErrFlag) 
     SLAVE_COIL_BIT_DATA(28, RO, (void*)&pSystem->psModularRoofList[0]->Device.xAlarmFlag)
-    SLAVE_COIL_BIT_DATA(29, RO, (void*)&pSystem->psModularRoofList[0]->xCommErr)
-    
+        
+    SLAVE_COIL_BIT_DATA(29, RO, (void*)&pSystem->psModularRoofList[0]->xCommErr)   
     SLAVE_COIL_BIT_DATA(30, RO, (void*)&pSystem->psModularRoofList[0]->psSupAirFan->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(31, RO, (void*)&pSystem->psModularRoofList[0]->xSupAirDamperState)    
     SLAVE_COIL_BIT_DATA(32, RO, (void*)&pSystem->psModularRoofList[0]->xWetMode)
     SLAVE_COIL_BIT_DATA(34, RO, (void*)&pSystem->psModularRoofList[0]->xRetAirSenErr)
+        
     SLAVE_COIL_BIT_DATA(35, RO, (void*)&pSystem->psModularRoofList[0]->xFreAirSenErr)  
-
     SLAVE_COIL_BIT_DATA(36, RO, (void*)&pSystem->psModularRoofList[0]->xCO2SenSelfErr_1)
     SLAVE_COIL_BIT_DATA(37, RO, (void*)&pSystem->psModularRoofList[0]->xCO2SenSelfErr_2) 
     SLAVE_COIL_BIT_DATA(38, RO, (void*)&pSystem->psModularRoofList[0]->xTempSenInSelfErr)
     SLAVE_COIL_BIT_DATA(39, RO, (void*)&pSystem->psModularRoofList[0]->xHumiSenInSelfErr) 
+        
     SLAVE_COIL_BIT_DATA(48, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psCompList[0]->Device.eRunningState)
-    
     SLAVE_COIL_BIT_DATA(49, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psCompList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(50, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState)    
     SLAVE_COIL_BIT_DATA(51, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(52, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->xTempSenOutErr)    
+    SLAVE_COIL_BIT_DATA(52, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->xTempSenOutErr) 
+        
     SLAVE_COIL_BIT_DATA(53, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[0]->xHumiSenOutErr)    
-    
     SLAVE_COIL_BIT_DATA(56, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psCompList[0]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(57, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psCompList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(58, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState)    
     SLAVE_COIL_BIT_DATA(59, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(60, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->xTempSenOutErr) 
-                                                                                   
+        
+    SLAVE_COIL_BIT_DATA(60, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->xTempSenOutErr)                                                                                
     SLAVE_COIL_BIT_DATA(61, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->xHumiSenOutErr) 
     SLAVE_COIL_BIT_DATA(64, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psCompList[0]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(65, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psCompList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(66, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState)    
-    SLAVE_COIL_BIT_DATA(67, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)
-                                                                                     
+    SLAVE_COIL_BIT_DATA(66, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState)  
+        
+    SLAVE_COIL_BIT_DATA(67, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)                                                                            
     SLAVE_COIL_BIT_DATA(68, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->xTempSenOutErr)                                                                              
     SLAVE_COIL_BIT_DATA(69, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->xHumiSenOutErr) 
     SLAVE_COIL_BIT_DATA(72, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psCompList[0]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(73, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psCompList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(74, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)
         
+    SLAVE_COIL_BIT_DATA(74, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(75, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState)                                                                               
     SLAVE_COIL_BIT_DATA(76, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->xTempSenOutErr)                                                                              
     SLAVE_COIL_BIT_DATA(77, RO, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->xHumiSenOutErr)    
-    SLAVE_COIL_BIT_DATA(88, RW, (void*)&pSystem->psModularRoofList[1]->xErrClean)                                                              
-    SLAVE_COIL_BIT_DATA(89, RO, (void*)&pSystem->psModularRoofList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(88, RW, (void*)&pSystem->psModularRoofList[1]->xErrClean) 
         
+    SLAVE_COIL_BIT_DATA(89, RO, (void*)&pSystem->psModularRoofList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(90, RO, (void*)&pSystem->psModularRoofList[1]->xStopErrFlag)
     SLAVE_COIL_BIT_DATA(91, RO, (void*)&pSystem->psModularRoofList[1]->Device.xErrFlag) 
     SLAVE_COIL_BIT_DATA(92, RO, (void*)&pSystem->psModularRoofList[1]->Device.xAlarmFlag)
-    SLAVE_COIL_BIT_DATA(93, RO, (void*)&pSystem->psModularRoofList[1]->xCommErr)                                                            
-    SLAVE_COIL_BIT_DATA(94, RO, (void*)&pSystem->psModularRoofList[1]->psSupAirFan->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(93, RO, (void*)&pSystem->psModularRoofList[1]->xCommErr) 
         
+    SLAVE_COIL_BIT_DATA(94,  RO, (void*)&pSystem->psModularRoofList[1]->psSupAirFan->Device.eRunningState)     
     SLAVE_COIL_BIT_DATA(95,  RO, (void*)&pSystem->psModularRoofList[1]->xSupAirDamperState)    
     SLAVE_COIL_BIT_DATA(96,  RO, (void*)&pSystem->psModularRoofList[1]->xWetMode)
     SLAVE_COIL_BIT_DATA(98,  RO, (void*)&pSystem->psModularRoofList[1]->xRetAirSenErr)
-    SLAVE_COIL_BIT_DATA(99,  RO, (void*)&pSystem->psModularRoofList[1]->xFreAirSenErr)                                                                
-    SLAVE_COIL_BIT_DATA(100, RO, (void*)&pSystem->psModularRoofList[1]->xCO2SenSelfErr_1)
+    SLAVE_COIL_BIT_DATA(99,  RO, (void*)&pSystem->psModularRoofList[1]->xFreAirSenErr) 
         
+    SLAVE_COIL_BIT_DATA(100, RO, (void*)&pSystem->psModularRoofList[1]->xCO2SenSelfErr_1)
     SLAVE_COIL_BIT_DATA(101, RO, (void*)&pSystem->psModularRoofList[1]->xCO2SenSelfErr_2) 
     SLAVE_COIL_BIT_DATA(102, RO, (void*)&pSystem->psModularRoofList[1]->xTempSenInSelfErr)
     SLAVE_COIL_BIT_DATA(103, RO, (void*)&pSystem->psModularRoofList[1]->xHumiSenInSelfErr) 
-    SLAVE_COIL_BIT_DATA(112, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[0]->Device.eRunningState)                                                               
-    SLAVE_COIL_BIT_DATA(113, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[1]->Device.eRunningState)
+    SLAVE_COIL_BIT_DATA(112, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[0]->Device.eRunningState) 
         
+    SLAVE_COIL_BIT_DATA(113, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psCompList[1]->Device.eRunningState)    
     SLAVE_COIL_BIT_DATA(114, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState)    
     SLAVE_COIL_BIT_DATA(115, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(116, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->xTempSenOutErr)    
-    SLAVE_COIL_BIT_DATA(117, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->xHumiSenOutErr)                                                                  
-    SLAVE_COIL_BIT_DATA(120, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psCompList[0]->Device.eRunningState) 
+    SLAVE_COIL_BIT_DATA(117, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[0]->xHumiSenOutErr)  
         
+    SLAVE_COIL_BIT_DATA(120, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psCompList[0]->Device.eRunningState)     
     SLAVE_COIL_BIT_DATA(121, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psCompList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(122, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState)    
     SLAVE_COIL_BIT_DATA(123, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(124, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xTempSenOutErr)                                                                          
-    SLAVE_COIL_BIT_DATA(125, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xHumiSenOutErr) 
+    SLAVE_COIL_BIT_DATA(124, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xTempSenOutErr) 
         
+    SLAVE_COIL_BIT_DATA(125, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[1]->xHumiSenOutErr)      
     SLAVE_COIL_BIT_DATA(128, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psCompList[0]->Device.eRunningState) 
     SLAVE_COIL_BIT_DATA(129, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psCompList[1]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(130, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState)    
-    SLAVE_COIL_BIT_DATA(131, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)                                                                              
-    SLAVE_COIL_BIT_DATA(132, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->xTempSenOutErr)    
+    SLAVE_COIL_BIT_DATA(131, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState)  
         
+    SLAVE_COIL_BIT_DATA(132, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->xTempSenOutErr)    
     SLAVE_COIL_BIT_DATA(133, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->xHumiSenOutErr) 
     SLAVE_COIL_BIT_DATA(136, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psCompList[0]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(137, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psCompList[1]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(138, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)                                                               
-    SLAVE_COIL_BIT_DATA(139, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState) 
+    SLAVE_COIL_BIT_DATA(138, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState)  
         
+    SLAVE_COIL_BIT_DATA(139, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState)   
     SLAVE_COIL_BIT_DATA(140, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->xTempSenOutErr)          
     SLAVE_COIL_BIT_DATA(141, RO, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->xHumiSenOutErr)
     SLAVE_COIL_BIT_DATA(152, RO, (void*)&pSystem->pUnitMeter->sMBSlaveDev.xOnLine)     
     SLAVE_COIL_BIT_DATA(153, RO, (void*)&pSystem->pExAirFanMeter->sMBSlaveDev.xOnLine) 
+        
     SLAVE_COIL_BIT_DATA(160, RW, (void*)&pSystem->psExAirFanList[0]->eSwitchCmd)
-
     SLAVE_COIL_BIT_DATA(161, RO, (void*)&pSystem->psExAirFanList[0]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(162, RO, (void*)&pSystem->psExAirFanList[0]->Device.eRunningState)
     SLAVE_COIL_BIT_DATA(168, RW, (void*)&pSystem->psExAirFanList[1]->eSwitchCmd)
-    SLAVE_COIL_BIT_DATA(169, RO, (void*)&pSystem->psExAirFanList[1]->xExAirFanErr)    
+    SLAVE_COIL_BIT_DATA(169, RO, (void*)&pSystem->psExAirFanList[1]->xExAirFanErr)  
+        
     SLAVE_COIL_BIT_DATA(170, RO, (void*)&pSystem->psExAirFanList[1]->Device.eRunningState)    
-     
     SLAVE_COIL_BIT_DATA(176, RW, (void*)&pSystem->psExAirFanList[2]->eSwitchCmd)
     SLAVE_COIL_BIT_DATA(177, RO, (void*)&pSystem->psExAirFanList[2]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(178, RO, (void*)&pSystem->psExAirFanList[2]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(184, RW, (void*)&pSystem->psExAirFanList[3]->eSwitchCmd)
-    SLAVE_COIL_BIT_DATA(185, RO, (void*)&pSystem->psExAirFanList[3]->xExAirFanErr)    
         
+    SLAVE_COIL_BIT_DATA(185, RO, (void*)&pSystem->psExAirFanList[3]->xExAirFanErr)        
     SLAVE_COIL_BIT_DATA(186, RO, (void*)&pSystem->psExAirFanList[3]->Device.eRunningState)  
     SLAVE_COIL_BIT_DATA(192, RO, (void*)&pSystem->psCO2SenList[0]->xCO2SenErr)
     SLAVE_COIL_BIT_DATA(193, RO, (void*)&pSystem->psCO2SenList[1]->xCO2SenErr)
     SLAVE_COIL_BIT_DATA(194, RO, (void*)&pSystem->psCO2SenList[2]->xCO2SenErr)
-    SLAVE_COIL_BIT_DATA(200, RO, (void*)&pSystem->xTempSenOutErr)
         
+    SLAVE_COIL_BIT_DATA(200, RO, (void*)&pSystem->xTempSenOutErr)
     SLAVE_COIL_BIT_DATA(201, RO, (void*)&pSystem->xHumiSenOutErr)
     SLAVE_COIL_BIT_DATA(208, RO, (void*)&pSystem->psTempHumiSenInList[0]->xTempSenErr)     
     SLAVE_COIL_BIT_DATA(209, RO, (void*)&pSystem->psTempHumiSenInList[1]->xTempSenErr)
-    SLAVE_COIL_BIT_DATA(210, RO, (void*)&pSystem->psTempHumiSenInList[2]->xTempSenErr)     
+    SLAVE_COIL_BIT_DATA(210, RO, (void*)&pSystem->psTempHumiSenInList[2]->xTempSenErr)  
+        
     SLAVE_COIL_BIT_DATA(211, RO, (void*)&pSystem->psTempHumiSenInList[3]->xTempSenErr)    
-    
     SLAVE_COIL_BIT_DATA(212, RO, (void*)&pSystem->psTempHumiSenInList[4]->xTempSenErr)     
     SLAVE_COIL_BIT_DATA(213, RO, (void*)&pSystem->psTempHumiSenInList[5]->xTempSenErr)
     SLAVE_COIL_BIT_DATA(214, RO, (void*)&pSystem->psTempHumiSenInList[6]->xTempSenErr)     
     SLAVE_COIL_BIT_DATA(215, RO, (void*)&pSystem->psTempHumiSenInList[7]->xTempSenErr) 
-    SLAVE_COIL_BIT_DATA(216, RO, (void*)&pSystem->psTempHumiSenInList[8]->xTempSenErr) 
         
+    SLAVE_COIL_BIT_DATA(216, RO, (void*)&pSystem->psTempHumiSenInList[8]->xTempSenErr)  
     SLAVE_COIL_BIT_DATA(217, RO, (void*)&pSystem->psTempHumiSenInList[9]->xTempSenErr)
     SLAVE_COIL_BIT_DATA(218, RO, (void*)&pSystem->psTempHumiSenInList[10]->xTempSenErr)     
     SLAVE_COIL_BIT_DATA(219, RO, (void*)&pSystem->psTempHumiSenInList[11]->xTempSenErr)   
-    SLAVE_COIL_BIT_DATA(224, RO, (void*)&pSystem->psTempHumiSenInList[0]->xHumiSenErr)     
-    SLAVE_COIL_BIT_DATA(225, RO, (void*)&pSystem->psTempHumiSenInList[1]->xHumiSenErr)
+    SLAVE_COIL_BIT_DATA(224, RO, (void*)&pSystem->psTempHumiSenInList[0]->xHumiSenErr) 
         
+    SLAVE_COIL_BIT_DATA(225, RO, (void*)&pSystem->psTempHumiSenInList[1]->xHumiSenErr)     
     SLAVE_COIL_BIT_DATA(226, RO, (void*)&pSystem->psTempHumiSenInList[2]->xHumiSenErr)     
     SLAVE_COIL_BIT_DATA(227, RO, (void*)&pSystem->psTempHumiSenInList[3]->xHumiSenErr)                                                                 
     SLAVE_COIL_BIT_DATA(228, RO, (void*)&pSystem->psTempHumiSenInList[4]->xHumiSenErr)     
     SLAVE_COIL_BIT_DATA(229, RO, (void*)&pSystem->psTempHumiSenInList[5]->xHumiSenErr)
-    SLAVE_COIL_BIT_DATA(230, RO, (void*)&pSystem->psTempHumiSenInList[6]->xHumiSenErr) 
         
+    SLAVE_COIL_BIT_DATA(230, RO, (void*)&pSystem->psTempHumiSenInList[6]->xHumiSenErr) 
     SLAVE_COIL_BIT_DATA(231, RO, (void*)&pSystem->psTempHumiSenInList[7]->xHumiSenErr) 
     SLAVE_COIL_BIT_DATA(232, RO, (void*)&pSystem->psTempHumiSenInList[8]->xHumiSenErr)     
     SLAVE_COIL_BIT_DATA(233, RO, (void*)&pSystem->psTempHumiSenInList[9]->xHumiSenErr)
-    SLAVE_COIL_BIT_DATA(234, RO, (void*)&pSystem->psTempHumiSenInList[10]->xHumiSenErr)     
+    SLAVE_COIL_BIT_DATA(234, RO, (void*)&pSystem->psTempHumiSenInList[10]->xHumiSenErr) 
+        
     SLAVE_COIL_BIT_DATA(235, RO, (void*)&pSystem->psTempHumiSenInList[11]->xHumiSenErr)   
         
 SLAVE_END_DATA_BUF(0, 240)    
@@ -679,6 +682,7 @@ void vBMS_MonitorRegist(BMS* pt)
     MONITOR(&pThis->usExAirFanRated_Vol_L, uint16,&pThis->sValChange)
     
     MONITOR(&pThis->eExAirFanType, uint8, &pThis->sValChange)
+    MONITOR(&pThis->xAlarmClean, uint8, &pThis->sValChange)
 }
 
 /*BMS数据默认值初始化*/
@@ -708,7 +712,7 @@ void vBMS_InitDefaultData(BMS* pt)
     DATA_INIT(pThis->ucExAirCoolRatio,    90)
     DATA_INIT(pThis->ucExAirHeatRatio,    90)
     DATA_INIT(pThis->eExAirFanType,       TYPE_CONSTANT_VARIABLE)
-    
+    DATA_INIT(pThis->xAlarmClean,          0)
     
 //    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
 }

@@ -523,7 +523,7 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
         usRegWriteCount  = (USHORT)( (*(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF)) << 8U );
         usRegWriteCount |= (USHORT)( *(pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_REGCNT_OFF + 1) );
 
-        if( ( 2 * usRegReadCount ) == *(pucFrame + MB_PDU_FUNC_READWRITE_READ_BYTECNT_OFF) )
+        if( (2 * usRegReadCount) == *(pucFrame + MB_PDU_FUNC_READWRITE_READ_BYTECNT_OFF) )
         {
             /* Make callback to update the register values. */
             eRegStatus = eMBMasterRegHoldingCB(psMBMasterInfo, pucMBFrame + MB_PDU_REQ_READWRITE_WRITE_VALUES_OFF,
@@ -561,7 +561,7 @@ eMBMasterFuncReadWriteMultipleHoldingRegister( sMBMasterInfo* psMBMasterInfo, UC
  *
  * @return result
  */
-eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress,
+eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegBuffer, USHORT usAddress,
         USHORT usNRegs, eMBRegisterMode eMode)
 {
     USHORT          iRegIndex, n, m, nSlaveTypes, usProtocolType;

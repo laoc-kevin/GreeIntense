@@ -121,7 +121,7 @@ CLASS(System)   /*系统*/
     BOOL              xCompFirstRun;            //压缩机首次开启
     BOOL              xUnitErrFlag;             //机组总故障标志
     BOOL              xExFanErrFlag;            //排风机总故障标志
-    BOOL              xAlarmEnable;             //声光报警使能                                                                        
+    BOOL              xAlarmEnable;             //声光报警使能
     BOOL              xCO2SenErr;               //CO2传感器故障
     
     BOOL              xTempHumiSenOutErr;       //室外温湿度传感器故障

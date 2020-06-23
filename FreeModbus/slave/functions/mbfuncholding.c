@@ -427,7 +427,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
             }
             iRegIndex++;
             usNRegs--;
-            }
+        }
     break;
     
     /* write current register values with new values from the protocol stack. */
@@ -455,7 +455,8 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                     {		
                         if ( usRegHoldValue != *(USHORT*)pvRegHoldValue->pvValue ) //更新数据
                         {
-                            *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;	       
+                            *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;
+                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(USHORT*)pvRegHoldValue->pvValue);                            
                         }	
                     }
                     else
@@ -469,7 +470,8 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 	 {
                 	 	 if(usRegHoldValue != *(UCHAR*)pvRegHoldValue->pvValue)
                 	 	 {
-                             *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;					
+                             *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;
+                             myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(UCHAR*)pvRegHoldValue->pvValue);                             
                 	 	 }							
                 	 }
                 	 else
@@ -484,7 +486,8 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                     {		
                         if(sRegHoldValue != *(SHORT*)pvRegHoldValue->pvValue)
                         {
-                            *(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;							
+                            *(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;
+                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(SHORT*)pvRegHoldValue->pvValue);							
                         }		
                     }
                     else
@@ -499,14 +502,16 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                     {
                         if(cRegHoldValue != *(int8_t*)pvRegHoldValue->pvValue)
                         {
-                            *(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;				
+                            *(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;
+                             myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(int8_t*)pvRegHoldValue->pvValue);                              
                         }					
                     }
                     else
                     {
                         return MB_EINVAL;
                     }
-                }	
+                }
+                             
             }
             iRegIndex++;
             usNRegs--;

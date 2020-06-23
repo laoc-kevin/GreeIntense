@@ -119,8 +119,9 @@ begin:
             continue;
         }
         /***********************BMS事件响应***********************/
-        HANDLE(psBMS->eSystemMode,      vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
-        HANDLE(psBMS->eRunningMode,     vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
+        HANDLE(psBMS->eSystemMode,  vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
+        HANDLE(psBMS->eRunningMode, vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
+        HANDLE(psBMS->xAlarmClean,  vSystem_CleanAlarm(psSystem, &psBMS->xAlarmClean)) 
         
         HANDLE(psBMS->usTempSet,         vSystem_SetTemp(psSystem, psBMS->usTempSet))
         HANDLE(psBMS->usFreAirSet_Vol_H, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))

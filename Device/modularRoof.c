@@ -66,7 +66,6 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
 void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
-
     pThis->eRunningMode = eMode; 
     
 #if DEBUG_ENABLE > 0
@@ -79,7 +78,8 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
    
-    DATA_INIT(pThis->eSwitchCmd,  CMD_CLOSE)
+    DATA_INIT(pThis->eSwitchCmd,   CMD_CLOSE)
+    DATA_INIT(pThis->eRunningMode, RUN_MODE_HEAT)
     
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 200)
