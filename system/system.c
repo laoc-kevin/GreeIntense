@@ -10,7 +10,7 @@
 /*************************************************************
 *                         系统                               *
 **************************************************************/
-#define SYSTEM_ALARM_DO          5       //系统声光报警DO接口
+#define SYSTEM_ALARM_DO          13       //系统声光报警DO接口
 
 #define TMR_TICK_PER_SECOND      OS_CFG_TMR_TASK_RATE_HZ
 #define RUNNING_TIME_OUT_S       1
@@ -24,16 +24,10 @@
 
 System*  psSystem = NULL;
 System   SystemCore;
-
-OS_PRIO       SysPollTaskPrio    = 11;
-CPU_STK_SIZE  SysPollTaskStkSize = 128;
-              
+        
 OS_PRIO       SysEventPollTaskPrio    = 4;
 CPU_STK_SIZE  SysEventPollTaskStkSize = 128;
-              
-OS_TCB*       psSysPollTaskTCB = NULL;
-CPU_STK*      psSysPollTaskStk = NULL;
-              
+                       
 OS_TCB*       psSysEventPollTaskTCB = NULL;
 CPU_STK*      psSysEventPollTaskStk = NULL;
 
@@ -122,6 +116,7 @@ begin:
         HANDLE(psBMS->eSystemMode,  vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
         HANDLE(psBMS->eRunningMode, vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
         HANDLE(psBMS->xAlarmClean,  vSystem_CleanAlarm(psSystem, &psBMS->xAlarmClean)) 
+        HANDLE(psBMS->xAlarmEnable, vSystem_AlarmEnable(psSystem, psBMS->xAlarmEnable)) 
         
         HANDLE(psBMS->usTempSet,         vSystem_SetTemp(psSystem, psBMS->usTempSet))
         HANDLE(psBMS->usFreAirSet_Vol_H, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
@@ -505,8 +500,7 @@ CTOR(System)   //系统构造函数
 END_CTOR
 
 
-void vSystemInit( OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize,
-                  OS_TCB* psPollTaskTCB, OS_PRIO ucPollTaskPrio, CPU_STK* psPollTaskStkBase, CPU_STK_SIZE usPollTaskStkSize )
+void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize)
 {
     SysEventPollTaskPrio    = ucEventPollTaskPrio;
     SysEventPollTaskStkSize = usEventPollTaskStkSize;
@@ -514,13 +508,6 @@ void vSystemInit( OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_S
     psSysEventPollTaskTCB = psEventPollTaskTCB;
     psSysEventPollTaskStk = psEventPollTaskStkBase;
     
-
-    SysPollTaskPrio    = ucPollTaskPrio;
-    SysPollTaskStkSize = usPollTaskStkSize;
-
-    psSysPollTaskTCB = psPollTaskTCB;
-    psSysPollTaskStk = psPollTaskStkBase;
-   
     System_Core();
 }
 

@@ -137,25 +137,34 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     {
        return;
     }
-    pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
-    
     for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->sMBSlaveDev.xOnLine == TRUE && pModularRoof->xStopErrFlag == FALSE)  //机组在线且无故障
+        if(pModularRoof->xCommErr == FALSE && pModularRoof->xStopErrFlag == FALSE)  //机组在线且无故障
         {
+            pUnit = pModularRoof;
             ucUnitNum++;           
         }
-    } 
+    }
+    if(ucUnitNum == 0) //无机组可用
+    {
+        return;
+    }
+       
+    pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //只有一台机组可用
     {
-        if(pThis->ulFreAirSet_Vol > 65000)    //保证新风量
+        if(pThis->ulFreAirSet_Vol > MODULAR_MAX_FRE_AIR_VOL)    //保证新风量
         {
-            pUnit->usFreAirSet_Vol = 65000;
+            pUnit->usFreAirSet_Vol = MODULAR_MAX_FRE_AIR_VOL;
+            pThis->ulFreAirSet_Vol = MODULAR_MAX_FRE_AIR_VOL;
+            
+            psBMS->usFreAirSet_Vol_L = pThis->ulFreAirSet_Vol % 65535;
+            psBMS->usFreAirSet_Vol_H = pThis->ulFreAirSet_Vol / 65535;
         }
         else
         {
-            pUnit->usFreAirSet_Vol = pThis->ulFreAirSet_Vol;
+            pUnit->usFreAirSet_Vol = (uint16_t)pThis->ulFreAirSet_Vol;
         }
     }
     else if(ucUnitNum == MODULAR_ROOF_NUM)  //两台
@@ -314,7 +323,10 @@ void vSystem_SetAlarm(System* pt)
     
     if(pThis->xAlarmEnable)  //声光报警使能     
     {
-        vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, ON); //输出开启,继电器闭合
+        vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, ON); //输出开启,继电器闭合        
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_SetAlarm  ucChannel %d xAlarmEnable %d  \n",pThis->sAlarm_DO.ucChannel,  pThis->xAlarmEnable);
+#endif   
     }
 }
 
@@ -322,7 +334,12 @@ void vSystem_SetAlarm(System* pt)
 void vSystem_DelAlarm(System* pt)
 {
     System* pThis = (System*)pt; 
+    
     vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, OFF);   //输出关闭，继电器断开
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_DelAlarm ucChannel %d \n", pThis->sAlarm_DO.ucChannel);
+#endif  
 }
 
 /*清除声光报警请求*/
@@ -360,12 +377,12 @@ void vSystem_DelAlarmRequst(System* pt)
         {
             return;
         }
-    }
+    }     
     //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
     if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
     {
         return;
-    }
+    } 
     //(4)同类全部传感器通讯故障,声光报警
     if( (pThis->xCO2SenErr == TRUE) || (pThis->xTempHumiSenOutErr == TRUE) || (pThis->xTempHumiSenInErr == TRUE) ) 
     {
@@ -383,6 +400,66 @@ void vSystem_CleanAlarm(System* pt, BOOL* pxAlarmClean)
     {
         vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, OFF);   //输出关闭，继电器断开
         *pxAlarmClean = FALSE;
+        
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_CleanAlarm   pxAlarmClean %d  \n",  *pxAlarmClean);
+#endif   
     }
 }
 
+/*声光报警使能*/
+void vSystem_AlarmEnable(System* pt, BOOL xAlarmEnable)
+{
+    uint8_t  n = 0; 
+    System* pThis = (System*)pt;
+    
+    ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
+    
+    pThis->xAlarmEnable = xAlarmEnable;
+    if(xAlarmEnable == TRUE)
+    {
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n]; 
+        
+           //(1)群控控制器与空调机组通讯故障,  (8)空调机组停机保护。声光报警        
+            if( (pModularRoof->sMBSlaveDev.xOnLine == FALSE) || (pModularRoof->xStopErrFlag) ) 
+            {
+                vSystem_SetAlarm(pThis);
+                return;
+            } 
+            //(3)当送风温度大于【送风温度最大值】（默认45℃）,声光报警
+            if(pModularRoof->sSupAir_T > pThis->usSupAirMax_T)
+            {
+                vSystem_SetAlarm(pThis);
+                return;            
+            }         
+        }
+        for(n=0; n < EX_AIR_FAN_NUM; n++)
+        {
+            pExAirFan = pThis->psExAirFanList[n]; 
+            if(pExAirFan->xExAirFanErr == TRUE)
+            {
+                vSystem_SetAlarm(pThis);
+                return;
+            }
+        }     
+        //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
+        if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
+        {
+            vSystem_SetAlarm(pThis);
+            return;
+        } 
+        //(4)同类全部传感器通讯故障,声光报警
+        if( (pThis->xCO2SenErr == TRUE) || (pThis->xTempHumiSenOutErr == TRUE) || (pThis->xTempHumiSenInErr == TRUE) ) 
+        {
+            vSystem_SetAlarm(pThis);
+            return;
+        }   
+    }
+    else
+    {
+        vSystem_DelAlarm(pThis);
+    }
+}

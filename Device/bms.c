@@ -492,7 +492,7 @@ SLAVE_END_DATA_BUF(0, 307)
     /******************************线圈数据域*************************/ 
 SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable)
     
-    SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pSystem->xAlarmEnable)
+    SLAVE_COIL_BIT_DATA(4,  RW, (void*)&pThis->xAlarmEnable)
     SLAVE_COIL_BIT_DATA(5,  RW, (void*)&pThis->xAlarmClean)         
     SLAVE_COIL_BIT_DATA(16, RO, (void*)&pSystem->xTempSenInErr) 
     SLAVE_COIL_BIT_DATA(17, RO, (void*)&pSystem->xHumiSenInErr) 
@@ -683,6 +683,7 @@ void vBMS_MonitorRegist(BMS* pt)
     
     MONITOR(&pThis->eExAirFanType, uint8, &pThis->sValChange)
     MONITOR(&pThis->xAlarmClean, uint8, &pThis->sValChange)
+    MONITOR(&pThis->xAlarmEnable, uint8, &pThis->sValChange)
 }
 
 /*BMS数据默认值初始化*/

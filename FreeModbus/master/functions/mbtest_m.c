@@ -319,6 +319,10 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
                     psMBSlaveDev->xDataReady   = TRUE;                       //从设备数据准备好
                     psMBSlaveDev->eScanMode    = SCAN_WRITE;                    
                 }
+                else
+                {
+                    psMBSlaveDev->xDataReady   = FALSE;
+                }
             }
             else
             {
@@ -409,6 +413,10 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
                 psMBSlaveDev->xOnLine        = TRUE;  //从设备反馈正确，则设备在线
                 psMBSlaveDev->xDataReady     = TRUE;
                 psMBSlaveDev->ucOfflineTimes = 0;     //测试次数清零
+            }
+            else
+            {
+                psMBSlaveDev->xDataReady     = FALSE;
             }
         }
         else

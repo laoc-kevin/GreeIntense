@@ -231,7 +231,7 @@ void vInputReceive(void)
 	for(i = 0; i < 8; i++)
 	{
 		n = 0;
-		vInputSet4051Channel( i+1 );   //输入通道设置
+		vInputSet4051Channel(i+1);   //输入通道设置
 		
 		/* 等待4051设置完毕 */
 		while( (ucInputGet4051Channel() != i) && (n < 10) )
@@ -266,8 +266,6 @@ void vInputReceive(void)
 		{
 			*(uint8_t*)(DigitalInputData[i].pvDIVal) = !ucDigitalInputGetRealVal(i+1); /* DI接通为低电平，断开为高电平 */
 		}
-        
-       
     }
     ControllerID = ucSaInputConvertToID();
 }
@@ -546,7 +544,6 @@ void vInputReceiveTask(void *p_arg)
 	OS_ERR err = OS_ERR_NONE;
 	
     vInputIOInit();
-	
 	while(DEF_TRUE)
 	{
         vInputReceive();

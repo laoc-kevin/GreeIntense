@@ -87,7 +87,7 @@ MASTER_TEST_CMD_INIT(psMBCmd, 2, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, TR
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(&pThis->sSensor_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable;)
     
-    MASTER_REG_HOLD_DATA(1, uint16, MIN_CO2_PPM, MAX_CO2_PPM, 0, RO, 1, (void*)&pCO2Sen->usCO2PPM)
+    MASTER_REG_HOLD_DATA(1, uint16, 0, 65535, 0, RO, 1, (void*)&pCO2Sen->usCO2PPM)
       
 MASTER_END_DATA_BUF(1, 1)
     
@@ -108,7 +108,7 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     
     //判断传感器是否故障
     if( (psCO2Sen->usAvgCO2PPM < psCO2Sen->usMinPPM) || (psCO2Sen->usAvgCO2PPM > psCO2Sen->usMaxPPM) ||
-        (psCO2Sen->Sensor.sMBSlaveDev.xOnLine == FALSE) )
+        (psCO2Sen->Sensor.sMBSlaveDev.xOnLine == FALSE) || (psCO2Sen->Sensor.sMBSlaveDev.xDataReady == FALSE))
     {
         psCO2Sen->xCO2SenErr = TRUE;
     }
@@ -117,27 +117,25 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
         psCO2Sen->xCO2SenErr = FALSE;
     }
     
-     //对传感器参数进行采样
-    if(psCO2Sen->xCO2SenErr == FALSE)
+    //对传感器参数进行采样
+    if(*pcSampleIndex < SENSOR_SAMPLE_NUM)
     {
-        if(*pcSampleIndex < SENSOR_SAMPLE_NUM)
-        {
-            psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
-            psCO2Sen->usSampleCO2PPM[*pcSampleIndex]  = psCO2Sen->usCO2PPM;
-            psCO2Sen->usTotalCO2PPM  = psCO2Sen->usTotalCO2PPM + psCO2Sen->usCO2PPM;
-         
-            (*pcSampleIndex)++;
-        }
-        else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
-        {
-            psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
-            *pcSampleIndex = 0;
-        } 
+        psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
+        psCO2Sen->usSampleCO2PPM[*pcSampleIndex]  = psCO2Sen->usCO2PPM;
+        psCO2Sen->usTotalCO2PPM  = psCO2Sen->usTotalCO2PPM + psCO2Sen->usCO2PPM;
+     
+        (*pcSampleIndex)++;
+    }
+    else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
+    {
+        psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
+        *pcSampleIndex = 0;
+    } 
        
 #if DEBUG_ENABLE > 0
 //    myprintf("vCO2Sensor_TimeoutInd usTotalCO2PPM %d  usAvgCO2PPM %d\n", psCO2Sen->usTotalCO2PPM , psCO2Sen->usAvgCO2PPM);
 #endif 
-    }
+
 }
 
 /* CO2传感器数据监控*/
@@ -202,16 +200,9 @@ MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr,
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(&pThis->sSensor_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable) 
     
-    if(pThis->eSensorType == TYPE_TEMP_HUMI_IN)  
-    {
-        MASTER_REG_HOLD_DATA(1, int16,  MIN_IN_TEMP, MAX_IN_TEMP, 0, RO,   1, (void*)&pTempHumiSen->sTemp)
-        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,    MAX_HUMI,    0, RO,   10, (void*)&pTempHumiSen->usHumi)
-    }        
-    if(pThis->eSensorType == TYPE_TEMP_HUMI_OUT)  
-    {
-        MASTER_REG_HOLD_DATA(1, int16,  MIN_OUT_TEMP, MAX_OUT_TEMP, 0, RO, 1, (void*)&pTempHumiSen->sTemp)
-        MASTER_REG_HOLD_DATA(2, uint16, MIN_HUMI,     MAX_HUMI,     0, RO, 10, (void*)&pTempHumiSen->usHumi)
-    }         
+    MASTER_REG_HOLD_DATA(1, int16,  -32768, 32767, 0, RO,  1, (void*)&pTempHumiSen->sTemp)
+    MASTER_REG_HOLD_DATA(2, uint16,      0, 65535, 0, RO, 10, (void*)&pTempHumiSen->usHumi) 
+        
 MASTER_END_DATA_BUF(1, 2)
     
     if(pThis->eSensorType == TYPE_TEMP_HUMI_IN)  
@@ -242,7 +233,7 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     
     //判断传感器是否故障
     if( (pTempHumiSen->sAvgTemp < pTempHumiSen->sMinTemp) || (pTempHumiSen->sAvgTemp > pTempHumiSen->sMaxTemp) ||
-        (pTempHumiSen->Sensor.sMBSlaveDev.xOnLine == FALSE) ) 
+        (pTempHumiSen->Sensor.sMBSlaveDev.xOnLine == FALSE) || (pTempHumiSen->Sensor.sMBSlaveDev.xDataReady == FALSE) ) 
     {
         pTempHumiSen->xTempSenErr = TRUE;
     }
@@ -262,43 +253,38 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     }
     
     //对传感器参数进行采样
-    if(pTempHumiSen->xTempSenErr == FALSE)
+    if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
     {
-        if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
-        {
-            pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp - pTempHumiSen->sSampleTemp[*pcSampleIndex];
-            pTempHumiSen->sSampleTemp[*pcSampleIndex]  = pTempHumiSen->sTemp;
-            pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp + pTempHumiSen->sTemp;
-            (*pcSampleIndex)++;
-           
-        }
-        else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
-        {
-            pTempHumiSen->sAvgTemp = pTempHumiSen->sTotalTemp / SENSOR_SAMPLE_NUM;  //取平均值
-            *pcSampleIndex = 0;
-        }
+        pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp - pTempHumiSen->sSampleTemp[*pcSampleIndex];
+        pTempHumiSen->sSampleTemp[*pcSampleIndex]  = pTempHumiSen->sTemp;
+        pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp + pTempHumiSen->sTemp;
+        (*pcSampleIndex)++;
+       
     }
-    if(pTempHumiSen->xHumiSenErr == FALSE)
-    { 
-        if(*pcSampleIndex_2 < SENSOR_SAMPLE_NUM)
-        {
-            pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi - pTempHumiSen->usSampleHumi[*pcSampleIndex_2];
-            pTempHumiSen->usSampleHumi[*pcSampleIndex_2] = pTempHumiSen->usHumi;
-            pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi + pTempHumiSen->usHumi;
-            (*pcSampleIndex_2)++;
-        }
-        else if(*pcSampleIndex_2 == SENSOR_SAMPLE_NUM)
-        {
-            pTempHumiSen->usAvgHumi = pTempHumiSen->usTotalHumi / SENSOR_SAMPLE_NUM;
-            *pcSampleIndex_2 = 0;
-        }   
-    }  
+    else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
+    {
+        pTempHumiSen->sAvgTemp = pTempHumiSen->sTotalTemp / SENSOR_SAMPLE_NUM;  //取平均值
+        *pcSampleIndex = 0;
+    }
+    
+    if(*pcSampleIndex_2 < SENSOR_SAMPLE_NUM)
+    {
+        pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi - pTempHumiSen->usSampleHumi[*pcSampleIndex_2];
+        pTempHumiSen->usSampleHumi[*pcSampleIndex_2] = pTempHumiSen->usHumi;
+        pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi + pTempHumiSen->usHumi;
+        (*pcSampleIndex_2)++;
+    }
+    else if(*pcSampleIndex_2 == SENSOR_SAMPLE_NUM)
+    {
+        pTempHumiSen->usAvgHumi = pTempHumiSen->usTotalHumi / SENSOR_SAMPLE_NUM;
+        *pcSampleIndex_2 = 0;
+    }   
+    
 #if DEBUG_ENABLE > 0
 //    if(pTempHumiSen->Sensor.sMBSlaveDev.ucDevAddr == 18)
 //    {
 //        myprintf("vTempHumiSensor_TimeoutInd sAvgTemp %d  usAvgHumi %d %d\n", pTempHumiSen->sAvgTemp, pTempHumiSen->usAvgHumi, pTempHumiSen->usHumi);
-//    }
-    
+//    } 
 #endif     
 }
 

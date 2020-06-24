@@ -91,7 +91,7 @@ eCtrlEn eGetDORealValue(uint8_t ucChannel)
 ***************************************************/
 void vDigitalOutputCtrl(uint8_t ucChannel, eCtrlEn eCtrl)
 {
-    if((ucChannel > 0) && (ucChannel <= AO_NUM))
+    if((ucChannel > 0) && (ucChannel <= DO_NUM))
     {
         const IODef*    psIO = DO_IOList[ucChannel-1];
 	    uint32_t   ulPortVal = GPIO_ReadValue(psIO->Port);
@@ -121,7 +121,7 @@ void vDigitalOutputCtrl(uint8_t ucChannel, eCtrlEn eCtrl)
 ***************************************************/
 void vDigitalOutputToggle( uint8_t ucChannel )
 {
-    if((ucChannel > 0) && (ucChannel <= AO_NUM))
+    if((ucChannel > 0) && (ucChannel <= DO_NUM))
     {
         const IODef*  psIO = DO_IOList[ucChannel-1];
 	    uint32_t    ulMask = 1 << psIO->Pin;  

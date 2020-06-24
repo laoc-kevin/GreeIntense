@@ -167,7 +167,7 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
     
     UCHAR ucBuf[2] = {0};
     
-    if( *usLen == ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
+    if(*usLen == MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN)
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF + 1) );
@@ -179,11 +179,11 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
             ucBuf[1] = 0;
             if( *(pucFrame + MB_PDU_FUNC_WRITE_VALUE_OFF) == 0xFF )
             {
-                ucBuf[0] = 1 << (usRegAddress % 8 - 1);
+                ucBuf[0] = 1;
             }
             else
             {
-                ucBuf[0] = 0 ;
+                ucBuf[0] = 0;
             }
             eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, &ucBuf[0], usRegAddress, 1, MB_REG_WRITE);
 

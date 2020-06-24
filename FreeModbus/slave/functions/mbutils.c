@@ -104,16 +104,10 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
             }
             if( (pucBitData != NULL) && (pucBitData->pvValue != NULL) )
             {
-                ucBit = (UCHAR)( ((*ucByteBuf) & (1 << i) ) >> i );   //取对应位的值
-                if( *(UCHAR*)pucBitData->pvValue != ucBit )
-                {		
-                    *(UCHAR*)(pucBitData->pvValue) = (UCHAR)ucBit;			
-                }
+                ucBit = (UCHAR)( ((*ucByteBuf) & (1<<i)) >> i );   //取对应位的值
+                *(UCHAR*)(pucBitData->pvValue) = (UCHAR)ucBit;			
 
-//                if(usAddress == 24)
-//                {
-//                     myprintf("eMBSlaveUtilSetBits usCoilAddr %d  usMBBitData %d\n", usAddress, *(UCHAR*)(pucBitData->pvValue));
-//                }                   
+                myprintf("eMBSlaveUtilSetBits usCoilAddr %d  usMBBitData %d\n", usAddress, *(UCHAR*)(pucBitData->pvValue));  
             }
             usAddress++;
 		}

@@ -189,10 +189,9 @@ eMBSlaveRegInputCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAd
             {
                 usRegInValue = (USHORT)(*(int8_t*)pvRegInValue->pvValue);
             }
-            
-            if( (pvRegInValue->fTransmitMultiple != 0) && (pvRegInValue->fTransmitMultiple != 1) )
+            if( (pvRegInValue->fTransmitMultiple != 0.0) && (pvRegInValue->fTransmitMultiple != 1.0) )
             {
-                usRegInValue *=  pvRegInValue->fTransmitMultiple;
+                usRegInValue = (USHORT)((float)usRegInValue * (float)pvRegInValue->fTransmitMultiple);     //传输因子
             }  
             *pucRegBuffer++ = (UCHAR)(usRegInValue >> 8);
             *pucRegBuffer++ = (UCHAR)(usRegInValue & 0xFF);	

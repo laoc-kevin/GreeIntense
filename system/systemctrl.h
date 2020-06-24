@@ -6,6 +6,7 @@
 /*********************系统*************************/
 void vSystem_SetAlarm(System* pt);
 void vSystem_DelAlarmRequst(System* pt);
+void vSystem_AlarmEnable(System* pt, BOOL xAlarmEnable);
 void vSystem_CleanAlarm(System* pt, BOOL* pxAlarmClean);
 void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO);
 

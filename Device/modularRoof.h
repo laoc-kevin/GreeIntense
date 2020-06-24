@@ -5,14 +5,16 @@
 #include "fan.h"
 #include "compressor.h"
 
-#define   MODULAR_NUM                 4    //机组模块数量
-#define   SUP_AIR_FAN_NUM             2    //机组送风机数量
+#define   MODULAR_NUM                   4     //机组模块数量
+#define   SUP_AIR_FAN_NUM               2     //机组送风机数量
+                                              
+#define   AMBIENT_OUT_FAN_NUM           2     //模块室外风机数量
+#define   COMP_NUM                      2     //模块压缩机数量
+                                              
+#define   MODULAR_ROOF_REG_HOLD_NUM     50    //机组通讯数据表保持寄存器数量
+#define   MODULAR_ROOF_BIT_COIL_NUM     50    //机组通讯数据表线圈数量
 
-#define   AMBIENT_OUT_FAN_NUM         2    //模块室外风机数量
-#define   COMP_NUM                    2    //模块压缩机数量
-
-#define   MODULAR_ROOF_REG_HOLD_NUM   50   //机组通讯数据表保持寄存器数量
-#define   MODULAR_ROOF_BIT_COIL_NUM   50   //机组通讯数据表线圈数量
+#define   MODULAR_MAX_FRE_AIR_VOL       65000 //机组最大新风量
 
 typedef enum 
 {

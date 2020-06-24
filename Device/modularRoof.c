@@ -41,10 +41,9 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
     if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
     {
-        pThis->eSwitchCmd = CMD_OPEN;  
-        
+        pThis->eSwitchCmd = CMD_OPEN;      
 #if DEBUG_ENABLE > 0
-    pThis->Device.eRunningState = STATE_RUN;
+//    pThis->Device.eRunningState = STATE_RUN;
     myprintf("vModularRoof_SwitchOpen %d\n", pThis->eSwitchCmd);
 #endif        
     }
@@ -54,12 +53,16 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
 void vModularRoof_SwitchClose(IDevSwitch* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
-    pThis->eSwitchCmd = CMD_CLOSE;
-    
+ 
+    if(pThis->Device.eRunningState == STATE_RUN)
+    {
+        pThis->eSwitchCmd = CMD_CLOSE; 
 #if DEBUG_ENABLE > 0
-     pThis->Device.eRunningState = STATE_STOP;
+//     pThis->Device.eRunningState = STATE_STOP;
     myprintf("vModularRoof_SwitchClose %d\n", pThis->eSwitchCmd);
-#endif    
+#endif          
+    }
+  
 }
 
 /*机组运行状态设置*/
@@ -79,7 +82,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     ModularRoof* pThis = (ModularRoof*)pt;
    
     DATA_INIT(pThis->eSwitchCmd,   CMD_CLOSE)
-    DATA_INIT(pThis->eRunningMode, RUN_MODE_HEAT)
+    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
     
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 200)
@@ -217,11 +220,11 @@ MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBR
     MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16, 160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
 
-    MASTER_REG_HOLD_DATA(8,  uint16,   0, 65000,  30000,  RW, 1, (void*)&pThis->usFreAirSet_Vol)
-    MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,     55,  RW, 1, (void*)&pThis->usHumidityMin)
-    MASTER_REG_HOLD_DATA(10, uint16,   0,   100,     65,  RW, 1, (void*)&pThis->usHumidityMax)
-    MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,   2700,  RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
-    MASTER_REG_HOLD_DATA(12, uint16,   5,   500,     50,  RW, 1, (void*)&pThis->usCO2AdjustDeviat)
+    MASTER_REG_HOLD_DATA(8,  uint16,   0, MODULAR_MAX_FRE_AIR_VOL,  30000,  RW, 1, (void*)&pThis->usFreAirSet_Vol)
+    MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,                       55,  RW, 1, (void*)&pThis->usHumidityMin)
+    MASTER_REG_HOLD_DATA(10, uint16,   0,   100,                       65,  RW, 1, (void*)&pThis->usHumidityMax)
+    MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,                     2700,  RW, 1, (void*)&pThis->usCO2AdjustThr_V) 
+    MASTER_REG_HOLD_DATA(12, uint16,   5,   500,                       50,  RW, 1, (void*)&pThis->usCO2AdjustDeviat)
      
     MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  RW, 1, (void*)&pThis->sAmbientIn_T)
     MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  RW, 1, (void*)&pThis->usAmbientIn_H)
@@ -342,7 +345,6 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
 void vModularRoof_RegistEEPROMData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
-    
     EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
 }
 
@@ -370,18 +372,18 @@ BOOL xModularRoof_UnitCompsClosed(ModularRoof* pt)
     return TRUE;
 }
 
-
-void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务函数
+/*机组轮询定时器中断服务函数*/
+void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)  
 {
     uint8_t n = 0;
     ModularRoof* pThis = (ModularRoof*)p_arg;
 
     pThis->xCommErr = (pThis->sMBSlaveDev.xOnLine == TRUE) ? FALSE:TRUE;
-    if(pThis->xStopErrFlag == TRUE)
+    
+    if(pThis->xStopErrFlag == TRUE && pThis->Device.eRunningState == STATE_RUN)
     {
         vModularRoof_SwitchClose(SUPER_PTR(pThis, IDevSwitch));
     }
-    
     if(xModularRoof_UnitCompsClosed(pThis) == TRUE) //压缩机是否全部关闭
     {
         pThis->xCompRunning = FALSE;

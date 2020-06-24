@@ -487,19 +487,20 @@ void vSystem_UnitFreAir(System* pt)
 {
     uint8_t  n = 0; 
 
-    System*      pThis        = (System*)pt;
-    BMS*         psBMS        = BMS_Core();
-    ModularRoof* pModularRoof = NULL;
+    System*      pThis         = (System*)pt;
+    BMS*         psBMS         = BMS_Core();
+    ModularRoof* pModularRoof  = NULL;
+    uint32_t ulTotalFreAir_Vol = 0;
     
-    pThis->ulTotalFreAir_Vol = 0;
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->xStopErrFlag == FALSE) //机组无故障
+        if(pModularRoof->xStopErrFlag == FALSE && pModularRoof->xCommErr == FALSE) //机组无故障
         {    
-            pThis->ulTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
+            ulTotalFreAir_Vol +=  pModularRoof->usFreAir_Vol;
         }
     }
+    pThis->ulTotalFreAir_Vol = ulTotalFreAir_Vol;
     psBMS->usTotalFreAir_Vol_H = pThis->ulTotalFreAir_Vol / 65535;
     psBMS->usTotalFreAir_Vol_L = pThis->ulTotalFreAir_Vol % 65535;
 }
@@ -520,7 +521,7 @@ void vSystem_UnitCO2PPM(System* pt)
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
-            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            if( pModularRoof->xCommErr == FALSE)  //机组在线
             {
                 usTotalCO2PPM += pModularRoof->usCO2PPMSelf;
                 ucNum++;
@@ -562,7 +563,7 @@ void vSystem_UnitTempHumiOut(System* pt)
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
-            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            if(pModularRoof->xCommErr == FALSE)  //机组在线
             {
                 sTotalTemp  +=  pModularRoof->sAmbientOutSelf_T;
                 usTotalHumi += pModularRoof->usAmbientOutSelf_H;
@@ -599,7 +600,7 @@ void vSystem_UnitTempHumiIn(System* pt)
         for(n=0, sTotalTemp=0, usTotalHumi=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
-            if( pModularRoof->sMBSlaveDev.xOnLine == TRUE )  //机组在线
+            if(pModularRoof->xCommErr == FALSE)  //机组在线
             {
                 sTotalTemp  +=  pModularRoof->sAmbientInSelf_T;
                 usTotalHumi += pModularRoof->usAmbientInSelf_H;
@@ -629,43 +630,49 @@ void vSystem_UnitTempHumiIn(System* pt)
 /*机组故障处理*/
 void vSystem_UnitErr(System* pt)
 {
-    uint8_t  n, ucStopErrNum, ucOnLineNum; 
+    uint8_t  n, ucUnitNum; 
     
+    uint16_t usFreAirSet_Vol = 0;
     System* pThis = (System*)pt;
     BMS*    psBMS = BMS_Core();
     
     ModularRoof* pModularRoof = NULL;
-    ModularRoof* pOnlineUnit = NULL;
+    ModularRoof* psUnit = NULL;
      
-    for(n=0, ucStopErrNum=0, ucOnLineNum=0; n < MODULAR_ROOF_NUM; n++)
+    for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        if(pModularRoof->xStopErrFlag) //这个标志位不包含可恢复的故障。群控收到这个标志位就要下发关机命令
+        if(pModularRoof->xStopErrFlag == FALSE && pModularRoof->xCommErr == FALSE) //这个标志位不包含可恢复的故障。群控收到这个标志位就要下发关机命令
         {
-            ucStopErrNum++; 
-        }
-        //(1)空调机组在线    
-        if(pModularRoof->xCommErr == FALSE) 
-        {
-            ucOnLineNum++;
-            pOnlineUnit = pModularRoof;          
-        }         
+            ucUnitNum++;
+            psUnit = pModularRoof; 
+        }            
     }
-    if(ucOnLineNum > 0 && ucOnLineNum < MODULAR_ROOF_NUM ) //其中一台机组通讯故障
+    if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //其中一台机组故障
     {
-        if(pOnlineUnit->xStopErrFlag == FALSE)  //且无故障
+        if(pThis->ulFreAirSet_Vol > MODULAR_MAX_FRE_AIR_VOL)    //保证新风量
         {
-            if(pThis->ulFreAirSet_Vol > 65000)    //保证新风量
-            {
-                pOnlineUnit->usFreAirSet_Vol = 65000;
-            }
-            else
-            {
-                pOnlineUnit->usFreAirSet_Vol = pThis->ulFreAirSet_Vol;
-            }
+            psUnit->usFreAirSet_Vol = MODULAR_MAX_FRE_AIR_VOL;
+            pThis->ulFreAirSet_Vol  = MODULAR_MAX_FRE_AIR_VOL;
+            
+            psBMS->usFreAirSet_Vol_L = pThis->ulFreAirSet_Vol % 65535;
+            psBMS->usFreAirSet_Vol_H = pThis->ulFreAirSet_Vol / 65535;
+        }
+        else
+        {
+            psUnit->usFreAirSet_Vol = (uint16_t)pThis->ulFreAirSet_Vol;
         }
     }
-    if(ucStopErrNum != 0 || ucOnLineNum != MODULAR_ROOF_NUM)   
+    else if(ucUnitNum == MODULAR_ROOF_NUM)  //两台
+    {
+        usFreAirSet_Vol = (uint16_t)(pThis->ulFreAirSet_Vol / MODULAR_ROOF_NUM);
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
+        }  
+    }
+    if(ucUnitNum > 0)   
     {
         vSystem_SetAlarm(pThis);
     }
@@ -678,7 +685,7 @@ void vSystem_UnitErr(System* pt)
     vSystem_UnitTempHumiOut(pThis);
     vSystem_UnitTempHumiIn(pThis);
     
-    if(ucStopErrNum == MODULAR_ROOF_NUM || ucOnLineNum == 0) 
+    if(ucUnitNum == 0) 
     {
         pThis->xUnitErrFlag = TRUE;
         if(pThis->eSystemMode == MODE_AUTO)  //如果为自动切回手动
@@ -691,7 +698,6 @@ void vSystem_UnitErr(System* pt)
     {
         pThis->xUnitErrFlag = FALSE;
     }        
-    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_UnitErr %d\n", pThis->xUnitErrFlag);
 #endif  

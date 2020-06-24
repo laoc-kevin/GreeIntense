@@ -413,9 +413,9 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 	usRegHoldValue = (USHORT)(*(int8_t*)pvRegHoldValue->pvValue);
                 }
                     
-                if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1) )
+                if( (pvRegHoldValue->fTransmitMultiple != 0.0) && (pvRegHoldValue->fTransmitMultiple != 1.0) )
                 {
-                    usRegHoldValue *=  pvRegHoldValue->fTransmitMultiple;
+                    usRegHoldValue = (USHORT)((float)usRegHoldValue * (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
                 }                        
                 *pucRegBuffer++ = (UCHAR)(usRegHoldValue >> 8);
             	*pucRegBuffer++ = (UCHAR)(usRegHoldValue & 0xFF);
@@ -445,9 +445,9 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
             
             if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) )
             {
-                if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1))
+                if( (pvRegHoldValue->fTransmitMultiple != 0.0) && (pvRegHoldValue->fTransmitMultiple != 1.0))
                 {
-                    usRegHoldValue /= pvRegHoldValue->fTransmitMultiple;
+                    usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
                 }
                 if (pvRegHoldValue->ucDataType == uint16)
                 {
@@ -503,15 +503,14 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                         if(cRegHoldValue != *(int8_t*)pvRegHoldValue->pvValue)
                         {
                             *(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;
-                             myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(int8_t*)pvRegHoldValue->pvValue);                              
+                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(int8_t*)pvRegHoldValue->pvValue);                              
                         }					
                     }
                     else
                     {
                         return MB_EINVAL;
                     }
-                }
-                             
+                }              
             }
             iRegIndex++;
             usNRegs--;

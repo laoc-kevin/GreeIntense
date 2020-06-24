@@ -23,7 +23,7 @@ typedef struct       /* 从栈线圈和离散量数据结构 */
 {
     USHORT    usAddr;           //地址
     UCHAR     ucAccessMode;     //访问权限
-	void*     pvValue;          //变量指针     
+	UCHAR*    pvValue;          //变量指针     
 }sMBSlaveBitData;  
 
 typedef struct        /*CPN数据结构 */
@@ -37,7 +37,6 @@ typedef struct        /*CPN数据结构 */
     void*   pvValue;             //变量指针
     float   fTransmitMultiple;   //传输因子    
 }sMBSlaveCPNData;  						
-
 
 typedef struct   /* 从栈字典数据列表结构 */
 {

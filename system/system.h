@@ -154,8 +154,7 @@ CLASS(System)   /*系统*/
     void   (*init)( System* pt);
 };
 
-void vSystemInit( OS_TCB* psEventPollTaskTcb, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize,
-                  OS_TCB* psPollTaskTcb, OS_PRIO ucPollTaskPrio, CPU_STK* psPollTaskStkBase, CPU_STK_SIZE usPollTaskStkSize );
+void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize);
 
 System* System_Core();    //获取全局唯一对象，单例设计模式
 

@@ -64,8 +64,8 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
     UCHAR*  pucValue; 
 	UCHAR   ucBit;
 	
-    eMBErrorCode                   eStatus = MB_ENOERR;
-    sMasterBitCoilData*     pucBitCoilData = NULL;
+    eMBErrorCode        eStatus            = MB_ENOERR;
+    sMasterBitCoilData* pucBitCoilData     = NULL;
 	sMasterBitDiscData* pucBitDiscreteData = NULL;
 	
     UCHAR  ucMBDestAddr = ucMBMasterGetDestAddr(psMBMasterInfo);        //从设备通讯地址

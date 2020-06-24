@@ -182,9 +182,9 @@ eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucVa
 						iValDataBitIndex += 1;
 						*usLen += 1;
                     
-					    if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+					    if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子
 						{
-							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+                            ulValCPNValue = (USHORT)((float)ulValCPNValue / (float)pvCPNValue->fTransmitMultiple);     //传输因子
 						}
 					break;
 					
@@ -194,9 +194,9 @@ eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucVa
 						iValDataBitIndex += 2;
 						*usLen += 2;
 					    
-					    if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+					    if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子
 						{
-							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+							 ulValCPNValue = (USHORT)((float)ulValCPNValue / (float)pvCPNValue->fTransmitMultiple);     //传输因子
 						}
 					break;
 					
@@ -207,9 +207,9 @@ eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucVa
 											|( *(ULONG*)(pucRegBuffer + iValDataBitIndex + 3) << 24);
 						iValDataBitIndex += 4;
 						*usLen += 4;
-						 if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子
+						 if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子
 						{
-							 ulValCPNValue /= pvCPNValue->fTransmitMultiple;
+							 ulValCPNValue = (USHORT)((float)ulValCPNValue / (float)pvCPNValue->fTransmitMultiple);     //传输因子
 						}
 					break;
 						
@@ -220,9 +220,9 @@ eMBSlaveWriteCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, UCHAR ucVa
 						*(pcNum + 2) = *( pucRegBuffer + iValDataBitIndex + 2);
 						*(pcNum + 3) = *( pucRegBuffer + iValDataBitIndex + 3);
 						
-                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子 
                         {
-                            ulValCPNValue  = (USHORT)( pfNum * (float)pvCPNValue->fTransmitMultiple);
+                            ulValCPNValue = (USHORT)((float)ulValCPNValue / (float)pvCPNValue->fTransmitMultiple);     //传输因子
                         } 
                         
 						iValDataBitIndex += 4;
@@ -489,9 +489,9 @@ eMBErrorCode eMBSlaveReadCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer
 				switch(pvCPNValue->ucValType )
 				{
 					case CPN_UINT8:
-                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子 
                         {
-                            ulValCPNValue *= pvCPNValue->fTransmitMultiple;
+                            ulValCPNValue = (USHORT)((float)ulValCPNValue * (float)pvCPNValue->fTransmitMultiple);     //传输因子
                         }
 						*( pucRegBuffer + iValDataBitIndex ) = (UCHAR)( ulValCPNValue & 0xFF );;
 						iValDataBitIndex += 1;
@@ -523,7 +523,7 @@ eMBErrorCode eMBSlaveReadCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer
 					    break;
 							
 					case CPN_FLOAT:	
-                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子 
 						{
 							fNum = (float)( ulValCPNValue / (float)pvCPNValue->fTransmitMultiple );	
 						}											
@@ -569,7 +569,7 @@ eMBErrorCode eMBSlaveReadCPNCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer
 							
 					case CPN_FLOAT:	
                  		ulValCPNValue = 0;	
-                        if( (pvCPNValue->fTransmitMultiple != 0) && (pvCPNValue->fTransmitMultiple != 1))  //传输因子 
+                        if( (pvCPNValue->fTransmitMultiple != 0.0) && (pvCPNValue->fTransmitMultiple != 1.0))  //传输因子 
 						{
 							fNum = (float)( ulValCPNValue / (float)pvCPNValue->fTransmitMultiple );	
 						}									

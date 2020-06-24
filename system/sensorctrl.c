@@ -25,7 +25,7 @@ void vSystem_CO2PPM(System* pt)
     {
         usCO2PPM = usTotalCO2PPM / ucCO2Num;  //CO2平均浓度
     }
-    if(pThis->usCO2PPM != usCO2PPM)
+    if(pThis->usCO2PPM != usCO2PPM && pThis->xCO2SenErr == FALSE)
     {
         pThis->usCO2PPM = usCO2PPM;
         for(n=0; n < MODULAR_ROOF_NUM; n++)
@@ -33,7 +33,6 @@ void vSystem_CO2PPM(System* pt)
             pModularRoof = pThis->psModularRoofList[n];
             pModularRoof->usCO2PPM = pThis->usCO2PPM;
         }
-        
         //(2)当室内CO2浓度大于【CO2报警浓度指标值】（默认3000PPM），声光报警
         if( pThis->usCO2PPM >= pThis->usCO2PPMAlarm)  
         {
@@ -44,7 +43,7 @@ void vSystem_CO2PPM(System* pt)
             vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
         }     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_CO2PPM  pThis->usCO2PPM %d ucCO2Num %d\n", usCO2PPM, ucCO2Num);
+    myprintf("vSystem_CO2PPM  pThis->usCO2PPM %d ucCO2Num %d\n", pThis->usCO2PPM, ucCO2Num);
 #endif   
         vSystem_ExAirFanCtrl(pThis);  
     } 
@@ -78,7 +77,6 @@ void vSystem_CO2SensorErr(System* pt)
             pModularRoof = pThis->psModularRoofList[n];
             pModularRoof->xCO2SenErr = pThis->xCO2SenErr;
         }
-        
         //(4)同类全部传感器通讯故障,声光报警
         if(pThis->xCO2SenErr == TRUE)
         {
@@ -87,12 +85,12 @@ void vSystem_CO2SensorErr(System* pt)
         else
         {
             vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
-        }
+        }              
+    }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_CO2SensorErr ucTempNum %d \n", ucCO2Num);
-#endif           
-        vSystem_CO2PPM(pThis);  
-    }    
+    myprintf("vSystem_CO2SensorErr ucTempNum %d  xCO2SenErr %d \n", ucCO2Num, pThis->xCO2SenErr);
+#endif     
+    vSystem_CO2PPM(pThis);    
 }
 
 /*系统室外温湿度变化*/
@@ -135,12 +133,17 @@ void vSystem_TempHumiOut(System* pt)
 
     if(pThis->sAmbientOut_T != sAmbientOut_T || pThis->usAmbientOut_H != usAmbientOut_H)
     {
-        pThis->sAmbientOut_T  = sAmbientOut_T;
-        pThis->usAmbientOut_H = usAmbientOut_H;
-        
+        if(pThis->xTempHumiSenOutErr == FALSE)
+        {
+            pThis->sAmbientOut_T  = sAmbientOut_T;
+        }
+        if(pThis->xHumiSenOutErr == FALSE)
+        {
+            pThis->usAmbientOut_H = usAmbientOut_H;
+        } 
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_TempHumiOut  sAmbientOut_T %d  usAmbientOut_H %d ucTempNum %d  ucHumiNum %d\n", 
-             sAmbientOut_T, usAmbientOut_H, ucTempNum, ucHumiNum);
+             pThis->sAmbientOut_T,  pThis->usAmbientOut_H, ucTempNum, ucHumiNum);
 #endif         
         vSystem_ChangeUnitRunningMode(pThis);  //模式切换逻辑        
     }  
@@ -188,13 +191,13 @@ void vSystem_TempHumiOutErr(System* pt)
         {
             pThis->xTempHumiSenOutErr = FALSE;
             vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
-        }
-        vSystem_TempHumiOut(pThis);
-    
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_TempHumiOutErr ucTempNum %d ucHumiNum %d\n", ucTempNum, ucHumiNum);
-#endif        
+        }   
     }
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_TempHumiOutErr ucTempNum %d ucHumiNum %d xTempSenOutErr %d xHumiSenOutErr %d \n", 
+             ucTempNum, ucHumiNum, pThis->xTempSenOutErr, pThis->xHumiSenOutErr);
+#endif     
+    vSystem_TempHumiOut(pThis);
 }
 
 /*系统室内温湿度变化*/
@@ -237,14 +240,19 @@ void vSystem_TempHumiIn(System* pt)
     
     if(pThis->sAmbientIn_T != sAmbientIn_T || pThis->usAmbientIn_H != usAmbientIn_H)
     {
-        pThis->sAmbientIn_T = sAmbientIn_T;
-        pThis->usAmbientIn_H = usAmbientIn_H;
-        
+        if(pThis->xTempHumiSenInErr == FALSE)
+        {
+            pThis->sAmbientIn_T  = sAmbientIn_T;
+        }
+        if(pThis->xHumiSenInErr == FALSE)
+        {
+            pThis->usAmbientIn_H = usAmbientIn_H;
+        } 
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
-            pModularRoof->sAmbientIn_T  = sAmbientIn_T;
-            pModularRoof->usAmbientIn_H = usAmbientIn_H;
+            pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
+            pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
         }
 #if DEBUG_ENABLE > 0
         myprintf("vSystem_TempHumiIn  sAmbientIn_T %d  usAmbientIn_H %d ucTempNum %d ucHumiNum %d  sTotalTemp %d usTotalHumi %d\n", 
@@ -308,11 +316,11 @@ void vSystem_TempHumiInErr(System* pt)
         {
             pThis->xTempHumiSenInErr = FALSE;
             vSystem_DelAlarmRequst(pThis); //否则申请消除声光报警
-        }
-        vSystem_TempHumiIn(pThis);
-        
-#if DEBUG_ENABLE > 0
-        myprintf("vSystem_TempHumiInErr ucTempNum %d ucHumiNum %d\n", ucTempNum, ucHumiNum);
-#endif          
+        } 
     }
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_TempHumiInErr ucTempNum %d ucHumiNum %d xTempSenInErr %d xHumiSenInErr %d \n", 
+             ucTempNum, ucHumiNum, pThis->xTempSenInErr, pThis->xHumiSenInErr);
+#endif  
+    vSystem_TempHumiIn(pThis);
 }

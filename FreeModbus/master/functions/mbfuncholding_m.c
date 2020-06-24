@@ -616,7 +616,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
     		
     		if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != WO) )
     		{
-    			if( (pvRegHoldValue->fTransmitMultiple != 0) && (pvRegHoldValue->fTransmitMultiple != 1) )
+    			if( (pvRegHoldValue->fTransmitMultiple != 0.0) && (pvRegHoldValue->fTransmitMultiple != 1.0) )
     		    {
     		    	usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
     		    }
