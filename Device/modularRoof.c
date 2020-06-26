@@ -62,7 +62,6 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
     myprintf("vModularRoof_SwitchClose %d\n", pThis->eSwitchCmd);
 #endif          
     }
-  
 }
 
 /*机组运行状态设置*/
@@ -416,11 +415,13 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
         }       
     } 
 
-    vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
+    
     vModularRoof_RegistMonitor(pThis);      //注册监控数据
    
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
     vModularRoof_InitDefaultData(pThis);    //初始化默认数据
+    
+    vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
     vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
 
     //机组周期定时器

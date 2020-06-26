@@ -399,18 +399,13 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
          * a new frame was received. */
     case STATE_RX_RCV:
 		//防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据,Modbus RTU通讯查询帧最短至少8byte
-	    if(psMBSlaveInfo->usRcvBufferPos >= 8)   
+	    if(psMBSlaveInfo->usRcvBufferPos >= 5)   
 		{
 	        xNeedPoll = xMBSlavePortEventPost(psMBPort,EV_FRAME_RECEIVED); //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
 //			myprintf("EV_FRAME_RECEIVED  %d******************\n", psMBSlaveInfo->usRcvBufferPos);
-            
-//            vLedOn(&LedModbus2); 
-//            SlaveLedState = !SlaveLedState;     
 		}
 	    else
 		{
-//            vLedOff(&LedModbus2); 
-//            SlaveLedState = !SlaveLedState;
 //			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
 			psMBSlaveInfo->usRcvBufferPos = 0;
 			psMBSlaveInfo->eRcvState = STATE_RX_RCV;

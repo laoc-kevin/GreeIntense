@@ -5,6 +5,8 @@
 
 /**************************任务配置开关*****************************/
 #define DEBUG_ENABLE               1      //调试功能
+#define EEPROM_USE_DEFAULT_DATA    0      //eeprom使用默认参数
+#define EEPROM_DATA_INIT           0      //eeprom参数复位
 
 #define LWIP_CREATE_TASK_EN        0      //LWIP协议栈
 #define TCP_SERVER_TASK_EN         0      //TCP服务器功能
@@ -14,7 +16,7 @@
 #define INPUT_RECEIVE_TASK_EN      1      //IO输入数据功能
                                    
 #define SEGMENT_TASK_EN            1      //数码管显示功能
-#define EEPROM_DATA_TASK_EN        0      //eeprom参数记忆功能
+#define EEPROM_DATA_TASK_EN        1      //eeprom参数记忆功能
 
 #define SYSTEM_EVENT_TASK_EN       1      //系统事件功能
 #define SYSTEM_MONITOR_TASK_EN     1      //系统数据监控功能

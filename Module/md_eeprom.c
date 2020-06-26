@@ -1,3 +1,4 @@
+#include "app_config.h"
 #include "lpc_eeprom.h"
 #include "md_eeprom.h"
 #include "md_event.h"
@@ -59,14 +60,14 @@
 #define E32_SAVE_SIZE		E32_SAVE_COUNT * sizeof(uint32_t)		//能耗统计uint32类型记忆字节长度
  
 
-#define UINT8_WRITE_INTV	    10	    //uint8类型的参数记忆周期                                       
-#define INT8_WRITE_INTV		    10	    //int8类型的参数记忆周期
+#define UINT8_WRITE_INTV	    1	    //uint8类型的参数记忆周期                                       
+#define INT8_WRITE_INTV		    1	    //int8类型的参数记忆周期
                                         
-#define UINT16_WRITE_INTV	    10	    //uint16类型的参数记忆周期                                       
-#define INT16_WRITE_INTV	    10	    //int16类型的参数记忆周期
+#define UINT16_WRITE_INTV	    1	    //uint16类型的参数记忆周期                                       
+#define INT16_WRITE_INTV	    1	    //int16类型的参数记忆周期
                                         
-#define UINT32_WRITE_INTV	    7200    //uint32类型的参数记忆周期                                       
-#define INT32_WRITE_INTV	    7200    //uint32类型的参数记忆周期
+#define UINT32_WRITE_INTV	    1       //uint32类型的参数记忆周期                                       
+#define INT32_WRITE_INTV	    1       //uint32类型的参数记忆周期
 
 #define RUNTIME_WRITE_INTV	    7200    //运行时间类型的参数记忆周期
 #define E32_WRITE_INTV	        7200    //能耗统计uint32类型的参数记忆周期
@@ -113,6 +114,7 @@ uint32_t* pDataBufRuntime[RUNTIME_SAVE_COUNT] = {NULL};
 uint32_t* pDataBufE32[E32_SAVE_COUNT] = {NULL};
 
 
+uint8_t __attribute__((aligned (4))) DataBufFirstRunUint8[UINT8_SAVE_COUNT] = {0};
 uint8_t __attribute__((aligned (4))) DataBufUint8[UINT8_SAVE_COUNT] = {0};
 int8_t  __attribute__((aligned (4))) DataBufInt8[INT8_SAVE_COUNT]   = {0};
 
@@ -136,10 +138,10 @@ BOOL xDataUint8Changed(void)
 
 	for (i = 0; i < UINT8_SAVE_COUNT; i++)
 	{
-		if( (pDataBufUint8[i] != NULL) && (DataBufUint8[i] == *pDataBufUint8[i]) ) //检查值是否已经改变
+		if( (pDataBufUint8[i] != NULL) && (DataBufUint8[i] != *(uint8_t*)pDataBufUint8[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufUint8[i] = *pDataBufUint8[i];
+			DataBufUint8[i] = *(uint8_t*)pDataBufUint8[i];
 		}
 	}
 	return xChanged;
@@ -152,10 +154,10 @@ BOOL xDataUint16Changed(void)
 
 	for (i = 0; i < UINT16_SAVE_COUNT; i++)
 	{
-		if( (pDataBufUint16[i] != NULL) && (DataBufUint16[i] == *pDataBufUint16[i]) ) //检查值是否已经改变
+		if( (pDataBufUint16[i] != NULL) && (DataBufUint16[i] != *(uint16_t*)pDataBufUint16[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufUint16[i] = *pDataBufUint16[i];
+			DataBufUint16[i] = *(uint16_t*)pDataBufUint16[i];
 		}
 	}
 	return xChanged;
@@ -168,10 +170,10 @@ BOOL xDataUint32Changed(void)
 
 	for (i = 0; i < UINT32_SAVE_COUNT; i++)
 	{
-		if( (pDataBufUint32[i] != NULL) && (DataBufUint32[i] == *pDataBufUint32[i]) ) //检查值是否已经改变
+		if( (pDataBufUint32[i] != NULL) && (DataBufUint32[i] != *(uint32_t*)pDataBufUint32[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufUint32[i] = *pDataBufUint32[i];
+			DataBufUint32[i] = *(uint32_t*)pDataBufUint32[i];
 		}
 	}
 	return xChanged;
@@ -184,10 +186,10 @@ BOOL xDataInt8Changed(void)
 
 	for (i = 0; i < INT8_SAVE_COUNT; i++)
 	{
-		if( (pDataBufInt8[i] != NULL) && (DataBufInt8[i] == *pDataBufInt8[i]) ) //检查值是否已经改变
+		if( (pDataBufInt8[i] != NULL) && (DataBufInt8[i] != *(int8_t*)pDataBufInt8[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufInt8[i] = *pDataBufInt8[i];
+			DataBufInt8[i] = *(int8_t*)pDataBufInt8[i];
 		}
 	}
 	return xChanged;
@@ -200,10 +202,10 @@ BOOL xDataInt16Changed(void)
 
 	for (i = 0; i < INT16_SAVE_COUNT; i++)
 	{
-		if( (pDataBufInt16[i] != NULL) && (DataBufInt16[i] == *pDataBufInt16[i]) ) //检查值是否已经改变
+		if( (pDataBufInt16[i] != NULL) && (DataBufInt16[i] != *(int16_t*)pDataBufInt16[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufInt16[i] = *pDataBufInt16[i];
+			DataBufInt16[i] = *(int16_t*)pDataBufInt16[i];
 		}
 	}
 	return xChanged;
@@ -216,10 +218,10 @@ BOOL xDataInt32Changed(void)
 
 	for (i = 0; i < INT32_SAVE_COUNT; i++)
 	{
-		if( (pDataBufInt32[i] != NULL) && (DataBufInt32[i] == *pDataBufInt32[i]) ) //检查值是否已经改变
+		if( (pDataBufInt32[i] != NULL) && (DataBufInt32[i] != *(int32_t*)pDataBufInt32[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufInt32[i] = *pDataBufInt32[i];
+			DataBufInt32[i] = *(int32_t*)pDataBufInt32[i];
 		}
 	}
 	return xChanged;
@@ -232,10 +234,10 @@ BOOL xDataRuntimeChanged(void)
 
 	for (i = 0; i < RUNTIME_SAVE_COUNT; i++)
 	{
-		if( (pDataBufRuntime[i] != NULL) && (DataBufRuntime[i] == *pDataBufRuntime[i]) ) //检查值是否已经改变
+		if( (pDataBufRuntime[i] != NULL) && (DataBufRuntime[i] != *(uint32_t*)pDataBufRuntime[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufRuntime[i] = *pDataBufRuntime[i];
+			DataBufRuntime[i] = *(uint32_t*)pDataBufRuntime[i];
 		}
 	}
 	return xChanged;
@@ -248,10 +250,10 @@ BOOL xDataE32Changed(void)
 
 	for (i = 0; i < E32_SAVE_COUNT; i++)
 	{
-		if( (pDataBufE32[i] != NULL) && (DataBufE32[i] == *pDataBufE32[i]) ) //检查值是否已经改变
+		if( (pDataBufE32[i] != NULL) && (DataBufE32[i] != *(uint32_t*)pDataBufE32[i]) ) //检查值是否已经改变
 		{
 			xChanged = TRUE;
-			DataBufE32[i] = *pDataBufE32[i];
+			DataBufE32[i] = *(uint32_t*)pDataBufE32[i];
 		}
 	}
 	return xChanged;
@@ -295,14 +297,14 @@ void vReadEEPROMData(void)
     {
         if(pDataBufUint8[i] != NULL)
         {
-            *pDataBufUint8[i] = DataBufUint8[i];
+            *(uint8_t*)pDataBufUint8[i] = DataBufUint8[i];
         }
     }
     for(i=0; i<DataBufInt8Count; i++)
     {
         if(pDataBufInt8[i] != NULL)
         {
-            *pDataBufInt8[i] = DataBufInt8[i];
+            *(int8_t*)pDataBufInt8[i] = DataBufInt8[i];
         }
     }
     
@@ -310,14 +312,14 @@ void vReadEEPROMData(void)
     {
         if(pDataBufUint16[i] != NULL)
         {
-            *pDataBufUint16[i] = DataBufUint16[i];
+            *(uint16_t*)pDataBufUint16[i] = DataBufUint16[i];
         }
     }
     for(i=0; i<DataBufInt16Count; i++)
     {
         if(pDataBufInt16[i] != NULL)
         {
-            *pDataBufInt16[i] = DataBufInt16[i];
+            *(int16_t*)pDataBufInt16[i] = DataBufInt16[i];
         }
     }
     
@@ -325,14 +327,14 @@ void vReadEEPROMData(void)
     {
         if(pDataBufUint32[i] != NULL)
         {
-            *pDataBufUint32[i] = DataBufUint32[i];
+            *(uint32_t*)pDataBufUint32[i] = DataBufUint32[i];
         }
     }
     for(i=0; i<DataBufInt32Count; i++)
     {
         if(pDataBufInt32[i] != NULL)
         {
-            *pDataBufInt32[i] = DataBufInt32[i];
+            *(int32_t*)pDataBufInt32[i] = DataBufInt32[i];
         }
     }
     
@@ -340,7 +342,7 @@ void vReadEEPROMData(void)
     {
         if(pDataBufRuntime[i] != NULL)
         {
-            *pDataBufRuntime[i] = DataBufRuntime[i];
+            *(uint32_t*)pDataBufRuntime[i] = DataBufRuntime[i];
         }
     }
     
@@ -348,7 +350,7 @@ void vReadEEPROMData(void)
     {
         if(pDataBufE32[i] != NULL)
         {
-            *pDataBufE32[i] = DataBufE32[i];
+            *(uint32_t*)pDataBufE32[i] = DataBufE32[i];
         }
     }
     EEPROMDataReady = TRUE;
@@ -367,88 +369,101 @@ void vWriteEEPROMData(void)
     uint8_t i = 0;
     OS_ERR err = OS_ERR_NONE;
     
-    if( xDataUint8Changed() )
+    if(xDataUint8Changed())
     {
         DataBufUint8ChangedTimes++;
-        if(DataBufUint8ChangedTimes > UINT8_WRITE_INTV)
+        if(DataBufUint8ChangedTimes >= UINT8_WRITE_INTV)
         {
             EEPROM_Write(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufUint8ChangedTimes = 0;
+            
+            myprintf("xDataUint8Changed\n");
         } 
     }
-    if( xDataInt8Changed() )
+    if(xDataInt8Changed())
     {
         DataBufInt8ChangedTimes++;
-        if(DataBufInt8ChangedTimes > INT8_WRITE_INTV)
+        if(DataBufInt8ChangedTimes >= INT8_WRITE_INTV)
         {
             EEPROM_Write(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufInt8ChangedTimes = 0;
+            
+            myprintf("xDataInt8Changed\n");
         } 
     }
     
-    if( xDataUint16Changed() )
+    if(xDataUint16Changed())
     {
         DataBufUint16ChangedTimes++;
-        if(DataBufUint16ChangedTimes > UINT16_WRITE_INTV)
+        if(DataBufUint16ChangedTimes >= UINT16_WRITE_INTV)
         {
             EEPROM_Write(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufUint16ChangedTimes = 0;
+            
+            myprintf("xDataUint16Changed\n");
         }  
     }
-    if( xDataInt16Changed() )
+    if(xDataInt16Changed())
     {
         DataBufInt16ChangedTimes++;
-        if(DataBufInt16ChangedTimes > INT16_WRITE_INTV)
+        if(DataBufInt16ChangedTimes >= INT16_WRITE_INTV)
         {
             EEPROM_Write(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufInt16ChangedTimes = 0;
+            
+            myprintf("xDataInt16Changed\n");
         } 
     }
-    
-    if( xDataUint32Changed() )
+    if(xDataUint32Changed())
     {
         DataBufUint32ChangedTimes++;
-        if(DataBufUint32ChangedTimes > UINT32_WRITE_INTV)
+        if(DataBufUint32ChangedTimes >= UINT32_WRITE_INTV)
         {
             EEPROM_Write(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufUint32ChangedTimes = 0;
+            
+            myprintf("xDataInt16Changed\n");
         }     
     }
-    if( xDataInt32Changed() )
+    if(xDataInt32Changed())
     {
         DataBufInt32ChangedTimes++;
-        if(DataBufInt32ChangedTimes > INT32_WRITE_INTV)
+        if(DataBufInt32ChangedTimes >= INT32_WRITE_INTV)
         {
             EEPROM_Write(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufInt32ChangedTimes = 0;
+            
+            myprintf("xDataInt32Changed\n");
         } 
     }
-    
-    if( xDataRuntimeChanged() )
+    if(xDataRuntimeChanged())
     {
         DataBufRuntimeChangedTimes++;
-        if(DataBufRuntimeChangedTimes > RUNTIME_WRITE_INTV)
+        if(DataBufRuntimeChangedTimes >= RUNTIME_WRITE_INTV)
         {
             EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufRuntimeChangedTimes = 0;
+            
+            myprintf("xDataRuntimeChanged\n");
         } 
     }
-    
-    if( xDataE32Changed() )
+    if(xDataE32Changed())
     {
         DataBufE32ChangedTimes++;
-        if(DataBufE32ChangedTimes > E32_WRITE_INTV)
+        if(DataBufE32ChangedTimes >= E32_WRITE_INTV)
         {
             EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, RUNTIME_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufE32ChangedTimes = 0;
+            
+            myprintf("xDataE32Changed\n");
         } 
     }
 }
@@ -459,6 +474,28 @@ void vWriteEEPROMData(void)
 void vWriteEEPROMDataFirstTime(void)
 {
     OS_ERR err = OS_ERR_NONE;
+    uint16_t usIndex = 0;
+
+#if EEPROM_DATA_INIT > 0    //默认参数复位    
+
+    for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)  //运行时间复位
+    {
+        if(pDataBufRuntime[usIndex] != NULL)
+        {
+            *(uint32_t*)pDataBufRuntime[usIndex] = 0;
+            DataBufRuntime[usIndex] = 0;
+        }
+    }
+
+    for(usIndex=0; usIndex<DataBufE32Count; usIndex++)     //能耗复位
+    {
+        if(pDataBufE32[usIndex] != NULL)
+        {
+             *(uint32_t*)pDataBufE32[usIndex] = 0;
+             DataBufE32[usIndex] = 0;
+        }
+    } 
+#endif     
     
     EEPROM_Write(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
@@ -483,13 +520,13 @@ void vWriteEEPROMDataFirstTime(void)
 
     EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, RUNTIME_SAVE_SIZE);
     OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    
+    myprintf("vWriteEEPROMDataFirstTime\n");
 }
-
 
 /**********************************************************************
  * @brief  注册EEPROM数据
  *********************************************************************/
-
 BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
 {
     uint16_t usIndex = 0;
@@ -500,8 +537,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
     }
     switch(eDataType)
     {
-        case TYPE_UINT_8:
-            
+        case TYPE_UINT_8:    
             for(usIndex=0; usIndex<DataBufUint8Count; usIndex++)
             {
                 if(pDataBufUint8[usIndex] == (uint8_t*)pData)
@@ -512,6 +548,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufUint8Count < UINT8_SAVE_COUNT)
             {
                 pDataBufUint8[DataBufUint8Count] = (uint8_t*)pData;
+                DataBufUint8[DataBufUint8Count]  = *(uint8_t*)pData;
                 DataBufUint8Count++;
             }
             else
@@ -532,6 +569,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufInt8Count < INT8_SAVE_COUNT)
             {
                 pDataBufInt8[DataBufInt8Count] = (int8_t*)pData;
+                DataBufInt8[DataBufInt8Count]  = *(int8_t*)pData;
                 DataBufInt8Count++;
             }
             else
@@ -552,6 +590,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufUint16Count < UINT16_SAVE_COUNT)
             {
                 pDataBufUint16[DataBufUint16Count] = (uint16_t*)pData;
+                DataBufUint16[DataBufUint16Count]  = *(uint16_t*)pData;
                 DataBufUint16Count++;
             }
             else
@@ -572,6 +611,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufInt16Count < INT16_SAVE_COUNT)
             {
                 pDataBufInt16[DataBufInt16Count] = (int16_t*)pData;
+                DataBufInt16[DataBufInt16Count]  = *(int16_t*)pData;
                 DataBufInt16Count++;
             }
             else
@@ -592,6 +632,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufUint32Count < UINT32_SAVE_COUNT)
             {
                 pDataBufUint32[DataBufUint32Count] = (uint32_t*)pData;
+                DataBufUint32[DataBufUint32Count]  = *(uint32_t*)pData;
                 DataBufUint32Count++;
             }
             else
@@ -612,6 +653,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufInt32Count < INT32_SAVE_COUNT)
             {
                 pDataBufInt32[DataBufInt32Count] = (int32_t*)pData;
+                DataBufInt32[DataBufInt32Count]  = *(int32_t*)pData;
                 DataBufInt32Count++;
             }
             else
@@ -632,6 +674,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufRuntimeCount < RUNTIME_SAVE_COUNT)
             {
                 pDataBufRuntime[DataBufRuntimeCount] = (uint32_t*)pData;
+                DataBufRuntime[DataBufRuntimeCount]  = *(uint32_t*)pData;
                 DataBufRuntimeCount++;
             }
             else
@@ -652,6 +695,7 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
             if(DataBufE32Count < E32_SAVE_COUNT)
             {
                 pDataBufE32[DataBufE32Count] = (uint32_t*)pData;
+                DataBufE32[DataBufE32Count] = *(uint32_t*)pData;
                 DataBufE32Count++;
             }
             else
@@ -671,16 +715,28 @@ BOOL xRegistEEPROMData(eEEPROMDataType eDataType, void* pData)
 void vEEPROMDataTask(void * p_arg)
 {
     OS_ERR err = OS_ERR_NONE;
-    
     EEPROM_Init(); 
+
+#if EEPROM_USE_DEFAULT_DATA == 0    //不使用默认参数
+    
+#if EEPROM_DATA_INIT > 0    //默认参数复位
+    
+    vWriteEEPROMDataFirstTime();
+#else 
+    EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufFirstRunUint8, MODE_8_BIT, UINT8_SAVE_SIZE);   //上电
+    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    
+    EEPROMFirstRun = DataBufFirstRunUint8[DataBufUint8Count-1];  //特别注意一定要保证该变量位于最后位置 
+    if(EEPROMFirstRun == TRUE)       //首次上电,先同步默认参数
+    {
+        EEPROMFirstRun = FALSE;
+        DataBufUint8[DataBufUint8Count-1] = FALSE;
+        
+        vWriteEEPROMDataFirstTime();
+    }
+#endif 
     vReadEEPROMData();
-    
-//    if(EEPROMFirstRun == TRUE)//首次上电
-//    {
-//        EEPROMFirstRun = FALSE;
-//        vWriteEEPROMDataFirstTime();
-//    }
-    
+#endif    
     
     while(DEF_TRUE)
 	{

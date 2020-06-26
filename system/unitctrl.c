@@ -642,13 +642,13 @@ void vSystem_UnitErr(System* pt)
     for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n]; 
-        if(pModularRoof->xStopErrFlag == FALSE && pModularRoof->xCommErr == FALSE) //这个标志位不包含可恢复的故障。群控收到这个标志位就要下发关机命令
+        if(pModularRoof->xStopErrFlag == FALSE && pModularRoof->xCommErr == FALSE) 
         {
             ucUnitNum++;
             psUnit = pModularRoof; 
         }            
     }
-    if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //其中一台机组故障
+    if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //其中一台机组可用
     {
         if(pThis->ulFreAirSet_Vol > MODULAR_MAX_FRE_AIR_VOL)    //保证新风量
         {

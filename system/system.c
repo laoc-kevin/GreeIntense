@@ -98,16 +98,21 @@ void vSystem_EventPollTask(void *p_arg)
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
     sEventMsg*      psMsg           = NULL;
+    BMS*            psBMS           = NULL;
     
-    BMS* psBMS = BMS_Core();
+    while(xEEPROMDataIsReady() == FALSE)
+    {
+        OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
     psSystem = System_Core();
+    psBMS    = BMS_Core();
+    
+    BMS_InitDefaultData(psBMS);
     
     while(DEF_TRUE)
 	{ 
 begin:       
         psMsg = (sEventMsg*)OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msgSize, NULL, &err);
-//        (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);
-//        myprintf("**********************OSTaskQPend*********************\n");
         if(psMsg == NULL || err != OS_ERR_NONE)
         {
             continue;
@@ -161,7 +166,7 @@ begin:
             
             HANDLE(pModularRoof->usCO2PPMSelf, vSystem_UnitCO2PPM(psSystem))
         }
-        
+
         /***********************排风机事件响应***********************/
         for(n=0; n < EX_AIR_FAN_NUM; n++)  
         {
@@ -235,7 +240,6 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
             pModularRoof->Device.ulRunTime_S++;
             pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime_S / 3600;
         }
-        
     }
     /*********************排风风机运行时间*************************/
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
@@ -401,8 +405,7 @@ void vSystem_Init(System* pt)
     ucDevAddr =  pThis->psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
     
     vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
-    vSystem_RegistEEPROMData(pThis);
-
+    
 #if MB_MASTER_DTU_ENABLED  > 0   //GPRS模块功能支持    
     psDTU = DTU_new(psDTU);
     if(psDTU != NULL)
@@ -472,8 +475,7 @@ void vSystem_Init(System* pt)
             pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN, ucDevAddr++, n);
             pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
             
-            CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件
-                
+            CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件    
         }
     } 
 //    /*********************电表*************************/
@@ -483,13 +485,13 @@ void vSystem_Init(System* pt)
 //    pThis->pUnitMeter->init(pThis->pUnitMeter, pThis->psMBMasterInfo, ucDevAddr++);
 //    pThis->pExAirFanMeter->init(pThis->pExAirFanMeter, pThis->psMBMasterInfo, ucDevAddr++);    
     
-    
     (void)xSystem_CreatePollTask(pThis);
     CONNECT( &(BMS_Core()->sValChange), psSysEventPollTaskTCB);  // 绑定BMS变量变化事件
     
     vSystem_InitDefaultData(pThis);
-    vSystem_InitRuntimeTmr(pThis);
+    vSystem_RegistEEPROMData(pThis);
     
+    vSystem_InitRuntimeTmr(pThis);
     pThis->psBMS = (BMS*)BMS_Core();
     
     myprintf("vSystem_Init \n");   

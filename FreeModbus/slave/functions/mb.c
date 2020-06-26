@@ -367,7 +367,7 @@ eMBErrorCode eMBSlaveDisable( sMBSlaveInfo* psMBSlaveInfo )
  *********************************************************************/
 eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
 {
-    static UCHAR   *ucMBFrame;            //接收和发送报文数据缓存区
+    static UCHAR   *pucMBFrame;            //接收和发送报文数据缓存区
     static UCHAR    ucRcvAddress;         //modbus从机地址
     static UCHAR    ucFunctionCode;       //功能码
     static USHORT   usLength;             //报文长度
@@ -398,7 +398,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
         case EV_FRAME_RECEIVED:                    //接收到一帧数据，此事件发生
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0	
             /*CRC校验、提取地址、有效数据指针和有效数据长度*/
-            eStatus = peMBSlaveFrameReceiveCur(psMBSlaveInfo, &ucRcvAddress, &ucMBFrame, &usLength); /*ucRcvAddress 主站要读取的从站的地址，
+            eStatus = peMBSlaveFrameReceiveCur(psMBSlaveInfo, &ucRcvAddress, &pucMBFrame, &usLength); /*ucRcvAddress 主站要读取的从站的地址，
                                                                                                      ucMBFrame 指向PDU的头部，usLength PDU的长度*/    
 		    if(eStatus == MB_ENOERR)
             {
@@ -431,7 +431,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
         case EV_EXECUTE:	
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0	
            
-		    ucFunctionCode = *(ucMBFrame + MB_PDU_FUNC_OFF);              //提取功能码
+		    ucFunctionCode = *(pucMBFrame + MB_PDU_FUNC_OFF);              //提取功能码
             eException = MB_EX_ILLEGAL_FUNCTION;
 		
             for(i = 0; i < MB_FUNC_HANDLERS_MAX; i++)
@@ -443,7 +443,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
                 }
                 else if(xFuncHandlers[i].ucFunctionCode == ucFunctionCode)
                 {
-                    eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, ucMBFrame, &usLength); //该结构体将功能码和相应功能的处理函数捆绑在一起。 
+                    eException = xFuncHandlers[i].pxHandler(psMBSlaveInfo, pucMBFrame, &usLength); //该结构体将功能码和相应功能的处理函数捆绑在一起。 
                     break;                                                            
                 }
             }
@@ -454,11 +454,11 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
                 {
                     /*发生异常，建立一个错误报告帧*/
                     usLength = 0;
-                    *(ucMBFrame + (usLength++)) = (UCHAR)(ucFunctionCode | MB_FUNC_ERROR);    //响应发送数据帧的第二个字节，功能码最高位置1
-                    *(ucMBFrame + (usLength++)) = eException;                                 //响应发送数据帧的第三个字节为错误码标识
+                    *(pucMBFrame + (usLength++)) = (UCHAR)(ucFunctionCode | MB_FUNC_ERROR);    //响应发送数据帧的第二个字节，功能码最高位置1
+                    *(pucMBFrame + (usLength++)) = eException;                                 //响应发送数据帧的第三个字节为错误码标识
                 }
                  /* eMBRTUSend()进行必要的发送预设后，禁用RX，使能TX。发送操作由USART_DATA（UDR空）中断实现。*/			
-                eStatus = peMBSlaveFrameSendCur(psMBSlaveInfo, *(psMBCommInfo->pcSlaveAddr), ucMBFrame, usLength); //modbus从机响应函数,发送响应给主机
+                eStatus = peMBSlaveFrameSendCur(psMBSlaveInfo, *(psMBCommInfo->pcSlaveAddr), pucMBFrame, usLength); //modbus从机响应函数,发送响应给主机
             }
 #endif    
 

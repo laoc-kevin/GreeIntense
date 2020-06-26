@@ -16,7 +16,6 @@ void vSystem_SwitchOpen(System* pt)
     System* pThis = (System*)pt;
 
     vSystem_OpenUnits(pThis);   
-    pThis->eSwitchCmd = CMD_OPEN; 
 }
 
 /*系统关闭*/
@@ -30,8 +29,6 @@ void vSystem_SwitchClose(System* pt)
     
     vSystem_CloseExAirFans(pThis);
     vSystem_CloseUnits(pThis);
-    
-    pThis->eSwitchCmd = CMD_CLOSE; 
 }
 
 /*切换系统模式*/
@@ -111,7 +108,7 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
             pModularRoof->usHeatTempSet = usTempSet;
         }
         vSystem_ChangeUnitRunningMode(pThis); 
-     }
+    }
 }
 
 /*设定系统目标新风量*/
@@ -272,13 +269,22 @@ void vSystem_DeviceRunningState(System* pt)
     
     ModularRoof* pModularRoof = NULL;
     ExAirFan*    pExAirFan    = NULL;
+    BMS*         psBMS        = BMS_Core();
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
+#endif  
     
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
         if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
         {
-            switch(pThis->eRunningMode)
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eSystemMode = MODE_MANUAL;
+                psBMS->eSystemMode = MODE_MANUAL;
+            }   
+            switch(pModularRoof->eRunningMode)
             {
                 case RUN_MODE_COOL:
                     pThis->eSystemState = STATE_COOL;
@@ -302,11 +308,16 @@ void vSystem_DeviceRunningState(System* pt)
         pExAirFan = pThis->psExAirFanList[n];
         if(pExAirFan->Device.eRunningState == STATE_RUN)
         {
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eSystemMode = MODE_MANUAL;
+                psBMS->eSystemMode = MODE_MANUAL;
+            } 
             pThis->eSystemState = STATE_EX_FAN;
             return;
         }   
     }
-    pThis->eSystemState = STATE_CLOSED;
+    pThis->eSystemState = STATE_CLOSED;    
 }
 
 /*注册声光报警启停接口*/

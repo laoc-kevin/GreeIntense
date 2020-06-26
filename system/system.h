@@ -26,7 +26,6 @@ CLASS(System)   /*系统*/
     eSystemMode       eSystemMode;              //系统模式
     eSystemState      eSystemState;             //系统状态
     eRunningMode      eRunningMode;             //运行模式                                            
-    eSwitchCmd        eSwitchCmd;               //启停命令 
                     
     int16_t           sChickenGrowDays;         //鸡生长周期天数
                       
@@ -122,6 +121,7 @@ CLASS(System)   /*系统*/
     BOOL              xUnitErrFlag;             //机组总故障标志
     BOOL              xExFanErrFlag;            //排风机总故障标志
     BOOL              xAlarmEnable;             //声光报警使能
+    BOOL              xAlarmClean;              //声光报警清除
     BOOL              xCO2SenErr;               //CO2传感器故障
     
     BOOL              xTempHumiSenOutErr;       //室外温湿度传感器故障

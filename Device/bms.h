@@ -63,6 +63,7 @@ CLASS(BMS)
     void   (*init)(BMS* pt);
 };
 
-BMS* BMS_Core();   //获取全局唯一对象，单例设计模式
-
+BMS* BMS_Core(void);   //获取全局唯一对象，单例设计模式
+void BMS_InitDefaultData(BMS* pt);
+    
 #endif

@@ -682,48 +682,42 @@ void vBMS_MonitorRegist(BMS* pt)
     MONITOR(&pThis->usExAirFanRated_Vol_L, uint16,&pThis->sValChange)
     
     MONITOR(&pThis->eExAirFanType, uint8, &pThis->sValChange)
-    MONITOR(&pThis->xAlarmClean, uint8, &pThis->sValChange)
-    MONITOR(&pThis->xAlarmEnable, uint8, &pThis->sValChange)
+    MONITOR(&pThis->xAlarmClean,   uint8, &pThis->sValChange)
+    MONITOR(&pThis->xAlarmEnable,  uint8, &pThis->sValChange)
 }
 
 /*BMS数据默认值初始化*/
 void vBMS_InitDefaultData(BMS* pt)
 {
     BMS*    pThis   = (BMS*)pt;
+    System* pSystem = (System*)System_Core();
     
-    DATA_INIT(pThis->eSystemMode,  MODE_CLOSE)
-    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
+    DATA_INIT(pThis->eSystemMode,  pSystem->eSystemMode)
+    DATA_INIT(pThis->eRunningMode, pSystem->eRunningMode)
     
-    DATA_INIT(pThis->usHumidityMin,     55)
-    DATA_INIT(pThis->usHumidityMax,     65) 
-    DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
-    DATA_INIT(pThis->usCO2AdjustDeviat, 270)
+    DATA_INIT(pThis->usHumidityMin,     pSystem->usHumidityMin)
+    DATA_INIT(pThis->usHumidityMax,     pSystem->usHumidityMax) 
+    DATA_INIT(pThis->usCO2AdjustThr_V,  pSystem->usCO2AdjustThr_V)
+    DATA_INIT(pThis->usCO2AdjustDeviat, pSystem->usCO2AdjustDeviat)
 
-    DATA_INIT(pThis->usTempSet,           260)
-    DATA_INIT(pThis->usFreAirSet_Vol_H,     0)
-    DATA_INIT(pThis->usFreAirSet_Vol_L, 60000)
+    DATA_INIT(pThis->usTempSet,           pSystem->usTempSet)
+    DATA_INIT(pThis->usFreAirSet_Vol_H,   pSystem->ulFreAirSet_Vol/65535)
+    DATA_INIT(pThis->usFreAirSet_Vol_L,   pSystem->ulFreAirSet_Vol%35535)
     
-    DATA_INIT(pThis->usExAirFanRated_Vol_H,  0)
-    DATA_INIT(pThis->usExAirFanRated_Vol_L,  36000)
-    DATA_INIT(pThis->usExAirFanFreq,         MIN_FAN_FREQ)
-    DATA_INIT(pThis->usExAirFanMinFreq,      MIN_FAN_FREQ)
-    DATA_INIT(pThis->usExAirFanMaxFreq,      MAX_FAN_FREQ) 
-    DATA_INIT(pThis->eExAirFanType,           1)
+    DATA_INIT(pThis->usExAirFanRated_Vol_H,  pSystem->ulExAirFanRated_Vol/65535)
+    DATA_INIT(pThis->usExAirFanRated_Vol_L,  pSystem->ulExAirFanRated_Vol%65535)
+    DATA_INIT(pThis->usExAirFanFreq,         pSystem->usExAirFanFreq)
+    DATA_INIT(pThis->usExAirFanMinFreq,      pSystem->usExAirFanMinFreq)
+    DATA_INIT(pThis->usExAirFanMaxFreq,      pSystem->usExAirFanMaxFreq) 
+    DATA_INIT(pThis->eExAirFanType,          pSystem->eExAirFanType)
     
-    DATA_INIT(pThis->ucExAirCoolRatio,    90)
-    DATA_INIT(pThis->ucExAirHeatRatio,    90)
-    DATA_INIT(pThis->eExAirFanType,       TYPE_CONSTANT_VARIABLE)
-    DATA_INIT(pThis->xAlarmClean,          0)
+    DATA_INIT(pThis->ucExAirCoolRatio,    pSystem->ucExAirCoolRatio)
+    DATA_INIT(pThis->ucExAirHeatRatio,    pSystem->ucExAirHeatRatio)
+    DATA_INIT(pThis->eExAirFanType,       pSystem->eExAirFanType)
+    DATA_INIT(pThis->xAlarmEnable,        pSystem->xAlarmEnable)
     
 //    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
 }
-
-/*BMS数据默认值初始化*/
-void vBMS_SetValue(BMS* pt, void* pData, int32_t lValue)
-{
-    
-}
-
 
 void vBMS_Init(BMS* pt)
 {
@@ -736,10 +730,10 @@ void vBMS_Init(BMS* pt)
 }
 
 CTOR(BMS)   //BMS构造函数
-  
+
 END_CTOR
 
-BMS* BMS_Core()
+BMS* BMS_Core(void)
 {
     System* pSystem = NULL;
     if(psBMS == NULL)
@@ -755,3 +749,8 @@ BMS* BMS_Core()
     return psBMS;
 }
 
+void BMS_InitDefaultData(BMS* pt)
+{
+    BMS* pThis = (BMS*)pt;  
+    vBMS_InitDefaultData(pThis);
+}
