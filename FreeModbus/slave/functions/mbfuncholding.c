@@ -44,8 +44,6 @@
 #include "mbdict.h"
 #include "mbmap.h"
 
-#include "system.h"
-
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 /* ----------------------- Defines ------------------------------------------*/

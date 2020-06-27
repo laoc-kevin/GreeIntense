@@ -7,8 +7,6 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
-#include "system.h"
-
 #define MB_SCAN_SLAVE_DELAY_MS             50    //主栈扫描从设备
 #define MB_SCAN_SLAVE_INTERVAL_MS          50
 
@@ -724,7 +722,7 @@ eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSn
     eMBMasterReqErrCode eStatus = MB_MRE_NO_ERR;
     USHORT usMBBitData = 0;
     
-     System* pSystem = (System*)System_Core();
+//     System* pSystem = (System*)System_Core();
     
     if(usNCoils == 1)      //写单个线圈
     {

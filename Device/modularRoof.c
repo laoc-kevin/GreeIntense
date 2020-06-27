@@ -3,7 +3,7 @@
 #include "md_timer.h"
 
 #define MODULAR_ROOF_PROTOCOL_TYPE_ID   0
-#define MODULAR_HEART_BEAT_PERIOD_S     20
+#define MODULAR_HEART_BEAT_PERIOD_S     10
 
 #define MODULAR_TIME_OUT_S              5
 #define MODULAR_TIME_OUT_DELAY_S        20
@@ -414,8 +414,6 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
             pThis->psModularList[n] = psModular;        //模块列表       
         }       
     } 
-
-    
     vModularRoof_RegistMonitor(pThis);      //注册监控数据
    
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
@@ -431,12 +429,12 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
 
 CTOR(ModularRoof)   //屋顶机构造函数
     SUPER_CTOR(Device);
-    FUNCTION_SETTING(init,                       vModularRoof_Init);
+    FUNCTION_SETTING(init,                   vModularRoof_Init);
+                                             
+    FUNCTION_SETTING(IDevSwitch.switchOpen,  vModularRoof_SwitchOpen);
+    FUNCTION_SETTING(IDevSwitch.switchClose, vModularRoof_SwitchClose);
 
-    FUNCTION_SETTING(IDevSwitch.switchOpen,      vModularRoof_SwitchOpen);
-    FUNCTION_SETTING(IDevSwitch.switchClose,     vModularRoof_SwitchClose);
-
-    FUNCTION_SETTING(setRunningMode, vModularRoof_SetRunningMode);
+    FUNCTION_SETTING(setRunningMode,         vModularRoof_SetRunningMode);
 END_CTOR
 
 
