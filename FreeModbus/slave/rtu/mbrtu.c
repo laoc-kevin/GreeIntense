@@ -357,7 +357,7 @@ BOOL xMBSlaveRTUTransmitFSM( sMBSlaveInfo* psMBSlaveInfo )
         /* check if we are finished. */
         if(psMBSlaveInfo->usSndBufferCount != 0)
         {
-            xMBSlavePortSerialPutByte( psMBPort, (CHAR)(*psMBSlaveInfo->pucSndBufferCur) );         //发送数据
+            xMBSlavePortSerialPutByte(psMBPort, (CHAR)(*psMBSlaveInfo->pucSndBufferCur));         //发送数据
             psMBSlaveInfo->pucSndBufferCur++;  /* next byte in sendbuffer. */
             psMBSlaveInfo->usSndBufferCount--;
         }
@@ -399,16 +399,17 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
          * a new frame was received. */
     case STATE_RX_RCV:
 		//防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据,Modbus RTU通讯查询帧最短至少8byte
-	    if(psMBSlaveInfo->usRcvBufferPos >= 5)   
+	    if(psMBSlaveInfo->usRcvBufferPos >= 8)   
 		{
 	        xNeedPoll = xMBSlavePortEventPost(psMBPort,EV_FRAME_RECEIVED); //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
 //			myprintf("EV_FRAME_RECEIVED  %d******************\n", psMBSlaveInfo->usRcvBufferPos);
 		}
 	    else
 		{
-//			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
+			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
 			psMBSlaveInfo->usRcvBufferPos = 0;
 			psMBSlaveInfo->eRcvState = STATE_RX_RCV;
+            xNeedPoll = FALSE;
 //			vMBPortTimersEnable();
 //			xRcvStateNeedChange = FALSE;
 		}
@@ -424,7 +425,6 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
                       (eRcvState == STATE_RX_ERROR) );
 	    break;
     }
-	
 	vMBSlavePortTimersDisable(psMBPort);        //当接收到一帧数据后，禁止3.5T定时器，直到接受下一帧数据开始，开始计时
     psMBSlaveInfo->eRcvState = STATE_RX_IDLE;   //处理完一帧数据，接收器状态为空闲
 

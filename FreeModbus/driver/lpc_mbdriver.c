@@ -1,4 +1,3 @@
-
 #include <bsp_int.h>
 #include <lib_def.h>
 #include <os.h>
@@ -8,10 +7,6 @@
 #include "lpc_mbdriver.h"
 #include "lpc_Pinsel.h"
 
-#include "md_output.h"
-#include "md_led.h"
-
-#include "Port.h"
 #include <LPC407x_8x_177x_8x.h>
 
 /**********************************************************************
@@ -70,7 +65,7 @@ void MB_UartInit(const sUART_Def *Uart)
 	UART_Init(Uart->ID, &UARTCfg);         					//串口初始化
 	UART_FIFOConfig(Uart->ID, &UARTFIFOCfg);  				//FIFO控制寄存器设置
 	UART_IntConfig(Uart->ID, UART_INTCFG_RBR, ENABLE); 		//串口中断设置   接收中断
-	BSP_IntEn (UartIntID);                                 	//外部中断使能
+	BSP_IntEn(UartIntID);                                 	//外部中断使能
 //  NVIC_SetPriority(UART1_IRQn, ((0x01<<3)|0x01));
 //	NVIC_EnableIRQ(UART1_IRQn);
 	UART_TxCmd(Uart->ID, ENABLE);                           //UART发送使能
@@ -86,13 +81,14 @@ void MB_UartInit(const sUART_Def *Uart)
 void MB_SendOrRecive(const sUART_Def *Uart, eUART_EN mode)
 {
 	GPIO_SetDir(Uart->DE->Port, 1<<Uart->DE->Pin , 1);
+   
 	if(mode == UART_TX_EN)
 	{
-		 GPIO_SetValue(Uart->DE->Port, 1<<Uart->DE->Pin);
+		GPIO_SetValue(Uart->DE->Port, 1<<Uart->DE->Pin);
 	}
 	else if(mode == UART_RX_EN)
 	{
-		 GPIO_ClearValue(Uart->DE->Port, 1<<Uart->DE->Pin);
+		GPIO_ClearValue(Uart->DE->Port, 1<<Uart->DE->Pin);
 	}
 }
 
@@ -178,10 +174,10 @@ static const UCHAR aucCRCLo[] = {
 
 uint16_t usMBCRC16( UCHAR * pucFrame, USHORT usLen )
 {
-    UCHAR           ucCRCHi = 0xFF;
-    UCHAR           ucCRCLo = 0xFF;
+    UCHAR ucCRCHi = 0xFF;
+    UCHAR ucCRCLo = 0xFF;
 	
-    int             iIndex;
+    int   iIndex;
 
     while( usLen-- )
     {
@@ -192,18 +188,15 @@ uint16_t usMBCRC16( UCHAR * pucFrame, USHORT usLen )
     return ( USHORT )( ucCRCHi << 8 | ucCRCLo );
 }
 
-void
-EnterCriticalSection( void )
+void EnterCriticalSection( void )
 {
 //	__SETPRIMASK();
 	__disable_irq();
 
 }
 
-void
-ExitCriticalSection( void )
+void ExitCriticalSection( void )
 {
 //	__RESETPRIMASK();
 	__enable_irq();
 }
-

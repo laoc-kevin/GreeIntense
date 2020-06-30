@@ -133,8 +133,11 @@ CLASS(System)   /*系统*/
     BOOL              xHumiSenOutErr;           //室外湿度传感器故障
     BOOL              xHumiSenInErr;            //室内湿度传感器故障
     
-    sDigital_IO       sAlarm_DO;                //声光报警DO                                            
+    sDigital_IO       sAlarm_DO;                //声光报警DO
+    
+#if MB_MASTER_DTU_ENABLED > 0     
     DTU*              psDTU;                    //DTU模块
+#endif
     BMS*              psBMS;                    //BMS接口  
       
     Meter*            pUnitMeter;               //机组电表  
@@ -154,7 +157,8 @@ CLASS(System)   /*系统*/
     void   (*init)( System* pt);
 };
 
-void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize);
+void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, 
+                 CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize);
 
 System* System_Core();    //获取全局唯一对象，单例设计模式
 

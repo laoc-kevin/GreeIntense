@@ -108,7 +108,7 @@ void vSystem_PollTimeCallBack(void* p_tmr, void* p_arg)
     {
         return;
     }
-    myprintf("********************vSystem_PollTask***********************\n");
+//    myprintf("********************vSystem_PollTask***********************\n");
     vSystem_ChangeUnitRunningMode(pThis);           
 }
 
@@ -365,9 +365,9 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     }
     LastAmbientIn_T = pThis->sAmbientIn_T;
     
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_ChangeUnitRunningMode %d\n", pThis->eRunningMode);
-#endif           
+//#if DEBUG_ENABLE > 0
+//    myprintf("vSystem_ChangeUnitRunningMode %d\n", pThis->eRunningMode);
+//#endif           
     //（1）系统送风模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_FAN)
     {
@@ -378,6 +378,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
             myprintf("xTimerRegist sModeChangeTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            return;
             
         }
         //室内温度<室内目标温度- T2（默认1.5℃），持续满足t2(默认5min)时间
@@ -387,6 +388,7 @@ void vSystem_ChangeUnitRunningMode(System* pt)
             myprintf("xTimerRegist sModeChangeTmr_2 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            return;
         }
     }
     //（2）系统湿膜模式运行，按照以下切换

@@ -2,7 +2,7 @@
 #include "md_timer.h"
 
 #define TMR_TICK_PER_SECOND                 OS_CFG_TMR_TASK_RATE_HZ
-#define SENSOR_TIME_OUT_S                   1
+#define SENSOR_TIME_OUT_S                   2
 #define SENSOR_TIME_OUT_DELAY_S             20
 
 #define SENSOR_CO2_PROTOCOL_TYPE_ID         0
@@ -120,22 +120,21 @@ void vCO2Sensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
     //对传感器参数进行采样
     if(*pcSampleIndex < SENSOR_SAMPLE_NUM)
     {
-        psCO2Sen->usTotalCO2PPM = psCO2Sen->usTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
+        psCO2Sen->ulTotalCO2PPM = psCO2Sen->ulTotalCO2PPM - psCO2Sen->usSampleCO2PPM[*pcSampleIndex];
         psCO2Sen->usSampleCO2PPM[*pcSampleIndex]  = psCO2Sen->usCO2PPM;
-        psCO2Sen->usTotalCO2PPM  = psCO2Sen->usTotalCO2PPM + psCO2Sen->usCO2PPM;
+        psCO2Sen->ulTotalCO2PPM  = psCO2Sen->ulTotalCO2PPM + psCO2Sen->usCO2PPM;
      
         (*pcSampleIndex)++;
     }
     else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
     {
-        psCO2Sen->usAvgCO2PPM  = psCO2Sen->usTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
+        psCO2Sen->usAvgCO2PPM  = psCO2Sen->ulTotalCO2PPM  / SENSOR_SAMPLE_NUM;   //取平均值
         *pcSampleIndex = 0;
     } 
        
 #if DEBUG_ENABLE > 0
 //    myprintf("vCO2Sensor_TimeoutInd usTotalCO2PPM %d  usAvgCO2PPM %d\n", psCO2Sen->usTotalCO2PPM , psCO2Sen->usAvgCO2PPM);
 #endif 
-
 }
 
 /* CO2传感器数据监控*/
@@ -255,28 +254,27 @@ void vTempHumiSensor_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断�
     //对传感器参数进行采样
     if(*pcSampleIndex< SENSOR_SAMPLE_NUM)
     {
-        pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp - pTempHumiSen->sSampleTemp[*pcSampleIndex];
+        pTempHumiSen->lTotalTemp  = pTempHumiSen->lTotalTemp - pTempHumiSen->sSampleTemp[*pcSampleIndex];
         pTempHumiSen->sSampleTemp[*pcSampleIndex]  = pTempHumiSen->sTemp;
-        pTempHumiSen->sTotalTemp  = pTempHumiSen->sTotalTemp + pTempHumiSen->sTemp;
+        pTempHumiSen->lTotalTemp  = pTempHumiSen->lTotalTemp + pTempHumiSen->sTemp;
         (*pcSampleIndex)++;
-       
     }
     else if(*pcSampleIndex == SENSOR_SAMPLE_NUM)
     {
-        pTempHumiSen->sAvgTemp = pTempHumiSen->sTotalTemp / SENSOR_SAMPLE_NUM;  //取平均值
+        pTempHumiSen->sAvgTemp = pTempHumiSen->lTotalTemp / SENSOR_SAMPLE_NUM;  //取平均值
         *pcSampleIndex = 0;
     }
     
     if(*pcSampleIndex_2 < SENSOR_SAMPLE_NUM)
     {
-        pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi - pTempHumiSen->usSampleHumi[*pcSampleIndex_2];
+        pTempHumiSen->ulTotalHumi = pTempHumiSen->ulTotalHumi - pTempHumiSen->usSampleHumi[*pcSampleIndex_2];
         pTempHumiSen->usSampleHumi[*pcSampleIndex_2] = pTempHumiSen->usHumi;
-        pTempHumiSen->usTotalHumi = pTempHumiSen->usTotalHumi + pTempHumiSen->usHumi;
+        pTempHumiSen->ulTotalHumi = pTempHumiSen->ulTotalHumi + pTempHumiSen->usHumi;
         (*pcSampleIndex_2)++;
     }
     else if(*pcSampleIndex_2 == SENSOR_SAMPLE_NUM)
     {
-        pTempHumiSen->usAvgHumi = pTempHumiSen->usTotalHumi / SENSOR_SAMPLE_NUM;
+        pTempHumiSen->usAvgHumi = pTempHumiSen->ulTotalHumi / SENSOR_SAMPLE_NUM;
         *pcSampleIndex_2 = 0;
     }   
     

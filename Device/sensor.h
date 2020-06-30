@@ -58,8 +58,8 @@ CLASS(CO2Sensor)          /*CO2传感器*/
     uint16_t     usMinPPM;        //量程下限 = 实际值*10
     uint16_t     usCO2PPM;        //实际值   
     uint16_t     usAvgCO2PPM;     //平均值
-    uint16_t     usTotalCO2PPM;   //所有采样值之和
-    BOOL         xCO2SenErr;       //CO2故障
+    uint32_t     ulTotalCO2PPM;   //所有采样值之和
+    BOOL         xCO2SenErr;      //CO2故障
     
     uint16_t     usSampleCO2PPM[SENSOR_SAMPLE_NUM];    
 };
@@ -72,15 +72,15 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
     int16_t      sMinTemp;     //量程下限 = 实际值*10
     int16_t      sTemp;        //实际值  
     int16_t      sAvgTemp;     //平均值
-    int16_t      sTotalTemp;   //所有采样值之和
-    BOOL         xTempSenErr;   //温度故障
+    int32_t      lTotalTemp;   //所有采样值之和
+    BOOL         xTempSenErr;  //温度故障
      
-    uint16_t     usMaxHumi;        //量程上限 = 实际值*10
-    uint16_t     usMinHumi;        //量程下限 = 实际值*10
-    uint16_t     usHumi;           //实际值  
-    uint16_t     usAvgHumi;        //平均值
-    uint16_t     usTotalHumi;      //所有采样值之和
-    BOOL         xHumiSenErr;       //湿度故障
+    uint16_t     usMaxHumi;    //量程上限 = 实际值*10
+    uint16_t     usMinHumi;    //量程下限 = 实际值*10
+    uint16_t     usHumi;       //实际值  
+    uint16_t     usAvgHumi;    //平均值
+    uint32_t     ulTotalHumi;  //所有采样值之和
+    BOOL         xHumiSenErr;  //湿度故障
     
     int16_t      sSampleTemp[SENSOR_SAMPLE_NUM];
     uint16_t     usSampleHumi[SENSOR_SAMPLE_NUM];

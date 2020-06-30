@@ -379,7 +379,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
-//	CPU_SR_ALLOC();
+	CPU_SR_ALLOC();
 
     /* Check if the protocol stack is ready. */
     if(psMBSlaveInfo->eMBState != STATE_ENABLED)      //检查协议栈是否使能
@@ -642,18 +642,14 @@ void vMBSlavePollTask(void *p_arg)
 	eMBErrorCode  eStatus       = MB_ENOERR;
     sMBSlaveInfo* psMBSlaveInfo = (sMBSlaveInfo*)p_arg;; 
     
-	eStatus = eMBSlaveInit(psMBSlaveInfo);
-	if(eStatus == MB_ENOERR)
+	if(eMBSlaveInit(psMBSlaveInfo) == MB_ENOERR)
 	{
-		eStatus = eMBSlaveEnable(psMBSlaveInfo);
-		if(eStatus == MB_ENOERR)
+		if(eMBSlaveEnable(psMBSlaveInfo) == MB_ENOERR)
 		{  
 			while (DEF_TRUE)
 			{	
-                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-				(void)eMBSlavePoll(psMBSlaveInfo);
-                
-//                myprintf("pSystem->ucExAirCoolRatio %d\n", pSystem->ucExAirCoolRatio);              
+//                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+				(void)eMBSlavePoll(psMBSlaveInfo);             
 			}
 		}			
 	}	

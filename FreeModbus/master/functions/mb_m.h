@@ -146,7 +146,7 @@ typedef struct                 /* master poll task information */
     
 }sMBMasterTask;
 
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+#if MB_MASTER_DTU_ENABLED > 0     //GPRS模块功能支持
 typedef  void (*pvDTUScanDev)(void* p_arg);   
 #endif 
 
@@ -157,12 +157,9 @@ typedef struct sMBMasterInfo  /* master information */
 	sMBMasterTask        sMBTask;                   //主栈状态机任务信息
     
     USHORT  RegHoldValList[MB_PDU_SIZE_MAX];
-    USHORT* pRegHoldPreValList[MB_PDU_SIZE_MAX];
-    
     UCHAR   BitCoilByteValList[MB_PDU_SIZE_MAX];
-    UCHAR*  pBitCoilPreValList[MB_PDU_SIZE_MAX * 8];
-    
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+ 
+#if MB_MASTER_DTU_ENABLED > 0     //GPRS模块功能支持
     BOOL                bDTUEnable;    
     pvDTUScanDev        pvDTUScanDevCallBack; ;        //DTU模块轮询回调
 #endif    
@@ -214,10 +211,7 @@ typedef struct                 /* 主栈节点配置信息 */
     OS_PRIO     ucMasterPollPrio;
     OS_PRIO     ucMasterScanPrio;
   
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持    
     BOOL        bDTUEnable;
-#endif
-   
 }sMBMasterNodeInfo;
 
 

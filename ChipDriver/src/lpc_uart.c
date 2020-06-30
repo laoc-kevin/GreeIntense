@@ -513,14 +513,14 @@ void UART_Init(UART_ID_Type UartID, UART_CFG_Type *UART_ConfigStruct)
 
 void UART_FIFOReset(UART_ID_Type UartID, uint8_t FIFO_ConfigStruct)
 {
-	
+	LPC_UART_TypeDef *UARTx = NULL;
 	switch (UartID)
 	{
 		case UART_0:
 		case UART_2:
 		case UART_3:
 		{
-			LPC_UART_TypeDef *UARTx = uart_get_pointer(UartID);
+			UARTx = uart_get_pointer(UartID);
 			UARTx->FCR = FIFO_ConfigStruct & UART_FCR_BITMASK;
 		}
 		break;

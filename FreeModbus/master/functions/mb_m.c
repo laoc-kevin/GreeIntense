@@ -321,7 +321,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
     }
     /* Check if there is a event available. If not return control to caller.
      * Otherwise we will handle the event. */
-    if( xMBMasterPortEventGet( psMBPort, &eEvent ) == TRUE )
+    if( xMBMasterPortEventGet(psMBPort, &eEvent) == TRUE )
     {
 //        myprintf("eMBMasterPoll\n");
         switch (eEvent)
@@ -499,9 +499,8 @@ BOOL xMBMasterRegistNode(sMBMasterInfo* psMBMasterInfo, sMBMasterNodeInfo* psMas
             psMBTask->ucMasterHeartBeatPrio = psMasterNode->ucMasterHeartBeatPrio;
 #endif	 
         }
-        
+#if MB_MASTER_DTU_ENABLED > 0         
         /******************************GPRS模块功能支持****************************/
-#ifdef MB_MASTER_DTU_ENABLED    
         psMBMasterInfo->bDTUEnable = psMasterNode->bDTUEnable;
 #endif   
         /*******************************创建主栈状态机任务*************************/
@@ -593,12 +592,9 @@ void vMBMasterPollTask(void *p_arg)
 	eMBErrorCode  eStatus = MB_ENOERR;
 	sMBMasterInfo* psMBMasterInfo = (sMBMasterInfo*)p_arg;
 	
-	eStatus = eMBMasterInit(psMBMasterInfo);
-	
-	if(eStatus == MB_ENOERR)
+	if(eMBMasterInit(psMBMasterInfo) == MB_ENOERR)
 	{
-		eStatus = eMBMasterEnable(psMBMasterInfo);
-		if(eStatus == MB_ENOERR)
+		if(eMBMasterEnable(psMBMasterInfo) == MB_ENOERR)
 		{
 			while (DEF_TRUE)
 			{	

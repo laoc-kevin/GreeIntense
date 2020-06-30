@@ -3,7 +3,7 @@
 
 #include "mbconfig.h"
 
-#ifdef MB_MASTER_DTU_ENABLED     //GPRS模块功能支持
+#if MB_MASTER_DTU_ENABLED > 0      //GPRS模块功能支持
 
 #include "device.h"
 #include "mb_m.h"
@@ -25,10 +25,8 @@ CLASS(DTU)   /*DTU模块*/
     sMBSlaveDevCommData sDevDataDTU200;    //DTU200数据域
     
     BOOL (*init)(DTU* pt, sMBMasterInfo* psMBMasterInfo);
-    
     void (*scanDev)(void* pt);
 };
-
 
 #endif
 

@@ -55,7 +55,7 @@ sMBMasterNodeInfo MBMasterNode = { MB_RTU, &MBMasterUart, "UART0",              
                                    MB_MASTER_MIN_DEV_ADDR, MB_MASTER_MAX_DEV_ADDR,
                                    MB_DEFAULT_MASTER_HEART_BEAT_TASK_PRIO,
                                    MB_DEFAULT_MASTER_POLL_TASK_PRIO, MB_DEFAULT_MASTER_SCAN_TASK_PRIO, 
-                                   TRUE
+                                   FALSE
                                  };
 
 sMBSlaveNodeInfo  MBSlaveNode = {MB_RTU, &MBSlaveUart, "UART1", NULL, MB_DEFAULT_SLAVE_POLL_TASK_PRIO}; /* 从栈配置信息 */

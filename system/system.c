@@ -20,7 +20,8 @@
 #define MODE_CHANGE_PERIOD       3
 #define MODE_ADJUST_TEMP         15
 
-#define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) ) {p_arg2; myprintf("**********************HANDLE*********************\n");goto begin;}
+#define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) )\
+         {p_arg2; myprintf("**********************HANDLE*********************\n");goto begin;}
 
 System*  psSystem = NULL;
 System   SystemCore;
@@ -61,7 +62,8 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
         pThis->pExAirFanVariate = NULL;
     }  
 #if DEBUG_ENABLE > 0        
-    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
+    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  
+             pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
 #endif           
 }
 
@@ -71,16 +73,15 @@ void vSystem_PollTask(void *p_arg)
     OS_ERR err = OS_ERR_NONE;
     psSystem = System_Core();
     
-//    while (DEF_TRUE)
-//    {
-//        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-
+    while (DEF_TRUE)
+    {
+        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
         if(psSystem->eSystemState != STATE_CLOSED)
         {
-            myprintf("********************vSystem_PollTask***********************\n");
+//            myprintf("********************vSystem_PollTask***********************\n");
             vSystem_ChangeUnitRunningMode(psSystem);
         }            
-//    }           
+    }           
 }
 
 /*系统内部消息轮询*/
@@ -108,6 +109,14 @@ void vSystem_EventPollTask(void *p_arg)
     psBMS    = BMS_Core();
     
     BMS_InitDefaultData(psBMS);
+    
+#if DEBUG_ENABLE > 0     
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {
+        pExAirFan =  pThis->psExAirFanList[n];
+        myprintf("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
+    }
+#endif 
     
     while(DEF_TRUE)
 	{ 
@@ -217,9 +226,8 @@ BOOL xSystem_CreatePollTask(System* pt)
     OS_ERR    err = OS_ERR_NONE;
     System* pThis = (System*)pt;
 
-    err = eTaskCreate(psSysEventPollTaskTCB, vSystem_EventPollTask, pThis, SysEventPollTaskPrio, psSysEventPollTaskStk, SysEventPollTaskStkSize);
-//    err = eTaskCreate(psSysPollTaskTCB, vSystem_PollTask, pThis, SysPollTaskPrio, psSysPollTaskStk,  SysPollTaskStkSize);
-    
+    err = eTaskCreate(psSysEventPollTaskTCB, vSystem_EventPollTask, pThis, SysEventPollTaskPrio, 
+                      psSysEventPollTaskStk, SysEventPollTaskStkSize);   
     return (err == OS_ERR_NONE);              
 }
 
@@ -240,6 +248,10 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
             pModularRoof->Device.ulRunTime_S++;
             pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime_S / 3600;
         }
+        if(pModularRoof->Device.ulRunTime_S == UINT32_MAX)
+        {
+            pModularRoof->Device.ulRunTime_S = 0;
+        }
     }
     /*********************排风风机运行时间*************************/
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
@@ -249,7 +261,11 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
         {
             pExAirFan->Device.ulRunTime_S++;
             pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S / 3600;
-        }   
+        }
+        if(pExAirFan->Device.ulRunTime_S == UINT32_MAX)
+        {
+            pExAirFan->Device.ulRunTime_S = 0;
+        }        
     }
 }
     
@@ -395,7 +411,10 @@ void vSystem_Init(System* pt)
     ExAirFan*       pExAirFan       = NULL;
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
+    
+#if MB_MASTER_DTU_ENABLED > 0 
     DTU*            psDTU           = NULL;
+#endif 
     
     pThis->psMBMasterInfo = psMBGetMasterInfo();    //主栈
     if(pThis->psMBMasterInfo == NULL)
