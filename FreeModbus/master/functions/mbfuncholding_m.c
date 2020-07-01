@@ -406,7 +406,6 @@ eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFram
     }
     return eStatus;
 }
-
 #endif
 
 #if MB_FUNC_READWRITE_HOLDING_ENABLED > 0

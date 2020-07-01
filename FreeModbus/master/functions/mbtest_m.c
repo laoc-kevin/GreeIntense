@@ -313,11 +313,12 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             {
                 if(usDataVal == psMBCmd->usValue)
                 {
-                    psMBSlaveDev->xOnLine      = TRUE;                       //从设备反馈正确，则设备在线
-                    psMBSlaveDev->psDevCurData = psMBDevData;                //从设备当前数据域
-                    psMBSlaveDev->ucProtocolID = psMBDevData->ucProtocolID;  //从设备协议ID
-                    psMBSlaveDev->xDataReady   = TRUE;                       //从设备数据准备好
-                    psMBSlaveDev->eScanMode    = SCAN_WRITE;                    
+                    psMBSlaveDev->xOnLine           = TRUE;                       //从设备反馈正确，则设备在线
+                    psMBSlaveDev->psDevCurData      = psMBDevData;                //从设备当前数据域
+                    psMBSlaveDev->ucProtocolID      = psMBDevData->ucProtocolID;  //从设备协议ID
+                    psMBSlaveDev->xDataReady        = TRUE;                       //从设备数据准备好
+                    psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求
+                    psMBSlaveDev->eScanMode         = SCAN_WRITE;                    
                 }
                 else
                 {
@@ -326,11 +327,12 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             }
             else
             {
-                psMBSlaveDev->xOnLine      = TRUE;                       //从设备反馈正确，则设备在线
-                psMBSlaveDev->psDevCurData = psMBDevData;                //从设备当前数据域
-                psMBSlaveDev->ucProtocolID = psMBDevData->ucProtocolID;  //从设备协议ID
-                psMBSlaveDev->xDataReady   = TRUE;                       //从设备数据准备好
-                psMBSlaveDev->eScanMode    = SCAN_WRITE;                
+                psMBSlaveDev->xOnLine           = TRUE;                       //从设备反馈正确，则设备在线
+                psMBSlaveDev->psDevCurData      = psMBDevData;                //从设备当前数据域
+                psMBSlaveDev->ucProtocolID      = psMBDevData->ucProtocolID;  //从设备协议ID
+                psMBSlaveDev->xDataReady        = TRUE;                       //从设备数据准备好
+                psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求
+                psMBSlaveDev->eScanMode         = SCAN_WRITE;                
             }
 
 #if MB_MASTER_HEART_BEAT_ENABLED >0        
@@ -376,8 +378,6 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     UCHAR ucMaxAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
     
-//    vMBMasterPortLock(psMBPort);
-    
     if( psMBSlaveDev == NULL || psMBSlaveDev->xDevOnTimeout == TRUE || 
         psMBSlaveDev->ucDevAddr < ucMinAddr || psMBSlaveDev->ucDevAddr > ucMaxAddr)  
     {
@@ -410,9 +410,10 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         {
             if(usDataVal == psMBCmd->usValue)
             {
-                psMBSlaveDev->xOnLine        = TRUE;  //从设备反馈正确，则设备在线
-                psMBSlaveDev->xDataReady     = TRUE;
-                psMBSlaveDev->ucOfflineTimes = 0;     //测试次数清零
+                psMBSlaveDev->xOnLine           = TRUE;  //从设备反馈正确，则设备在线
+                psMBSlaveDev->xDataReady        = TRUE;  //数据准备好
+                psMBSlaveDev->xStateTestRequest = FALSE; //状态测试请求
+                psMBSlaveDev->ucOfflineTimes    = 0;     //测试次数清零
             }
             else
             {
@@ -430,6 +431,8 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         {
             (void)xMBMasterDevDevHeartTmrEnable(psMBSlaveDev); 
         }
+        myprintf("vMBDevCurStateTest  ucDevAddr %d  xOnLine %d xDataReady %d xSynchronized %d xStateTestRequest %d \n", 
+        psMBSlaveDev->ucDevAddr,  psMBSlaveDev->xOnLine,  psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized, psMBSlaveDev->xStateTestRequest);
     }
     else  //多次测试仍返回错误
     {
@@ -451,8 +454,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         }
         (void)OSTmrStop(&psMBSlaveDev->sDevHeartBeatTmr, OS_OPT_TMR_NONE, NULL, &err); //停止心跳   
     }
-//    myprintf("vMBDevCurStateTest  ucDevAddr %d  xOnLine %d xDataReady %d xSynchronized %d\n", 
-//    psMBSlaveDev->ucDevAddr,  psMBSlaveDev->xOnLine,  psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);
+
     
     psMBMasterInfo->eMBRunMode = STATE_SCAN_DEV;  //退出测试从设备状态    
 }

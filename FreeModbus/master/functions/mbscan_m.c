@@ -60,7 +60,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         {    
             if( psMBSlaveDev->xOnLine == TRUE  && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
-                if(psMBSlaveDev->eScanMode == SCAN_READ || psMBSlaveDev->ucOfflineTimes > 0) //处于读模式或者上次检查掉线
+                if(psMBSlaveDev->xStateTestRequest == TRUE) //处于读模式或者上次检查掉线
                 {
                     vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
                 }
@@ -124,30 +124,27 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
             if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
             {
                 vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从设备数据
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			 //读从设备数据	
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);          //读从设备数据	     
                 psMBSlaveDev->xSynchronized = TRUE;                              //同步完成
             }
             else   //同步完成后，先写后读
             {
-                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, TRUE);  //写有变化数据	
-                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);			//读从设备数据										
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);   //写从设备有变化的数据
+                vMBMasterScanReadSlaveDev(psMBMasterInfo, ucSlaveAddr);          //读从设备数据	     									
             }
         }
         else  //从设备数据未好，则只进行写不读
         {
             if(psMBSlaveDev->xSynchronized == FALSE) 
             {
-                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步设备数据
+                vMBMasterScanWriteSlaveDev(psMBMasterInfo, ucSlaveAddr, FALSE);  //同步从设备数据
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
         }
         psMBSlaveDev->eScanMode = (psMBSlaveDev->eScanMode == SCAN_WRITE) ? SCAN_READ:SCAN_WRITE; //切换轮询模式
-
-//        if(ucSlaveAddr == 6)
-//        {
+        
 //        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
 //        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);            
-//        }
     }		
 }
 
@@ -169,25 +166,51 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
     if(psMBSlaveDevCur->eScanMode == SCAN_WRITE)
     {
         return;
-    }
-//    myprintf("ucSlaveAddr %d  vMBMasterScanReadSlaveDev\n", ucSlaveAddr);        
-
+    }          
+//    (void)OSTimeDlyHMSM(0, 0, 0, 20, OS_OPT_TIME_HMSM_STRICT, &err);
+    
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 			
-    errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, ucSlaveAddr); //读保持寄存器 							
+    errorCode = eMBMasterScanReadHoldingRegister(psMBMasterInfo, ucSlaveAddr); //读保持寄存器
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }         
 #endif
 					
 #if MB_FUNC_READ_COILS_ENABLED > 0
     errorCode = eMBMasterScanReadCoils(psMBMasterInfo, ucSlaveAddr);           //读线圈
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }     
 #endif
 					
 #if MB_FUNC_READ_INPUT_ENABLED > 0				
-    errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, ucSlaveAddr);	  //读输入寄存器					
+    errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, ucSlaveAddr);	  //读输入寄存器
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }         
 #endif	
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }     
 #endif 
-    (void)OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);    
+    if(errorCode != MB_MRE_NO_ERR)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+        myprintf("vMBMasterScanReadSlaveDev ucSlaveAddr %d xStateTestRequest %d\n", ucSlaveAddr, psMBSlaveDevCur->xStateTestRequest); 
+    }
+       
 }
 
 /**********************************************************************
@@ -209,16 +232,31 @@ void vMBMasterScanWriteSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr
     {
         return;
     }
-//    myprintf("ucSlaveAddr %d  vMBMasterScanWriteSlaveDev  bCheckPreValue %d\n", ucSlaveAddr, bCheckPreValue);
+//   (void)OSTimeDlyHMSM(0, 0, 0, 20, OS_OPT_TIME_HMSM_STRICT, &err);
     
 #if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 			
-    errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);	//写保持寄存器 									
+    errorCode = eMBMasterScanWriteHoldingRegister(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);	//写保持寄存器
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    } 
 #endif
 					
 #if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
-    errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);            //写线圈 
+    errorCode = eMBMasterScanWriteCoils(psMBMasterInfo, ucSlaveAddr, bCheckPreValue);            //写线圈
+    if(errorCode == MB_MRE_ETIMEDOUT)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }     
 #endif 
-   (void)OSTimeDlyHMSM(0, 0, 0, 20, OS_OPT_TIME_HMSM_STRICT, &err);
+    if(errorCode != MB_MRE_NO_ERR)
+    {
+        psMBSlaveDevCur->xStateTestRequest = TRUE;
+        psMBSlaveDevCur->xSynchronized = FALSE;
+    }
+//    myprintf("eMBMasterScanWriteSlaveDev ucSlaveAddr %d xStateTestRequest %d\n", ucSlaveAddr, psMBSlaveDevCur->xStateTestRequest);   
 }
 
 #if MB_FUNC_READ_INPUT_ENABLED > 0
@@ -251,7 +289,7 @@ eMBMasterReqErrCode eMBMasterScanReadInputRegister( sMBMasterInfo* psMBMasterInf
     }
 	if( (psMBRegInTable->pvDataBuf == NULL) || (psMBRegInTable->usDataCount == 0) ) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
 	
 	for(iIndex = 0; iIndex < psMBRegInTable->usDataCount ; iIndex++)    //轮询
@@ -335,7 +373,7 @@ eMBMasterReqErrCode eMBMasterScanReadHoldingRegister(sMBMasterInfo* psMBMasterIn
     }
 	if( (psMBRegHoldTable->pvDataBuf == NULL) || (psMBRegHoldTable->usDataCount == 0)) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
 //    if(ucSndAddr == 6)
 //    {
@@ -491,7 +529,7 @@ eMBMasterReqErrCode eMBMasterScanWriteHoldingRegister(sMBMasterInfo* psMBMasterI
     }
     if( (psMBRegHoldTable->pvDataBuf  == NULL) || (psMBRegHoldTable->usDataCount == 0)) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
 	for(iIndex = 0; iIndex < psMBRegHoldTable->usDataCount; iIndex++)  //轮询
 	{
@@ -647,7 +685,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
     }
 	if( (psMBCoilTable->pvDataBuf == NULL) || (psMBCoilTable->usDataCount == 0)) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
 //	myprintf("ucSlaveAddr %d  eMBMasterScanReadCoils \n",ucSndAddr);	
 	
@@ -660,7 +698,7 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
         {
             if(iCount>0)
             {
-                eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
+                eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);       
                 iCount = 0;
                 iStartAddr = psCoilValue->usAddr;
             }
@@ -686,7 +724,11 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 		{
 	        if( iCount > 1)
 	        {
-	            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);	
+	            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount-1, MB_MASTER_WAITING_DELAY);
+                if(eStatus == MB_MRE_ETIMEDOUT)
+                {
+                    return eStatus;
+                }                
                 iCount = 0;   	
 	        }
 	        else
@@ -696,13 +738,17 @@ eMBMasterReqErrCode eMBMasterScanReadCoils( sMBMasterInfo* psMBMasterInfo, UCHAR
 		}
         if( (psCoilValue->ucAccessMode == WO || iIndex == psMBCoilTable->usDataCount-1) && iCount>0 )  //如果为只写，发送读请求
         {
-            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);	
+            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+            if(eStatus == MB_MRE_ETIMEDOUT)
+            {
+                return eStatus;
+            }             
             iCount = 0;
             iStartAddr = psCoilValue->usAddr;   
         }	
         if( iCount >= MB_PDU_SIZE_MAX*4 )    //数据超过Modbus数据帧最大字节数，则发送读请求
         {
-            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY);
+            eStatus = eMBMasterReqReadCoils(psMBMasterInfo, ucSndAddr, iStartAddr, iCount, MB_MASTER_WAITING_DELAY); 
         	iCount = 1;
         	iStartAddr = psCoilValue->usAddr;			
         }
@@ -721,8 +767,6 @@ eMBMasterReqErrCode eMBMasterWriteCoil(sMBMasterInfo* psMBMasterInfo, UCHAR ucSn
 {
     eMBMasterReqErrCode eStatus = MB_MRE_NO_ERR;
     USHORT usMBBitData = 0;
-    
-//     System* pSystem = (System*)System_Core();
     
     if(usNCoils == 1)      //写单个线圈
     {
@@ -781,9 +825,8 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
     }
 	if( (psMBCoilTable == NULL) ||(psMBCoilTable->pvDataBuf == NULL) || (psMBCoilTable->usDataCount == 0)) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
-
 	for(iIndex = 0; iIndex < psMBCoilTable->usDataCount; iIndex++)
 	{
 		psCoilValue = (sMasterBitCoilData*)(psMBCoilTable->pvDataBuf) + iIndex;
@@ -850,7 +893,6 @@ eMBMasterReqErrCode eMBMasterScanWriteCoils(sMBMasterInfo* psMBMasterInfo, UCHAR
 			    {
 			    	eStatus = eMBMasterWriteCoil(psMBMasterInfo, ucSndAddr, iStartAddr, iChangedBits, 
                                                  psMBMasterInfo->BitCoilByteValList, MB_MASTER_WAITING_DELAY);	//写线圈
-                
 			    	iChangedBits = 0;      //写完一帧得复位所有状态
 			    	iChangedBytes = 0;
 			    	iBits = 0;
@@ -915,7 +957,7 @@ eMBMasterReqErrCode eMBMasterScanReadDiscreteInputs( sMBMasterInfo* psMBMasterIn
     } 
     if( (psMBDiscInTable->pvDataBuf == NULL) || (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
 	{
-		return MB_MRE_ILL_ARG;
+		return eStatus;
 	}
 	
 	for(iIndex = 0; iIndex < psMBDiscInTable->usDataCount ; iIndex++)

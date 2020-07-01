@@ -406,7 +406,7 @@ BOOL xMBSlaveRTUTimerT35Expired(sMBSlaveInfo* psMBSlaveInfo)
 		}
 	    else
 		{
-			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
+//			myprintf("EV_FRAME_RECEIVED_ERROR %d ******************\n", psMBSlaveInfo->usRcvBufferPos);
 			psMBSlaveInfo->usRcvBufferPos = 0;
 			psMBSlaveInfo->eRcvState = STATE_RX_RCV;
             xNeedPoll = FALSE;

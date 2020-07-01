@@ -300,6 +300,7 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         }
         case EV_MASTER_ERROR_RECEIVE_DATA:
         {
+//            myprintf(" EV_MASTER_ERROR_RECEIVE_DATA \n");
         	eErrStatus = MB_MRE_REV_DATA;
         	break;
         }

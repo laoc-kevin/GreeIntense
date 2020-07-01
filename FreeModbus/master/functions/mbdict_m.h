@@ -116,6 +116,7 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
 	BOOL      xOnLine;               //是否在线
 	BOOL      xDataReady;            //数据是否准备好
 	BOOL      xSynchronized;         //是否同步
+    BOOL      xStateTestRequest;     //是否需要状态检测
     BOOL      xDevOnTimeout;         //是否处于延时
     
     eScanMode eScanMode;             //当前轮询模式
