@@ -33,7 +33,7 @@ OS_TCB*       psSysEventPollTaskTCB = NULL;
 CPU_STK*      psSysEventPollTaskStk = NULL;
 
 /*系统排风机配置信息*/
-const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 5};
+const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 11};
 
 const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 5},
                                                {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 6},
@@ -49,16 +49,12 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
     
     if(eExAirFanType == TYPE_CONSTANT_VARIABLE)     //定频 + 变频
     {
-        pExAirFan->init(pExAirFan, &ExAirFanVariate, 0);
-        pExAirFan->changeFreqType(pExAirFan, VARIABLE_FREQ);
-        pThis->pExAirFanVariate = pExAirFan;
-        
-        pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), 100);
+        pExAirFan->changeFreqType(pExAirFan, &ExAirFanVariate);
+        pThis->pExAirFanVariate = pExAirFan; 
     }
     else   //定频
     {
-        pExAirFan->init(pExAirFan, &ExAirFanSet[0], 0);
-        pExAirFan->changeFreqType(pExAirFan, CONSTANT_FREQ);
+        pExAirFan->changeFreqType(pExAirFan, &ExAirFanSet[0]);
         pThis->pExAirFanVariate = NULL;
     }  
 #if DEBUG_ENABLE > 0        
@@ -110,14 +106,16 @@ void vSystem_EventPollTask(void *p_arg)
     
     BMS_InitDefaultData(psBMS);
     
-#if DEBUG_ENABLE > 0     
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan =  pThis->psExAirFanList[n];
+        pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S/3600;
+        
+#if DEBUG_ENABLE > 0 
         myprintf("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
+#endif
     }
-#endif 
-    
+   
     while(DEF_TRUE)
 	{ 
 begin:       
@@ -159,7 +157,8 @@ begin:
         {
             pModularRoof = pThis->psModularRoofList[n]; 
             
-            HANDLE(pModularRoof->Device.eRunningState,    vSystem_DeviceRunningState(psSystem))
+            HANDLE(pModularRoof->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
+            HANDLE(pModularRoof->eRunningMode,         vSystem_DeviceRunningState(psSystem))
             
             HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem, pModularRoof))
             HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem))            

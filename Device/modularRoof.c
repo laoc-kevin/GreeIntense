@@ -325,6 +325,8 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
     MONITOR(&pThis->Device.eRunningState,  uint8, &pThis->sValChange)
+    MONITOR(&pThis->eRunningMode,          uint8, &pThis->sValChange)
+    
     MONITOR(&pThis->sSupAir_T,             int16, &pThis->sValChange)
     MONITOR(&pThis->usFreAir_Vol,         uint16, &pThis->sValChange)
                                        

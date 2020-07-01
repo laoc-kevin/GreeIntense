@@ -17,17 +17,26 @@ uint16_t MonitorID = 0;
 ***************************************************************/
 void vMonitorRegist(void* pvVal, uint8_t ucDataType, OS_SEM* psSem)
 {
-    uint8_t  ucValue;
+    uint8_t  ucValue, n;
     uint16_t usValue;
     
     int8_t   cValue;
     int16_t  sValue;
     
-    sMonitorInfo* psMonitor = NULL; 
+    sMonitorInfo* psMonitor = NULL;
+    
     if(MonitorID >= MONITOR_DATA_MAX_NUM)
     {
-        myprintf("vMonitorRegist MonitorID %d  \n", MonitorID);  
-        return ;
+        myprintf("vMonitorRegist over MonitorID %d  \n", MonitorID);  
+        return;
+    }
+    for(n=0; n<MonitorID; n++)
+    {
+        psMonitor = &MonitorBuf[n];
+        if(psMonitor->pvVal == pvVal)
+        {
+            return ;
+        }
     }
     psMonitor = &MonitorBuf[MonitorID];
     MonitorID++;

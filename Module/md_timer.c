@@ -3,12 +3,12 @@
 /**************************************************************
 *@brief 定时器注册
 ***************************************************************/
-BOOL xTimerRegist(OS_TMR *p_tmr, uint16_t usDlyTime_s, uint32_t ulPeriod_s, OS_OPT opt, 
+BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_OPT opt, 
                   OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg, uint8_t xExcuteCallback)
 {
     OS_ERR err     = OS_ERR_NONE;
     
-    OS_TICK dly    = usDlyTime_s * TMR_TICK_PER_SECOND;
+    OS_TICK dly    = ulDlyTime_s * TMR_TICK_PER_SECOND;
     OS_TICK period = ulPeriod_s * TMR_TICK_PER_SECOND;
     
     OS_STATE  sTmrState = OSTmrStateGet(p_tmr, &err);

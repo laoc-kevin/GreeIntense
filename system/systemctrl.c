@@ -197,7 +197,8 @@ void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16
     
 #if DEBUG_ENABLE > 0
         myprintf("vSystem_SetExAirFanRated  usExAirFanRated_Vol_L %d  usExAirFanRated_Vol_H %d\n", usExAirFanRated_Vol_L, usExAirFanRated_Vol_H);
-#endif      
+#endif 
+    vSystem_ExAirFanCtrl(pThis);    
 }
 
 /*设定系统湿度阈值*/
@@ -270,6 +271,7 @@ void vSystem_DeviceRunningState(System* pt)
     ModularRoof* pModularRoof = NULL;
     ExAirFan*    pExAirFan    = NULL;
     BMS*         psBMS        = BMS_Core();
+    
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
 #endif  

@@ -69,7 +69,7 @@ CLASS(ExAirFan)           /*排风风机*/
     OS_TMR       sExAirFanTmr;  //风机内部定时器
     
     void (*init)(ExAirFan* pt, const sFanInfo* psFan, uint8_t ucDevIndex);
-    void (*changeFreqType)(ExAirFan* pt, eFreqType eFanFreqType);    
+    void (*changeFreqType)(ExAirFan* pt, const sFanInfo* psFan);    
 };
 
 
