@@ -92,6 +92,7 @@ CLASS(System)   /*系统*/
     uint8_t           ucExAirCoolRatio;         //制冷排风百分比
     uint8_t           ucExAirHeatRatio;         //制热排风百分比
     uint8_t           ucConstantFanRequestNum;  //定频排风机需求个数
+    uint8_t           ucConstantFanOpenNum;     //定频排风机常开个数
     BOOL              xVariableFanRequest;      //变频排风机需求
 
     eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)

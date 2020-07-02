@@ -227,9 +227,12 @@ void vExAirFan_Init(ExAirFan* pt, const sFanInfo* psFan, uint8_t ucDevIndex)
     {
         vExAirFan_RegistAnalogIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
     } 
-    
     //排风机2s周期定时器
     (void)xTimerRegist(&pThis->sExAirFanTmr, 0, EX_AIR_FAN_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vExAirFan_TimeoutInd, pThis, FALSE); 
+    
+#if DEBUG_ENABLE > 0 
+    myprintf("vExAirFan_Init  ucDevIndex %d \n", pThis->Device.ucDevIndex);
+#endif  
 }
 
 /*排风机类型切换*/

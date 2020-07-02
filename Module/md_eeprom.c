@@ -427,7 +427,7 @@ void vWriteEEPROMData(void)
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
             DataBufUint32ChangedTimes = 0;
             
-            myprintf("xDataInt16Changed\n");
+            myprintf("xDataUint32Changed\n");
         }     
     }
     if(xDataInt32Changed())

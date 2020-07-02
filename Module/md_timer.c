@@ -7,7 +7,6 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_O
                   OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg, uint8_t xExcuteCallback)
 {
     OS_ERR err     = OS_ERR_NONE;
-    
     OS_TICK dly    = ulDlyTime_s * TMR_TICK_PER_SECOND;
     OS_TICK period = ulPeriod_s * TMR_TICK_PER_SECOND;
     

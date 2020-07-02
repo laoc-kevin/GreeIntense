@@ -215,8 +215,7 @@ void vMBMasterScanReadSlaveDev(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr)
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
         myprintf("vMBMasterScanReadSlaveDev ucSlaveAddr %d xStateTestRequest %d\n", ucSlaveAddr, psMBSlaveDevCur->xStateTestRequest); 
-    }
-       
+    }   
 }
 
 /**********************************************************************

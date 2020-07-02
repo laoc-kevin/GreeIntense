@@ -163,6 +163,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     {
         LastAmbientIn_T = pThis->sAmbientIn_T;
         vSystem_OpenUnits(pThis);
+        
         (void)xTimerRegist(&pThis->sSystemPollTmr, 0, MODULAR_POLL_TIME_OUT_S, 
                             OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE); 
     }

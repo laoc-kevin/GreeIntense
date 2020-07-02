@@ -237,7 +237,12 @@ void vSystem_TempHumiIn(System* pt)
     {
          usAmbientIn_H = usTotalHumi / ucHumiNum;  //室内平均环境湿度
     }
-    
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        pModularRoof->sAmbientIn_T  = sAmbientIn_T;
+        pModularRoof->usAmbientIn_H = usAmbientIn_H;
+    } 
     if(pThis->sAmbientIn_T != sAmbientIn_T || pThis->usAmbientIn_H != usAmbientIn_H)
     {
         if(pThis->xTempHumiSenInErr == FALSE)
@@ -248,12 +253,6 @@ void vSystem_TempHumiIn(System* pt)
         {
             pThis->usAmbientIn_H = usAmbientIn_H;
         } 
-        for(n=0; n < MODULAR_ROOF_NUM; n++)
-        {
-            pModularRoof = pThis->psModularRoofList[n];
-            pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
-            pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
-        }
 #if DEBUG_ENABLE > 0
         myprintf("vSystem_TempHumiIn  sAmbientIn_T %d  usAmbientIn_H %d ucTempNum %d ucHumiNum %d  sTotalTemp %d usTotalHumi %d\n", 
                   pThis->sAmbientIn_T, pThis->usAmbientIn_H, ucTempNum, ucHumiNum, sTotalTemp, usTotalHumi);

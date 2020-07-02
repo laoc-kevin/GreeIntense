@@ -96,8 +96,7 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
     if( pThis->usTempSet != usTempSet)
     {
         pThis->usTempSet = usTempSet;
-//        psBMS->usTempSet = usTempSet;
-        
+
 #if DEBUG_ENABLE > 0
         myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif

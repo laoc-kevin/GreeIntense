@@ -702,7 +702,7 @@ void vBMS_InitDefaultData(BMS* pt)
 
     DATA_INIT(pThis->usTempSet,           pSystem->usTempSet)
     DATA_INIT(pThis->usFreAirSet_Vol_H,   pSystem->ulFreAirSet_Vol/65535)
-    DATA_INIT(pThis->usFreAirSet_Vol_L,   pSystem->ulFreAirSet_Vol%35535)
+    DATA_INIT(pThis->usFreAirSet_Vol_L,   pSystem->ulFreAirSet_Vol%65535)
     
     DATA_INIT(pThis->usExAirFanRated_Vol_H,  pSystem->ulExAirFanRated_Vol/65535)
     DATA_INIT(pThis->usExAirFanRated_Vol_L,  pSystem->ulExAirFanRated_Vol%65535)

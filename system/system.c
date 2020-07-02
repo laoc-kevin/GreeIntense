@@ -63,22 +63,22 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
 #endif           
 }
 
-/*系统周期轮询*/
-void vSystem_PollTask(void *p_arg)
-{
-    OS_ERR err = OS_ERR_NONE;
-    psSystem = System_Core();
-    
-    while (DEF_TRUE)
-    {
-        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-        if(psSystem->eSystemState != STATE_CLOSED)
-        {
-//            myprintf("********************vSystem_PollTask***********************\n");
-            vSystem_ChangeUnitRunningMode(psSystem);
-        }            
-    }           
-}
+///*系统周期轮询*/
+//void vSystem_PollTask(void *p_arg)
+//{
+//    OS_ERR err = OS_ERR_NONE;
+//    psSystem = System_Core();
+//    
+//    while (DEF_TRUE)
+//    {
+//        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+//        if(psSystem->eSystemState != STATE_CLOSED)
+//        {
+////            myprintf("********************vSystem_PollTask***********************\n");
+//            vSystem_ChangeUnitRunningMode(psSystem);
+//        }            
+//    }           
+//}
 
 /*系统内部消息轮询*/
 void vSystem_EventPollTask(void *p_arg)
@@ -230,6 +230,7 @@ BOOL xSystem_CreatePollTask(System* pt)
     return (err == OS_ERR_NONE);              
 }
 
+/*系统1s时间轮询*/
 void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
 {
     uint8_t n;
@@ -266,6 +267,7 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
             pExAirFan->Device.ulRunTime_S = 0;
         }        
     }
+//    vSystem_DeviceRunningState(pThis);
 }
     
 /*系统运行时间初始化*/
