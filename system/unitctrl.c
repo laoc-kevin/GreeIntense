@@ -648,7 +648,11 @@ void vSystem_UnitErr(System* pt)
         if(pModularRoof->xStopErrFlag == FALSE && pModularRoof->xCommErr == FALSE) 
         {
             ucUnitNum++;
-            psUnit = pModularRoof; 
+            psUnit = pModularRoof;
+            if(pThis->eSystemMode == MODE_AUTO)
+            {
+                pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); //开启机组
+            }                
         }            
     }
     if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //其中一台机组可用

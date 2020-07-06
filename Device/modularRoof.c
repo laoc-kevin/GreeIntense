@@ -381,7 +381,7 @@ void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)
 
     pThis->xCommErr = (pThis->sMBSlaveDev.xOnLine == TRUE) ? FALSE:TRUE;
     
-    if(pThis->xStopErrFlag == TRUE && pThis->Device.eRunningState == STATE_RUN)
+    if(pThis->xStopErrFlag == TRUE && pThis->Device.eRunningState == STATE_RUN) //停整机故障
     {
         vModularRoof_SwitchClose(SUPER_PTR(pThis, IDevSwitch));
     }

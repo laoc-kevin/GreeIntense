@@ -26,7 +26,8 @@ CLASS(System)   /*系统*/
     eSystemMode       eSystemMode;              //系统模式
     eSystemState      eSystemState;             //系统状态
     eRunningMode      eRunningMode;             //运行模式                                            
-                    
+    
+    
     int16_t           sChickenGrowDays;         //鸡生长周期天数
                       
     uint16_t          usModeChangeTime_1;       //模式切换时间t1(min)

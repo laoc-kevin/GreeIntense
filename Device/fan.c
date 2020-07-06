@@ -208,7 +208,7 @@ void vExAirFan_RegistEEPROMData(ExAirFan* pt)
 {
     ExAirFan* pThis = (ExAirFan*)pt;
     EEPROM_DATA(TYPE_RUNTIME, pThis->Device.ulRunTime_S)
-    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.usRunTime_H)
+//    EEPROM_DATA(TYPE_RUNTIME, pThis->Device.usRunTime_H)
 }
 
 /*排风机初始化*/

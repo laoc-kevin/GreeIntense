@@ -47,13 +47,13 @@
 #define INT16_SAVE_COUNT	10			//int16类型的参数记忆数量
 #define INT16_SAVE_SIZE		INT16_SAVE_COUNT * sizeof(int16_t)		//int16类型记忆字节长度
 
-#define UINT32_SAVE_COUNT	5			//uint32类型的参数记忆数量
+#define UINT32_SAVE_COUNT	6			//uint32类型的参数记忆数量
 #define UINT32_SAVE_SIZE	UINT32_SAVE_COUNT * sizeof(uint32_t)	//uint32类型记忆字节长度
 
 #define INT32_SAVE_COUNT	5			//int32类型的参数记忆数量
 #define INT32_SAVE_SIZE	    INT32_SAVE_COUNT * sizeof(int32_t)	//uint32类型记忆字节长度
 
-#define RUNTIME_SAVE_COUNT  10			//运行时间类型的参数记忆数量
+#define RUNTIME_SAVE_COUNT  8			//运行时间类型的参数记忆数量
 #define RUNTIME_SAVE_SIZE   RUNTIME_SAVE_COUNT * sizeof(uint32_t)		//运行时间类型记忆字节长度
 
 #define E32_SAVE_COUNT		8			//能耗统计uint32类型的参数记忆数量
@@ -267,30 +267,46 @@ void vReadEEPROMData(void)
     uint8_t i = 0;
     OS_ERR err = OS_ERR_NONE;
 
-    EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    EEPROM_Read(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
+    if(DataBufUint8Count>0)
+    {
+        EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }        
+    if(DataBufInt8Count>0)
+    {
+        EEPROM_Read(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufUint16Count>0)
+    {    
+        EEPROM_Read(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufInt16Count>0)
+    {    
+        EEPROM_Read(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufUint32Count>0)
+    {    
+        EEPROM_Read(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufInt32Count>0)
+    {
+        EEPROM_Read(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufRuntimeCount>0)
+    {
+        EEPROM_Read(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufE32Count>0)
+    {
+        EEPROM_Read(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
     myprintf("EEPROM_Read\n");
     
     for(i=0; i<DataBufUint8Count; i++)
@@ -322,7 +338,6 @@ void vReadEEPROMData(void)
             *(int16_t*)pDataBufInt16[i] = DataBufInt16[i];
         }
     }
-    
     for(i=0; i<DataBufUint32Count; i++)
     {
         if(pDataBufUint32[i] != NULL)
@@ -337,7 +352,6 @@ void vReadEEPROMData(void)
             *(int32_t*)pDataBufInt32[i] = DataBufInt32[i];
         }
     }
-    
     for(i=0; i<DataBufRuntimeCount; i++)
     {
         if(pDataBufRuntime[i] != NULL)
@@ -345,7 +359,6 @@ void vReadEEPROMData(void)
             *(uint32_t*)pDataBufRuntime[i] = DataBufRuntime[i];
         }
     }
-    
     for(i=0; i<DataBufE32Count; i++)
     {
         if(pDataBufE32[i] != NULL)
@@ -475,8 +488,8 @@ void vWriteEEPROMDataFirstTime(void)
 {
     OS_ERR err = OS_ERR_NONE;
     uint16_t usIndex = 0;
-
-#if EEPROM_DATA_INIT > 0    //默认参数复位    
+   
+#if EEPROM_DATA_INIT > 0    //参数复位    
 
     for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)  //运行时间复位
     {
@@ -486,7 +499,6 @@ void vWriteEEPROMDataFirstTime(void)
             DataBufRuntime[usIndex] = 0;
         }
     }
-
     for(usIndex=0; usIndex<DataBufE32Count; usIndex++)     //能耗复位
     {
         if(pDataBufE32[usIndex] != NULL)
@@ -496,32 +508,48 @@ void vWriteEEPROMDataFirstTime(void)
         }
     } 
 #endif     
+    if(DataBufUint8Count>0)
+    {
+        EEPROM_Write(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }        
+    if(DataBufInt8Count>0)
+    {
+        EEPROM_Write(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufUint16Count>0)
+    {    
+        EEPROM_Write(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufInt16Count>0)
+    {    
+        EEPROM_Write(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufUint32Count>0)
+    {    
+        EEPROM_Write(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufInt32Count>0)
+    {
+        EEPROM_Write(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufRuntimeCount>0)
+    {
+        EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+    if(DataBufE32Count>0)
+    {
+        EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
+        OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
+//    myprintf("vWriteEEPROMDataFirstTime ulExAirFanRated_Vol %ld  %ld \n\n", DataBufUint32[0], *(uint32_t*)pDataBufUint32[0]);
     
-    EEPROM_Write(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufUint8, MODE_8_BIT, UINT8_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-      
-    EEPROM_Write(INT8_PAGE_OFFSET, INT8_PAGE_ADDR, (void*)DataBufInt8, MODE_8_BIT, INT8_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-           
-    EEPROM_Write(UINT16_PAGE_OFFSET, UINT16_PAGE_ADDR, (void*)DataBufUint16, MODE_16_BIT, UINT16_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-
-    EEPROM_Write(INT16_PAGE_OFFSET, INT16_PAGE_ADDR, (void*)DataBufInt16, MODE_16_BIT, INT16_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-
-    EEPROM_Write(UINT32_PAGE_OFFSET, UINT32_PAGE_ADDR, (void*)DataBufUint32, MODE_32_BIT, UINT32_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-
-    EEPROM_Write(INT32_PAGE_OFFSET, INT32_PAGE_ADDR, (void*)DataBufInt32, MODE_32_BIT, INT32_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-
-    EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-
-    EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, RUNTIME_SAVE_SIZE);
-    OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-    
-    myprintf("vWriteEEPROMDataFirstTime\n");
 }
 
 /**********************************************************************
@@ -719,7 +747,7 @@ void vEEPROMDataTask(void * p_arg)
 
 #if EEPROM_USE_DEFAULT_DATA == 0    //不使用默认参数
     
-#if EEPROM_DATA_INIT > 0    //默认参数复位
+#if EEPROM_DATA_INIT > 0    //参数复位
     
     vWriteEEPROMDataFirstTime();
 #else 

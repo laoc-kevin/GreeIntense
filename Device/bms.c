@@ -716,7 +716,8 @@ void vBMS_InitDefaultData(BMS* pt)
     DATA_INIT(pThis->eExAirFanType,       pSystem->eExAirFanType)
     DATA_INIT(pThis->xAlarmEnable,        pSystem->xAlarmEnable)
     
-//    myprintf("pThis->usModeChangeTime_1 %d\n", pThis->ucExAirCoolRatio);
+//    myprintf("ulExAirFanRated_Vol %ld  usExAirFanRated_Vol_H %d  usExAirFanRated_Vol_L %d \n",pSystem->ulExAirFanRated_Vol,
+//              pThis->usExAirFanRated_Vol_H, pThis->usExAirFanRated_Vol_L);
 }
 
 void vBMS_Init(BMS* pt)
