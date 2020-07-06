@@ -31,6 +31,7 @@ CLASS(BMS)
     uint16_t          usExAirFanFreq;           //排风机频率设定    
     uint16_t          usExAirFanMinFreq;        //排风机最小频率
     uint16_t          usExAirFanMaxFreq;        //排风机最大频率
+    uint16_t          usExAirFanCtrlPeriod;     //排风机控制周期
     
     uint16_t          usExAirFanRated_Vol_H;    //排风机额定风量(高位)
     uint16_t          usExAirFanRated_Vol_L;    //排风机额定风量(低位)

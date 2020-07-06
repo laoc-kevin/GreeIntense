@@ -25,13 +25,13 @@
 #define UINT32_PAGE_ADDR	6			//uint32类型参数记忆EEPROM存储器初始页地址
 
 #define INT32_PAGE_OFFSET 	0			//int32类型参数记忆EEPROM页寄存器偏移量
-#define INT32_PAGE_ADDR	    6			//int32类型参数记忆EEPROM存储器初始页地址
+#define INT32_PAGE_ADDR	    7			//int32类型参数记忆EEPROM存储器初始页地址
 
 #define RUNTIME_PAGE_OFFSET 0			//RUNTIME类型参数记忆EEPROM页寄存器偏移量
 #define RUNTIME_PAGE_ADDR   8			//RUNTIME类型参数记忆EEPROM存储器初始页地址
 
 #define E32_PAGE_OFFSET 	16			//E32类型参数记忆EEPROM页寄存器偏移量
-#define E32_PAGE_ADDR		8			//E32类型参数记忆EEPROM存储器初始页地址
+#define E32_PAGE_ADDR		9			//E32类型参数记忆EEPROM存储器初始页地址
 
 
 /*根据实际需要记忆参数的个数进行修改*/
@@ -366,6 +366,8 @@ void vReadEEPROMData(void)
             *(uint32_t*)pDataBufE32[i] = DataBufE32[i];
         }
     }
+    
+    myprintf("vReadEEPROMData ulExAirFanRated_Vol %ld  %ld \n\n", DataBufUint32[0], *(uint32_t*)pDataBufUint32[0]);
     EEPROMDataReady = TRUE;
 }
 
@@ -548,7 +550,7 @@ void vWriteEEPROMDataFirstTime(void)
         EEPROM_Write(E32_PAGE_OFFSET, E32_PAGE_ADDR, (void*)DataBufE32, MODE_32_BIT, E32_SAVE_SIZE);
         OSTimeDlyHMSM(0, 0, 0, EEPROM_READ_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
     }
-//    myprintf("vWriteEEPROMDataFirstTime ulExAirFanRated_Vol %ld  %ld \n\n", DataBufUint32[0], *(uint32_t*)pDataBufUint32[0]);
+    myprintf("vWriteEEPROMDataFirstTime ulExAirFanRated_Vol %ld  %ld \n\n", DataBufUint32[0], *(uint32_t*)pDataBufUint32[0]);
     
 }
 

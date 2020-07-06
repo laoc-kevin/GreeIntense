@@ -200,6 +200,22 @@ void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16
     vSystem_ExAirFanCtrl(pThis);    
 }
 
+/*设定系统排风机调节周期*/
+void vSystem_SetExAirFanCtrlPeriod(System* pt, uint16_t usExAirFanCtrlPeriod)  
+{
+    System* pThis = (System*)pt;
+    
+    if(pThis->usExAirFanCtrlPeriod != usExAirFanCtrlPeriod)
+    {
+        pThis->usExAirFanCtrlPeriod = usExAirFanCtrlPeriod;
+#if DEBUG_ENABLE > 0
+        myprintf("vSystem_SetExAirFanCtrlPeriod  usExAirFanCtrlPeriod %d  \n", pThis->usExAirFanCtrlPeriod);
+#endif 
+        vSystem_ExAirFanCtrl(pThis);   
+    }
+}
+
+
 /*设定系统湿度阈值*/
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax)
 {

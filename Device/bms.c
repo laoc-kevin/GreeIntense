@@ -345,7 +345,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(39, uint16,    0,    500, RW, 1, (void*)&pThis->usExAirFanMaxFreq)  
     SLAVE_REG_HOLD_DATA(40, uint16,    0,  65535, RW, 1, (void*)&pThis->usExAirFanRated_Vol_L)    
     SLAVE_REG_HOLD_DATA(41, uint16,    0,      1, RW, 1, (void*)&pThis->usExAirFanRated_Vol_H)  
-    SLAVE_REG_HOLD_DATA(42, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanCtrlPeriod)
+    SLAVE_REG_HOLD_DATA(42, uint16,    0,   7200, RW, 1, (void*)&pThis->usExAirFanCtrlPeriod)
         
     SLAVE_REG_HOLD_DATA(43, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanRunTimeLeast)
     SLAVE_REG_HOLD_DATA(44,  uint8,    0,      1, RW, 1, (void*)&pThis->eExAirFanType) 
@@ -674,9 +674,10 @@ void vBMS_MonitorRegist(BMS* pt)
     MONITOR(&pThis->usCO2AdjustThr_V,  uint16, &pThis->sValChange)
     MONITOR(&pThis->usCO2AdjustDeviat, uint16, &pThis->sValChange)
         
-    MONITOR(&pThis->usExAirFanFreq,    uint16, &pThis->sValChange) 
-    MONITOR(&pThis->usExAirFanMinFreq, uint16, &pThis->sValChange) 
-    MONITOR(&pThis->usExAirFanMaxFreq, uint16, &pThis->sValChange)
+    MONITOR(&pThis->usExAirFanFreq,       uint16, &pThis->sValChange) 
+    MONITOR(&pThis->usExAirFanMinFreq,    uint16, &pThis->sValChange) 
+    MONITOR(&pThis->usExAirFanMaxFreq,    uint16, &pThis->sValChange)
+    MONITOR(&pThis->usExAirFanCtrlPeriod, uint16, &pThis->sValChange)
     
     MONITOR(&pThis->usExAirFanRated_Vol_H, uint16, &pThis->sValChange) 
     MONITOR(&pThis->usExAirFanRated_Vol_L, uint16,&pThis->sValChange)
@@ -711,10 +712,11 @@ void vBMS_InitDefaultData(BMS* pt)
     DATA_INIT(pThis->usExAirFanMaxFreq,      pSystem->usExAirFanMaxFreq) 
     DATA_INIT(pThis->eExAirFanType,          pSystem->eExAirFanType)
     
-    DATA_INIT(pThis->ucExAirCoolRatio,    pSystem->ucExAirCoolRatio)
-    DATA_INIT(pThis->ucExAirHeatRatio,    pSystem->ucExAirHeatRatio)
-    DATA_INIT(pThis->eExAirFanType,       pSystem->eExAirFanType)
-    DATA_INIT(pThis->xAlarmEnable,        pSystem->xAlarmEnable)
+    DATA_INIT(pThis->usExAirFanCtrlPeriod,  pSystem->usExAirFanCtrlPeriod)
+    DATA_INIT(pThis->ucExAirCoolRatio,      pSystem->ucExAirCoolRatio)
+    DATA_INIT(pThis->ucExAirHeatRatio,      pSystem->ucExAirHeatRatio)
+    DATA_INIT(pThis->eExAirFanType,         pSystem->eExAirFanType)
+    DATA_INIT(pThis->xAlarmEnable,          pSystem->xAlarmEnable)
     
 //    myprintf("ulExAirFanRated_Vol %ld  usExAirFanRated_Vol_H %d  usExAirFanRated_Vol_L %d \n",pSystem->ulExAirFanRated_Vol,
 //              pThis->usExAirFanRated_Vol_H, pThis->usExAirFanRated_Vol_L);

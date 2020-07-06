@@ -147,7 +147,8 @@ begin:
         HANDLE(psBMS->usExAirFanMinFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
         HANDLE(psBMS->usExAirFanMaxFreq, vSystem_SetExAirFanFreqRange(psSystem, psBMS->usExAirFanMinFreq, psBMS->usExAirFanMaxFreq))
         
-        HANDLE(psBMS->eExAirFanType, vSystem_ChangeExAirFanType(psSystem, psBMS->eExAirFanType))
+        HANDLE(psBMS->eExAirFanType,        vSystem_ChangeExAirFanType(psSystem, psBMS->eExAirFanType))
+        HANDLE(psBMS->usExAirFanCtrlPeriod, vSystem_SetExAirFanCtrlPeriod(psSystem, psBMS->usExAirFanCtrlPeriod))
         
         HANDLE(psBMS->usExAirFanRated_Vol_H, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))                                                                     
         HANDLE(psBMS->usExAirFanRated_Vol_L, vSystem_SetExAirFanRated(psSystem, psBMS->usExAirFanRated_Vol_H, psBMS->usExAirFanRated_Vol_L))
@@ -429,7 +430,7 @@ void vSystem_InitDefaultData(System* pt)
     vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
     vSystem_SetExAirFanFreqRange(pThis, pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
     
-    myprintf("vSystem_InitDefaultData ulExAirFanRated_Vol %ld \n\n", pThis->ulExAirFanRated_Vol);
+//    myprintf("vSystem_InitDefaultData ulExAirFanRated_Vol %ld \n\n", pThis->ulExAirFanRated_Vol);
 }
 
 /*系统初始化*/

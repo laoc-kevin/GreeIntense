@@ -42,6 +42,7 @@ void vSystem_UnitFreAir(System* pt);
 /*********************排风风机*************************/
 void vSystem_CloseExAirFans(System* pt);
 
+void vSystem_SetExAirFanCtrlPeriod(System* pt, uint16_t usExAirFanCtrlPeriod);
 void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMaxFreq);
 void vSystem_ExAirSet_Vol(System* pt);
 void vSystem_ExAirRatio(System* pt, uint8_t ucExAirCoolRatio, uint8_t ucExAirHeatRatio);

@@ -213,11 +213,11 @@ MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0
     /******************************保持寄存器数据域*************************/
 MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
-    MASTER_REG_HOLD_DATA(0, uint16,   0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
-    MASTER_REG_HOLD_DATA(2,  uint8,  85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
-    MASTER_REG_HOLD_DATA(3,  uint8,   1,     4,       1,  RW, 1, (void*)&pThis->eRunningMode)
-    MASTER_REG_HOLD_DATA(5, uint16, 160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
-    MASTER_REG_HOLD_DATA(6, uint16, 160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
+    MASTER_REG_HOLD_DATA(0, uint16,    0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
+    MASTER_REG_HOLD_DATA(2,  uint8,   85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
+    MASTER_REG_HOLD_DATA(3,  uint8,    1,     4,       1,  RW, 1, (void*)&pThis->eRunningMode)
+    MASTER_REG_HOLD_DATA(5, uint16,  160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
+    MASTER_REG_HOLD_DATA(6, uint16,  160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
 
     MASTER_REG_HOLD_DATA(8,  uint16,   0, MODULAR_MAX_FRE_AIR_VOL,  30000,  WO, 1, (void*)&pThis->usFreAirSet_Vol)
     MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,                       55,  WO, 1, (void*)&pThis->usHumidityMin)
