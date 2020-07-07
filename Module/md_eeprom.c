@@ -323,7 +323,6 @@ void vReadEEPROMData(void)
             *(int8_t*)pDataBufInt8[i] = DataBufInt8[i];
         }
     }
-    
     for(i=0; i<DataBufUint16Count; i++)
     {
         if(pDataBufUint16[i] != NULL)
@@ -366,7 +365,6 @@ void vReadEEPROMData(void)
             *(uint32_t*)pDataBufE32[i] = DataBufE32[i];
         }
     }
-    
     myprintf("vReadEEPROMData ulExAirFanRated_Vol %ld  %ld \n\n", DataBufUint32[0], *(uint32_t*)pDataBufUint32[0]);
     EEPROMDataReady = TRUE;
 }
@@ -491,16 +489,19 @@ void vWriteEEPROMDataFirstTime(void)
     OS_ERR err = OS_ERR_NONE;
     uint16_t usIndex = 0;
    
-#if EEPROM_DATA_INIT > 0    //参数复位    
-
     for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)  //运行时间复位
     {
         if(pDataBufRuntime[usIndex] != NULL)
         {
-            *(uint32_t*)pDataBufRuntime[usIndex] = 0;
-            DataBufRuntime[usIndex] = 0;
+            *(uint32_t*)pDataBufRuntime[usIndex] = usIndex * 100;
+            DataBufRuntime[usIndex] = usIndex * 100;
         }
     }
+    
+    
+#if EEPROM_DATA_INIT > 0    //参数复位    
+
+
     for(usIndex=0; usIndex<DataBufE32Count; usIndex++)     //能耗复位
     {
         if(pDataBufE32[usIndex] != NULL)

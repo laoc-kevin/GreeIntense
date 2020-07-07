@@ -37,13 +37,13 @@ CLASS(BMS)
     uint16_t          usExAirFanRated_Vol_L;    //排风机额定风量(低位)
     
     uint16_t          usTotalFreAir_Vol_H;      //系统新风风量(高位) 
-    uint16_t          usTotalFreAir_Vol_L;      //系统新风风量(高位)
+    uint16_t          usTotalFreAir_Vol_L;      //系统新风风量(低位)
     
     uint16_t          usUnitTotalEnergy_H;      //机组总耗电量(高位) 
-    uint16_t          usUnitTotalEnergy_L;      //机组总耗电量(高位)
+    uint16_t          usUnitTotalEnergy_L;      //机组总耗电量(低位)
     
     uint16_t          usExAirFanTotalEnergy_H;  //排风机总耗电量(高位) 
-    uint16_t          usExAirFanTotalEnergy_L;  //排风机总耗电量(高位)
+    uint16_t          usExAirFanTotalEnergy_L;  //排风机总耗电量(低位)
     
     uint16_t          usUnitPower;              //机组耗电功率
     uint16_t          usExAirFanPower;          //排风机耗电功率

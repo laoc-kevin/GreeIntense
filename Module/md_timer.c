@@ -17,11 +17,8 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_O
     }
     else
     {
-        if(sTmrState == OS_TMR_STATE_RUNNING)
-        {
-            OSTmrDel(p_tmr, &err);
-            OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err);
-        }
+        OSTmrDel(p_tmr, &err);
+        OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err); 
     }
     if(err == OS_ERR_NONE)
     {
@@ -31,16 +28,20 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_O
         }
         OSTmrStart(p_tmr, &err);
     }
-//    myprintf("xTimerRegist usDlyTime_s %d  ulPeriod_s %d\n", usDlyTime_s, ulPeriod_s);
+    else
+    {
+        myprintf("xTimerRegist usDlyTime_s %d  ulPeriod_s %d  err %d\n", ulDlyTime_s, ulPeriod_s, err);
+    }
+
     return err == OS_ERR_NONE;
 }
 
 /**************************************************************
 *@brief 定时器剩余计时
 ***************************************************************/
-uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr)
+uint32_t ulGetTmrElapsedTime(OS_TMR *p_tmr)
 {
-    OS_ERR err     = OS_ERR_NONE;
+    OS_ERR err = OS_ERR_NONE;
     return  OSTmrRemainGet(p_tmr, &err) / TMR_TICK_PER_SECOND;
 }
 

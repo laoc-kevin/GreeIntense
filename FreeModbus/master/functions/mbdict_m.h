@@ -119,7 +119,7 @@ typedef struct sMBSlaveDev   /* 从设备信息列表 */
     BOOL      xStateTestRequest;     //是否需要状态检测
     BOOL      xDevOnTimeout;         //是否处于延时
     
-    eScanMode eScanMode;             //当前轮询模式
+//    eScanMode eScanMode;             //当前轮询模式
     
     OS_TMR  sDevOfflineTmr;          //设备掉线定时器
     

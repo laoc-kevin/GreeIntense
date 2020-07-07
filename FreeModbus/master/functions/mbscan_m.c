@@ -612,10 +612,10 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBSlaveDev*    psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
 
-    if(psMBSlaveDevCur->eScanMode == SCAN_WRITE)
-    {
-        return;
-    } 
+//    if(psMBSlaveDevCur->eScanMode == SCAN_WRITE)
+//    {
+//        return;
+//    } 
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0	
     errorCode = eMBMasterScanHoldingRegister(psMBMasterInfo, ucSlaveAddr, xWriteEn, xReadEn, xCheckPreValue); //保持寄存器
@@ -701,7 +701,6 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
         }
-        psMBSlaveDev->eScanMode = (psMBSlaveDev->eScanMode == SCAN_WRITE) ? SCAN_READ:SCAN_WRITE; //切换轮询模式
         
 //        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
 //        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);            

@@ -317,8 +317,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
                     psMBSlaveDev->psDevCurData      = psMBDevData;                //从设备当前数据域
                     psMBSlaveDev->ucProtocolID      = psMBDevData->ucProtocolID;  //从设备协议ID
                     psMBSlaveDev->xDataReady        = TRUE;                       //从设备数据准备好
-                    psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求
-                    psMBSlaveDev->eScanMode         = SCAN_WRITE;                    
+                    psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求                  
                 }
                 else
                 {
@@ -331,8 +330,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
                 psMBSlaveDev->psDevCurData      = psMBDevData;                //从设备当前数据域
                 psMBSlaveDev->ucProtocolID      = psMBDevData->ucProtocolID;  //从设备协议ID
                 psMBSlaveDev->xDataReady        = TRUE;                       //从设备数据准备好
-                psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求
-                psMBSlaveDev->eScanMode         = SCAN_WRITE;                
+                psMBSlaveDev->xStateTestRequest = FALSE;                      //状态测试请求              
             }
 
 #if MB_MASTER_HEART_BEAT_ENABLED >0        
@@ -436,9 +434,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     }
     else  //多次测试仍返回错误
     {
-        psMBSlaveDev->xDataReady = FALSE;
-        psMBSlaveDev->eScanMode = SCAN_WRITE;
-        
+        psMBSlaveDev->xDataReady = FALSE;     
         if(psMBSlaveDev->ucOfflineTimes == MB_TEST_OFFLINE_TIMES)  //前几个周期测试都报故障
         {
             psMBSlaveDev->xOnLine        = FALSE;    //从设备掉线
@@ -454,7 +450,5 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         }
         (void)OSTmrStop(&psMBSlaveDev->sDevHeartBeatTmr, OS_OPT_TMR_NONE, NULL, &err); //停止心跳   
     }
-
-    
     psMBMasterInfo->eMBRunMode = STATE_SCAN_DEV;  //退出测试从设备状态    
 }

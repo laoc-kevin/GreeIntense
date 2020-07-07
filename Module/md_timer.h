@@ -11,7 +11,7 @@
 BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_OPT opt, 
                   OS_TMR_CALLBACK_PTR p_callback, void *p_callback_arg, uint8_t xExcuteCallback);
                       
-uint16_t usGetTmrElapsedTime(OS_TMR *p_tmr);
+uint32_t ulGetTmrElapsedTime(OS_TMR *p_tmr);
 OS_STATE usGetTmrState(OS_TMR *p_tmr);
 
 #endif

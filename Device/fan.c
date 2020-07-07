@@ -231,7 +231,7 @@ void vExAirFan_Init(ExAirFan* pt, const sFanInfo* psFan, uint8_t ucDevIndex)
     (void)xTimerRegist(&pThis->sExAirFanTmr, 0, EX_AIR_FAN_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vExAirFan_TimeoutInd, pThis, FALSE); 
     
 #if DEBUG_ENABLE > 0 
-    myprintf("vExAirFan_Init  ucDevIndex %d \n", pThis->Device.ucDevIndex);
+//    myprintf("vExAirFan_Init  ucDevIndex %d \n", pThis->Device.ucDevIndex);
 #endif  
 }
 
