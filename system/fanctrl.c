@@ -574,21 +574,15 @@ void vSystem_ExAirFanErr(System* pt)
     BMS*      psBMS = BMS_Core();
     
     ExAirFan* pExAirFan = NULL;
-    
     for(n=0, nFanNum=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = pThis->psExAirFanList[n];       
-        if(pExAirFan->xExAirFanErr == TRUE)  
+        if(pExAirFan->xExAirFanErr == FALSE)  
         {
-            vSystem_SetAlarm(pThis);
-        }
-        else
-        {
-            nFanNum++;
-            vSystem_DelAlarmRequst(pThis);
+            nFanNum++;    
         }
     }
-    if(nFanNum == 0)
+    if(nFanNum == 0)  //无一台风机可用
     {
         pThis->xExFanErrFlag = TRUE;
         if(pThis->eSystemMode == MODE_AUTO)   //如果为自动切回手动
@@ -601,8 +595,17 @@ void vSystem_ExAirFanErr(System* pt)
     {
         pThis->xExFanErrFlag = FALSE;
     }
+    if(nFanNum<EX_AIR_FAN_NUM)   //有一台风机故障
+    {
+        vSystem_SetAlarm(pThis);
+    }
+    else
+    {
+        vSystem_DelAlarmRequst(pThis);
+    }
+       
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanErr  ExAirFan %d\n", pExAirFan->Device.ucDevIndex);
+    myprintf("vSystem_ExAirFanErr  xExFanErrFlag %d\n", pThis->xExFanErrFlag);
 #endif    
     vSystem_ExAirFanCtrl(pThis); 
 }

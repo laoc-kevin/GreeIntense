@@ -429,8 +429,8 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
         {
             (void)xMBMasterDevDevHeartTmrEnable(psMBSlaveDev); 
         }
-        myprintf("vMBDevCurStateTest  ucDevAddr %d  xOnLine %d xDataReady %d xSynchronized %d xStateTestRequest %d \n", 
-        psMBSlaveDev->ucDevAddr,  psMBSlaveDev->xOnLine,  psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized, psMBSlaveDev->xStateTestRequest);
+//        myprintf("vMBDevCurStateTest  ucDevAddr %d  xOnLine %d xDataReady %d xSynchronized %d xStateTestRequest %d \n", 
+//        psMBSlaveDev->ucDevAddr,  psMBSlaveDev->xOnLine,  psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized, psMBSlaveDev->xStateTestRequest);
     }
     else  //多次测试仍返回错误
     {

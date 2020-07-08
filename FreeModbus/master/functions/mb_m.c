@@ -64,8 +64,6 @@
 #endif
 
 #define TMR_TICK_PER_SECOND                  OS_CFG_TMR_TASK_RATE_HZ
-
-
 #define MB_MASTER_POLL_INTERVAL_MS           30
 
 /* ----------------------- Static variables ---------------------------------*/
@@ -419,8 +417,8 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
         case EV_MASTER_ERROR_PROCESS:    //主栈处理错误
         	/* Execute specified error process callback function. */
 			errorType = eMBMasterGetErrorType(psMBMasterInfo);
-			vMBMasterGetPDUSndBuf( psMBMasterInfo, &pucMBFrame );
-			switch (errorType) 
+			vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
+			switch(errorType) 
 			{
 			    case EV_ERROR_RESPOND_TIMEOUT:    //等待超时
 			    	vMBMasterErrorCBRespondTimeout( psMBPort, ucMBMasterGetDestAddr(psMBMasterInfo),

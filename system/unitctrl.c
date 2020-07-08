@@ -679,7 +679,7 @@ void vSystem_UnitErr(System* pt)
             pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
         }  
     }
-    if(ucUnitNum > 0)   
+    if(ucUnitNum < MODULAR_ROOF_NUM)   
     {
         vSystem_SetAlarm(pThis);
     }

@@ -619,7 +619,7 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0	
     errorCode = eMBMasterScanHoldingRegister(psMBMasterInfo, ucSlaveAddr, xWriteEn, xReadEn, xCheckPreValue); //保持寄存器
-    if(errorCode == MB_MRE_ETIMEDOUT)
+    if(errorCode == MB_MRE_TIMEDOUT)
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -628,7 +628,7 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
 					
 #if MB_FUNC_READ_COILS_ENABLED > 0  || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0
     errorCode = eMBMasterScanCoils(psMBMasterInfo, ucSlaveAddr, xWriteEn, xReadEn, xCheckPreValue);           //线圈
-    if(errorCode == MB_MRE_ETIMEDOUT)
+    if(errorCode == MB_MRE_TIMEDOUT)
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -637,7 +637,7 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
 					
 #if MB_FUNC_READ_INPUT_ENABLED > 0				
     errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, ucSlaveAddr);	  //读输入寄存器
-    if(errorCode == MB_MRE_ETIMEDOUT)
+    if(errorCode == MB_MRE_TIMEDOUT)
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -646,7 +646,7 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
-    if(errorCode == MB_MRE_ETIMEDOUT)
+    if(errorCode == MB_MRE_TIMEDOUT)
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -656,8 +656,9 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
-        myprintf("vMBMasterScanReadSlaveDev ucSlaveAddr %d xStateTestRequest %d\n", ucSlaveAddr, psMBSlaveDevCur->xStateTestRequest); 
-    }   
+//        myprintf("vMBMasterScanSlaveDevData ucSlaveAddr %d  errorCode %d\n", ucSlaveAddr, errorCode);
+    }
+         
 }
 
 /**********************************************************************
@@ -701,7 +702,6 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
                 psMBSlaveDev->xSynchronized = TRUE;  //同步完成
             }
         }
-        
 //        myprintf("************vMBMasterScanSlaveDev  ucSlaveAddr %d  xDataReady %d  xSynchronized %d**************\n", 
 //        ucSlaveAddr, psMBSlaveDev->xDataReady, psMBSlaveDev->xSynchronized);            
     }		
@@ -757,7 +757,7 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
         {    
             if( psMBSlaveDev->xOnLine == TRUE  && psMBSlaveDev->ucDevAddr <= ucMaxAddr && psMBSlaveDev->ucDevAddr >= ucMinAddr )
             {
-                if(psMBSlaveDev->xStateTestRequest == TRUE) //处于读模式或者上次检查掉线
+                if(psMBSlaveDev->xStateTestRequest == TRUE) //测试请求
                 {
                     vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
                 }

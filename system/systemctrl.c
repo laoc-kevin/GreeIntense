@@ -46,8 +46,6 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     {
         return;
     }
-    pThis->eSystemMode = eSystemMode;
-    
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
         if(pThis->xUnitErrFlag == TRUE || pThis->xExFanErrFlag == TRUE)
@@ -55,6 +53,8 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
             psBMS->eSystemMode = pThis->eSystemMode;
             return;
         }
+        pThis->eSystemMode = eSystemMode;
+        
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
         if(pThis->sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_0)
         {
@@ -68,15 +68,21 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     }
     if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
+        pThis->eSystemMode = eSystemMode;
         vSystem_SwitchClose(pThis);
+    }
+    if(eSystemMode == MODE_MANUAL)    //手动模式
+    {
+        pThis->eSystemMode = eSystemMode;
     }
     if(eSystemMode == MODE_EMERGENCY) //紧急模式
     {
-        if(pThis->xUnitErrFlag == TRUE || pThis->xExFanErrFlag == TRUE)
+        if(pThis->xExFanErrFlag == TRUE)
         {
             psBMS->eSystemMode = pThis->eSystemMode;
             return;
         }
+        pThis->eSystemMode = eSystemMode;
         vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
@@ -214,7 +220,6 @@ void vSystem_SetExAirFanCtrlPeriod(System* pt, uint16_t usExAirFanCtrlPeriod)
         vSystem_ExAirFanCtrl(pThis);   
     }
 }
-
 
 /*设定系统湿度阈值*/
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax)
