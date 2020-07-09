@@ -55,7 +55,8 @@ CLASS(ModularRoof)   /*屋顶机机组*/
      
     eFuncMode     eFuncMode;                //功能设定    
     eRunningMode  eRunningMode;             //运行模式设定                                      
-    eSwitchCmd    eSwitchCmd;               //启停命令  
+    eSwitchCmd    eSwitchCmd;               //启停命令
+    eSwitchCmd    eSwitchState;             //启停状态(实际下发命令)    
       
     int16_t       sRetAir_T;                //回风温度
     int16_t       sSupAir_T;                //送风温度  

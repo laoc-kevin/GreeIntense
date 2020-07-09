@@ -98,7 +98,7 @@ CLASS(System)   /*系统*/
 
     eExAirFanType     eExAirFanType;            //排风机类型(0: 全变频  1：变频+定频)
     
-    OS_TMR            sRuntimeTmr;              //系统运行时间定时器 
+    OS_TMR            sSysPollTmr;              //系统周期轮询定时器 
     OS_TMR            sExAirFanCtrlTmr;         //排风机控制周期定时器
     OS_TMR            sExAirFanRequestTimeTmr;  //排风机运行需求时间定时器
     
@@ -117,9 +117,8 @@ CLASS(System)   /*系统*/
     OS_TMR            sModeChangePeriodTmr_4;   //模式切换间隔t4(min)定时器
     OS_TMR            sModeChangePeriodTmr_5;   //模式切换间隔t5(min)定时器
     OS_TMR            sModeChangePeriodTmr_6;   //模式切换间隔t6(min)定时器
-    
-    OS_TMR            sSystemPollTmr;            //系统轮询定时器
-    
+   
+    BOOL              xModeChanging;            //模式切换中
     BOOL              xCompFirstRun;            //压缩机首次开启
     BOOL              xUnitErrFlag;             //机组总故障标志
     BOOL              xExFanErrFlag;            //排风机总故障标志

@@ -39,13 +39,16 @@ END_CTOR
 void vModularRoof_SwitchOpen(IDevSwitch* pt)
 {
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
-    if( (pThis->sMBSlaveDev.xOnLine == TRUE) && (pThis->xStopErrFlag == FALSE) )   //无故障则开启
+    if(pThis->sMBSlaveDev.xOnLine == TRUE && pThis->xStopErrFlag == FALSE)   //无故障则开启
     {
-        pThis->eSwitchCmd = CMD_OPEN;      
+        pThis->eSwitchCmd = CMD_OPEN; 
+        pThis->eSwitchState = CMD_OPEN;
+        if(pThis->Device.eRunningState == STATE_STOP)
+        {    
 #if DEBUG_ENABLE > 0
-//    pThis->Device.eRunningState = STATE_RUN;
-    myprintf("vModularRoof_SwitchOpen %d\n", pThis->eSwitchCmd);
-#endif        
+            myprintf("vModularRoof_SwitchOpen %d  ucDevIndex %d\n", pThis->eSwitchCmd, pThis->Device.ucDevIndex);
+#endif  
+        }           
     }
 }
 
@@ -56,10 +59,10 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
  
     if(pThis->Device.eRunningState == STATE_RUN)
     {
-        pThis->eSwitchCmd = CMD_CLOSE; 
+        pThis->eSwitchCmd = CMD_CLOSE;
+        pThis->eSwitchState = CMD_CLOSE;        
 #if DEBUG_ENABLE > 0
-//     pThis->Device.eRunningState = STATE_STOP;
-    myprintf("vModularRoof_SwitchClose %d\n", pThis->eSwitchCmd);
+    myprintf("vModularRoof_SwitchClose %d  ucDevIndex %d \n", pThis->eSwitchCmd, pThis->Device.ucDevIndex);
 #endif          
     }
 }
@@ -71,7 +74,7 @@ void vModularRoof_SetRunningMode(ModularRoof* pt, eRunningMode eMode)
     pThis->eRunningMode = eMode; 
     
 #if DEBUG_ENABLE > 0
-    myprintf("vModularRoof_SetRunningMode %d\n", pThis->eRunningMode);
+    myprintf("vModularRoof_SetRunningMode %d  ucDevIndex %d\n", pThis->eRunningMode, pThis->Device.ucDevIndex);
 #endif      
 }
 
@@ -93,8 +96,6 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     
     DATA_INIT(pThis->usCO2AdjustThr_V,  2700)
     DATA_INIT(pThis->usCO2AdjustDeviat,   50)
-    
-//    DATA_INIT(pThis->xErrClean,   1)
 
 //    myprintf("pThis->eRunningMode %d  eRunningMode  %d\n", *(uint8_t*)p, pThis->eRunningMode); 
 }
@@ -214,7 +215,7 @@ MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0
 MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
     
     MASTER_REG_HOLD_DATA(0, uint16,    0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
-    MASTER_REG_HOLD_DATA(2,  uint8,   85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchCmd)
+    MASTER_REG_HOLD_DATA(2,  uint8,   85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchState)
     MASTER_REG_HOLD_DATA(3,  uint8,    1,     4,       1,  RW, 1, (void*)&pThis->eRunningMode)
     MASTER_REG_HOLD_DATA(5, uint16,  160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
     MASTER_REG_HOLD_DATA(6, uint16,  160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)

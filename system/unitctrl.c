@@ -4,8 +4,6 @@
 
 #define MODULAR_POLL_TIME_OUT_S   30
 
-int16_t   LastAmbientIn_T = 0;
-
 /*系统开启所有机组*/
 void vSystem_OpenUnits(System* pt)
 {
@@ -98,20 +96,6 @@ uint16_t usSystem_ChangeEnergyTemp(System* pt)
 #endif       
 }
 
-void vSystem_PollTimeCallBack(void* p_tmr, void* p_arg)    
-{
-    OS_ERR err = OS_ERR_NONE;
-    System* pThis = (System*)p_arg;
-    
-    //防止温度长时间不变化而导致无法切换模式
-    if(pThis->eSystemMode != MODE_AUTO || pThis->eSystemState == STATE_CLOSED || LastAmbientIn_T != pThis->sAmbientIn_T)
-    {
-        return;
-    }
-//    myprintf("********************vSystem_PollTask***********************\n");
-    vSystem_ChangeUnitRunningMode(pThis);           
-}
-
 /*设定机组运行模式*/
 void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
 {
@@ -161,11 +145,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     }
     if(pThis->eSystemMode == MODE_AUTO)
     {
-        LastAmbientIn_T = pThis->sAmbientIn_T;
         vSystem_OpenUnits(pThis);
-        
-        (void)xTimerRegist(&pThis->sSystemPollTmr, 0, MODULAR_POLL_TIME_OUT_S, 
-                            OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE); 
     }
     if(pThis->eRunningMode == STATE_WET)  //湿膜模式
     {
@@ -177,12 +157,9 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
 void vSystem_ModeChangePeriodTimeCallback(void* p_tmr, void* p_arg)
 {
     System* pThis = (System*)p_arg;
-    LastAmbientIn_T = pThis->sAmbientIn_T;
-    
-//    (void)xTimerRegist(&pThis->sSystemPollTmr, 0, MODULAR_POLL_TIME_OUT_S, 
-//                        OS_OPT_TMR_PERIODIC, vSystem_PollTimeCallBack, pThis, FALSE); 
+
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ModeChangePeriodTimeCallback %d %d\n", LastAmbientIn_T, pThis->sAmbientIn_T);
+    myprintf("vSystem_ModeChangePeriodTimeCallback %d\n", pThis->sAmbientIn_T);
 #endif         
 }
 
@@ -201,9 +178,7 @@ void vSystem_AdjustUnitRunningMode(System* pt)
     if(pThis->eSystemMode != MODE_AUTO || pThis->eSystemState == STATE_CLOSED)   //6. 自动模式且已经运行
     {
         return;
-    }
-    LastAmbientIn_T = pThis->sAmbientIn_T;
-    
+    }  
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_AdjustUnitRunningMode %d\n", pThis->eRunningMode);
 #endif      
@@ -217,10 +192,14 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             (usGetTmrState(&pThis->sModeChangePeriodTmr_1) != OS_TMR_STATE_RUNNING) )
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_WET);
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_1, pThis->usModeChangePeriod_1*60, 0, 
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_3, pThis->usModeChangePeriod_3*60, 0, 
                                OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_4, pThis->usModeChangePeriod_4*60, 0, 
+                   OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
             
-            myprintf("xTimerRegist sModeChangePeriodTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            
             return;            
         }
         //室内温度<室内目标温度- T2（默认1.5℃），持续满足t2(默认5min)时间，
@@ -234,9 +213,9 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             {
                 pThis->xCompFirstRun = TRUE;
             }
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_2, pThis->usModeChangePeriod_2*60, 0, 
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_6, pThis->usModeChangePeriod_6*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-            myprintf("xTimerRegist sModeChangePeriodTmr_2 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
     }
@@ -256,9 +235,10 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             {
                 pThis->xCompFirstRun = TRUE;  //首次开启
             }
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_3, pThis->usModeChangePeriod_3*60, 0, 
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_5, pThis->usModeChangePeriod_5*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-            myprintf("xTimerRegist sModeChangePeriodTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+
             return;
         }
         //室内温度<室内目标温度- T4（默认1.5℃），持续满足t4(默认5min)时间，
@@ -268,9 +248,10 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             (usGetTmrState(&pThis->sModeChangePeriodTmr_4) != OS_TMR_STATE_RUNNING) )
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_4, pThis->usModeChangePeriod_4*60, 0, 
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_1, pThis->usModeChangePeriod_1*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-            myprintf("xTimerRegist sModeChangePeriodTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+
             return;
         }
     }
@@ -284,9 +265,14 @@ void vSystem_AdjustUnitRunningMode(System* pt)
             (usGetTmrState(&pThis->sModeChangePeriodTmr_5) != OS_TMR_STATE_RUNNING) )
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_WET);
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_5, pThis->usModeChangePeriod_5*60, 0, 
-                                OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-            myprintf("xTimerRegist sModeChangePeriodTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_3, pThis->usModeChangePeriod_3*60, 0, 
+                               OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_4, pThis->usModeChangePeriod_4*60, 0, 
+                   OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
+            
+            myprintf("xTimerRegist sModeChangePeriodTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+           
             return;
         }
         //机组压缩机全部待机（首次开启，压缩机未运行不纳入压机待机情况）持续满足t7(默认5min)
@@ -297,9 +283,14 @@ void vSystem_AdjustUnitRunningMode(System* pt)
                 (usGetTmrState(&pThis->sModeChangePeriodTmr_5) != OS_TMR_STATE_RUNNING) )
             {
                 vSystem_SetUnitRunningMode(pThis, RUN_MODE_WET);
-                (void)xTimerRegist(&pThis->sModeChangePeriodTmr_5, pThis->usModeChangePeriod_5*60, 0, 
-                                    OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-                myprintf("xTimerRegist sModeChangePeriodTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+                (void)xTimerRegist(&pThis->sModeChangePeriodTmr_3, pThis->usModeChangePeriod_3*60, 0, 
+                                   OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
+                (void)xTimerRegist(&pThis->sModeChangePeriodTmr_4, pThis->usModeChangePeriod_4*60, 0, 
+                       OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
+                
+                myprintf("xTimerRegist sModeChangePeriodTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+                myprintf("xTimerRegist sModeChangePeriodTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+                
                 return;
             }
         }
@@ -314,12 +305,12 @@ void vSystem_AdjustUnitRunningMode(System* pt)
              (usGetTmrState(&pThis->sModeChangePeriodTmr_6) != OS_TMR_STATE_RUNNING) )
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
-            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_6, pThis->usModeChangePeriod_6*60, 0, 
+            (void)xTimerRegist(&pThis->sModeChangePeriodTmr_1, pThis->usModeChangePeriod_1*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-            myprintf("xTimerRegist sModeChangePeriodTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+            myprintf("xTimerRegist sModeChangePeriodTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
-        //机组压缩机全部待机（首次开启，压缩机未运行不纳入压机待机情况）持续满足t7(默认5min)
+        //机组压缩机全部待机（首次开启，压缩机未运行不纳入压机待机情况）持续满足t8(默认5min)
         //且满足【模式切换间隔时间6】（默认10min）则机组切换为送风模式；
         if( (pThis->xCompFirstRun == FALSE) && (xSystem_UnitCompsClosed(pThis) == TRUE) )
         {
@@ -327,9 +318,9 @@ void vSystem_AdjustUnitRunningMode(System* pt)
                 (usGetTmrState(&pThis->sModeChangePeriodTmr_6) != OS_TMR_STATE_RUNNING) )
             {
                 vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
-                (void)xTimerRegist(&pThis->sModeChangePeriodTmr_6, pThis->usModeChangePeriod_6*60, 0, 
+                (void)xTimerRegist(&pThis->sModeChangePeriodTmr_1, pThis->usModeChangePeriod_1*60, 0, 
                                     OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangePeriodTimeCallback, pThis, FALSE);
-                myprintf("xTimerRegist sModeChangePeriodTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+                myprintf("xTimerRegist sModeChangePeriodTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
                 return;
             }
         }
@@ -364,8 +355,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     {
         return;
     }
-    LastAmbientIn_T = pThis->sAmbientIn_T;
-    
 //#if DEBUG_ENABLE > 0
 //    myprintf("vSystem_ChangeUnitRunningMode %d\n", pThis->eRunningMode);
 //#endif           
@@ -376,9 +365,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_1) && 
             (usGetTmrState(&pThis->sModeChangeTmr_1) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            pThis->xModeChanging = TRUE;       //进入模式调节周期
+            myprintf("xTimerRegist sModeChangeTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
             
         }
@@ -386,10 +376,11 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T < pThis->usTempSet - pThis->usModeAdjustTemp_2) && 
             (usGetTmrState(&pThis->sModeChangeTmr_2) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_2 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            return;
+             pThis->xModeChanging = TRUE;       //进入模式调节周期
+             myprintf("xTimerRegist sModeChangeTmr_2 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
+             return;
         }
     }
     //（2）系统湿膜模式运行，按照以下切换
@@ -401,18 +392,20 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T > usTempSet + pThis->usModeAdjustTemp_3) && 
             (usGetTmrState(&pThis->sModeChangeTmr_3) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->usModeChangeTime_3*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            pThis->xModeChanging = TRUE;       //进入模式调节周期
+            myprintf("xTimerRegist sModeChangeTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
         //室内温度<室内目标温度- T4（默认1.5℃），持续满足t2(默认5min)时间
         if( (pThis->sAmbientIn_T < pThis->usTempSet - pThis->usModeAdjustTemp_4) && 
             (usGetTmrState(&pThis->sModeChangeTmr_4) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_4, pThis->usModeChangeTime_4*60, 0, 
-                                OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);            
+                                OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            pThis->xModeChanging = TRUE;       //进入模式调节周期
+            myprintf("xTimerRegist sModeChangeTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);            
             return;
         }
     }
@@ -423,9 +416,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T < pThis->usTempSet - pThis->usModeAdjustTemp_5) && 
             (usGetTmrState(&pThis->sModeChangeTmr_5) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_5, pThis->usModeChangeTime_5*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            pThis->xModeChanging = TRUE;       //进入模式调节周期
+            myprintf("xTimerRegist sModeChangeTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
         
@@ -434,9 +428,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             if(usGetTmrState(&pThis->sModeChangeTmr_7) != OS_TMR_STATE_RUNNING)
             {
-                myprintf("xTimerRegist sModeChangeTmr_7 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
                 (void)xTimerRegist(&pThis->sModeChangeTmr_7, pThis->usModeChangeTime_7*60, 0, 
                                     OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+                pThis->xModeChanging = TRUE;       //进入模式调节周期
+                myprintf("xTimerRegist sModeChangeTmr_7 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
                 return;
             }
         }
@@ -449,9 +444,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         if( (sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_6) && 
             (usGetTmrState(&pThis->sModeChangeTmr_6) != OS_TMR_STATE_RUNNING) )
         {
-            myprintf("xTimerRegist sModeChangeTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             (void)xTimerRegist(&pThis->sModeChangeTmr_6, pThis->usModeChangeTime_6*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+            pThis->xModeChanging = TRUE;       //进入模式调节周期
+            myprintf("xTimerRegist sModeChangeTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
         //机组压缩机全部待机（首次开启，压缩机未运行不纳入压机待机情况）持续满足t7(默认5min)
@@ -459,9 +455,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             if(usGetTmrState(&pThis->sModeChangeTmr_8) != OS_TMR_STATE_RUNNING)
             {
-                myprintf("xTimerRegist sModeChangeTmr_8 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
                 (void)xTimerRegist(&pThis->sModeChangeTmr_8, pThis->usModeChangeTime_8*60, 0, 
-                                    OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);               
+                                    OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
+                pThis->xModeChanging = TRUE;       //进入模式调节周期
+                myprintf("xTimerRegist sModeChangeTmr_8 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);                
                 return;
             }
         }

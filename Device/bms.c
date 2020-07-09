@@ -385,7 +385,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
         
     SLAVE_REG_HOLD_DATA(98,  uint16,    MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
     SLAVE_REG_HOLD_DATA(99,  uint16,    0,               100,       RO, 1, (void*)&pSystem->usAmbientOut_H)  
-    SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
+    SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchState) 
     SLAVE_REG_HOLD_DATA(114,  uint8,    1,                4,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
     SLAVE_REG_HOLD_DATA(115,  uint8,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
         
@@ -411,7 +411,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(133,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(134,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->ucModularState)
     SLAVE_REG_HOLD_DATA(135,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
-    SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
+    SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchState) 
         
     SLAVE_REG_HOLD_DATA(146,  uint8,    1,     4, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
     SLAVE_REG_HOLD_DATA(147,  uint8,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
@@ -594,17 +594,17 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_BitCoilBuf,  &pThis->sBMSCommData.sMBCoilTable
     SLAVE_COIL_BIT_DATA(152, RO, (void*)&pSystem->pUnitMeter->sMBSlaveDev.xOnLine)     
     SLAVE_COIL_BIT_DATA(153, RO, (void*)&pSystem->pExAirFanMeter->sMBSlaveDev.xOnLine) 
         
-    SLAVE_COIL_BIT_DATA(160, RW, (void*)&pSystem->psExAirFanList[0]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(160, RW, (void*)&pSystem->psExAirFanList[0]->eCtrlCmd)
     SLAVE_COIL_BIT_DATA(161, RO, (void*)&pSystem->psExAirFanList[0]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(162, RO, (void*)&pSystem->psExAirFanList[0]->Device.eRunningState)
-    SLAVE_COIL_BIT_DATA(168, RW, (void*)&pSystem->psExAirFanList[1]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(168, RW, (void*)&pSystem->psExAirFanList[1]->eCtrlCmd)
     SLAVE_COIL_BIT_DATA(169, RO, (void*)&pSystem->psExAirFanList[1]->xExAirFanErr)  
         
     SLAVE_COIL_BIT_DATA(170, RO, (void*)&pSystem->psExAirFanList[1]->Device.eRunningState)    
-    SLAVE_COIL_BIT_DATA(176, RW, (void*)&pSystem->psExAirFanList[2]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(176, RW, (void*)&pSystem->psExAirFanList[2]->eCtrlCmd)
     SLAVE_COIL_BIT_DATA(177, RO, (void*)&pSystem->psExAirFanList[2]->xExAirFanErr)    
     SLAVE_COIL_BIT_DATA(178, RO, (void*)&pSystem->psExAirFanList[2]->Device.eRunningState)  
-    SLAVE_COIL_BIT_DATA(184, RW, (void*)&pSystem->psExAirFanList[3]->eSwitchCmd)
+    SLAVE_COIL_BIT_DATA(184, RW, (void*)&pSystem->psExAirFanList[3]->eCtrlCmd)
         
     SLAVE_COIL_BIT_DATA(185, RO, (void*)&pSystem->psExAirFanList[3]->xExAirFanErr)        
     SLAVE_COIL_BIT_DATA(186, RO, (void*)&pSystem->psExAirFanList[3]->Device.eRunningState)  

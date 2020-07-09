@@ -58,7 +58,7 @@ CLASS(ExAirFan)           /*排风风机*/
     sDigital_IO  sErr_DI;       //故障DI通道 
     
     eFreqType    eFanFreqType;  //风机频率类型
-    eCtrlEn      eSwitchCmd;    //启停命令
+    eCtrlEn      eCtrlCmd;       //启停命令
     
     uint8_t      ucTimeCount;   //时间计数
     

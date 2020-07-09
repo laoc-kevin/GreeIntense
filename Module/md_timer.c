@@ -15,10 +15,23 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_O
     {
         OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err);
     }
-    else
+    else if(sTmrState == OS_TMR_STATE_RUNNING)
     {
-        OSTmrDel(p_tmr, &err);
-        OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err); 
+        OSTmrStop(p_tmr, OS_OPT_TMR_NONE, NULL, &err);
+        
+        p_tmr->Dly    = dly;
+        p_tmr->Period = period;
+        if(p_callback != NULL)
+        {
+            p_tmr->CallbackPtr = p_callback;
+        }
+        if(p_callback_arg != NULL)
+        {
+            p_tmr->CallbackPtrArg = p_callback_arg;
+        }
+        
+//        OSTmrDel(p_tmr, &err);
+//        OSTmrCreate(p_tmr, "Tmr", dly, period, opt, p_callback, (void*)p_callback_arg, &err); 
     }
     if(err == OS_ERR_NONE)
     {
@@ -32,7 +45,6 @@ BOOL xTimerRegist(OS_TMR *p_tmr, uint32_t ulDlyTime_s, uint32_t ulPeriod_s, OS_O
     {
         myprintf("xTimerRegist usDlyTime_s %d  ulPeriod_s %d  err %d\n", ulDlyTime_s, ulPeriod_s, err);
     }
-
     return err == OS_ERR_NONE;
 }
 

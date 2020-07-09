@@ -13,7 +13,7 @@
 #define SYSTEM_ALARM_DO          13       //系统声光报警DO接口
 
 #define TMR_TICK_PER_SECOND      OS_CFG_TMR_TASK_RATE_HZ
-#define RUNNING_TIME_OUT_S       10
+#define SYSTEM_POLL_TIME_OUT_S   10
 #define SYSTEM_POLL_INTERVAL_S   10
 
 #define MODE_CHANGE_TIME         1
@@ -23,6 +23,8 @@
 #define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) )\
          {p_arg2; myprintf("**********************HANDLE*********************\n");goto begin;}
 
+int16_t   LastAmbientIn_T = 0;         
+         
 System*  psSystem = NULL;
 System   SystemCore;
         
@@ -62,23 +64,6 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
              pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
 #endif           
 }
-
-///*系统周期轮询*/
-//void vSystem_PollTask(void *p_arg)
-//{
-//    OS_ERR err = OS_ERR_NONE;
-//    psSystem = System_Core();
-//    
-//    while (DEF_TRUE)
-//    {
-//        (void)OSTimeDlyHMSM(0, 0, SYSTEM_POLL_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-//        if(psSystem->eSystemState != STATE_CLOSED)
-//        {
-////            myprintf("********************vSystem_PollTask***********************\n");
-//            vSystem_ChangeUnitRunningMode(psSystem);
-//        }            
-//    }           
-//}
 
 /*系统内部消息轮询*/
 void vSystem_EventPollTask(void *p_arg)
@@ -242,6 +227,7 @@ void vSystem_ParameterSysn(System* pt)
     {
         pModularRoof = pThis->psModularRoofList[n];
         
+        pModularRoof->eSwitchState  = pModularRoof->eSwitchCmd;
         pModularRoof->eRunningMode  = pThis->eRunningMode;
         pModularRoof->usCoolTempSet = pThis->usTempSet;
         pModularRoof->usHeatTempSet = pThis->usTempSet;
@@ -255,11 +241,18 @@ void vSystem_ParameterSysn(System* pt)
         pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
         pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
         pModularRoof->usCO2PPM      = pThis->usCO2PPM;
-    }                     
+    }
+
+    //防止温度长时间不变化而导致无法切换模式
+    if(pThis->eSystemMode == MODE_AUTO && pThis->eSystemState != STATE_CLOSED && LastAmbientIn_T == pThis->sAmbientIn_T)
+    {
+        vSystem_ChangeUnitRunningMode(pThis);
+    }
+    LastAmbientIn_T = pThis->sAmbientIn_T;
 }
 
-/*系统1s时间轮询*/
-void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
+/*系统周期轮询*/
+void vSystem_PollTmrCallback(void * p_tmr, void * p_arg)
 {
     uint8_t n;
     ModularRoof*    pModularRoof    = NULL;
@@ -271,12 +264,12 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->Device.eRunningState == STATE_RUN && pModularRoof->Device.ulRunTime_S < UINT32_MAX)
+        if(pModularRoof->Device.eRunningState == STATE_RUN && pModularRoof->Device.ulRunTime_S < UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
         {
-            pModularRoof->Device.ulRunTime_S = pModularRoof->Device.ulRunTime_S + RUNNING_TIME_OUT_S;
+            pModularRoof->Device.ulRunTime_S = pModularRoof->Device.ulRunTime_S + SYSTEM_POLL_TIME_OUT_S;
             pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime_S / 3600;
         }
-        if(pModularRoof->Device.ulRunTime_S == UINT32_MAX)
+        if(pModularRoof->Device.ulRunTime_S >= UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
         {
             pModularRoof->Device.ulRunTime_S = 0;
         }
@@ -285,12 +278,12 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];
-        if(pExAirFan->Device.eRunningState == STATE_RUN && pExAirFan->Device.ulRunTime_S < UINT32_MAX)
+        if(pExAirFan->Device.eRunningState == STATE_RUN && pExAirFan->Device.ulRunTime_S < UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
         {
-            pExAirFan->Device.ulRunTime_S = pExAirFan->Device.ulRunTime_S + RUNNING_TIME_OUT_S;
+            pExAirFan->Device.ulRunTime_S = pExAirFan->Device.ulRunTime_S + SYSTEM_POLL_TIME_OUT_S;
             pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S / 3600;
         }
-        if(pExAirFan->Device.ulRunTime_S == UINT32_MAX)
+        if(pExAirFan->Device.ulRunTime_S >= UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
         {
             pExAirFan->Device.ulRunTime_S = 0;
         }        
@@ -304,7 +297,7 @@ void vSystem_RuntimeTmrCallback(void * p_tmr, void * p_arg)
 void vSystem_InitRuntimeTmr(System* pt)
 {
     System* pThis = (System*)pt; 
-    (void)xTimerRegist(&pThis->sRuntimeTmr, 0, RUNNING_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vSystem_RuntimeTmrCallback, pThis, FALSE);                       
+    (void)xTimerRegist(&pThis->sSysPollTmr, 0, SYSTEM_POLL_TIME_OUT_S, OS_OPT_TMR_PERIODIC, vSystem_PollTmrCallback, pThis, FALSE);                       
 }
  
 /*系统EEPROM数据注册*/
