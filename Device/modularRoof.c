@@ -84,7 +84,7 @@ void vModularRoof_InitDefaultData(ModularRoof* pt)
     ModularRoof* pThis = (ModularRoof*)pt;
    
     DATA_INIT(pThis->eSwitchCmd,   CMD_CLOSE)
-    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
+//    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
     
     DATA_INIT(pThis->usCoolTempSet, 260)
     DATA_INIT(pThis->usHeatTempSet, 200)

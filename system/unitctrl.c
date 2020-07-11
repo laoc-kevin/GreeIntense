@@ -105,10 +105,6 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     ExAirFan*    pExAirFan    = NULL;
     ModularRoof* pModularRoof = NULL;
     
-    if(pThis->eRunningMode == eRunMode)
-    {
-        return;
-    }
     pThis->eRunningMode = eRunMode;
     pThis->psBMS->eRunningMode = eRunMode;  
     
@@ -367,7 +363,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_1, pThis->usModeChangeTime_1*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            pThis->xModeChanging = TRUE;       //进入模式调节周期
             myprintf("xTimerRegist sModeChangeTmr_1 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
             
@@ -378,7 +373,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_2, pThis->usModeChangeTime_2*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-             pThis->xModeChanging = TRUE;       //进入模式调节周期
              myprintf("xTimerRegist sModeChangeTmr_2 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
              return;
         }
@@ -394,7 +388,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_3, pThis->usModeChangeTime_3*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            pThis->xModeChanging = TRUE;       //进入模式调节周期
             myprintf("xTimerRegist sModeChangeTmr_3 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
@@ -404,7 +397,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_4, pThis->usModeChangeTime_4*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            pThis->xModeChanging = TRUE;       //进入模式调节周期
             myprintf("xTimerRegist sModeChangeTmr_4 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);            
             return;
         }
@@ -418,11 +410,9 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_5, pThis->usModeChangeTime_5*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            pThis->xModeChanging = TRUE;       //进入模式调节周期
             myprintf("xTimerRegist sModeChangeTmr_5 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
-        
         //机组压缩机全部待机（首次开启，压缩机未运行不纳入压机待机情况）持续满足t7(默认5min)
         if((pThis->xCompFirstRun == FALSE) && (xSystem_UnitCompsClosed(pThis) == TRUE) )
         {
@@ -430,7 +420,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
             {
                 (void)xTimerRegist(&pThis->sModeChangeTmr_7, pThis->usModeChangeTime_7*60, 0, 
                                     OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-                pThis->xModeChanging = TRUE;       //进入模式调节周期
                 myprintf("xTimerRegist sModeChangeTmr_7 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
                 return;
             }
@@ -446,7 +435,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_6, pThis->usModeChangeTime_6*60, 0, 
                                 OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-            pThis->xModeChanging = TRUE;       //进入模式调节周期
             myprintf("xTimerRegist sModeChangeTmr_6 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);
             return;
         }
@@ -457,7 +445,6 @@ void vSystem_ChangeUnitRunningMode(System* pt)
             {
                 (void)xTimerRegist(&pThis->sModeChangeTmr_8, pThis->usModeChangeTime_8*60, 0, 
                                     OS_OPT_TMR_ONE_SHOT, vSystem_ModeChangeTimeCallback, pThis, FALSE);
-                pThis->xModeChanging = TRUE;       //进入模式调节周期
                 myprintf("xTimerRegist sModeChangeTmr_8 %d sAmbientIn_T %d\n", pThis->eRunningMode, sAmbientIn_T);                
                 return;
             }

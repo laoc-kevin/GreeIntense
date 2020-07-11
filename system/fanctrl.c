@@ -21,24 +21,24 @@ void vSystem_CloseExAirFans(System* pt)
 /*系统当前正在运行的时间最长定频排风机*/
 ExAirFan* psSystem_LongestExAirFan(System* pt)
 {
-    uint8_t   i, n, m;
+    uint8_t   i, n, ucConstantNum;
     System*   pThis = (System*)pt;
     
     ExAirFan* pExAirFan = NULL;    
-    for(n=0, m=0; n < EX_AIR_FAN_NUM; n++)  
+    for(n=0, ucConstantNum=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];
         
         if( (pExAirFan->eFanFreqType == CONSTANT_FREQ) && (pExAirFan->Device.eRunningState == STATE_RUN) )  //所有运行的定频排风机
         {
-            pFanByRunTimeList[m] = pThis->psExAirFanList[n];   
-            m++;
+            pFanByRunTimeList[ucConstantNum] = pThis->psExAirFanList[n];   
+            ucConstantNum++;
         }       
     }
     //所有运行的定频排风机已运行时间排序
-    for(n=0; n < m; n++)  
+    for(n=0; n < ucConstantNum; n++)  
     {          
-        for(i=0; i< m-n; i++)
+        for(i=0; i< ucConstantNum-n; i++)
         {
             if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
             {
@@ -49,34 +49,34 @@ ExAirFan* psSystem_LongestExAirFan(System* pt)
         }
     }
 #if DEBUG_ENABLE > 0
-    myprintf("psSystem_LongestExAirFan  m %d\n", m);
+    myprintf("psSystem_LongestExAirFan  m %d\n", ucConstantNum);
 #endif
 
-    return (m >= 1) ?  pFanByRunTimeList[m-1] : NULL;
+    return (ucConstantNum >= 1) ?  pFanByRunTimeList[ucConstantNum-1] : NULL;
 }
 
 /*系统未运行且无故障的时间最短定频排风机*/
 ExAirFan* psSystem_ShortestExAirFan(System* pt)
 {
-    uint8_t   i, n, m;
+    uint8_t   i, n, ucConstantNum;
     System*   pThis = (System*)pt; 
     ExAirFan* pExAirFan = NULL; 
     
-    for(n=0, m=0; n < EX_AIR_FAN_NUM; n++)  
+    for(n=0, ucConstantNum=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan = pThis->psExAirFanList[n];
         
         //所有未运行且无故障的定频排风机
         if( pExAirFan->eFanFreqType == CONSTANT_FREQ && pExAirFan->Device.eRunningState == STATE_STOP && pExAirFan->xExAirFanErr == FALSE)  
         {
-            pFanByRunTimeList[m] = pThis->psExAirFanList[n];   
-            m++;
+            pFanByRunTimeList[ucConstantNum] = pThis->psExAirFanList[n];   
+            ucConstantNum++;
         }      
     }
     //所有未运行的定频排风机已运行时间排序
-    for(n=0; n < m; n++)  
+    for(n=0; n < ucConstantNum; n++)  
     {          
-        for(i=0; i< m-n; i++)
+        for(i=0; i< ucConstantNum-n; i++)
         {
             if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
             {
@@ -125,19 +125,23 @@ void vSystem_ExAirFanRequestTimeTmrCallback(void* p_tmr, void* p_arg)
 /*系统启停定频排风风机*/
 void vSystem_ExAirFanConstantSwitch(System* pt)
 {
-    uint8_t   i, n, m, ucRunningNum;
+    uint8_t   i, n, ucConstantNum, ucRunningNum;
     OS_ERR    err   = OS_ERR_NONE;
     
     System*   pThis     = (System*)pt;
     ExAirFan* pExAirFan = NULL;   
  
-    for(n=0, m=0, ucRunningNum=0; n < EX_AIR_FAN_NUM; n++)  //所有无故障定频排风机
+    if(pThis->eSystemMode == MODE_MANUAL || pThis->eSystemMode ==MODE_CLOSE)
+    {
+        return;
+    }
+    for(n=0, ucConstantNum=0, ucRunningNum=0; n < EX_AIR_FAN_NUM; n++)  //所有无故障定频排风机
     {
         pExAirFan = pThis->psExAirFanList[n];
         if(pExAirFan->eFanFreqType == CONSTANT_FREQ && pExAirFan->xExAirFanErr == FALSE)
         {
-            pFanByRunTimeList[m] = pThis->psExAirFanList[n];   
-            m++;
+            pFanByRunTimeList[ucConstantNum] = pThis->psExAirFanList[n];   
+            ucConstantNum++;
            if(pExAirFan->Device.eRunningState == STATE_RUN)
            {
                ucRunningNum++;    //当前运行的定频排风机个数   
@@ -145,9 +149,9 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
         }        
     }
     //无故障定频排风机已运行时间排序
-    for(n=0; n < m; n++)  
+    for(n=0; n < ucConstantNum; n++)  
     {          
-        for(i=0; i< m-n; i++)
+        for(i=0; i< ucConstantNum-n; i++)
         {
             if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
             {
@@ -158,14 +162,14 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
         }
     }
     //系统需求排风机个数 > 无故障定频排风机，则最大频率开启变频风机 
-    if(pThis->ucConstantFanRequestNum > m && pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && 
+    if(pThis->ucConstantFanRequestNum > ucConstantNum && pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && 
        pThis->pExAirFanVariate->xExAirFanErr == FALSE && pThis->pExAirFanVariate != NULL)
     {
         pExAirFan = pThis->pExAirFanVariate;
         pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));  //开启变频排风机
         vSystem_AdjustExAirFanFreq(pThis, pThis->usExAirFanMaxFreq);         //最大频率
     }
-    if(pThis->ucConstantFanRequestNum <= m && pThis->xVariableFanRequest == FALSE && pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && 
+    if(pThis->ucConstantFanRequestNum <= ucConstantNum && pThis->xVariableFanRequest == FALSE && pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && 
        pThis->pExAirFanVariate != NULL && pThis->pExAirFanVariate->Device.eRunningState == STATE_RUN)
     {
         pExAirFan = pThis->pExAirFanVariate;
@@ -174,9 +178,9 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
     //系统需求排风机个数 < 运行的定频排风机个数  
     if(pThis->ucConstantFanRequestNum < ucRunningNum)
     {
-        for(i=0, n=ucRunningNum - pThis->ucConstantFanRequestNum; n>0 && i<m; i++)
+        for(i=0, n=ucRunningNum - pThis->ucConstantFanRequestNum; n>0 && i<ucConstantNum; i++)
         {
-            pExAirFan = pFanByRunTimeList[m-i-1];   //运行时间最长的排风机
+            pExAirFan = pFanByRunTimeList[ucConstantNum-i-1];   //运行时间最长的排风机
             if(pExAirFan->Device.eRunningState == STATE_RUN)  //是否在运行
             {
                 pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭运行时间最长的排风机
@@ -187,7 +191,7 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
     //系统需求排风机个数 > 运行的定频排风机个数
     if(pThis->ucConstantFanRequestNum > ucRunningNum)
     {
-        for(i=0, n = pThis->ucConstantFanRequestNum-ucRunningNum; n!=0 && i<m; i++)
+        for(i=0, n = pThis->ucConstantFanRequestNum-ucRunningNum; n!=0 && i<ucConstantNum; i++)
         {
             pExAirFan = pFanByRunTimeList[i];   //运行时间最短的排风机
             if(pExAirFan->Device.eRunningState == STATE_STOP && pExAirFan->xExAirFanErr == FALSE)  //是否未运行且无故障
@@ -255,7 +259,6 @@ void vSystem_ExAirRequest_Vol(System* pt)
                                                     usExAirFanMinFreq * usExAirFanCtrlPeriod / ulExAirFanRated_Vol);
         } 
     }
-    
     /******若【排风机类型】为全定频，或者变频风机故障******/
     if( pThis->eExAirFanType == TYPE_CONSTANT || 
        (pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == TRUE && pThis->pExAirFanVariate != NULL) )
@@ -275,10 +278,9 @@ void vSystem_ExAirRequest_Vol(System* pt)
     }
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
-        pThis->ulExAirRequest_Vol = ulExAirRequest_Vol;
 #if DEBUG_ENABLE > 0
-//        myprintf("ulSystem_ExAirRequest_Vol  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
-//                  pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
+        myprintf("ulSystem_ExAirRequest_Vol ulExAirRequest_Vol %ld   ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
+                  pThis->ulExAirRequest_Vol, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
 #endif  
     }
 }
@@ -291,6 +293,11 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
     ExAirFan* pExAirFan = NULL;
    
     static uint32_t ulExAirFanRequestTime = 0;
+    
+    if(pThis->eSystemMode == MODE_MANUAL || pThis->eSystemMode ==MODE_CLOSE)
+    {
+        return;
+    }
     (void)vSystem_ExAirRequest_Vol(pThis);  //计算排风需求量
     
     /********若【排风机类型】为变频+定频，且变频风机无故障*********/
@@ -352,6 +359,10 @@ void vSystem_ExAirFanConstantCtrl(System* pt)
 {
     System*   pThis = (System*)pt;
     
+    if(pThis->eSystemMode == MODE_MANUAL || pThis->eSystemMode ==MODE_CLOSE)
+    {
+        return;
+    }
     if( pThis->eExAirFanType == TYPE_CONSTANT || 
        (pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == TRUE && pThis->pExAirFanVariate != NULL) )
     {
@@ -471,8 +482,8 @@ void vSystem_ExAirFanCtrl(System* pt)
             /********若【排风机类型】为变频+定频，且变频风机无故障*********/
             if(pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == FALSE && pThis->pExAirFanVariate != NULL)
             {
-                pThis->ucConstantFanOpenNum = 3;
-                vSystem_ExAirFanBothCtrl(pThis);
+                pThis->ucConstantFanRequestNum = 3;
+                (void)vSystem_ExAirFanConstantSwitch(pThis);
                 
                 pExAirFan = pThis->pExAirFanVariate;
                 pThis->xVariableFanRequest = TRUE;
@@ -484,8 +495,8 @@ void vSystem_ExAirFanCtrl(System* pt)
             if( pThis->eExAirFanType == TYPE_CONSTANT || 
                (pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == TRUE && pThis->pExAirFanVariate != NULL) )
             {
-                pThis->ucConstantFanOpenNum = 4;
-                vSystem_ExAirFanConstantCtrl(pThis);
+                pThis->ucConstantFanRequestNum = 4;
+                (void)vSystem_ExAirFanConstantSwitch(pThis);
             }
         }
         /*当室内CO2浓度<【CO2浓度调节阈值】（默认2700PPM）-【CO2浓度排风控制偏差值2】（默认270PPM），
@@ -533,11 +544,11 @@ void vSystem_ExAirSet_Vol(System* pt)
     uint32_t  ulExAirRequest_Vol = pThis->ulExAirRequest_Vol; 
     (void)vSystem_ExAirRequest_Vol(pThis);
     
+#if DEBUG_ENABLE > 0
+        myprintf("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", pThis->ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
+#endif    
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
-#if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
-#endif
         vSystem_ExAirFanCtrl(pThis);
     }
 }
@@ -603,8 +614,7 @@ void vSystem_ExAirFanErr(System* pt)
     else
     {
         vSystem_DelAlarmRequst(pThis);
-    }
-       
+    }     
 #if DEBUG_ENABLE > 0
     myprintf("vSystem_ExAirFanErr  xExFanErrFlag %d\n", pThis->xExFanErrFlag);
 #endif    

@@ -7,6 +7,8 @@
 #define DEBUG_ENABLE               1      //调试功能
 #define EEPROM_USE_DEFAULT_DATA    0      //eeprom使用默认参数
 #define EEPROM_DATA_INIT           0      //eeprom参数复位
+#define EEPROM_RUNNING_TIME_INIT   0      //eeprom运行时间复位
+#define EEPROM_ENERGY_INIT         0      //eeprom能耗复位
 
 #define LWIP_CREATE_TASK_EN        0      //LWIP协议栈
 #define TCP_SERVER_TASK_EN         0      //TCP服务器功能

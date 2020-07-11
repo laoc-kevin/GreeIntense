@@ -34,6 +34,13 @@ CPU_STK_SIZE  SysEventPollTaskStkSize = 128;
 OS_TCB*       psSysEventPollTaskTCB = NULL;
 CPU_STK*      psSysEventPollTaskStk = NULL;
 
+OS_PRIO       SysPollTaskPrio    = 5;
+CPU_STK_SIZE  SysPollTaskStkSize = 128;
+                       
+OS_TCB*       psSysPollTaskTCB = NULL;
+CPU_STK*      psSysPollTaskStk = NULL;         
+         
+         
 /*系统排风机配置信息*/
 const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 11};
 
@@ -63,6 +70,55 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
     myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  
              pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
 #endif           
+}
+
+/*系统参数同步*/
+void vSystem_ParameterSysn(System* pt)
+{
+    uint8_t n;
+    System*       pThis = (System*)pt; 
+    ModularRoof*  pModularRoof = NULL;
+    
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        
+        pModularRoof->eSwitchState  = pModularRoof->eSwitchCmd;
+        pModularRoof->eRunningMode  = pThis->eRunningMode;
+        pModularRoof->usCoolTempSet = pThis->usTempSet;
+        pModularRoof->usHeatTempSet = pThis->usTempSet;
+        
+        pModularRoof->usHumidityMin   = pThis->usHumidityMin;
+        pModularRoof->usHumidityMax   = pThis->usHumidityMax;
+        
+        pModularRoof->usCO2AdjustThr_V  = pThis->usCO2AdjustThr_V;
+        pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
+        
+        pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
+        pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
+        pModularRoof->usCO2PPM      = pThis->usCO2PPM;     
+    }
+
+    //防止温度长时间不变化而导致无法切换模式
+    if(pThis->eSystemMode == MODE_AUTO && pThis->eSystemState != STATE_CLOSED && LastAmbientIn_T == pThis->sAmbientIn_T)
+    {
+        vSystem_ChangeUnitRunningMode(pThis);
+    }
+    LastAmbientIn_T = pThis->sAmbientIn_T;
+}
+
+/*系统周期轮询*/
+void vSystem_PollTask(void *p_arg)
+{
+    OS_ERR    err = OS_ERR_NONE;
+    System* pThis = (System*)p_arg;
+    
+    OSTimeDlyHMSM(0, 0, 60, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    while(DEF_TRUE)
+	{
+        OSTimeDlyHMSM(0, 0, 10, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+        vSystem_ParameterSysn(pThis);
+    }
 }
 
 /*系统内部消息轮询*/
@@ -212,46 +268,14 @@ BOOL xSystem_CreatePollTask(System* pt)
     System* pThis = (System*)pt;
 
     err = eTaskCreate(psSysEventPollTaskTCB, vSystem_EventPollTask, pThis, SysEventPollTaskPrio, 
-                      psSysEventPollTaskStk, SysEventPollTaskStkSize);   
+                      psSysEventPollTaskStk, SysEventPollTaskStkSize);
+
+    err = eTaskCreate(psSysPollTaskTCB, vSystem_PollTask, pThis, SysPollTaskPrio, 
+                      psSysPollTaskStk, SysPollTaskStkSize);     
     return (err == OS_ERR_NONE);              
 }
 
-/*系统参数同步*/
-void vSystem_ParameterSysn(System* pt)
-{
-    uint8_t n;
-    System*       pThis = (System*)pt; 
-    ModularRoof*  pModularRoof = NULL;
-    
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        
-        pModularRoof->eSwitchState  = pModularRoof->eSwitchCmd;
-        pModularRoof->eRunningMode  = pThis->eRunningMode;
-        pModularRoof->usCoolTempSet = pThis->usTempSet;
-        pModularRoof->usHeatTempSet = pThis->usTempSet;
-        
-        pModularRoof->usHumidityMin   = pThis->usHumidityMin;
-        pModularRoof->usHumidityMax   = pThis->usHumidityMax;
-        
-        pModularRoof->usCO2AdjustThr_V  = pThis->usCO2AdjustThr_V;
-        pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
-        
-        pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
-        pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
-        pModularRoof->usCO2PPM      = pThis->usCO2PPM;
-    }
-
-    //防止温度长时间不变化而导致无法切换模式
-    if(pThis->eSystemMode == MODE_AUTO && pThis->eSystemState != STATE_CLOSED && LastAmbientIn_T == pThis->sAmbientIn_T)
-    {
-        vSystem_ChangeUnitRunningMode(pThis);
-    }
-    LastAmbientIn_T = pThis->sAmbientIn_T;
-}
-
-/*系统周期轮询*/
+/*系统周期轮询定时器中断*/
 void vSystem_PollTmrCallback(void * p_tmr, void * p_arg)
 {
     uint8_t n;
@@ -288,7 +312,7 @@ void vSystem_PollTmrCallback(void * p_tmr, void * p_arg)
             pExAirFan->Device.ulRunTime_S = 0;
         }        
     }
-    vSystem_ParameterSysn(pThis);
+//    vSystem_ParameterSysn(pThis);
     
 //    vSystem_DeviceRunningState(pThis);
 }
@@ -366,7 +390,7 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usUnitID,        0x302A)
     DATA_INIT(pThis->usProtocolVer,       10)
     DATA_INIT(pThis->eSystemMode,    MODE_CLOSE)
-    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
+//    DATA_INIT(pThis->eRunningMode, RUN_MODE_COOL)
 
     DATA_INIT(pThis->sChickenGrowDays,  -2)
     DATA_INIT(pThis->usEnergyTemp,     250)
@@ -545,14 +569,20 @@ CTOR(System)   //系统构造函数
     SUPER_CTOR(Device);
 END_CTOR
 
-
-void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize)
+void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize,
+                 OS_TCB* psPollTaskTCB, OS_PRIO ucPollTaskPrio, CPU_STK* psPollTaskStkBase, CPU_STK_SIZE usPollTaskStkSize)
 {
     SysEventPollTaskPrio    = ucEventPollTaskPrio;
     SysEventPollTaskStkSize = usEventPollTaskStkSize;
     
     psSysEventPollTaskTCB = psEventPollTaskTCB;
     psSysEventPollTaskStk = psEventPollTaskStkBase;
+    
+    SysPollTaskPrio    = ucPollTaskPrio;
+    SysPollTaskStkSize = usPollTaskStkSize;
+    
+    psSysPollTaskTCB = psPollTaskTCB;
+    psSysPollTaskStk = psPollTaskStkBase;
     
     System_Core();
 }

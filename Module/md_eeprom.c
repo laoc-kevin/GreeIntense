@@ -30,33 +30,33 @@
 #define RUNTIME_PAGE_OFFSET 0			//RUNTIME类型参数记忆EEPROM页寄存器偏移量
 #define RUNTIME_PAGE_ADDR   8			//RUNTIME类型参数记忆EEPROM存储器初始页地址
 
-#define E32_PAGE_OFFSET 	16			//E32类型参数记忆EEPROM页寄存器偏移量
+#define E32_PAGE_OFFSET 	0			//E32类型参数记忆EEPROM页寄存器偏移量
 #define E32_PAGE_ADDR		9			//E32类型参数记忆EEPROM存储器初始页地址
 
 
 /*根据实际需要记忆参数的个数进行修改*/
-#define UINT8_SAVE_COUNT	10			//uint8类型的参数记忆数量
+#define UINT8_SAVE_COUNT	5			//uint8类型的参数记忆数量
 #define UINT8_SAVE_SIZE		UINT8_SAVE_COUNT * sizeof(uint8_t)	//uint8类型记忆字节长度
 
-#define INT8_SAVE_COUNT		2			//int8类型的参数记忆数量
+#define INT8_SAVE_COUNT		1			//int8类型的参数记忆数量
 #define INT8_SAVE_SIZE		INT8_SAVE_COUNT * sizeof(int8_t)	//int8类型记忆字节长度
 
-#define UINT16_SAVE_COUNT	50			//uint16类型的参数记忆数量
+#define UINT16_SAVE_COUNT	36			//uint16类型的参数记忆数量
 #define UINT16_SAVE_SIZE	UINT16_SAVE_COUNT * sizeof(uint16_t)	//uint16类型记忆字节长度
 
-#define INT16_SAVE_COUNT	10			//int16类型的参数记忆数量
+#define INT16_SAVE_COUNT	1			//int16类型的参数记忆数量
 #define INT16_SAVE_SIZE		INT16_SAVE_COUNT * sizeof(int16_t)		//int16类型记忆字节长度
 
-#define UINT32_SAVE_COUNT	6			//uint32类型的参数记忆数量
+#define UINT32_SAVE_COUNT	1			//uint32类型的参数记忆数量
 #define UINT32_SAVE_SIZE	UINT32_SAVE_COUNT * sizeof(uint32_t)	//uint32类型记忆字节长度
 
-#define INT32_SAVE_COUNT	5			//int32类型的参数记忆数量
+#define INT32_SAVE_COUNT	1			//int32类型的参数记忆数量
 #define INT32_SAVE_SIZE	    INT32_SAVE_COUNT * sizeof(int32_t)	//uint32类型记忆字节长度
 
-#define RUNTIME_SAVE_COUNT  8			//运行时间类型的参数记忆数量
+#define RUNTIME_SAVE_COUNT  6			//运行时间类型的参数记忆数量
 #define RUNTIME_SAVE_SIZE   RUNTIME_SAVE_COUNT * sizeof(uint32_t)		//运行时间类型记忆字节长度
 
-#define E32_SAVE_COUNT		8			//能耗统计uint32类型的参数记忆数量
+#define E32_SAVE_COUNT		1			//能耗统计uint32类型的参数记忆数量
 #define E32_SAVE_SIZE		E32_SAVE_COUNT * sizeof(uint32_t)		//能耗统计uint32类型记忆字节长度
  
 
@@ -488,8 +488,9 @@ void vWriteEEPROMDataFirstTime(void)
 {
     OS_ERR err = OS_ERR_NONE;
     uint16_t usIndex = 0;
-   
-    for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)  //运行时间复位
+    
+#if EEPROM_RUNNING_TIME_INIT > 0   //运行时间复位   
+    for(usIndex=0; usIndex<DataBufRuntimeCount; usIndex++)  
     {
         if(pDataBufRuntime[usIndex] != NULL)
         {
@@ -497,12 +498,9 @@ void vWriteEEPROMDataFirstTime(void)
             DataBufRuntime[usIndex] = usIndex * 100;
         }
     }
-    
-    
-#if EEPROM_DATA_INIT > 0    //参数复位    
-
-
-    for(usIndex=0; usIndex<DataBufE32Count; usIndex++)     //能耗复位
+#endif     
+#if EEPROM_ENERGY_INIT > 0         //能耗复位 
+    for(usIndex=0; usIndex<DataBufE32Count; usIndex++)    
     {
         if(pDataBufE32[usIndex] != NULL)
         {

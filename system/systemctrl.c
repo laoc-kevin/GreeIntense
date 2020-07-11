@@ -249,16 +249,20 @@ void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2AdjustThr_V)
     System* pThis = (System*)pt;
     
     ModularRoof* pModularRoof = NULL;
-    pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
     
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    if(pThis->usCO2AdjustThr_V != usCO2AdjustThr_V)
     {
-        pModularRoof = pThis->psModularRoofList[n]; 
-        pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
-    }
+        pThis->usCO2AdjustThr_V = usCO2AdjustThr_V;
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n]; 
+            pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
+        }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
-#endif       
+        myprintf("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
+#endif  
+        vSystem_ExAirFanCtrl(pThis);    
+    }
 }
 
 /*设定系统CO2浓度偏差*/
@@ -300,12 +304,7 @@ void vSystem_DeviceRunningState(System* pt)
     {
         pModularRoof = pThis->psModularRoofList[n];
         if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
-        {
-            if(pThis->eSystemMode == MODE_CLOSE)
-            {
-                pThis->eSystemMode = MODE_MANUAL;
-                psBMS->eSystemMode = MODE_MANUAL;
-            }   
+        {  
             switch(pModularRoof->eRunningMode)
             {
                 case RUN_MODE_COOL:
@@ -316,12 +315,20 @@ void vSystem_DeviceRunningState(System* pt)
                 break;
                 case RUN_MODE_FAN:
                     pThis->eSystemState = STATE_FAN;
+
                 break;
                 case RUN_MODE_WET:
                     pThis->eSystemState = STATE_WET;
                 break;
                 default:break;
             }
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eRunningMode = pModularRoof->eRunningMode;
+                psBMS->eRunningMode = pModularRoof->eRunningMode;
+                pThis->eSystemMode  = MODE_MANUAL;
+                psBMS->eSystemMode  = MODE_MANUAL;
+            } 
             return;
         }   
     }
