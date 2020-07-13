@@ -85,9 +85,12 @@ void vSystem_ParameterSysn(System* pt)
         
         pModularRoof->eSwitchState  = pModularRoof->eSwitchCmd;
         pModularRoof->eRunningMode  = pThis->eRunningMode;
-        pModularRoof->usCoolTempSet = pThis->usTempSet;
-        pModularRoof->usHeatTempSet = pThis->usTempSet;
         
+        if(pThis->eRunningMode != RUN_MODE_WET)
+        {
+            pModularRoof->usCoolTempSet = pThis->usTempSet;
+            pModularRoof->usHeatTempSet = pThis->usTempSet;
+        }
         pModularRoof->usHumidityMin   = pThis->usHumidityMin;
         pModularRoof->usHumidityMax   = pThis->usHumidityMax;
         

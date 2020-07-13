@@ -77,11 +77,6 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     }
     if(eSystemMode == MODE_EMERGENCY) //紧急模式
     {
-        if(pThis->xExFanErrFlag == TRUE)
-        {
-            psBMS->eSystemMode = pThis->eSystemMode;
-            return;
-        }
         pThis->eSystemMode = eSystemMode;
         vSystem_SwitchOpen(pThis);    //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式

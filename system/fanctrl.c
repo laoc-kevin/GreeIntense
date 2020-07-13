@@ -256,7 +256,7 @@ void vSystem_ExAirRequest_Vol(System* pt)
         {
             //需求时间t=（（系统排风需求量-【排风机额定风量】*【风机常开数】）*50）/（【排风机最小频率】*【排风机额定风量】）*【排风机控制周期】；
             pThis->ulExAirFanRequestTime = (uint32_t)( (pThis->ulExAirRequest_Vol - ulExAirFanRated_Vol*pThis->ucConstantFanOpenNum) * 500L / 
-                                                    usExAirFanMinFreq * usExAirFanCtrlPeriod / ulExAirFanRated_Vol);
+                                                        usExAirFanMinFreq * usExAirFanCtrlPeriod / ulExAirFanRated_Vol);
         } 
     }
     /******若【排风机类型】为全定频，或者变频风机故障******/
@@ -264,11 +264,11 @@ void vSystem_ExAirRequest_Vol(System* pt)
        (pThis->eExAirFanType == TYPE_CONSTANT_VARIABLE && pThis->pExAirFanVariate->xExAirFanErr == TRUE && pThis->pExAirFanVariate != NULL) )
     {
         pThis->ucConstantFanRequestNum = pThis->ucConstantFanOpenNum;
-        //需求时间t =（系统排风需求量-【排风机额定风量】*【风机常开数】/【排风机额定风量】）*【排风机控制周期】
+        //需求时间t =（系统排风需求量-【排风机额定风量】*【风机常开数】)/【排风机额定风量】*【排风机控制周期】
         if(ulExAirFanRated_Vol != 0)
         {
-            pThis->ulExAirFanRequestTime = (pThis->ulExAirRequest_Vol - ulExAirFanRated_Vol*pThis->ucConstantFanOpenNum)* 
-                                 usExAirFanCtrlPeriod / ulExAirFanRated_Vol;
+            pThis->ulExAirFanRequestTime = (uint32_t)( (pThis->ulExAirRequest_Vol - ulExAirFanRated_Vol*pThis->ucConstantFanOpenNum)* 
+                                                        usExAirFanCtrlPeriod / ulExAirFanRated_Vol);
         }
         //若t>=【排风机最小运行时间】则开启1台定频排风机；否则不开启
         if(pThis->ulExAirFanRequestTime >= pThis->usExAirFanRunTimeLeast)
@@ -279,8 +279,8 @@ void vSystem_ExAirRequest_Vol(System* pt)
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
 #if DEBUG_ENABLE > 0
-        myprintf("ulSystem_ExAirRequest_Vol ulExAirRequest_Vol %ld   ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
-                  pThis->ulExAirRequest_Vol, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
+        myprintf("ulSystem_ExAirRequest_Vol ulExAirRequest_Vol %ld ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
+                  pThis->ulExAirRequest_Vol, pThis->ulExAirFanRequestTime, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
 #endif  
     }
 }
@@ -518,7 +518,8 @@ void vSystem_ExAirFanCtrl(System* pt)
             }
         }
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirFanCtrl  ucConstantFanOpenNum %d \n", pThis->ucConstantFanOpenNum);
+        myprintf("vSystem_ExAirFanCtrl  ulExAirRequest_Vol %ld  ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
+        pThis->ulExAirRequest_Vol, pThis->ulExAirFanRequestTime, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
 #endif  
     }
 }
@@ -597,7 +598,7 @@ void vSystem_ExAirFanErr(System* pt)
     if(nFanNum == 0)  //无一台风机可用
     {
         pThis->xExFanErrFlag = TRUE;
-        if(pThis->eSystemMode == MODE_AUTO)   //如果为自动切回手动
+        if(pThis->eSystemMode == MODE_AUTO || pThis->eSystemMode == MODE_EMERGENCY)   //如果为自动或紧急送风切回手动
         {
             pThis->eSystemMode = MODE_MANUAL;
             psBMS->eSystemMode = MODE_MANUAL;

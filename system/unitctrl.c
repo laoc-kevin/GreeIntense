@@ -90,10 +90,10 @@ uint16_t usSystem_ChangeEnergyTemp(System* pt)
         pModularRoof->usCoolTempSet = usTempSet;
         pModularRoof->usHeatTempSet = usTempSet;
     }
-    return usTempSet;
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ChangeEnergyTemp %d\n", pThis->usEnergyTemp); 
-#endif       
+    myprintf("vSystem_ChangeEnergyTemp %d\n", usTempSet); 
+#endif
+    return usTempSet;    
 }
 
 /*设定机组运行模式*/
