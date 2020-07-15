@@ -155,11 +155,14 @@ void vSystem_EventPollTask(void *p_arg)
         pExAirFan =  pThis->psExAirFanList[n];
         pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S/3600;
         
+        if(pExAirFan->eFanFreqType == VARIABLE_FREQ)
+        {
+            pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), psSystem->usExAirFanFreq);  //设置频率
+        }
 #if DEBUG_ENABLE > 0 
         myprintf("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
 #endif
     }
-   
     while(DEF_TRUE)
 	{ 
 begin:       

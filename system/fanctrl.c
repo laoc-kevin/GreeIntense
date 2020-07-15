@@ -321,7 +321,7 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
                     xTimerRegist(&pThis->sExAirFanRequestTimeTmr, pThis->ulExAirFanRequestTime, 0, 
                                  OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanRequestTimeTmrCallback, pThis, FALSE);
 #if DEBUG_ENABLE > 0
-                    myprintf("vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
+                    myprintf("xTimerRegist  vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
 #endif
                 }
             }
@@ -347,11 +347,14 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
                 xTimerRegist(&pThis->sExAirFanRequestTimeTmr, pThis->ulExAirFanRequestTime, 0, 
                              OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanRequestTimeTmrCallback, pThis, FALSE);
 #if DEBUG_ENABLE > 0
-                myprintf("vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
+                myprintf("xTimerRegist  vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
 #endif
             }
         }
-    }   
+    }
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
+#endif    
 }
 
 /*系统全定频排风风机控制*/
@@ -382,12 +385,18 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq)
 {
     System*   pThis = (System*)pt;
     ExAirFan* pExAirFanVariate = pThis->psExAirFanList[0];    //变频风机
-    
-    BMS* psBMS = BMS_Core();  
-    
+
     if(pThis->eExAirFanType != TYPE_CONSTANT_VARIABLE || pExAirFanVariate == NULL)
     {
         return;
+    }
+    if(usFreq < pThis->usExAirFanMinFreq)
+    {
+        usFreq = pThis->usExAirFanMinFreq;
+    }
+    if(usFreq > pThis->usExAirFanMaxFreq)
+    {
+        usFreq = pThis->usExAirFanMaxFreq;
     }
 #if DEBUG_ENABLE > 0          
     myprintf("vSystem_AdjustExAirFanFreq  usExAirFanFreq  %d usRunningFreq %d\n", usFreq, pExAirFanVariate->usRunningFreq);
@@ -395,7 +404,7 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq)
 
     pExAirFanVariate->IDevFreq.setFreq(SUPER_PTR(pExAirFanVariate, IDevFreq), usFreq);  //设置频率
     pThis->usExAirFanFreq = usFreq;
-    psBMS->usExAirFanFreq = usFreq;        
+    pThis->psBMS->usExAirFanFreq = usFreq;        
 }
 
 /*系统定频+变频排风风机控制*/
@@ -425,16 +434,25 @@ void vSystem_ExAirFanBothCtrl(System* pt)
       只开启变频排风机*/
     if( (ulExAirRequest_Vol - ulExAirFanRated_Vol*ucConstantFanOpenNum) >= (usExAirFanMinFreq*ulExAirFanRated_Vol/500) )
     { 
-        pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));  //开启变频排风机
-        pThis->xVariableFanRequest = TRUE;
-        
         //排风机频率 = 系统排风需求量-【排风机额定风量】*【风机常开数】*50 /【排风机额定风量】
         if(ulExAirFanRated_Vol == 0)
         {
             return;
         }
         usFreq = (ulExAirRequest_Vol - ulExAirFanRated_Vol*ucConstantFanOpenNum) * 500 / ulExAirFanRated_Vol;
-        vSystem_AdjustExAirFanFreq(pThis, usFreq); //设定频率
+        if(usFreq >= pThis->usExAirFanMinFreq)    //大于最小频率则开启  
+        {
+            pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));  //开启变频排风机
+            pThis->xVariableFanRequest = TRUE;
+        }
+        if(usFreq >= pThis->usExAirFanMinFreq && usFreq <= pThis->usExAirFanMaxFreq)         
+        {
+            vSystem_AdjustExAirFanFreq(pThis, usFreq); //设定频率
+        }
+        if(usFreq > pThis->usExAirFanMaxFreq)   
+        {
+            vSystem_AdjustExAirFanFreq(pThis, pThis->usExAirFanMaxFreq);  //最大频率
+        }
     }
     else
     {
@@ -569,6 +587,16 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     myprintf("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
 #endif
     
+    if(pThis->usExAirFanFreq < pThis->usExAirFanMinFreq)
+    {
+        pThis->usExAirFanFreq = pThis->usExAirFanMinFreq;
+        pThis->psBMS->usExAirFanFreq =pThis->usExAirFanMinFreq;
+    }
+    if(pThis->usExAirFanFreq > pThis->usExAirFanMaxFreq)
+    {
+        pThis->usExAirFanFreq = pThis->usExAirFanMaxFreq;
+        pThis->psBMS->usExAirFanFreq =pThis->usExAirFanMaxFreq;
+    }
     for(n=0; n < EX_AIR_FAN_NUM; n++)
     {
         pExAirFan = pThis->psExAirFanList[n];       
