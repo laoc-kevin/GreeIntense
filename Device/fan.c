@@ -154,8 +154,8 @@ void vExAirFan_SwitchOpen(IDevSwitch* pt)
             }
         } 
 #if DEBUG_ENABLE > 0
-            myprintf("vExAirFan_SwitchOpen  eRunningState %d ucDevIndex %d usSetFreq %d\n", 
-            pThis->Device.eRunningState, pThis->Device.ucDevIndex, pThis->usSetFreq);
+        myprintf("vExAirFan_SwitchOpen  eRunningState %d ucDevIndex %d usSetFreq %d\n", 
+        pThis->Device.eRunningState, pThis->Device.ucDevIndex, pThis->usSetFreq);
 #endif        
     } 
 }
@@ -171,7 +171,10 @@ void vExAirFan_SwitchClose(IDevSwitch* pt)
 #if DEBUG_ENABLE > 0 
     if(pThis->Device.eRunningState == STATE_RUN)
     {
-//        pThis->Device.eRunningState = STATE_STOP;
+        if(pThis->eFanFreqType == VARIABLE_FREQ)
+        {
+//            vAnalogOutputDisable(pThis->sFreq_AO.ucChannel);
+        }
         myprintf("vExAirFan_SwitchClose  eRunningState %d ucDevIndex %d \n", pThis->Device.eRunningState, pThis->Device.ucDevIndex); 
     }            
 #endif

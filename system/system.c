@@ -154,7 +154,11 @@ void vSystem_EventPollTask(void *p_arg)
     {
         pExAirFan =  pThis->psExAirFanList[n];
         pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S/3600;
-        
+        if(pExAirFan->Device.usRunTime_H >= UINT16_MAX)
+        {
+            pExAirFan->Device.ulRunTime_S = 0;
+            pExAirFan->Device.usRunTime_H = 0;
+        }
         if(pExAirFan->eFanFreqType == VARIABLE_FREQ)
         {
             pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), psSystem->usExAirFanFreq);  //设置频率
@@ -299,8 +303,9 @@ void vSystem_PollTmrCallback(void * p_tmr, void * p_arg)
             pModularRoof->Device.ulRunTime_S = pModularRoof->Device.ulRunTime_S + SYSTEM_POLL_TIME_OUT_S;
             pModularRoof->Device.usRunTime_H = pModularRoof->Device.ulRunTime_S / 3600;
         }
-        if(pModularRoof->Device.ulRunTime_S >= UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
+        if(pModularRoof->Device.usRunTime_H >= UINT16_MAX)
         {
+            pModularRoof->Device.usRunTime_H = 0;
             pModularRoof->Device.ulRunTime_S = 0;
         }
     }
@@ -313,8 +318,9 @@ void vSystem_PollTmrCallback(void * p_tmr, void * p_arg)
             pExAirFan->Device.ulRunTime_S = pExAirFan->Device.ulRunTime_S + SYSTEM_POLL_TIME_OUT_S;
             pExAirFan->Device.usRunTime_H = pExAirFan->Device.ulRunTime_S / 3600;
         }
-        if(pExAirFan->Device.ulRunTime_S >= UINT32_MAX-SYSTEM_POLL_TIME_OUT_S)
+        if(pExAirFan->Device.usRunTime_H >= UINT16_MAX)
         {
+            pExAirFan->Device.usRunTime_H = 0;
             pExAirFan->Device.ulRunTime_S = 0;
         }        
     }

@@ -398,6 +398,7 @@ static void vSetPWMData(uint8_t pwmChannel, uint32_t data)
 void vSetPWMRealVal(uint8_t pwmChannel, int32_t lMin, int32_t lMax, uint32_t ulRealData)
 {
 	uint32_t ulData = 160 * (ulRealData - lMin) / (lMax - lMin) + 40;    //对应4~20mA的量程   20mA*10=200
+    PWM_ChannelCmd(1, pwmChannel, ENABLE);
 	vSetPWMData(pwmChannel, ulData);
 }
 
@@ -424,6 +425,27 @@ void vAnalogOutputSetRealVal(uint8_t ucChannel, uint32_t ulRealData)
 		else
 		{
 			vSetDAC7760RealVal(ucChannel-PWM_NUM, lMin, lMax, ulRealData);
+		}			
+	}
+}
+
+/***************************************************
+*@brief  关闭模拟量输出 
+*@param  Channel       通道，AO1~AO8
+*@author laoc
+*@date	 2019-02-17							
+***************************************************/
+void vAnalogOutputDisable(uint8_t ucChannel)
+{
+	if((ucChannel > 0) && (ucChannel <= AO_NUM))
+	{
+		if(ucChannel <=PWM_NUM)
+		{
+			PWM_ChannelCmd(1, ucChannel, DISABLE);
+		}
+		else
+		{
+            vSendDataToDAC7760(ucChannel-PWM_NUM, DAC7760_REG_DATA);  //输出值置0 
 		}			
 	}
 }
