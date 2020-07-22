@@ -72,6 +72,8 @@
 #define RUNTIME_WRITE_INTV	    7200    //运行时间类型的参数记忆周期
 #define E32_WRITE_INTV	        7200    //能耗统计uint32类型的参数记忆周期
 
+#define SYSTEM_POLL_TIME_OUT_S   10     //系统轮询时间
+
 BOOL     EEPROMDataReady = FALSE;
 BOOL     EEPROMFirstRun  = TRUE; //主板第一次上电
 
@@ -458,7 +460,7 @@ void vWriteEEPROMData(void)
     if(xDataRuntimeChanged())
     {
         DataBufRuntimeChangedTimes++;
-        if(DataBufRuntimeChangedTimes >= RUNTIME_WRITE_INTV)
+        if(DataBufRuntimeChangedTimes >= RUNTIME_WRITE_INTV / SYSTEM_POLL_TIME_OUT_S)
         {
             EEPROM_Write(RUNTIME_PAGE_OFFSET, RUNTIME_PAGE_ADDR, (void*)DataBufRuntime, MODE_32_BIT, RUNTIME_SAVE_SIZE);
             OSTimeDlyHMSM(0, 0, 0, EEPROM_WRITE_DATA_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);

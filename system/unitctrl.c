@@ -90,9 +90,9 @@ uint16_t usSystem_ChangeEnergyTemp(System* pt)
         pModularRoof->usCoolTempSet = usTempSet;
         pModularRoof->usHeatTempSet = usTempSet;
     }
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_ChangeEnergyTemp %d\n", usTempSet); 
-#endif
+//#if DEBUG_ENABLE > 0
+//    myprintf("vSystem_ChangeEnergyTemp %d\n", usTempSet); 
+//#endif
     return usTempSet;    
 }
 
@@ -320,10 +320,7 @@ void vSystem_AdjustUnitRunningMode(System* pt)
                 return;
             }
         }
-    }
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_AdjustUnitRunningMode %d\n", pThis->eRunningMode);
-#endif  
+    } 
 }
 
 void vSystem_ModeChangeTimeCallback(void* p_tmr, void* p_arg)
