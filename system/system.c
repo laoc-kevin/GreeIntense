@@ -42,12 +42,12 @@ CPU_STK*      psSysPollTaskStk = NULL;
          
          
 /*系统排风机配置信息*/
-const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 11};
+const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 8};
 
-const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 5},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 6},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 7},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 8},
+const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 8},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 9},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 10},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 11},
                                              };
 /*系统排风机类型切换*/
 void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)

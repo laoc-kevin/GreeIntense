@@ -35,21 +35,21 @@ ExAirFan* psSystem_LongestExAirFan(System* pt)
             ucConstantNum++;
         }       
     }
-    //所有运行的定频排风机已运行时间排序
-    for(n=0; n < ucConstantNum; n++)  
-    {          
-        for(i=0; i< ucConstantNum-n-1; i++)
-        {
-            if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
+    if(ucConstantNum >= 1)
+    {
+        pExAirFan = pFanByRunTimeList[0];
+        for(n=0; n < ucConstantNum; n++)  
+        {          
+            if(pExAirFan->Device.usRunTime_H < pFanByRunTimeList[n]->Device.usRunTime_H)
             {
-                           pExAirFan   = pFanByRunTimeList[i];
-                pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
-                pFanByRunTimeList[i+1] = pExAirFan;
+                pExAirFan = pFanByRunTimeList[n];
             }
         }
     }
-    pExAirFan = (ucConstantNum >= 1) ? pFanByRunTimeList[ucConstantNum-1] : NULL;
-    
+    else
+    {
+        return NULL;
+    }        
 #if DEBUG_ENABLE > 0
     if(pExAirFan != NULL)
     {
@@ -78,23 +78,26 @@ ExAirFan* psSystem_ShortestExAirFan(System* pt)
             ucConstantNum++;
         }      
     }
-    //所有未运行的定频排风机已运行时间排序
-    for(n=0; n < ucConstantNum; n++)  
-    {          
-        for(i=0; i< ucConstantNum-n-1; i++)
-        {
-            if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
+    if(ucConstantNum >= 1)
+    {
+        pExAirFan = pFanByRunTimeList[0];
+        for(n=0; n < ucConstantNum; n++)     //所有未运行的定频排风机最短已运行时间的风机
+        {          
+            if(pExAirFan->Device.usRunTime_H > pFanByRunTimeList[n]->Device.usRunTime_H)
             {
-                           pExAirFan   = pFanByRunTimeList[i];
-                pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
-                pFanByRunTimeList[i+1] = pExAirFan;
+                pExAirFan = pFanByRunTimeList[n];
             }
         }
     }
-    pExAirFan = pFanByRunTimeList[0];
-    
+    else
+    {
+        return NULL;
+    }
 #if DEBUG_ENABLE > 0
-    myprintf("psSystem_ShortestExAirFan ucDevIndex %d\n",  pExAirFan->Device.ucDevIndex);
+    if(pExAirFan != NULL)
+    {
+        myprintf("psSystem_ShortestExAirFan ucDevIndex %d\n",  pExAirFan->Device.ucDevIndex);
+    }
 #endif         
     return pExAirFan;
 }
@@ -150,22 +153,24 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
         {
             pFanByRunTimeList[ucConstantNum] = pExAirFan;   
             ucConstantNum++;
-           if(pExAirFan->Device.eRunningState == STATE_RUN)
-           {
-               ucRunningNum++;    //当前运行的定频排风机个数   
-           }       
+            if(pExAirFan->Device.eRunningState == STATE_RUN)
+            {
+                ucRunningNum++;    //当前运行的定频排风机个数   
+            }       
         }        
     }
-    //无故障定频排风机已运行时间排序
-    for(n=0; n < ucConstantNum; n++)  
-    {          
-        for(i=0; i< ucConstantNum-n; i++)
-        {
-            if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
+    if(ucConstantNum >= 1)
+    { 
+        for(n=0; n < ucConstantNum-1; n++)   //无故障定频排风机已运行时间排序
+        {          
+            for(i=0; i< ucConstantNum-n-1; i++)
             {
-                           pExAirFan   = pFanByRunTimeList[i];
-                pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
-                pFanByRunTimeList[i+1] = pExAirFan;
+                if(pFanByRunTimeList[i]->Device.usRunTime_H > pFanByRunTimeList[i+1]->Device.usRunTime_H)
+                {
+                               pExAirFan   = pFanByRunTimeList[i];
+                    pFanByRunTimeList[i]   = pFanByRunTimeList[i+1]; 
+                    pFanByRunTimeList[i+1] = pExAirFan;
+                }
             }
         }
     }
@@ -183,26 +188,24 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
         pExAirFan = pThis->pExAirFanVariate;
         pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch));  //关闭变频排风机
     }
-    //系统需求排风机个数 < 运行的定频排风机个数  
-    if(pThis->ucConstantFanRequestNum < ucRunningNum)
+    if(pThis->ucConstantFanRequestNum < ucRunningNum)  //系统需求排风机个数 < 运行的定频排风机个数  
     {
         for(i=0, n=ucRunningNum - pThis->ucConstantFanRequestNum; n>0 && i<ucConstantNum; i++)
         {
             pExAirFan = pFanByRunTimeList[ucConstantNum-i-1];   //运行时间最长的排风机
-            if(pExAirFan->Device.eRunningState == STATE_RUN)  //是否在运行
+            if(pExAirFan != NULL && pExAirFan->Device.eRunningState == STATE_RUN)  //是否在运行
             {
                 pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch)); //关闭运行时间最长的排风机
                 n--;
             }
         }
     }
-    //系统需求排风机个数 > 运行的定频排风机个数
-    if(pThis->ucConstantFanRequestNum > ucRunningNum)
+    if(pThis->ucConstantFanRequestNum > ucRunningNum)   //系统需求排风机个数 > 运行的定频排风机个数
     {
-        for(i=0, n = pThis->ucConstantFanRequestNum-ucRunningNum; n!=0 && i<ucConstantNum; i++)
+        for(i=0, n = pThis->ucConstantFanRequestNum-ucRunningNum; n>0 && i<ucConstantNum; i++)
         {
             pExAirFan = pFanByRunTimeList[i];   //运行时间最短的排风机
-            if(pExAirFan->Device.eRunningState == STATE_STOP && pExAirFan->xExAirFanErr == FALSE)  //是否未运行且无故障
+            if(pExAirFan != NULL && pExAirFan->Device.eRunningState == STATE_STOP && pExAirFan->xExAirFanErr == FALSE)  //是否未运行且无故障
             {
                 pExAirFan->IDevSwitch.switchOpen(SUPER_PTR(pExAirFan, IDevSwitch));
                 n--;
