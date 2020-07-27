@@ -49,9 +49,10 @@ void vSystem_ExAirRatio(System* pt, uint8_t ucExAirCoolRatio, uint8_t ucExAirHea
 
 void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
 void vSystem_ExAirFanCtrl(System* pt);
-
+void vSystem_ExAirFanRemoteChange(System* pt);
+    
 void vSystem_ExAirFanErr(System* pt);
-
+void vSystem_ExAirFanErrClean(System* pt);
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

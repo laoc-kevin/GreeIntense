@@ -1,5 +1,6 @@
 #include "md_timer.h"
 #include "my_rtt_printf.h"
+
 /**************************************************************
 *@brief 定时器注册
 ***************************************************************/
@@ -67,4 +68,15 @@ OS_STATE usGetTmrState(OS_TMR *p_tmr)
 
     OS_STATE  sTmrState = OSTmrStateGet(p_tmr, &err);
     return  sTmrState; 
+}
+
+/**************************************************************
+*@brief 停止定时器
+***************************************************************/
+BOOL xTmrStop(OS_TMR *p_tmr)
+{
+    OS_ERR err     = OS_ERR_NONE;
+    OSTmrStop(p_tmr, OS_OPT_TMR_NONE, NULL, &err);
+    
+    return err == OS_ERR_NONE;
 }

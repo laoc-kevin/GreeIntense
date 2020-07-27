@@ -1,8 +1,9 @@
 #include "fan.h"
 #include "md_timer.h"
 
-#define EX_AIR_FAN_TIME_OUT_S      2
-#define EX_AIR_FAN_TIME_DELAY_S    5
+#define EX_AIR_FAN_TIME_OUT_S               2
+#define EX_AIR_FAN_TIME_DELAY_S             5
+#define EX_AIR_FAN_CTRL_ERR_TIME_DELAY_S    10
 
 /*************************************************************
 *                         室外风机                             *
@@ -23,15 +24,18 @@ END_CTOR
 *                         排风机                             *
 **************************************************************/
 /*注册风机数字量接口*/
-void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunState_DI, uint8_t ucErr_DI)
+void vExAirFan_RegistDigitalIO(ExAirFan* pt, uint8_t ucSwitch_DO, uint8_t ucRunState_DI, uint8_t ucErr_DI, uint8_t ucRemote_DI)
 {
     ExAirFan* pThis    = (ExAirFan*)pt;  
-    pThis->sSwitch_DO.ucChannel = ucSwitch_DO;
+    
+    pThis->sSwitch_DO.ucChannel   = ucSwitch_DO;
     pThis->sRunState_DI.ucChannel = ucRunState_DI;
-    pThis->sErr_DI.ucChannel = ucErr_DI;
+    pThis->sRemote_DI.ucChannel   = ucRemote_DI;
+    pThis->sErr_DI.ucChannel      = ucErr_DI;
     
     vDigitalInputRegist(ucRunState_DI, (void*)&pThis->Device.eRunningState);
-    vDigitalInputRegist(ucErr_DI, (void*)&pThis->xExAirFanErr);
+    vDigitalInputRegist(ucErr_DI,      (void*)&pThis->xExAirFanErr);
+    vDigitalInputRegist(ucRemote_DI,   (void*)&pThis->xExAirFanRemote);
     
 }
 
@@ -131,8 +135,7 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
             myprintf("vExFan_SetFreqRange  usMinFreq %d usMaxFreq %d usSetFreq %d \n", pThis->usMinFreq, pThis->usMaxFreq, pThis->usSetFreq);
         } 
 #endif 
-    }
-       
+    }   
 }
 
 /*开启风机*/
@@ -141,7 +144,7 @@ void vExAirFan_SwitchOpen(IDevSwitch* pt)
     OS_ERR err = OS_ERR_NONE;
     ExAirFan* pThis = SUB_PTR(pt, IDevSwitch, ExAirFan);
     
-    if(pThis->xExAirFanErr == FALSE)  //无故障
+    if(pThis->xExAirFanErr == FALSE && pThis->xExAirFanRemote == TRUE)  //无故障且为远程
     {
         vDigitalOutputCtrl(pThis->sSwitch_DO.ucChannel, ON);  //输出开启,继电器闭合
         pThis->eCtrlCmd = ON;
@@ -180,17 +183,41 @@ void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
 {
     ExAirFan* pThis = (ExAirFan*)p_arg;
     
-    if(pThis->eCtrlCmd == ON && pThis->Device.eRunningState == STATE_STOP)
+    if(pThis->eCtrlCmd == ON && pThis->Device.eRunningState == STATE_STOP && pThis->xExAirFanErr == FALSE && pThis->xExAirFanRemote == TRUE)
     {
+        pThis->xExAirFanCtrl = TRUE;
         vExAirFan_SwitchOpen(SUPER_PTR(pThis, IDevSwitch));  //开启排风机
     }
     if(pThis->eCtrlCmd == OFF && pThis->Device.eRunningState == STATE_RUN)
     {
+        pThis->xExAirFanCtrl = TRUE;
         vExAirFan_SwitchClose(SUPER_PTR(pThis, IDevSwitch));  //关闭排风机
     }
-    if(pThis->xExAirFanErr)
+    if(pThis->xExAirFanCtrl == TRUE && pThis->xExAirFanRemote == TRUE)  
+    {
+        if( (pThis->eCtrlCmd == OFF && pThis->Device.eRunningState == STATE_RUN) ||   //风机状态与控制命令不一致且处于远程状态则计时
+            (pThis->eCtrlCmd == ON && pThis->Device.eRunningState == STATE_STOP) )
+        {
+            pThis->ucTimeCount = pThis->ucTimeCount + EX_AIR_FAN_TIME_OUT_S;
+        }
+        if((pThis->eCtrlCmd == OFF && pThis->Device.eRunningState == STATE_STOP) ||   //风机状态与控制命令一致则停止计时
+           (pThis->eCtrlCmd == ON && pThis->Device.eRunningState == STATE_RUN) )
+        {
+            pThis->xExAirFanCtrl = FALSE;
+            pThis->ucTimeCount = 0;
+        }
+    }
+    if(pThis->ucTimeCount >= EX_AIR_FAN_CTRL_ERR_TIME_DELAY_S && pThis->xExAirFanCtrl == TRUE && pThis->xExAirFanRemote == TRUE)  //控制故障
+    {
+        pThis->ucTimeCount      = 0;
+        pThis->xExAirFanCtrlErr = TRUE;
+        pThis->xExAirFanCtrl    = FALSE;
+    }
+    
+    if(pThis->xExAirFanErr == TRUE || pThis->xExAirFanRemote == FALSE || pThis->xExAirFanCtrlErr == TRUE)  //故障、本地、控制故障
     {
         pThis->eCtrlCmd = OFF;
+        pThis->xExAirFanCtrl = FALSE;
         if(pThis->eCtrlCmd == OFF && pThis->Device.eRunningState == STATE_RUN)
         {
             vExAirFan_SwitchClose(SUPER_PTR(pThis, IDevSwitch));  //关闭排风机
@@ -204,7 +231,6 @@ void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
             vExFan_SetFreq(SUPER_PTR(pThis, IDevFreq), pThis->usSetFreq);   //频率控制
         }
     }
-    
 #if DEBUG_ENABLE > 0 
     if(pThis->eFanFreqType == VARIABLE_FREQ)
     {
@@ -223,6 +249,7 @@ void vExAirFan_RegistMonitor(ExAirFan* pt)
     OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
     
     MONITOR(&pThis->xExAirFanErr,         uint8, &pThis->sValChange)
+    MONITOR(&pThis->xExAirFanRemote,      uint8, &pThis->sValChange)
     MONITOR(&pThis->Device.eRunningState, uint8, &pThis->sValChange)
 }
 
@@ -242,7 +269,7 @@ void vExAirFan_Init(ExAirFan* pt, const sFanInfo* psFan, uint8_t ucDevIndex)
     pThis->eFanFreqType      = psFan->eFanFreqType;  
     pThis->Device.ucDevIndex = ucDevIndex;
     
-    vExAirFan_RegistDigitalIO(pThis, psFan->ucSwitch_DO, psFan->ucRunState_DI, psFan->ucErr_DI);  //数字接口
+    vExAirFan_RegistDigitalIO(pThis, psFan->ucSwitch_DO, psFan->ucRunState_DI, psFan->ucErr_DI, psFan->ucRemote_DI);  //数字接口
     vExAirFan_RegistEEPROMData(pThis);        //EEPROM数据注册
     vExAirFan_RegistMonitor(pThis);           //注册监控数据
     
@@ -264,12 +291,11 @@ void vExAirFan_ChangeFreqType(ExAirFan* pt, const sFanInfo* psFan)
     ExAirFan* pThis     = (ExAirFan*)pt;
     pThis->eFanFreqType = psFan->eFanFreqType;
 
-    vExAirFan_RegistDigitalIO(pThis, psFan->ucSwitch_DO, psFan->ucRunState_DI, psFan->ucErr_DI);  //数字接口
+    vExAirFan_RegistDigitalIO(pThis, psFan->ucSwitch_DO, psFan->ucRunState_DI, psFan->ucErr_DI, psFan->ucRemote_DI);  //数字接口
     
     if(pThis->eFanFreqType == VARIABLE_FREQ)  //变频接口
     {
         vExAirFan_RegistAnalogIO(pThis, psFan->ucFreq_AO, psFan->ucFreq_AI, psFan->usMinFreq, psFan->usMaxFreq);
-//        pThis->IDevFreq.setFreq(SUPER_PTR(pThis, IDevFreq), 100);
     }     
 }
 

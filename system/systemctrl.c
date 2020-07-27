@@ -34,7 +34,7 @@ void vSystem_SwitchClose(System* pt)
 /*切换系统模式*/
 void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
 {
-    uint8_t  n   = 0;
+    uint8_t  n, nFanNum; 
     OS_ERR   err = OS_ERR_NONE;
     
     System*      pThis        = (System*)pt;
@@ -48,7 +48,16 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     }
     if(eSystemMode == MODE_AUTO)    //自动模式
     {
-        if(pThis->xUnitErrFlag == TRUE || pThis->xExFanErrFlag == TRUE)
+        ExAirFan* pExAirFan = NULL;
+        for(n=0, nFanNum=0; n < EX_AIR_FAN_NUM; n++)
+        {
+            pExAirFan = pThis->psExAirFanList[n];       
+            if(pExAirFan->xExAirFanRemote == TRUE)  
+            {
+                nFanNum++;    
+            }
+        }
+        if(nFanNum == 0 || pThis->xUnitErrFlag == TRUE || pThis->xExFanErrFlag == TRUE)
         {
             psBMS->eSystemMode = pThis->eSystemMode;
             return;
@@ -77,8 +86,13 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
     }
     if(eSystemMode == MODE_EMERGENCY) //紧急模式
     {
+        if(pThis->xUnitErrFlag == TRUE)
+        {
+            psBMS->eSystemMode = pThis->eSystemMode;
+            return;
+        }
         pThis->eSystemMode = eSystemMode;
-        vSystem_SwitchOpen(pThis);    //开启系统
+        vSystem_SwitchOpen(pThis);                       //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
     }
 #if DEBUG_ENABLE > 0  

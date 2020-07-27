@@ -630,7 +630,7 @@ void vSystem_UnitErr(System* pt)
         {
             ucUnitNum++;
             psUnit = pModularRoof;
-            if(pThis->eSystemMode == MODE_AUTO)
+            if(pThis->eSystemMode == MODE_AUTO || pThis->eSystemMode == MODE_EMERGENCY)
             {
                 pModularRoof->IDevSwitch.switchOpen(SUPER_PTR(pModularRoof, IDevSwitch)); //开启机组
             }                
@@ -676,7 +676,7 @@ void vSystem_UnitErr(System* pt)
     if(ucUnitNum == 0) 
     {
         pThis->xUnitErrFlag = TRUE;
-        if(pThis->eSystemMode == MODE_AUTO)  //如果为自动切回手动
+        if(pThis->eSystemMode == MODE_AUTO || pThis->eSystemMode == MODE_EMERGENCY)  //如果为自动或紧急送风切回手动
         {
             pThis->eSystemMode = MODE_MANUAL;
             psBMS->eSystemMode = MODE_MANUAL;

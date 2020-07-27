@@ -42,12 +42,12 @@ CPU_STK*      psSysPollTaskStk = NULL;
          
          
 /*系统排风机配置信息*/
-const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 8};
+const sFanInfo ExAirFanVariate = {VARIABLE_FREQ, MIN_FAN_FREQ, MAX_FAN_FREQ, 1, 1, 1, 1, 5, 9};
 
-const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 8},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 9},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 10},
-                                               {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 11},
+const sFanInfo ExAirFanSet[EX_AIR_FAN_NUM] = { {CONSTANT_FREQ, 0, 0, 0, 0, 1, 1, 5, 9},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 2, 2, 6, 10},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 3, 3, 7, 11},
+                                               {CONSTANT_FREQ, 0, 0, 0, 0, 4, 4, 8, 12},
                                              };
 /*系统排风机类型切换*/
 void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
@@ -176,10 +176,11 @@ begin:
             continue;
         }
         /***********************BMS事件响应***********************/
-        HANDLE(psBMS->eSystemMode,  vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
-        HANDLE(psBMS->eRunningMode, vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
-        HANDLE(psBMS->xAlarmClean,  vSystem_CleanAlarm(psSystem, &psBMS->xAlarmClean)) 
-        HANDLE(psBMS->xAlarmEnable, vSystem_AlarmEnable(psSystem, psBMS->xAlarmEnable)) 
+        HANDLE(psBMS->eSystemMode,       vSystem_ChangeSystemMode(psSystem, psBMS->eSystemMode))  
+        HANDLE(psBMS->eRunningMode,      vSystem_SetUnitRunningMode(psSystem, psBMS->eRunningMode)) 
+        HANDLE(psBMS->xAlarmClean,       vSystem_CleanAlarm(psSystem, &psBMS->xAlarmClean)) 
+        HANDLE(psBMS->xAlarmEnable,      vSystem_AlarmEnable(psSystem, psBMS->xAlarmEnable))
+        HANDLE(psBMS->xExAirFanErrClean, vSystem_ExAirFanErrClean(psSystem))         
         
         HANDLE(psBMS->usTempSet,         vSystem_SetTemp(psSystem, psBMS->usTempSet))
         HANDLE(psBMS->usFreAirSet_Vol_H, vSystem_SetFreAir(psSystem, psBMS->usFreAirSet_Vol_H, psBMS->usFreAirSet_Vol_L))
@@ -233,6 +234,7 @@ begin:
             pExAirFan =  pThis->psExAirFanList[n];
             
             HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem))
+            HANDLE(pExAirFan->xExAirFanRemote,      vSystem_ExAirFanRemoteChange(psSystem))
             HANDLE(pExAirFan->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
         }
 

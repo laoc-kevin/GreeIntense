@@ -134,6 +134,8 @@ CLASS(System)   /*系统*/
     BOOL              xHumiSenOutErr;           //室外湿度传感器故障
     BOOL              xHumiSenInErr;            //室内湿度传感器故障
     
+    BOOL              xExAirFanErrClean;        //排风机控制故障清除
+    
     sDigital_IO       sAlarm_DO;                //声光报警DO
     
 #if MB_MASTER_DTU_ENABLED > 0     
