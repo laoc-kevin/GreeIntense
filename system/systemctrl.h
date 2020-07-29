@@ -47,6 +47,7 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
 void vSystem_ExAirSet_Vol(System* pt);
 void vSystem_ExAirRatio(System* pt, uint8_t ucExAirCoolRatio, uint8_t ucExAirHeatRatio);
 
+void vSystem_ExAirRequest_Vol(System* pt);
 void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq);
 void vSystem_ExAirFanCtrl(System* pt);
 void vSystem_ExAirFanRemoteChange(System* pt);

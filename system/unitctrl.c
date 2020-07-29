@@ -147,7 +147,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     {
         (void)usSystem_ChangeEnergyTemp(pThis);
     }
-    vSystem_ExAirFanCtrl(pThis);   //排风机控制
+    (void)vSystem_ExAirRequest_Vol(pThis);  //计算排风需求量
 }
 
 void vSystem_ModeChangePeriodTimeCallback(void* p_tmr, void* p_arg)

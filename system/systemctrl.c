@@ -63,6 +63,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
             return;
         }
         pThis->eSystemMode = eSystemMode;
+        vSystem_SwitchOpen(pThis);     //开启系统
         
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
         if(pThis->sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_0)
@@ -73,7 +74,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         {
             vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
         }
-        vSystem_SwitchOpen(pThis);  //开启系统
+        vSystem_ExAirFanCtrl(pThis);   //排风机控制
     }
     if(eSystemMode == MODE_CLOSE)    //关闭模式
     {
@@ -94,6 +95,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         pThis->eSystemMode = eSystemMode;
         vSystem_SwitchOpen(pThis);                       //开启系统
         vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN); //开启送风模式
+        vSystem_ExAirFanCtrl(pThis);                     //排风机控制
     }
 #if DEBUG_ENABLE > 0  
         myprintf("vSystem_ChangeSystemMode %d %d\n", pThis->eSystemMode, psBMS->eSystemMode);
