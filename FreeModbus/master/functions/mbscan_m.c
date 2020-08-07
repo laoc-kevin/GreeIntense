@@ -658,6 +658,7 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
         psMBSlaveDevCur->xSynchronized = FALSE;
 //        myprintf("vMBMasterScanSlaveDevData ucSlaveAddr %d  errorCode %d\n", ucSlaveAddr, errorCode);
     }
+    (void)OSTimeDlyHMSM(0, 0, 0, MB_SCAN_SLAVE_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
          
 }
 

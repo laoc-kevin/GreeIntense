@@ -487,6 +487,7 @@ void vSystem_AlarmEnable(System* pt, BOOL xAlarmEnable)
                 return;            
             }         
         }
+        //（6）排风机故障
         for(n=0; n < EX_AIR_FAN_NUM; n++)
         {
             pExAirFan = pThis->psExAirFanList[n]; 

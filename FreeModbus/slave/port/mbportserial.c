@@ -58,6 +58,7 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 		MB_SendOrRecive(psMBSlaveUart, UART_RX_EN);
 		UART_TxCmd(psMBSlaveUart->ID, DISABLE);                           
 	}
+    UART_FIFOReset(psMBSlaveUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
 }
 
 void vMBSlavePortClose(sMBSlavePort* psMBPort)
@@ -96,7 +97,7 @@ BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte)
 
 BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 {
-	UCHAR h, l;
+//	UCHAR h, l;
     
 	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
@@ -139,7 +140,6 @@ void prvvSlaveUARTRxISR(const sMBSlavePort* psMBPort)
     {
         (void)pxMBSlaveFrameCBByteReceivedCur(psMBSlaveInfo);
     }
-    
 }
 
 #endif

@@ -70,7 +70,7 @@
 #define MB_PORT_HAS_CLOSE 0
 #endif
 
-#define MB_SLAVE_POLL_INTERVAL_MS           30
+#define MB_SLAVE_POLL_INTERVAL_MS           50
 #define MB_CPN_FUNC_WRITE_CODE              0x05
 
 /* ----------------------- Static variables ---------------------------------*/ 
@@ -379,7 +379,7 @@ eMBErrorCode eMBSlavePoll(sMBSlaveInfo* psMBSlaveInfo)
     sMBSlavePort*         psMBPort = &psMBSlaveInfo->sMBPort;
     sMBSlaveCommInfo* psMBCommInfo = &psMBSlaveInfo->sMBCommInfo;
     
-	CPU_SR_ALLOC();
+//	CPU_SR_ALLOC();
 
     /* Check if the protocol stack is ready. */
     if(psMBSlaveInfo->eMBState != STATE_ENABLED)      //检查协议栈是否使能
@@ -648,7 +648,7 @@ void vMBSlavePollTask(void *p_arg)
 		{  
 			while (DEF_TRUE)
 			{	
-//                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+                (void)OSTimeDlyHMSM(0, 0, 0, MB_SLAVE_POLL_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
 				(void)eMBSlavePoll(psMBSlaveInfo);             
 			}
 		}			
