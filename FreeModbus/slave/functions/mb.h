@@ -116,7 +116,7 @@ typedef struct sMBSlaveInfo  /* Slave information */
     UCHAR*            pucSndBufferCur;    //当前发送数据缓冲区指针
     
 #if MB_SLAVE_RTU_ENABLED > 0         /*RTU mode information*/
-    UCHAR             ucRTUBuf[MB_SER_PDU_SIZE_MAX];       //接收缓冲区                      
+    UCHAR             ucRTUBuf[MB_SER_PDU_SIZE_MAX];       //从栈数据缓冲区                      
 #endif
 
 #if MB_SLAVE_CPN_ENABLED > 0    

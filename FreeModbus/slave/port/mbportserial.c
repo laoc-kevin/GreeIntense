@@ -34,7 +34,7 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 {
     const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
-	UART_FIFOReset(psMBSlaveUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+//	UART_FIFOReset(psMBSlaveUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
 	if(xRxEnable)
 	{
          UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
@@ -44,7 +44,7 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 	{
 		 UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_RBR, DISABLE);    //关闭接收中断
 		 MB_SendOrRecive(psMBSlaveUart, UART_TX_EN);
-	}
+	} 
 
 	if(xTxEnable)
 	{
