@@ -25,7 +25,6 @@
 #include "mbport_m.h"
 #include "bsp.h"
 
-
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 
 /* ----------------------- Defines ------------------------------------------*/
@@ -50,8 +49,15 @@ BOOL xMBMasterPortSerialInit( sMBMasterPort* psMBPort )     //初始化
 void vMBMasterPortSerialEnable( sMBMasterPort* psMBPort, BOOL xRxEnable, BOOL xTxEnable)      
 {
     const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
-    UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
-    
+	sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
+	
+//	myprintf("vMBMasterPortSerialEnable***ucMBDestAddr %d  \n",psMBMasterInfo->ucMBDestAddr);
+//	
+	if(psMBMasterInfo->ucMBDestAddr ==1 || psMBMasterInfo->ucMBDestAddr ==2)
+	{
+		UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+	}
+	
     if(xRxEnable)
 	{
          UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
@@ -75,8 +81,10 @@ void vMBMasterPortSerialEnable( sMBMasterPort* psMBPort, BOOL xRxEnable, BOOL xT
 		MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
 		UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
 	}
-	UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | 
-	                                                   UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+	if(psMBMasterInfo->ucMBDestAddr == 1 || psMBMasterInfo->ucMBDestAddr == 2 )
+	{
+		UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+	}
 }
 
 void vMBMasterPortClose(sMBMasterPort* psMBPort)   //关闭串口
@@ -113,7 +121,7 @@ BOOL xMBMasterPortSerialGetByte(const sMBMasterPort* psMBPort, CHAR * pucByte)  
 //	l=(* pucByte ) % 16 ;	
 //	h= (h<10)? h+48: h+87;
 //	l= (l<10)? l+48: l+87;	
-	
+//	
 //    myprintf("RX:%c%c\n", h,l);
 
     return TRUE;

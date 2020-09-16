@@ -166,16 +166,40 @@ eMBErrorCode
 eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength)
 {
     /*  eMBRTUReceive函数完成了CRC校验、帧数据地址和长度的赋值，便于给上层进行处理*/
-
+	
+	USHORT usBytes = 0;
     eMBErrorCode    eStatus = MB_ENOERR;
-
-    ENTER_CRITICAL_SECTION();
+	
+	ENTER_CRITICAL_SECTION();
     assert_param(usRcvBufferPos < MB_SER_PDU_SIZE_MAX);      //断言宏，判断接收到的字节数<256，如果>256，终止程序
   
-    /* Length and CRC check */
-    if((psMBMasterInfo->usRcvBufferPos >= MB_SER_PDU_SIZE_MIN)
-        && (usMBCRC16( (UCHAR*)psMBMasterInfo->ucRTURcvBuf, psMBMasterInfo->usRcvBufferPos ) == 0) )
+	psMBMasterInfo->xFrameErrReceived = TRUE;
+	
+	*pucRcvAddress = psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_ADDR_OFF];
+	
+    if( *pucRcvAddress >= 6 && psMBMasterInfo->usRcvBufferPos == 17)
+	{
+		if(psMBMasterInfo->usRcvBufferPos >= psMBMasterInfo->usSndBufferPos)
+	    {
+		    usBytes = psMBMasterInfo->usRcvBufferPos - psMBMasterInfo->usSndBufferPos;
+	    }
+	    if((usBytes >= MB_SER_PDU_SIZE_MIN)
+        && (usMBCRC16( (UCHAR*)psMBMasterInfo->ucRTURcvBuf + psMBMasterInfo->usSndBufferPos, usBytes) == 0) )
+        {
+            *pusLength = (USHORT)(usBytes - MB_SER_PDU_PDU_OFF - MB_SER_PDU_SIZE_CRC);     //PDU的长度为数据帧-从栈地址-CRC校验
+            *pucFrame = (UCHAR*) &(psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_PDU_OFF+psMBMasterInfo->usSndBufferPos]);      //pucFrame指向PDU起始位置
+        }
+	    else
+        {
+            eStatus = MB_EIO;
+        }
+	}
+	else
     {
+	    /* Length and CRC check */
+        if((psMBMasterInfo->usRcvBufferPos >= MB_SER_PDU_SIZE_MIN)
+        && (usMBCRC16( (UCHAR*)psMBMasterInfo->ucRTURcvBuf, psMBMasterInfo->usRcvBufferPos ) == 0) )
+        {
         /* Save the address field. All frames are passed to the upper layed
          * and the decision if a frame is used is done there.
          */
@@ -188,11 +212,32 @@ eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR 
 
         /* Return the start of the Modbus PDU to the caller. */
         *pucFrame = (UCHAR*) &(psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_PDU_OFF]);      //pucFrame指向PDU起始位置
-    }
-    else
-    {
-        eStatus = MB_EIO;
-    }
+        }
+	    else
+        {
+            eStatus = MB_EIO;
+        }
+		if( *pucRcvAddress >= 6)
+		{
+			if(psMBMasterInfo->usRcvBufferPos == 8)
+	        {
+     		     eStatus = MB_EIO;		 
+	        }
+			if(psMBMasterInfo->usRcvBufferPos == 7)
+			{
+				UART_FIFOReset(psMBMasterInfo->sMBPort.psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+			}
+		}
+        
+	}
+//	if(*pucRcvAddress == 1)
+//	{
+//		   myprintf("eMBMasterRTUReceive***pucRcvAddress %d *pusLength  %d usRcvBufferPos %d \n",
+//		*pucRcvAddress, *pusLength, psMBMasterInfo->usRcvBufferPos);
+//	}
+ 
+	
+    psMBMasterInfo->xFrameErrReceived = FALSE;
   
     EXIT_CRITICAL_SECTION();
     return eStatus;
@@ -248,13 +293,16 @@ eMBMasterRTUSend(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, const UCHAR* 
         psMBMasterInfo->ucRTUSndBuf[psMBMasterInfo->usSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
 
         /* Activate the transmitter. */
-        psMBMasterInfo->eSndState = STATE_M_TX_XMIT;               //发送状态
+        psMBMasterInfo->eSndState = STATE_M_TX_XMIT;         //发送状态
         vMBMasterPortSerialEnable( psMBPort, FALSE, TRUE );  //使能发送，禁止接收	
 
 		//启动第一次发送
         (void)xMBMasterPortSerialPutByte( psMBPort, (CHAR)(*psMBMasterInfo->pucSndBufferCur) );
-        psMBMasterInfo->pucSndBufferCur++;
+        psMBMasterInfo->usSndBufferPos = psMBMasterInfo->usSndBufferCount;
+		psMBMasterInfo->pucSndBufferCur++;
         psMBMasterInfo->usSndBufferCount--;	
+		
+		psMBMasterInfo->xFrameErrReceived = TRUE;
     }
     else
     {
@@ -300,7 +348,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
         /* In the error state we wait until all characters in the
          * damaged frame are transmitted.
          */
-    case STATE_M_RX_ERROR:                                                    //数据帧被损坏，重启定时器，不保存串口接收的数据
+    case STATE_M_RX_ERROR:     //数据帧被损坏，重启定时器，不保存串口接收的数据
         vMBsMasterPortTmrsEnable(psMBPort);
         break;
 
@@ -338,7 +386,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
         {
             psMBMasterInfo->eRcvState = STATE_M_RX_ERROR;
         }
-        vMBsMasterPortTmrsEnable(psMBPort);                   //每收到一个字节，都重启3.5T定时器
+        vMBsMasterPortTmrsEnable(psMBPort);   //每收到一个字节，都重启3.5T定时器
         break;
 	default: break;
     }
@@ -366,10 +414,11 @@ BOOL xMBMasterRTUTransmitFSM(sMBMasterInfo* psMBMasterInfo)
          * idle state.  */
     case STATE_M_TX_IDLE:
         /* enable receiver/disable transmitter. */
-        vMBMasterPortSerialEnable(psMBPort, TRUE, FALSE);              //发送器处于空闲状态，使能接收，禁止发送
+	    psMBMasterInfo->usRcvBufferPos = 0;
+        vMBMasterPortSerialEnable(psMBPort, TRUE, FALSE); //发送器处于空闲状态，使能接收，禁止发送
         break;
 
-    case STATE_M_TX_XMIT:                                      //发送器处于发送状态,在从机发送函数eMBRTUSend中赋值STATE_TX_XMIT
+    case STATE_M_TX_XMIT:   //发送器处于发送状态,在从机发送函数eMBRTUSend中赋值STATE_TX_XMIT
         /* check if we are finished. */
         if(psMBMasterInfo->usSndBufferCount != 0)
         {
@@ -429,15 +478,18 @@ BOOL xMBMasterRTUTimerT35Expired(sMBMasterInfo* psMBMasterInfo)
 	    if( psMBMasterInfo->usRcvBufferPos >= 5)   //防止错误数据而导致激发接收事件,该芯片存在bug，发送完数据后会自动接收上次发送的数据
 		{
 			xNeedPoll = xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_RECEIVED);   //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
-//			myprintf("EV_MASTER_FRAME_RECEIVED******************\n");
+//			myprintf("EV_MASTER_FRAME_RECEIVED****************** usRcvBufferPos %d \n", psMBMasterInfo->usRcvBufferPos);
 		}
-		else
+		else if(psMBMasterInfo->ucMBDestAddr == 1 || psMBMasterInfo->ucMBDestAddr == 2 )
 		{
 			psMBMasterInfo->eSndState = STATE_M_TX_XFWR;
 			vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);      //接收数据不完整，重启定时器
-
+	
 			xSndStateNeedChange = FALSE;
-//			myprintf("EV_MASTER_FRAME_RECEIVED_ERROR******************\n");
+			xNeedPoll = FALSE;
+//			myprintf("EV_MASTER_FRAME_RECEIVED_ERROR****************** usRcvBufferPos %d \n", psMBMasterInfo->usRcvBufferPos);
+//		
+		    psMBMasterInfo->usRcvBufferPos = 0;
 		}
 		break;
 

@@ -64,7 +64,7 @@
 #endif
 
 #define TMR_TICK_PER_SECOND                  OS_CFG_TMR_TASK_RATE_HZ
-#define MB_MASTER_POLL_INTERVAL_MS           50
+#define MB_MASTER_POLL_INTERVAL_MS           100
 
 /* ----------------------- Static variables ---------------------------------*/
 static sMBMasterInfo*      psMBMasterList = NULL;    

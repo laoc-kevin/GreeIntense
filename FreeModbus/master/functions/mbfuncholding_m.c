@@ -46,6 +46,7 @@
 #include "mbdict_m.h"
 #include "mbmap_m.h"
 #include "mbscan_m.h"
+#include "system.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_REQ_READ_ADDR_OFF                ( MB_PDU_DATA_OFF + 0 )
@@ -341,9 +342,13 @@ eMBMasterReqErrCode eMBMasterReqReadHoldingRegister(sMBMasterInfo* psMBMasterInf
 		vMBMasterSetPDUSndLength(psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE);
 		(void)xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
         
-//        myprintf("eMBMasterReqWriteMultipleHoldingRegister  ucSlaveAddr %d usRegAddr %d usNRegs %d\n",ucSndAddr, usRegAddr, usNRegs);
 		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
     }
+//	if(ucSndAddr == 1)
+//	{
+//		myprintf("eMBMasterReqReadHoldingRegister  ucSlaveAddr %d eErrStatus %d \n",ucSndAddr, eErrStatus);
+//	}
+	
     return eErrStatus;
 }
 
@@ -397,12 +402,14 @@ eMBMasterFuncReadHoldingRegister( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFram
         else
         {
             eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+//			myprintf(" ==========MB_EX_ILLEGAL_DATA_VALUE usRegCount %d %d\n", usRegCount, *(pucFrame + MB_PDU_FUNC_READ_BYTECNT_OFF));
         }
     }
     else
     {
         /* Can't be a valid request because the length is incorrect. */
         eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+		myprintf(" MB_EX_ILLEGAL_DATA_VALUE \n");
     }
     return eStatus;
 }
@@ -574,7 +581,9 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
     sMBSlaveDev*        psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
     sMBDevDataTable*    psMBRegHoldTable = &psMBSlaveDevCur->psDevCurData->sMBRegHoldTable; //从设备通讯协议表
     UCHAR               ucMBDestAddr     = ucMBMasterGetDestAddr(psMBMasterInfo);           //从设备通讯地址
-    	
+    
+	System*       pThis = (System*)System_Core();
+	
     if(psMBMasterInfo->eMBRunMode != STATE_SCAN_DEV) //非轮询从设备模式
     {
         return MB_ENOERR;
@@ -600,7 +609,7 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
     {
         return MB_ENOREG;
     }
-    iRegIndex = usAddress ;
+    iRegIndex = usAddress;
     
     switch (eMode)
     {
@@ -619,7 +628,6 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
     		    {
     		    	usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
     		    }
-    			
     			if (pvRegHoldValue->ucDataType == uint16)
     			{
     				if( (usRegHoldValue >= (USHORT)pvRegHoldValue->lMinVal ) && (usRegHoldValue <= (USHORT)pvRegHoldValue->lMaxVal))
@@ -654,9 +662,17 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
                         pvRegHoldValue->usPreVal = (USHORT)cRegHoldValue;							
     				}
     			}
+//				if(iRegIndex == 48)
+//			    {
+//					myprintf("******iRegIndex sAmbientOutSelf_T  %d  usHumi  %d, \n", 
+//					          pThis->psModularRoofList[0]->sAmbientOutSelf_T, pThis->psModularRoofList[1]->sAmbientOutSelf_T);
+//				
+//				}
+			    
     		}
             iRegIndex++;
             usNRegs--;
+//			pvRegHoldValue = NULL;
         }
     break;
         
@@ -702,10 +718,15 @@ eMBErrorCode eMBMasterRegHoldingCB(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRegB
     		}
             iRegIndex++;
             usNRegs--;
+//			pvRegHoldValue = NULL;
         }
     break;
     default: break;
     }
+	
+//	myprintf("******iRegIndex %d, %d\n", 
+//					          pThis->psModularRoofList[0]->psModularList[3]->ucModularState,
+//					          pThis->psModularRoofList[1]->psModularList[3]->ucModularState);
     return eStatus;
 }
 #endif

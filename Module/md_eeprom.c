@@ -47,7 +47,7 @@
 #define INT16_SAVE_COUNT	1			//int16类型的参数记忆数量
 #define INT16_SAVE_SIZE		INT16_SAVE_COUNT * sizeof(int16_t)		//int16类型记忆字节长度
 
-#define UINT32_SAVE_COUNT	1			//uint32类型的参数记忆数量
+#define UINT32_SAVE_COUNT	2			//uint32类型的参数记忆数量
 #define UINT32_SAVE_SIZE	UINT32_SAVE_COUNT * sizeof(uint32_t)	//uint32类型记忆字节长度
 
 #define INT32_SAVE_COUNT	1			//int32类型的参数记忆数量

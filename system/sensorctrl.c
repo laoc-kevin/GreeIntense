@@ -108,6 +108,10 @@ void vSystem_TempHumiOut(System* pt)
     ucTempNum = 0;
     ucHumiNum = 0;
     
+	if(pThis->xTempSenOutErr == TRUE)
+	{
+		return;
+	}
     for(n=0,sTotalTemp=0,usTotalHumi=0, sAmbientOut_T=0, usAmbientOut_H=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenOutList[n];
@@ -133,7 +137,7 @@ void vSystem_TempHumiOut(System* pt)
 
     if(pThis->sAmbientOut_T != sAmbientOut_T || pThis->usAmbientOut_H != usAmbientOut_H)
     {
-        if(pThis->xTempHumiSenOutErr == FALSE)
+        if(pThis->xTempSenOutErr == FALSE)
         {
             pThis->sAmbientOut_T  = sAmbientOut_T;
         }
@@ -145,7 +149,7 @@ void vSystem_TempHumiOut(System* pt)
     myprintf("vSystem_TempHumiOut  sAmbientOut_T %d  usAmbientOut_H %d ucTempNum %d  ucHumiNum %d\n", 
              pThis->sAmbientOut_T,  pThis->usAmbientOut_H, ucTempNum, ucHumiNum);
 #endif         
-        vSystem_ChangeUnitRunningMode(pThis);  //模式切换逻辑        
+//        vSystem_ChangeUnitRunningMode(pThis);  //模式切换逻辑        
     }  
 }
 
@@ -215,6 +219,11 @@ void vSystem_TempHumiIn(System* pt)
     ucTempNum = 0;
     ucHumiNum = 0;
     
+	if(pThis->xTempSenInErr == TRUE)
+	{
+		return;
+	}
+	
     for(n=0, sTotalTemp=0, usTotalHumi=0, sAmbientIn_T=0, usAmbientIn_H=0; n < TEMP_HUMI_SEN_IN_NUM; n++)
     {
         pTempHumiSensor = (TempHumiSensor*)pThis->psTempHumiSenInList[n]; 
@@ -245,7 +254,7 @@ void vSystem_TempHumiIn(System* pt)
     } 
     if(pThis->sAmbientIn_T != sAmbientIn_T || pThis->usAmbientIn_H != usAmbientIn_H)
     {
-        if(pThis->xTempHumiSenInErr == FALSE)
+        if(pThis->xTempSenInErr == FALSE)
         {
             pThis->sAmbientIn_T  = sAmbientIn_T;
         }

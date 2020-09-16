@@ -41,8 +41,8 @@ void vModularRoof_SwitchOpen(IDevSwitch* pt)
     ModularRoof* pThis = SUB_PTR(pt, IDevSwitch, ModularRoof);
     if(pThis->sMBSlaveDev.xOnLine == TRUE && pThis->xStopErrFlag == FALSE)   //无故障则开启
     {
-        pThis->eSwitchCmd = CMD_OPEN; 
-        pThis->eSwitchState = CMD_OPEN;
+        pThis->eSwitchCmd = CMD_OPEN;
+        pThis->eSwitchState	= CMD_OPEN;	
         if(pThis->Device.eRunningState == STATE_STOP)
         {    
 #if DEBUG_ENABLE > 0
@@ -60,7 +60,7 @@ void vModularRoof_SwitchClose(IDevSwitch* pt)
     if(pThis->Device.eRunningState == STATE_RUN)
     {
         pThis->eSwitchCmd = CMD_CLOSE;
-        pThis->eSwitchState = CMD_CLOSE;        
+        pThis->eSwitchState	= CMD_CLOSE;		
 #if DEBUG_ENABLE > 0
     myprintf("vModularRoof_SwitchClose %d  ucDevIndex %d \n", pThis->eSwitchCmd, pThis->Device.ucDevIndex);
 #endif          
@@ -238,11 +238,11 @@ MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBR
     MASTER_REG_HOLD_DATA(45, int16,  -200,  1400,     0,  RO, 1, (void*)&pThis->sSupAir_T)
     MASTER_REG_HOLD_DATA(46, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientInSelf_T)
    
-    MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientInSelf_H)
-    MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientOutSelf_T) 
-    MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO, 1, (void*)&pThis->usAmbientOutSelf_H)
-    MASTER_REG_HOLD_DATA(51, uint16,    0,  1000,  1000,  RO, 1, (void*)&pThis->usFreAirDamper_Ang)
-    MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO, 1, (void*)&pThis->usCO2PPMSelf)         
+    MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO,  1, (void*)&pThis->usAmbientInSelf_H)
+    MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO,  1, (void*)&pThis->sAmbientOutSelf_T) 
+    MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO,  1, (void*)&pThis->usAmbientOutSelf_H)
+    MASTER_REG_HOLD_DATA(51, uint16,    0,  1000,  1000,  RO, 10, (void*)&pThis->usFreAirDamper_Ang)
+    MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO,  1, (void*)&pThis->usCO2PPMSelf)         
    
     MASTER_REG_HOLD_DATA(53, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usFreAir_Vol)
     MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usSupAir_Vol)
@@ -327,7 +327,9 @@ void vModularRoof_RegistMonitor(ModularRoof* pt)
     
     MONITOR(&pThis->Device.eRunningState,  uint8, &pThis->sValChange)
     MONITOR(&pThis->eRunningMode,          uint8, &pThis->sValChange)
-    
+    MONITOR(&pThis->eSwitchState,          uint8, &pThis->sValChange)
+	MONITOR(&pThis->eSwitchCmd,            uint8, &pThis->sValChange)
+	
     MONITOR(&pThis->sSupAir_T,             int16, &pThis->sValChange)
     MONITOR(&pThis->usFreAir_Vol,         uint16, &pThis->sValChange)
                                        

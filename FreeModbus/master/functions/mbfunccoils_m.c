@@ -437,7 +437,7 @@ eMBMasterFuncWriteMultipleCoils( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
         if( (usCoilCnt >= 1) && (ucByteCountVerify == ucByteCount) )
         {
             eRegStatus = eMBMasterRegCoilsCB( psMBMasterInfo, pucMBFrame + MB_PDU_REQ_WRITE_MUL_VALUES_OFF,
-                                              usRegAddress, usCoilCnt, MB_REG_WRITE );     //线圈功能函数
+                                              usRegAddress, usCoilCnt, MB_BIT_WRITE );     //线圈功能函数
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {

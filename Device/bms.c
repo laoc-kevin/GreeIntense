@@ -357,8 +357,8 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
         
     SLAVE_REG_HOLD_DATA(43, uint16,    0,   7200, RW, 1, (void*)&pSystem->usExAirFanRunTimeLeast)
     SLAVE_REG_HOLD_DATA(44,  uint8,    0,      1, RW, 1, (void*)&pThis->eExAirFanType) 
-    SLAVE_REG_HOLD_DATA(45,  uint8,    0,    100, RW, 1, (void*)&pThis->ucExAirCoolRatio)    
-    SLAVE_REG_HOLD_DATA(46,  uint8,    0,    100, RW, 1, (void*)&pThis->ucExAirHeatRatio)    
+    SLAVE_REG_HOLD_DATA(45,  uint8,    0,    200, RW, 1, (void*)&pThis->ucExAirCoolRatio)    
+    SLAVE_REG_HOLD_DATA(46,  uint8,    0,    200, RW, 1, (void*)&pThis->ucExAirHeatRatio)    
     SLAVE_REG_HOLD_DATA(52, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangeTime_1)
         
     SLAVE_REG_HOLD_DATA(53, uint16,    0,   7200, RW, 1, (void*)&pSystem->usModeChangeTime_2)
@@ -393,7 +393,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
         
     SLAVE_REG_HOLD_DATA(98,  uint16,    MIN_HUMI,     MAX_HUMI,     RO, 1, (void*)&pSystem->usAmbientIn_H)  
     SLAVE_REG_HOLD_DATA(99,  uint16,    0,               100,       RO, 1, (void*)&pSystem->usAmbientOut_H)  
-    SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchState) 
+    SLAVE_REG_HOLD_DATA(113,  uint8,    85,              170,       RW, 1, (void*)&pSystem->psModularRoofList[0]->eSwitchCmd) 
     SLAVE_REG_HOLD_DATA(114,  uint8,    1,                4,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eRunningMode) 
     SLAVE_REG_HOLD_DATA(115,  uint8,    0,                3,        RO, 1, (void*)&pSystem->psModularRoofList[0]->eFuncMode)
         
@@ -418,8 +418,8 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(132,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[1]->ucModularState)   
     SLAVE_REG_HOLD_DATA(133,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(134,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[0]->psModularList[3]->ucModularState)
-    SLAVE_REG_HOLD_DATA(135,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
-    SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchState) 
+    SLAVE_REG_HOLD_DATA(135,  uint16,   0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[0]->Device.usRunTime_H)   
+    SLAVE_REG_HOLD_DATA(145,  uint8,   85,    170, RW, 1, (void*)&pSystem->psModularRoofList[1]->eSwitchCmd) 
         
     SLAVE_REG_HOLD_DATA(146,  uint8,    1,     4, RO, 1, (void*)&pSystem->psModularRoofList[1]->eRunningMode)     
     SLAVE_REG_HOLD_DATA(147,  uint8,    0,     3, RO, 1, (void*)&pSystem->psModularRoofList[1]->eFuncMode)
@@ -445,7 +445,7 @@ SLAVE_BEGIN_DATA_BUF(&pThis->sBMS_RegHoldBuf, &pThis->sBMSCommData.sMBRegHoldTab
     SLAVE_REG_HOLD_DATA(165,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[2]->ucModularState)
     SLAVE_REG_HOLD_DATA(166,  uint8,    0,      5, RO, 1, (void*)&pSystem->psModularRoofList[1]->psModularList[3]->ucModularState)
         
-    SLAVE_REG_HOLD_DATA(167,  uint8,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->Device.usRunTime_H)   
+    SLAVE_REG_HOLD_DATA(167, uint16,    0,  65535, RO, 1, (void*)&pSystem->psModularRoofList[1]->Device.usRunTime_H)   
     SLAVE_REG_HOLD_DATA(179, uint16,    0,    500, RO, 1, (void*)&pSystem->psExAirFanList[0]->usRunningFreq); 
     SLAVE_REG_HOLD_DATA(181, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[0]->Device.usRunTime_H);
     SLAVE_REG_HOLD_DATA(191, uint16,    0,  65535, RO, 1, (void*)&pSystem->psExAirFanList[1]->Device.usRunTime_H);
@@ -736,8 +736,7 @@ void vBMS_InitDefaultData(BMS* pt)
     DATA_INIT(pThis->eExAirFanType,         pSystem->eExAirFanType)
     DATA_INIT(pThis->xAlarmEnable,          pSystem->xAlarmEnable)
     
-//    myprintf("ulExAirFanRated_Vol %ld  usExAirFanRated_Vol_H %d  usExAirFanRated_Vol_L %d \n",pSystem->ulExAirFanRated_Vol,
-//              pThis->usExAirFanRated_Vol_H, pThis->usExAirFanRated_Vol_L);
+//    myprintf("usExAirFanMinFreq %ld  usExAirFanMaxFreq %ld  \n",pSystem->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
 }
 
 void vBMS_Init(BMS* pt)

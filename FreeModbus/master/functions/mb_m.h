@@ -174,6 +174,7 @@ typedef struct sMBMasterInfo  /* master information */
     
 	USHORT              usSndPDULength;                //PDU数据域长度
     USHORT              usSndBufferCount;              //发送缓冲区数据量
+	USHORT              usSndBufferPos;                //发送缓冲区数据位置
     USHORT              usRcvBufferPos;                //接收缓冲区数据位置
 	                                                         
 	UCHAR*              pucSndBufferCur;               //当前发送数据缓冲区指针
@@ -181,7 +182,7 @@ typedef struct sMBMasterInfo  /* master information */
     UCHAR               ucMBDestAddr;                  //当前从设备地址
    
 	BOOL                xFrameIsBroadcast;             //是否为广播帧
-    
+    BOOL                xFrameErrReceived;             //是否为广播帧
 #if MB_MASTER_RTU_ENABLED > 0         //RTU mode information
 	UCHAR               ucRTUSndBuf[MB_PDU_SIZE_MAX];         //发送缓冲区
     UCHAR               ucRTURcvBuf[MB_SER_PDU_SIZE_MAX];     //接收缓冲区

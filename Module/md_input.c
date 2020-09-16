@@ -35,8 +35,8 @@ uint8_t	LogicInput2;
 								
 int16_t AnalogInputuA[8];       //AI接口临时存储
                                 
-sAIData AnalogInputData[AI_NUM];   //AI接口数据                            
-sDIData DigitalInputData[DI_NUM];  //DI接口数据
+static sAIData AnalogInputData[AI_NUM];   //AI接口数据                            
+static sDIData DigitalInputData[DI_NUM];  //DI接口数据
 	
 
 /**************************************************************
@@ -388,13 +388,18 @@ int16_t sAnalogInputGetuA(uint8_t ucChannel)
 uint32_t ulAnalogInputGetRealVal(uint8_t ucChannel)
 {
 	uint32_t ulRealValue = 0;
+	uint32_t lMin = 0;
+	uint32_t lMax = 0;
 	
 	if((ucChannel > 0) && (ucChannel <= AI_NUM))
 	{
-        uint32_t lMin = AnalogInputData[ucChannel-1].lMin;
-        uint32_t lMax = AnalogInputData[ucChannel-1].lMax;
+        lMin = AnalogInputData[ucChannel-1].lMin;
+        lMax = AnalogInputData[ucChannel-1].lMax;
         
-        ulRealValue = ulInputConvertToReal(lMin, lMax, sAnalogInputGetuA(ucChannel));	
+        ulRealValue = ulInputConvertToReal(lMin, lMax, sAnalogInputGetuA(ucChannel));
+
+//        myprintf("ulAnalogInputGetRealVal ucChannel %d lMin %ld; lMax %ld \n",
+//		ucChannel, AnalogInputData[ucChannel-1].lMin, AnalogInputData[ucChannel-1].lMax);			
 	}
 	return ulRealValue;
 }
@@ -412,6 +417,9 @@ void vAnalogInputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 	{
 		AnalogInputData[ucChannel-1].lMax = lMax;
 		AnalogInputData[ucChannel-1].lMin = lMin;
+		
+//		myprintf("vAnalogInputSetRange ucChannel %d  lMin %ld; lMax %ld \n", 
+//		ucChannel, AnalogInputData[ucChannel-1].lMin, AnalogInputData[ucChannel-1].lMax);
 	}
 }
 

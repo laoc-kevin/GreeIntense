@@ -4,8 +4,7 @@
 
 #define MB_MASTER_DEV_OFFLINE_TMR_S      10
 #define MB_TEST_RETRY_TIMES              2
-#define MB_TEST_OFFLINE_TIMES            2
-
+#define MB_TEST_OFFLINE_TIMES            9
 
 /**********************************************************************
  * @brief   从设备定时器中断
@@ -22,7 +21,7 @@ void vMBMasterDevOfflineTimeout(void * p_tmr, void * p_arg)
     sMBSlaveDev* psMBSlaveDev = (sMBSlaveDev*)p_arg;
     psMBSlaveDev->xDevOnTimeout = FALSE; 
 
-//    myprintf("vMBMasterDevOfflineTimeout  ucDevAddr %d \n", psMBSlaveDev->ucDevAddr);
+    myprintf("vMBMasterDevOfflineTimeout  ucDevAddr %d \n", psMBSlaveDev->ucDevAddr);
 }
 
 /**********************************************************************
@@ -276,6 +275,8 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
     const sMBTestDevCmd* psMBCmd      = NULL;  //某从设备测试命令表
     sMBMasterPort*       psMBPort     = &psMBMasterInfo->sMBPort;
     
+	UCHAR ucDevAddr = psMBSlaveDev->ucDevAddr;
+	
     UCHAR ucMaxAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
     
@@ -297,19 +298,19 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
         for(n=0; n<MB_TEST_RETRY_TIMES; n++)
         {
     	    errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);
-            if(errorCode == MB_MRE_NO_ERR)
+            if(errorCode != MB_MRE_TIMEDOUT || (errorCode == MB_MRE_REV_DATA && (ucDevAddr ==1 || ucDevAddr == 2)))
             {
                 break;  //证明从设备有反应
             }
         }
-        if(errorCode == MB_MRE_NO_ERR) //证明从设备有反应
+        if(errorCode != MB_MRE_TIMEDOUT || (errorCode == MB_MRE_REV_DATA && (ucDevAddr ==1 || ucDevAddr == 2))) //证明从设备有反应
         {
             pcPDUDataCur = psMBMasterInfo->pucMasterPDUCur + MB_PDU_VALUE_OFF;  //接收帧的数据域
             
             usDataVal  = ( (USHORT)(*pcPDUDataCur++) ) << 8;                  //数据
             usDataVal |= ( (USHORT)(*pcPDUDataCur++) ) & 0xFF;
             
-            if(psMBCmd->xCheckVal)  //测试时检测数值
+            if(psMBCmd->xCheckVal && errorCode == MB_MRE_NO_ERR)  //测试时检测数值
             {
                 if(usDataVal == psMBCmd->usValue)
                 {
@@ -342,8 +343,8 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             break; 				
         } 
     }
-//    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
-    if(errorCode != MB_MRE_NO_ERR) //证明从设备无反应
+    myprintf("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
+    if(errorCode == MB_MRE_TIMEDOUT || (errorCode != MB_MRE_REV_DATA && (ucDevAddr ==1 || ucDevAddr == 2)))
     {
         (void)xMBMasterDevOfflineTmrEnable(psMBSlaveDev);  
     }
@@ -373,6 +374,7 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     sMBMasterDevsInfo*    psMBDevsInfo = NULL;
     sMBMasterPort*        psMBPort     = &psMBMasterInfo->sMBPort;
     
+	UCHAR ucDevAddr = psMBSlaveDev->ucDevAddr;
     UCHAR ucMaxAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMaxAddr;
     UCHAR ucMinAddr = psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
     
@@ -392,21 +394,21 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     for(n=0; n<MB_TEST_RETRY_TIMES; n++)
     {
         errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);	
-        if(errorCode == MB_MRE_NO_ERR) 
+        if(errorCode != MB_MRE_TIMEDOUT || (errorCode == MB_MRE_REV_DATA && (ucDevAddr ==1 || ucDevAddr == 2))) 
         {
             break; //证明从设备有反应
         }        
     }
-    if(errorCode == MB_MRE_NO_ERR) //证明从设备有反应
+    if(errorCode != MB_MRE_TIMEDOUT || (errorCode == MB_MRE_REV_DATA && (ucDevAddr ==1 || ucDevAddr == 2))) //证明从设备有反应
     {
         pcPDUDataCur = psMBMasterInfo->pucMasterPDUCur + MB_PDU_VALUE_OFF;  //当前帧的数据域
 
         usDataVal  = ( (USHORT)(*pcPDUDataCur++) ) << 8;   //数据
         usDataVal |= ( (USHORT)(*pcPDUDataCur++) ) & 0xFF;
         
-        if(psMBCmd->xCheckVal)  //测试时检测数值
+        if(psMBCmd->xCheckVal && errorCode == MB_MRE_NO_ERR)  //测试时检测数值
         {
-            if(usDataVal == psMBCmd->usValue)
+            if(usDataVal == psMBCmd->usValue && errorCode != MB_MRE_REV_DATA)
             {
                 psMBSlaveDev->xOnLine           = TRUE;  //从设备反馈正确，则设备在线
                 psMBSlaveDev->xDataReady        = TRUE;  //数据准备好
@@ -434,21 +436,22 @@ void vMBDevCurStateTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev
     }
     else  //多次测试仍返回错误
     {
-        psMBSlaveDev->xDataReady = FALSE;     
-        if(psMBSlaveDev->ucOfflineTimes == MB_TEST_OFFLINE_TIMES)  //前几个周期测试都报故障
+        psMBSlaveDev->xDataReady = FALSE;
+
+	    if(psMBSlaveDev->ucOfflineTimes == MB_TEST_OFFLINE_TIMES)  //前几个周期测试都报故障
         {
             psMBSlaveDev->xOnLine        = FALSE;    //从设备掉线
             psMBSlaveDev->xDataReady     = FALSE;    //从设备准备置位
             psMBSlaveDev->xSynchronized  = FALSE;    //从设备同步置位
             psMBSlaveDev->ucOfflineTimes = 0;        //测试次数清零
             myprintf("vMBDevCurStateTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);               
-        }
+		}
         else
         {
             psMBSlaveDev->ucOfflineTimes++;
             (void)xMBMasterDevOfflineTmrEnable(psMBSlaveDev);
         }
-        (void)OSTmrStop(&psMBSlaveDev->sDevHeartBeatTmr, OS_OPT_TMR_NONE, NULL, &err); //停止心跳   
+        (void)OSTmrStop(&psMBSlaveDev->sDevHeartBeatTmr, OS_OPT_TMR_NONE, NULL, &err); //停止心跳   			
     }
     psMBMasterInfo->eMBRunMode = STATE_SCAN_DEV;  //退出测试从设备状态    
 }

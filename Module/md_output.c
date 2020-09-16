@@ -38,8 +38,8 @@ const IODef* PWM_IOList[PWM_NUM]={ &AOutput1, &AOutput2, &AOutput3, &AOutput4, &
 /**************************************************************
 *变量声明
 ***************************************************************/
-sDOData DigitalOutputData[DO_NUM];
-sAOData AnalogOutputData[AO_NUM]; 
+static sDOData DigitalOutputData[DO_NUM];
+static sAOData AnalogOutputData[AO_NUM]; 
 					  
 /**************************************************************
 *@brief AO接口注册
@@ -50,6 +50,9 @@ void vAnalogOutputRegist(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 	{
 		AnalogOutputData[ucChannel-1].lMax = lMax;
 		AnalogOutputData[ucChannel-1].lMin = lMin;
+		
+//		myprintf("vAnalogOutputRegist ucChannel %d lMin %ld lMax %ld \n", ucChannel, 
+//		AnalogOutputData[ucChannel-1].lMin, AnalogOutputData[ucChannel-1].lMax);
 	}
 }
 
@@ -411,22 +414,27 @@ void vSetPWMRealVal(uint8_t pwmChannel, int32_t lMin, int32_t lMax, uint32_t ulR
 ***************************************************/
 void vAnalogOutputSetRealVal(uint8_t ucChannel, uint32_t ulRealData)
 {
+//	static int32_t lMax = 0;
+//	static int32_t lMin = 0;
+	
 	if((ucChannel > 0) && (ucChannel <= AO_NUM))
 	{
-        int32_t lMax = AnalogOutputData[ucChannel-1].lMax;
-        int32_t lMin = AnalogOutputData[ucChannel-1].lMin;
+//        lMax = AnalogOutputData[ucChannel-1].lMax;
+//        lMin = AnalogOutputData[ucChannel-1].lMin;
         
-        AnalogOutputData[ucChannel].lAOVal = ulRealData;
+//        AnalogOutputData[ucChannel].lAOVal = ulRealData;
         
 		if(ucChannel <=PWM_NUM)
 		{
-			vSetPWMRealVal(ucChannel, lMin, lMax, ulRealData);
+			vSetPWMRealVal(ucChannel, AnalogOutputData[ucChannel-1].lMin, AnalogOutputData[ucChannel-1].lMax, ulRealData);
 		}
 		else
 		{
-			vSetDAC7760RealVal(ucChannel-PWM_NUM, lMin, lMax, ulRealData);
-		}			
+			vSetDAC7760RealVal(ucChannel-PWM_NUM, AnalogOutputData[ucChannel-1].lMin, AnalogOutputData[ucChannel-1].lMax, ulRealData);
+		}
+//        myprintf("vAnalogOutputSetRealVal ucChannel %d lMin %ld; lMax %ld \n", ucChannel, AnalogOutputData[ucChannel-1].lMin, AnalogOutputData[ucChannel-1].lMax);		
 	}
+	
 }
 
 /***************************************************
@@ -460,8 +468,11 @@ void vAnalogOutputSetRange(uint8_t ucChannel, int32_t lMin, int32_t lMax)
 {
 	if( (ucChannel > 0) && (ucChannel <= AO_NUM) )
 	{
-		AnalogOutputData[ucChannel-1].lMax = lMax;
+        AnalogOutputData[ucChannel-1].lMax = lMax;
 		AnalogOutputData[ucChannel-1].lMin = lMin;
+		
+//		myprintf("vAnalogOutputSetRange ucChannel %d  lMin %ld; lMax %ld \n", 
+//		ucChannel, AnalogOutputData[ucChannel-1].lMin, AnalogOutputData[ucChannel-1].lMax);
 	}
 }
 

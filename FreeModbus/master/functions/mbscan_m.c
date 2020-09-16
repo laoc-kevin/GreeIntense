@@ -7,8 +7,10 @@
 #include "mbtest_m.h"
 #include "mbscan_m.h"
 
+#include "system.h"
+
 #define MB_SCAN_SLAVE_DELAY_MS             50    //主栈扫描从设备
-#define MB_SCAN_SLAVE_INTERVAL_MS          50
+#define MB_SCAN_SLAVE_INTERVAL_MS          100
 
 #define MB_SCAN_MAX_REG_INTERVAL           10    //寄存器轮询地址最大间隔
 #define MB_SCAN_MAX_REG_NUM                50    //寄存器轮询最大数量
@@ -127,7 +129,7 @@ eMBMasterReqErrCode eMBMasterScanHoldingRegister(sMBMasterInfo* psMBMasterInfo, 
 	
     USHORT usRegHoldValue = 0;
     SHORT  sRegHoldValue  = 0;
-	int8_t cRegHoldValue  =0;
+	int8_t cRegHoldValue  = 0;
 
 	eMBMasterReqErrCode eStatus        = MB_MRE_NO_ERR;
     sMasterRegHoldData* psRegHoldValue = NULL;
@@ -611,15 +613,13 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
     
     eMBMasterReqErrCode errorCode    = MB_MRE_NO_ERR;
     sMBSlaveDev*    psMBSlaveDevCur  = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur;     //当前从设备
-
-//    if(psMBSlaveDevCur->eScanMode == SCAN_WRITE)
-//    {
-//        return;
-//    } 
     
 #if MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_HOLDING_ENABLED > 0	
     errorCode = eMBMasterScanHoldingRegister(psMBMasterInfo, ucSlaveAddr, xWriteEn, xReadEn, xCheckPreValue); //保持寄存器
-    if(errorCode == MB_MRE_TIMEDOUT)
+    if( (errorCode == MB_MRE_TIMEDOUT) || 
+		(errorCode == MB_MRE_REV_DATA && ucSlaveAddr >=6 && ucSlaveAddr <=18) ||
+	    (errorCode == MB_MRE_EXE_FUN && ucSlaveAddr >=1 && ucSlaveAddr <=2)
+	  )
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -628,16 +628,22 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
 					
 #if MB_FUNC_READ_COILS_ENABLED > 0  || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0
     errorCode = eMBMasterScanCoils(psMBMasterInfo, ucSlaveAddr, xWriteEn, xReadEn, xCheckPreValue);           //线圈
-    if(errorCode == MB_MRE_TIMEDOUT)
+   if( (errorCode == MB_MRE_TIMEDOUT) || 
+		(errorCode == MB_MRE_REV_DATA && ucSlaveAddr >=6 && ucSlaveAddr <=18) ||
+	    (errorCode == MB_MRE_EXE_FUN && ucSlaveAddr >=1 && ucSlaveAddr <=2)
+	  )
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
-    }     
+    }
 #endif
 					
 #if MB_FUNC_READ_INPUT_ENABLED > 0				
     errorCode = eMBMasterScanReadInputRegister(psMBMasterInfo, ucSlaveAddr);	  //读输入寄存器
-    if(errorCode == MB_MRE_TIMEDOUT)
+    if( (errorCode == MB_MRE_TIMEDOUT) || 
+		(errorCode == MB_MRE_REV_DATA && ucSlaveAddr >=6 && ucSlaveAddr <=18) ||
+	    (errorCode == MB_MRE_EXE_FUN && ucSlaveAddr >=1 && ucSlaveAddr <=2)
+	  )
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -646,7 +652,10 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
 				
 #if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
     errorCode = eMBMasterScanReadDiscreteInputs(psMBMasterInfo, ucSlaveAddr);   //读离散量
-    if(errorCode == MB_MRE_TIMEDOUT)
+    if( (errorCode == MB_MRE_TIMEDOUT) || 
+		(errorCode == MB_MRE_REV_DATA && ucSlaveAddr >=6 && ucSlaveAddr <=18) ||
+	    (errorCode == MB_MRE_EXE_FUN && ucSlaveAddr >=1 && ucSlaveAddr <=2)
+	  )
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
         psMBSlaveDevCur->xSynchronized = FALSE;
@@ -655,11 +664,14 @@ void vMBMasterScanSlaveDevData(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr,
     if(errorCode != MB_MRE_NO_ERR)
     {
         psMBSlaveDevCur->xStateTestRequest = TRUE;
-        psMBSlaveDevCur->xSynchronized = FALSE;
-//        myprintf("vMBMasterScanSlaveDevData ucSlaveAddr %d  errorCode %d\n", ucSlaveAddr, errorCode);
+        psMBSlaveDevCur->xSynchronized = FALSE; 
     }
-    (void)OSTimeDlyHMSM(0, 0, 0, MB_SCAN_SLAVE_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-         
+	
+//	if(ucSlaveAddr == 1)
+//		{
+//			myprintf("vMBMasterScanSlaveDevData ucSlaveAddr %d  errorCode %d\n", ucSlaveAddr, errorCode);
+//		}
+    (void)OSTimeDlyHMSM(0, 0, 0, MB_SCAN_SLAVE_INTERVAL_MS, OS_OPT_TIME_HMSM_STRICT, &err);  
 }
 
 /**********************************************************************
@@ -676,6 +688,8 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;      //从设备列表
     UCHAR               ucSlaveAddr  = psMBSlaveDev->ucDevAddr;           //通讯地址
 
+	System*       pThis = (System*)System_Core();
+	
     psMBDevsInfo->psMBSlaveDevCur = psMBSlaveDev;                         //当前从设备
     if(psMBDevsInfo->psMBSlaveDevCur->psDevCurData == NULL)               //数据表为空则不进行轮询
     {
@@ -685,14 +699,21 @@ void vMBMasterScanSlaveDev(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlave
     {
         if(psMBSlaveDev->xDataReady == TRUE)         //从设备数据准备好了才同步上来
         {	 	    
-            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据，先写后读
+            if(psMBSlaveDev->xSynchronized == FALSE) //重新上线的话，同步所有数据
             {
-                vMBMasterScanSlaveDevData(psMBMasterInfo, ucSlaveAddr, TRUE, TRUE, FALSE);   //同步从设备数据            
+                vMBMasterScanSlaveDevData(psMBMasterInfo, ucSlaveAddr, FALSE, TRUE, FALSE);   //同步从设备数据            
                 psMBSlaveDev->xSynchronized = TRUE;                              //同步完成
             }
             else   //同步完成后，先写后读
             {
-                vMBMasterScanSlaveDevData(psMBMasterInfo, ucSlaveAddr, TRUE, TRUE, FALSE);  //根据实际通讯需要灵活调整，可以只写有变化数据，也可轮询写             
+				if(pThis->eSystemMode == MODE_AUTO || pThis->eSystemMode == MODE_EMERGENCY)   //根据实际通讯需要灵活调整，可以只写有变化数据，也可轮询写 
+				{
+					vMBMasterScanSlaveDevData(psMBMasterInfo, ucSlaveAddr, TRUE, TRUE, FALSE);
+				}
+				else if(pThis->eSystemMode == MODE_MANUAL || pThis->eSystemMode == MODE_CLOSE)
+				{
+					vMBMasterScanSlaveDevData(psMBMasterInfo, ucSlaveAddr, TRUE, TRUE, TRUE);
+				}             
             }
         }
         else  //从设备数据未好，则只进行写不读
@@ -761,6 +782,13 @@ void vMBMasterScanSlaveDevTask(void *p_arg)
                 if(psMBSlaveDev->xStateTestRequest == TRUE) //测试请求
                 {
                     vMBDevCurStateTest(psMBMasterInfo, psMBSlaveDev);  //检测从设备是否掉线
+					
+					if(psMBSlaveDev->ucDevAddr >= 6 && psMBSlaveDev->ucDevAddr <= 18)
+					{
+						UART_FIFOReset( psMBMasterInfo->sMBPort.psMBMasterUart->ID, 
+					               (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2) );
+					}
+					(void)OSTimeDlyHMSM(0, 0, 0, msReadInterval, OS_OPT_TIME_HMSM_STRICT, &err);
                 }
                 if( (psMBSlaveDev->xOnLine == TRUE) && (psMBSlaveDev->ucOfflineTimes == 0) ) //在线且不处于延时阶段
                 {                  

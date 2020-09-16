@@ -27,6 +27,8 @@
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 
+#define TIME_TICK_OUT_MS    500
+
 /* ----------------------- Start implementation -----------------------------*/
 
 /**********************************************************************
@@ -79,7 +81,9 @@ BOOL xMBMasterPortEventGet(sMBMasterPort* psMBPort, eMBMasterEventType* eEvent)
 	CPU_TS ts  = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-    (void)OSSemPend(&psMBPort->sMBEventSem, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
+	OS_TICK i = (OS_TICK)( TIME_TICK_OUT_MS * TMR_TICK_PER_SECOND / 1000 );  //等待响应时间
+	
+    (void)OSSemPend(&psMBPort->sMBEventSem, i, OS_OPT_PEND_BLOCKING, &ts, &err);
 	(void)OSSemSet(&psMBPort->sMBEventSem, 0, &err);
 	
     if(psMBPort->xEventInQueue)
@@ -283,7 +287,9 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
 
     sMBMasterInfo*   psMBMasterInfo = psMBPort->psMBMasterInfo;
     
-	(void)OSSemPend(&psMBPort->sMBWaitFinishSem, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
+	OS_TICK i = (OS_TICK)( TIME_TICK_OUT_MS * TMR_TICK_PER_SECOND / 1000 );  //等待响应时间
+	
+	(void)OSSemPend(&psMBPort->sMBWaitFinishSem, i, OS_OPT_PEND_BLOCKING, &ts, &err);
 	(void)OSSemSet(&psMBPort->sMBWaitFinishSem, 0, &err);
     
 	if(psMBPort->xWaitFinishInQueue)

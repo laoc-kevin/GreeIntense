@@ -10,11 +10,11 @@ void vSystem_AlarmEnable(System* pt, BOOL xAlarmEnable);
 void vSystem_CleanAlarm(System* pt, BOOL* pxAlarmClean);
 void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO);
 
-void vSystem_DeviceRunningState(System* pt);
 void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode);
 
 void vSystem_SetTemp(System* pt, uint16_t usTempSet);
 void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAirSet_Vol_L);
+void vSystem_FreshFreAir(System* pt, uint32_t ulFreAirSet_Vol);
 void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidityMax);
 
 void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2PPMSet);
@@ -30,6 +30,7 @@ void vSystem_AdjustUnitRunningMode(System* pt);
 void vSystem_ChangeUnitRunningMode(System* pt);
 void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode);
 
+uint16_t usSystem_ChangeEnergyTemp(System* pt);
 void vSystem_UnitSupAirTemp(System* pt, ModularRoof* pModularRoof);
 void vSystem_UnitErr(System* pt);
 
@@ -39,6 +40,10 @@ void vSystem_UnitTempHumiIn(System* pt);
 void vSystem_UnitCO2PPM(System* pt);
 void vSystem_UnitFreAir(System* pt);
 
+void vSystem_UnitRunningState(System* pt, ModularRoof* pmModularRoof, BOOL xRunningState);
+void vSystem_UnitSwitchState(System* pt, ModularRoof* pModularRoof);
+
+void vSystem_UnitSwitchCmd(System* pt, ModularRoof* pModularRoof);
 /*********************排风风机*************************/
 void vSystem_CloseExAirFans(System* pt);
 
@@ -54,6 +59,8 @@ void vSystem_ExAirFanRemoteChange(System* pt);
     
 void vSystem_ExAirFanErr(System* pt);
 void vSystem_ExAirFanErrClean(System* pt);
+
+void vSystem_FanRunningState(System* pt, ExAirFan* pmExAirFan);
 /*********************传感器*************************/
 void vSystem_CO2SensorErr(System* pt);
 void vSystem_CO2PPM(System* pt);

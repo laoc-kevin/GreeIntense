@@ -53,7 +53,6 @@ void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI
         pThis->sFreq_AO.ucChannel = ucFreq_AO;
         pThis->sFreq_AO.lMax = (int32_t)usMaxFreq;
         pThis->sFreq_AO.lMin = (int32_t)usMinFreq;
-        vAnalogOutputRegist(ucFreq_AO, usMinFreq, usMaxFreq);
         
         //频率输入
         pThis->sFreq_AI.ucChannel = ucFreq_AI;
@@ -84,13 +83,11 @@ void vExAirFan_RegistAnalogIO(ExAirFan* pt, uint8_t ucFreq_AO, uint8_t ucFreq_AI
         if(pThis->eCtrlCmd == ON && pThis->usRunningFreq != usFreq)
         {
             vAnalogOutputSetRealVal(pThis->sFreq_AO.ucChannel, usFreq);
-        }
 #if DEBUG_ENABLE > 0 
-        if(pThis->eFanFreqType == VARIABLE_FREQ )
-        {
-            myprintf("vExFan_SetFreq usRunningFreq %d  usSetFreq %d\n", pThis->usRunningFreq, pThis->usSetFreq);  
-        } 
+        myprintf("vExFan_SetFreq usRunningFreq %d  usSetFreq %d\n", pThis->usRunningFreq, pThis->usSetFreq);  
 #endif 
+        }
+
     }
 }
 
@@ -111,29 +108,22 @@ void vExFan_SetFreqRange(IDevFreq* pt, uint16_t usMinFreq, uint16_t usMaxFreq)
         pThis->sFreq_AI.lMax = (int32_t)usMaxFreq;
         pThis->sFreq_AI.lMin = (int32_t)usMinFreq;
         
-        vAnalogOutputSetRange(pThis->sFreq_AO.ucChannel, pThis->sFreq_AO.lMin, pThis->sFreq_AO.lMax);
-        vAnalogInputSetRange(pThis->sFreq_AI.ucChannel, pThis->sFreq_AI.lMin, pThis->sFreq_AI.lMax);
+//        vAnalogOutputSetRange(pThis->sFreq_AO.ucChannel, pThis->sFreq_AO.lMin, pThis->sFreq_AO.lMax);
+//        vAnalogInputSetRange(pThis->sFreq_AI.ucChannel, pThis->sFreq_AI.lMin, pThis->sFreq_AI.lMax);
         
-        if(pThis->usRunningFreq < pThis->usMinFreq)
+        if( pThis->usSetFreq < pThis->usMinFreq)
         {
             usFreq = pThis->usMinFreq;
             vExFan_SetFreq(SUPER_PTR(pThis, IDevFreq), usFreq);
         }
-        if(pThis->usRunningFreq > pThis->usMaxFreq)
+        if(pThis->usSetFreq > pThis->usMaxFreq)
         {
             usFreq = pThis->usMaxFreq;
             vExFan_SetFreq(SUPER_PTR(pThis, IDevFreq), usFreq);
-        }
-//        if(pThis->Device.eRunningState == STATE_STOP)
-//        {
-//            pThis->usSetFreq = 168;
-//        }
-        
+        }    
 #if DEBUG_ENABLE > 0 
-        if(pThis->eFanFreqType == VARIABLE_FREQ)
-        {
-            myprintf("vExFan_SetFreqRange  usMinFreq %d usMaxFreq %d usSetFreq %d \n", pThis->usMinFreq, pThis->usMaxFreq, pThis->usSetFreq);
-        } 
+//        myprintf("vExFan_SetFreqRange sFreq_AO.lMin %ld; usMinFreq %d usMaxFreq %d usSetFreq %d \n", 
+//		pThis->sFreq_AO.lMin, pThis->usMinFreq, pThis->usMaxFreq, pThis->usSetFreq);
 #endif 
     }   
 }
@@ -157,8 +147,8 @@ void vExAirFan_SwitchOpen(IDevSwitch* pt)
             }
         } 
 #if DEBUG_ENABLE > 0
-        myprintf("vExAirFan_SwitchOpen  eRunningState %d ucDevIndex %d usSetFreq %d\n", 
-        pThis->Device.eRunningState, pThis->Device.ucDevIndex, pThis->usSetFreq);
+//        myprintf("vExAirFan_SwitchOpen  eRunningState %d ucDevIndex %d usSetFreq %d\n", 
+//        pThis->Device.eRunningState, pThis->Device.ucDevIndex, pThis->usSetFreq);
 #endif        
     } 
 }
@@ -174,7 +164,7 @@ void vExAirFan_SwitchClose(IDevSwitch* pt)
 #if DEBUG_ENABLE > 0 
 //    if(pThis->Device.eRunningState == STATE_RUN)
 //    {
-        myprintf("vExAirFan_SwitchClose  eRunningState %d ucDevIndex %d \n", pThis->Device.eRunningState, pThis->Device.ucDevIndex); 
+//        myprintf("vExAirFan_SwitchClose  eRunningState %d ucDevIndex %d \n", pThis->Device.eRunningState, pThis->Device.ucDevIndex); 
 //    }            
 #endif
 }

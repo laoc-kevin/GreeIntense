@@ -21,7 +21,7 @@
 #define MODE_ADJUST_TEMP         15
 
 #define HANDLE(p_arg1, p_arg2) if( (void*)psMsg->pvArg == (void*)(&p_arg1) )\
-         {p_arg2; myprintf("**********************HANDLE*********************\n");goto begin;}
+         {p_arg2; goto begin;}
 
 int16_t   LastAmbientIn_T = 0;         
          
@@ -79,29 +79,63 @@ void vSystem_ParameterSysn(System* pt)
     System*       pThis = (System*)pt; 
     ModularRoof*  pModularRoof = NULL;
     
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
+	vSystem_FreshFreAir(pThis, pThis->ulFreAirSet_Vol);
+    
+    if(pThis->eSystemMode == MODE_AUTO || pThis->eSystemMode == MODE_EMERGENCY)   //根据实际通讯需要灵活调整，可以只写有变化数据，也可轮询写 
     {
-        pModularRoof = pThis->psModularRoofList[n];
-        
-        pModularRoof->eSwitchState  = pModularRoof->eSwitchCmd;
-        pModularRoof->eRunningMode  = pThis->eRunningMode;
-        
-        if(pThis->eRunningMode != RUN_MODE_WET)
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
-            pModularRoof->usCoolTempSet = pThis->usTempSet;
-            pModularRoof->usHeatTempSet = pThis->usTempSet;
-        }
-        pModularRoof->usHumidityMin   = pThis->usHumidityMin;
-        pModularRoof->usHumidityMax   = pThis->usHumidityMax;
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->eSwitchState = pModularRoof->eSwitchCmd;
+		    if(pThis->eRunningMode != 0)
+		    {
+			    pModularRoof->eRunningMode  = pThis->eRunningMode;
+		    }
+            if(pThis->eRunningMode == RUN_MODE_COOL || pThis->eRunningMode == RUN_MODE_WET)
+            {
+				(void)usSystem_ChangeEnergyTemp(pThis);  
+            }
+			else
+			{
+				pModularRoof->usCoolTempSet = pThis->usTempSet;
+                pModularRoof->usHeatTempSet = pThis->usTempSet;
+			}
+            pModularRoof->usHumidityMin   = pThis->usHumidityMin;
+            pModularRoof->usHumidityMax   = pThis->usHumidityMax;
         
-        pModularRoof->usCO2AdjustThr_V  = pThis->usCO2AdjustThr_V;
-        pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
+            pModularRoof->usCO2AdjustThr_V  = pThis->usCO2AdjustThr_V;
+            pModularRoof->usCO2AdjustDeviat = pThis->usCO2AdjustDeviat;
         
-        pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
-        pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
-        pModularRoof->usCO2PPM      = pThis->usCO2PPM;     
-    }
-
+            pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
+            pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
+            pModularRoof->usCO2PPM      = pThis->usCO2PPM;     
+        }		
+	}
+	else if(pThis->eSystemMode == MODE_MANUAL || pThis->eSystemMode == MODE_CLOSE)
+	{
+		for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+			
+			if(pModularRoof->xSwitchCmdChanged == TRUE && 
+			   pModularRoof->eSwitchState != pModularRoof->eSwitchCmd)
+			{
+			    pModularRoof->eSwitchState = pModularRoof->eSwitchCmd;
+				pModularRoof->xSwitchCmdChanged = FALSE;
+			}
+            pModularRoof->sAmbientIn_T  = pThis->sAmbientIn_T;
+            pModularRoof->usAmbientIn_H = pThis->usAmbientIn_H;
+            pModularRoof->usCO2PPM      = pThis->usCO2PPM;     
+        }		
+	}
+	vSystem_CO2PPM(pThis);        //系统CO2浓度变化
+	vSystem_TempHumiOut(pThis);   //系统室外温湿度变化
+	vSystem_TempHumiIn(pThis);    //系统室内温湿度变化
+	
+	vSystem_UnitCO2PPM(pThis);       //机组CO2浓度变化
+	vSystem_UnitTempHumiOut(pThis);  //机组室外温湿度变化
+	vSystem_UnitTempHumiIn(pThis);   //机组室内温湿度变化
+	
     //防止温度长时间不变化而导致无法切换模式
     if(pThis->eSystemMode == MODE_AUTO && pThis->eSystemState != STATE_CLOSED && LastAmbientIn_T == pThis->sAmbientIn_T)
     {
@@ -116,7 +150,10 @@ void vSystem_PollTask(void *p_arg)
     OS_ERR    err = OS_ERR_NONE;
     System* pThis = (System*)p_arg;
     
-    OSTimeDlyHMSM(0, 0, 60, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    OSTimeDlyHMSM(0, 0, 10, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+	
+	vSystem_SetExAirFanFreqRange(psSystem, psSystem->usExAirFanMinFreq, psSystem->usExAirFanMaxFreq);
+	
     while(DEF_TRUE)
 	{
         OSTimeDlyHMSM(0, 0, 10, 0, OS_OPT_TIME_HMSM_STRICT, &err);
@@ -150,6 +187,9 @@ void vSystem_EventPollTask(void *p_arg)
     
     BMS_InitDefaultData(psBMS);
     
+	vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
+	vSystem_SetExAirFanFreqRange(psSystem, psSystem->usExAirFanMinFreq, psSystem->usExAirFanMaxFreq);
+	
     for(n=0; n < EX_AIR_FAN_NUM; n++)  
     {
         pExAirFan =  pThis->psExAirFanList[n];
@@ -163,6 +203,9 @@ void vSystem_EventPollTask(void *p_arg)
         {
             pExAirFan->IDevFreq.setFreq(SUPER_PTR(pExAirFan, IDevFreq), psSystem->usExAirFanFreq);  //设置频率
         }
+		
+		vSystem_SetExAirFanFreqRange(psSystem, psSystem->usExAirFanMinFreq, psSystem->usExAirFanMaxFreq);
+	
 #if DEBUG_ENABLE > 0 
         myprintf("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
 #endif
@@ -210,9 +253,11 @@ begin:
         {
             pModularRoof = pThis->psModularRoofList[n]; 
             
-            HANDLE(pModularRoof->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
-            HANDLE(pModularRoof->eRunningMode,         vSystem_DeviceRunningState(psSystem))
-            
+            HANDLE(pModularRoof->Device.eRunningState, vSystem_UnitRunningState(psSystem, pModularRoof, TRUE))
+            HANDLE(pModularRoof->eRunningMode,         vSystem_UnitRunningState(psSystem, pModularRoof, FALSE))
+            HANDLE(pModularRoof->eSwitchState,         vSystem_UnitSwitchState(psSystem, pModularRoof))
+			HANDLE(pModularRoof->eSwitchCmd,           vSystem_UnitSwitchCmd(psSystem, pModularRoof))
+			
             HANDLE(pModularRoof->sSupAir_T,    vSystem_UnitSupAirTemp(psSystem, pModularRoof))
             HANDLE(pModularRoof->usFreAir_Vol, vSystem_UnitFreAir(psSystem))            
  
@@ -235,7 +280,7 @@ begin:
             
             HANDLE(pExAirFan->xExAirFanErr,         vSystem_ExAirFanErr(psSystem))
             HANDLE(pExAirFan->xExAirFanRemote,      vSystem_ExAirFanRemoteChange(psSystem))
-            HANDLE(pExAirFan->Device.eRunningState, vSystem_DeviceRunningState(psSystem))
+            HANDLE(pExAirFan->Device.eRunningState, vSystem_FanRunningState(psSystem, pExAirFan))
         }
 
         /***********************CO2传感器事件响应***********************/
@@ -380,7 +425,6 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustThr_V)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2AdjustDeviat)
     EEPROM_DATA(TYPE_UINT_16, pThis->usCO2PPMAlarm)
-    EEPROM_DATA(TYPE_UINT_16, pThis->ulFreAirSet_Vol)
     
     EEPROM_DATA(TYPE_UINT_16, pThis->usHumidityMax)
     EEPROM_DATA(TYPE_UINT_16, pThis->usHumidityMin)
@@ -394,6 +438,7 @@ void vSystem_RegistEEPROMData(System* pt)
     EEPROM_DATA(TYPE_INT_16, pThis->sChickenGrowDays)
     
     EEPROM_DATA(TYPE_UINT_32, pThis->ulExAirFanRated_Vol)
+	EEPROM_DATA(TYPE_UINT_32, pThis->ulFreAirSet_Vol)
 }
 
 /*系统数据默认值初始化*/
@@ -458,8 +503,8 @@ void vSystem_InitDefaultData(System* pt)
     DATA_INIT(pThis->usModeAdjustTemp_5, MODE_ADJUST_TEMP)
     DATA_INIT(pThis->usModeAdjustTemp_6, MODE_ADJUST_TEMP)
     
-    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
-    vSystem_SetExAirFanFreqRange(pThis, pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
+//    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
+//    vSystem_SetExAirFanFreqRange(pThis, pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
     
 //    myprintf("vSystem_InitDefaultData ulExAirFanRated_Vol %ld \n\n", pThis->ulExAirFanRated_Vol);
 }

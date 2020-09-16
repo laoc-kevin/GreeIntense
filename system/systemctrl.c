@@ -66,13 +66,19 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         vSystem_SwitchOpen(pThis);     //开启系统
         
         //若室内温度>室内目标温度+ T0（默认1.5℃），机组送风模式开启；否则，机组制热模式开启；
-        if(pThis->sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_0)
+        if(pThis->sAmbientIn_T > pThis->usTempSet + pThis->usModeAdjustTemp_0 )
         {
-            vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
+			if(pThis->eSystemState == STATE_CLOSED || pThis->eSystemState == STATE_EX_FAN)
+			{
+				vSystem_SetUnitRunningMode(pThis, RUN_MODE_FAN);
+			}
         }
         else
         {
-            vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
+			if(pThis->eSystemState == STATE_CLOSED || pThis->eSystemState == STATE_EX_FAN)
+			{
+				vSystem_SetUnitRunningMode(pThis, RUN_MODE_HEAT);
+			}
         }
         vSystem_ExAirFanCtrl(pThis);   //排风机控制
     }
@@ -146,10 +152,6 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
         psBMS->usFreAirSet_Vol_H = pThis->ulFreAirSet_Vol / 65535;
         return;
     }
-    if(pThis->ulFreAirSet_Vol == ulFreAirSet_Vol)
-    {
-       return;
-    }
     for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
     {
         pModularRoof = pThis->psModularRoofList[n];
@@ -159,11 +161,10 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
             ucUnitNum++;           
         }
     }
-    if(ucUnitNum == 0) //无机组可用
+    if(pThis->ulFreAirSet_Vol == ulFreAirSet_Vol)
     {
         return;
-    }
-       
+    }  
     pThis->ulFreAirSet_Vol = ulFreAirSet_Vol;
     if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //只有一台机组可用
     {
@@ -193,6 +194,48 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
     myprintf("vSystem_SetFreAir  ulFreAirSet_Vol %ld \n", pThis->ulFreAirSet_Vol);
 #endif    
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
+}
+
+/*更新系统目标新风量*/
+void vSystem_FreshFreAir(System* pt, uint32_t ulFreAirSet_Vol)
+{
+    uint8_t  n, ucUnitNum; 
+    System* pThis = (System*)pt;
+
+    ModularRoof* pModularRoof = NULL;
+    ModularRoof* pUnit        = NULL;
+    
+    uint16_t usFreAirSet_Vol = 0;
+	
+    for(n=0, ucUnitNum=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->xCommErr == FALSE && pModularRoof->xStopErrFlag == FALSE)  //机组在线且无故障
+        {
+            pUnit = pModularRoof;
+            ucUnitNum++;           
+        }
+    }
+    if(ucUnitNum > 0 && ucUnitNum < MODULAR_ROOF_NUM ) //只有一台机组可用
+    {
+        if(pThis->ulFreAirSet_Vol > MODULAR_MAX_FRE_AIR_VOL)    //保证新风量
+        {
+            pUnit->usFreAirSet_Vol = MODULAR_MAX_FRE_AIR_VOL;
+        }
+        else
+        {
+            pUnit->usFreAirSet_Vol = (uint16_t)pThis->ulFreAirSet_Vol;
+        }
+    }
+    else if(ucUnitNum == MODULAR_ROOF_NUM)  //两台
+    {
+        usFreAirSet_Vol = (uint16_t)(ulFreAirSet_Vol / MODULAR_ROOF_NUM);
+        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->usFreAirSet_Vol = usFreAirSet_Vol;
+        }  
+    }
 }
 
 /*设定系统排风机额定风量*/
@@ -295,71 +338,6 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
 #endif   
 }
 
-/*系统设备运行状态变化*/
-void vSystem_DeviceRunningState(System* pt)
-{
-    uint8_t  n   = 0;
-    OS_ERR   err = OS_ERR_NONE;
-    
-    System* pThis = (System*)pt;
-    
-    ModularRoof* pModularRoof = NULL;
-    ExAirFan*    pExAirFan    = NULL;
-    BMS*         psBMS        = BMS_Core();
-    
-#if DEBUG_ENABLE > 0
-    myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
-#endif  
-    
-    for(n=0; n < MODULAR_ROOF_NUM; n++)
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
-        {  
-            switch(pModularRoof->eRunningMode)
-            {
-                case RUN_MODE_COOL:
-                    pThis->eSystemState = STATE_COOL;
-                break;
-                case RUN_MODE_HEAT:
-                    pThis->eSystemState = STATE_HEAT;
-                break;
-                case RUN_MODE_FAN:
-                    pThis->eSystemState = STATE_FAN;
-
-                break;
-                case RUN_MODE_WET:
-                    pThis->eSystemState = STATE_WET;
-                break;
-                default:break;
-            }
-            if(pThis->eSystemMode == MODE_CLOSE)
-            {
-                pThis->eRunningMode = pModularRoof->eRunningMode;
-                psBMS->eRunningMode = pModularRoof->eRunningMode;
-                pThis->eSystemMode  = MODE_MANUAL;
-                psBMS->eSystemMode  = MODE_MANUAL;
-            } 
-            return;
-        }   
-    }
-    for(n=0; n < EX_AIR_FAN_NUM; n++)  
-    {
-        pExAirFan = pThis->psExAirFanList[n];
-        if(pExAirFan->Device.eRunningState == STATE_RUN)
-        {
-            if(pThis->eSystemMode == MODE_CLOSE)
-            {
-                pThis->eSystemMode = MODE_MANUAL;
-                psBMS->eSystemMode = MODE_MANUAL;
-            } 
-            pThis->eSystemState = STATE_EX_FAN;
-            return;
-        }   
-    }
-    pThis->eSystemState = STATE_CLOSED;    
-}
-
 /*注册声光报警启停接口*/
 void vSystem_RegistAlarmIO(System* pt, uint8_t ucSwitch_DO)
 {
@@ -389,7 +367,7 @@ void vSystem_DelAlarm(System* pt)
     vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, OFF);   //输出关闭，继电器断开
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_DelAlarm ucChannel %d \n", pThis->sAlarm_DO.ucChannel);
+//    myprintf("vSystem_DelAlarm ucChannel %d \n", pThis->sAlarm_DO.ucChannel);
 #endif  
 }
 

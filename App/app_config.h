@@ -4,7 +4,7 @@
 #include "os.h"
 
 /**************************任务配置开关*****************************/
-#define DEBUG_ENABLE               0      //调试功能
+#define DEBUG_ENABLE               1      //调试功能
 #define EEPROM_USE_DEFAULT_DATA    0      //eeprom使用默认参数
 #define EEPROM_DATA_INIT           0      //eeprom参数复位
 #define EEPROM_RUNNING_TIME_INIT   0      //eeprom运行时间复位

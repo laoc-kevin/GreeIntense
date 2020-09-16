@@ -32,6 +32,104 @@ void vSystem_CloseUnits(System* pt)
     }
 }
 
+/*机组启停命令变化*/
+void vSystem_UnitSwitchCmd(System* pt, ModularRoof* pModularRoof)
+{
+    pModularRoof->xSwitchCmdChanged = TRUE;
+    pModularRoof->eSwitchState = pModularRoof->eSwitchCmd;
+}
+
+/*机组启停状态变化*/
+void vSystem_UnitSwitchState(System* pt, ModularRoof* pModularRoof)
+{
+    if(pModularRoof->eSwitchCmd != pModularRoof->eSwitchState && pModularRoof->xSwitchCmdChanged == FALSE)
+	{
+		pModularRoof->eSwitchCmd = pModularRoof->eSwitchState;
+	}
+}
+
+/*机组运行状态变化*/
+void vSystem_UnitRunningState(System* pt, ModularRoof* pmModularRoof, BOOL xRunningState)
+{
+    uint8_t  n   = 0;
+    OS_ERR   err = OS_ERR_NONE;
+    
+    System* pThis = (System*)pt;
+    
+    ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
+    BMS*         psBMS        = BMS_Core();
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
+#endif  
+    
+	if(pmModularRoof != NULL && xRunningState)
+	{
+		if(pmModularRoof->Device.eRunningState == STATE_RUN)
+	    {
+			pmModularRoof->eSwitchCmd = CMD_OPEN;
+            pmModularRoof->eSwitchState = CMD_OPEN;				
+	    }
+	    else
+        {
+			pmModularRoof->eSwitchCmd = CMD_CLOSE;
+		    pmModularRoof->eSwitchState = CMD_CLOSE;				
+		}			
+	}
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        {
+            switch(pModularRoof->eRunningMode)
+            {
+                case RUN_MODE_COOL:
+                    pThis->eSystemState = STATE_COOL;
+				    pThis->eRunningMode = RUN_MODE_COOL;
+                break;
+                case RUN_MODE_HEAT:
+                    pThis->eSystemState = STATE_HEAT;
+				    pThis->eRunningMode = RUN_MODE_HEAT;
+                break;
+                case RUN_MODE_FAN:
+                    pThis->eSystemState = STATE_FAN;
+				    pThis->eRunningMode = RUN_MODE_FAN;
+                break;
+                case RUN_MODE_WET:
+                    pThis->eSystemState = STATE_WET;
+				    pThis->eRunningMode = RUN_MODE_WET;
+                break;
+                default:break;
+            }
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eRunningMode = pModularRoof->eRunningMode;
+                psBMS->eRunningMode = pModularRoof->eRunningMode;
+                pThis->eSystemMode  = MODE_MANUAL;
+                psBMS->eSystemMode  = MODE_MANUAL;
+            } 
+            return;
+        }
+    }
+    for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {
+        pExAirFan = pThis->psExAirFanList[n];
+        if(pExAirFan->Device.eRunningState == STATE_RUN)
+        {
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eSystemMode = MODE_MANUAL;
+                psBMS->eSystemMode = MODE_MANUAL;
+            } 
+            pThis->eSystemState = STATE_EX_FAN;
+            return;
+        }	
+    }
+    pThis->eSystemState = STATE_CLOSED;    
+}
+
+
 /*系统所有压缩机是否关闭*/
 BOOL xSystem_UnitCompsClosed(System* pt)
 {
@@ -72,27 +170,31 @@ uint16_t usSystem_ChangeEnergyTemp(System* pt)
         
              2、当室内目标温度<节能温度（默认25℃），机组制冷目标温度=【节能温度】；
                     T=【节能温度】-【温度偏差】（默认0.5℃）；*/
-    if(pThis->eRunningMode != STATE_WET)  //湿膜模式
+	if(pThis->eSystemMode != MODE_AUTO)
+	{
+		return usTempSet;
+	}
+	
+    if(pThis->eRunningMode == STATE_COOL || pThis->eRunningMode == STATE_WET)  //制冷模式或湿膜
     {
-        return 0;
+        if(pThis->usTempSet < pThis->usEnergyTemp)
+        {
+            usTempSet = usEnergyTemp - usTempDeviat;
+        }
+        else
+        {
+            usTempSet = pThis->usTempSet;
+        }
+        for(n=0; n < MODULAR_ROOF_NUM; n++)  //调整制冷温度
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->usCoolTempSet = usTempSet;
+            pModularRoof->usHeatTempSet = usTempSet;
+        }
+#if DEBUG_ENABLE > 0
+//        myprintf("vSystem_ChangeEnergyTemp %d\n", usTempSet); 
+#endif
     }
-    if(pThis->usTempSet < pThis->usEnergyTemp)
-    {
-        usTempSet = usEnergyTemp - usTempDeviat;
-    }
-    else
-    {
-        usTempSet = pThis->usTempSet;
-    }
-    for(n=0; n < MODULAR_ROOF_NUM; n++)  //调整制冷温度
-    {
-        pModularRoof = pThis->psModularRoofList[n];
-        pModularRoof->usCoolTempSet = usTempSet;
-        pModularRoof->usHeatTempSet = usTempSet;
-    }
-//#if DEBUG_ENABLE > 0
-//    myprintf("vSystem_ChangeEnergyTemp %d\n", usTempSet); 
-//#endif
     return usTempSet;    
 }
 
@@ -143,7 +245,7 @@ void vSystem_SetUnitRunningMode(System* pt, eRunningMode eRunMode)
     {
         vSystem_OpenUnits(pThis);
     }
-    if(pThis->eRunningMode == STATE_WET)  //湿膜模式
+    if((pThis->eRunningMode == STATE_COOL || pThis->eRunningMode == STATE_WET) && (pThis->eSystemMode == MODE_AUTO))  //制冷模式或湿膜
     {
         (void)usSystem_ChangeEnergyTemp(pThis);
     }
@@ -218,8 +320,8 @@ void vSystem_AdjustUnitRunningMode(System* pt)
     //（2）系统湿膜模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_WET)
     {
-        usTempSet = usSystem_ChangeEnergyTemp(pThis);
-        
+		usTempSet = usSystem_ChangeEnergyTemp(pThis);
+		
         //室内温度>T+ T3（默认1.5℃），持续满足t3(默认5min)时间，
         //且满足【模式切换间隔时间3】（默认10min）则机组切换为制冷模式；
         if( (sAmbientIn_T > usTempSet + pThis->usModeAdjustTemp_3) && 
@@ -254,9 +356,11 @@ void vSystem_AdjustUnitRunningMode(System* pt)
     //（3）系统制冷模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_COOL)
     {
-        //室内温度<室内目标温度- T5（默认1.5℃）持续满足t5(默认5min)时间
+		usTempSet = usSystem_ChangeEnergyTemp(pThis);
+		
+        //室内温度<T- T5（默认1.5℃）持续满足t5(默认5min)时间
         //且满足【模式切换间隔时间5】（默认10min）机组切换为湿膜模式。
-        if( (sAmbientIn_T < pThis->usTempSet - pThis->usModeAdjustTemp_5) && 
+        if( (sAmbientIn_T < usTempSet - pThis->usModeAdjustTemp_5) && 
             (usGetTmrState(&pThis->sModeChangeTmr_5) != OS_TMR_STATE_RUNNING) &&
             (usGetTmrState(&pThis->sModeChangePeriodTmr_5) != OS_TMR_STATE_RUNNING) )
         {
@@ -348,9 +452,9 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     {
         return;
     }
-//#if DEBUG_ENABLE > 0
-//    myprintf("vSystem_ChangeUnitRunningMode %d\n", pThis->eRunningMode);
-//#endif           
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_ChangeUnitRunningMode %d\n", pThis->eRunningMode);
+#endif           
     //（1）系统送风模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_FAN)
     {
@@ -377,8 +481,8 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     //（2）系统湿膜模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_WET)
     {
-        usTempSet = usSystem_ChangeEnergyTemp(pThis);
-        
+		usTempSet = usSystem_ChangeEnergyTemp(pThis);
+		
         //室内温度>T+ T3（默认1.5℃），持续满足t3(默认5min)时间
         if( (sAmbientIn_T > usTempSet + pThis->usModeAdjustTemp_3) && 
             (usGetTmrState(&pThis->sModeChangeTmr_3) != OS_TMR_STATE_RUNNING) )
@@ -401,8 +505,10 @@ void vSystem_ChangeUnitRunningMode(System* pt)
     //（3）系统制冷模式运行，按照以下切换
     if(pThis->eRunningMode == RUN_MODE_COOL)
     {
-        //室内温度<室内目标温度- T5（默认1.5℃）持续满足t5(默认5min)时间
-        if( (sAmbientIn_T < pThis->usTempSet - pThis->usModeAdjustTemp_5) && 
+		 usTempSet = usSystem_ChangeEnergyTemp(pThis);
+		
+        //室内温度<T- T5（默认1.5℃）持续满足t5(默认5min)时间
+        if( (sAmbientIn_T < usTempSet - pThis->usModeAdjustTemp_5) && 
             (usGetTmrState(&pThis->sModeChangeTmr_5) != OS_TMR_STATE_RUNNING) )
         {
             (void)xTimerRegist(&pThis->sModeChangeTmr_5, pThis->usModeChangeTime_5*60, 0, 
@@ -542,14 +648,14 @@ void vSystem_UnitTempHumiOut(System* pt)
     System* pThis = (System*)pt;
     ModularRoof* pModularRoof = NULL;
  
-    if( (pThis->xTempSenOutErr == TRUE) || (pThis->xHumiSenOutErr == TRUE) )   //系统传感器故障，采用机组参数
+    if( pThis->xTempSenOutErr == TRUE )   //系统传感器故障，采用机组参数
     {
-        for(n=0; n < MODULAR_ROOF_NUM; n++)
+        for(n=0, ucNum=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
             if(pModularRoof->xCommErr == FALSE)  //机组在线
             {
-                sTotalTemp  +=  pModularRoof->sAmbientOutSelf_T;
+                sTotalTemp  += pModularRoof->sAmbientOutSelf_T;
                 usTotalHumi += pModularRoof->usAmbientOutSelf_H;
                 ucNum++;
             }
@@ -565,6 +671,8 @@ void vSystem_UnitTempHumiOut(System* pt)
                 pThis->usAmbientOut_H  = usTotalHumi / ucNum;  //机组室外平均环境湿度
             }
         }
+		myprintf("vSystem_UnitTempHumiOut  sAmbientOut_T %d  usAmbientOut_H %d sTotalTemp %d ucNum %d\n", 
+                  pThis->sAmbientOut_T, pThis->usAmbientOut_H, sTotalTemp, ucNum);
     }
 }
 
@@ -579,9 +687,9 @@ void vSystem_UnitTempHumiIn(System* pt)
     System* pThis = (System*)pt;
     ModularRoof* pModularRoof = NULL;
  
-    if( (pThis->xTempSenInErr == TRUE) || (pThis->xHumiSenInErr == TRUE) )   //系统传感器故障，采用机组参数
+    if(pThis->xTempSenInErr == TRUE)   //系统传感器故障，采用机组参数
     {
-        for(n=0, sTotalTemp=0, usTotalHumi=0; n < MODULAR_ROOF_NUM; n++)
+        for(n=0, ucNum=0, sTotalTemp=0, usTotalHumi=0; n < MODULAR_ROOF_NUM; n++)
         {
             pModularRoof = pThis->psModularRoofList[n];
             if(pModularRoof->xCommErr == FALSE)  //机组在线
@@ -602,12 +710,23 @@ void vSystem_UnitTempHumiIn(System* pt)
                 usAmbientIn_H  = usTotalHumi / ucNum;  //机组室内平均环境湿度
             }
         }
+		for(n=0; n < MODULAR_ROOF_NUM; n++)
+        {
+            pModularRoof = pThis->psModularRoofList[n];
+            pModularRoof->sAmbientIn_T  = sAmbientIn_T;
+            pModularRoof->usAmbientIn_H = usAmbientIn_H;
+        } 
+		
         if(pThis->sAmbientIn_T != sAmbientIn_T || pThis->usAmbientIn_H != usAmbientIn_H)
         {
             pThis->sAmbientIn_T = sAmbientIn_T;
             pThis->usAmbientIn_H = usAmbientIn_H;
             vSystem_ChangeUnitRunningMode(pThis);  //模式切换逻辑
-        }   
+        }
+#if DEBUG_ENABLE > 0
+        myprintf("vSystem_UnitTempHumiIn  sAmbientIn_T %d  usAmbientIn_H %d  sTotalTemp %d ucNum\n", 
+                  pThis->sAmbientIn_T, pThis->usAmbientIn_H, sTotalTemp, ucNum);
+#endif 		
     }
 }
 

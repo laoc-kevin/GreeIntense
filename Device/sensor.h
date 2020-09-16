@@ -5,9 +5,10 @@
 
 #define SENSOR_SAMPLE_NUM      5
 #define SENSOR_REG_HOLD_NUM    3
+#define SENSOR_REG_IN_NUM      3
 
-#define MAX_IN_TEMP     1200
-#define MIN_IN_TEMP     -400
+#define MAX_IN_TEMP     600
+#define MIN_IN_TEMP     0
                         
 #define MAX_OUT_TEMP    600
 #define MIN_OUT_TEMP    -200
@@ -24,8 +25,7 @@ typedef enum   /*传感器类型*/
    TYPE_TEMP_HUMI_IN  = 1,    //室内温湿度传感器
    TYPE_TEMP_HUMI_OUT = 2,    //室外温湿度传感器
 }eSensorType;
-
-
+ 
 ABS_CLASS(Sensor)          /*传感器*/ 
 {
     EXTENDS(Device);
@@ -43,8 +43,6 @@ ABS_CLASS(Sensor)          /*传感器*/
     OS_SEM               sValChange;       //变量变化事件
     OS_TMR               sSensorTmr;       //传感器内部定时器
     
-    sMasterRegHoldData   sSensor_RegHoldBuf[SENSOR_REG_HOLD_NUM];  //保持寄存器数据域
-    
     void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex);
     void (*registMonitor)(Sensor* pt);
     void (*timeoutInd)(void * p_tmr, void * p_arg);  //定时器中断服务函数
@@ -58,10 +56,14 @@ CLASS(CO2Sensor)          /*CO2传感器*/
     uint16_t     usMinPPM;        //量程下限 = 实际值*10
     uint16_t     usCO2PPM;        //实际值   
     uint16_t     usAvgCO2PPM;     //平均值
+	uint16_t     usDataOffset;    //偏移数据
+	
     uint32_t     ulTotalCO2PPM;   //所有采样值之和
     BOOL         xCO2SenErr;      //CO2故障
     
-    uint16_t     usSampleCO2PPM[SENSOR_SAMPLE_NUM];    
+    uint16_t     usSampleCO2PPM[SENSOR_SAMPLE_NUM]; 
+
+    sMasterRegInData   sSensor_RegInBuf[SENSOR_REG_IN_NUM];  //输入寄存器数据域	
 };
 
 CLASS(TempHumiSensor)          /*温湿度传感器*/  
@@ -77,7 +79,8 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
      
     uint16_t     usMaxHumi;    //量程上限 = 实际值*10
     uint16_t     usMinHumi;    //量程下限 = 实际值*10
-    uint16_t     usHumi;       //实际值  
+    uint16_t     usHumi;       //实际值 
+
     uint16_t     usAvgHumi;    //平均值
     uint32_t     ulTotalHumi;  //所有采样值之和
     BOOL         xHumiSenErr;  //湿度故障
@@ -85,6 +88,7 @@ CLASS(TempHumiSensor)          /*温湿度传感器*/
     int16_t      sSampleTemp[SENSOR_SAMPLE_NUM];
     uint16_t     usSampleHumi[SENSOR_SAMPLE_NUM];
 
+	sMasterRegHoldData   sSensor_RegHoldBuf[SENSOR_REG_HOLD_NUM];  //保持寄存器数据域
 };
 
 #endif

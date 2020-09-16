@@ -102,7 +102,7 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_OTHER_REP_SLAVEID_ENABLED       (  0 )
 
 /*! \brief If the <em>Read Input Registers</em> function should be enabled. */
-#define MB_FUNC_READ_INPUT_ENABLED              (  0 )
+#define MB_FUNC_READ_INPUT_ENABLED              (  1 )
 
 /*! \brief If the <em>Read Holding Registers</em> function should be enabled. */
 #define MB_FUNC_READ_HOLDING_ENABLED            (  1 )
@@ -147,7 +147,7 @@ PR_BEGIN_EXTERN_C
 /*! \brief If master send a frame which is not broadcast,the master will wait sometime for slave.
  * And if slave is not respond in this time,the master will process this timeout error.
  * Then master can send other frame */
-#define MB_MASTER_TIMEOUT_MS_RESPOND            (250 )
+#define MB_MASTER_TIMEOUT_MS_RESPOND            (300 )
 
 /*! \brief The total slaves in Modbus Master system. Default 16.
  * \note : The slave ID must be continuous from 1.*/

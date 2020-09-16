@@ -21,6 +21,88 @@ void vSystem_CloseExAirFans(System* pt)
     (void)xTmrStop(&pThis->sExAirFanCtrlTmr);          //停止周期轮询
 }
 
+/*风机运行状态变化*/
+void vSystem_FanRunningState(System* pt, ExAirFan* pmExAirFan)
+{
+    uint8_t  n   = 0;
+    OS_ERR   err = OS_ERR_NONE;
+    
+    System*      pThis = (System*)pt;
+    eSystemState eState = STATE_CLOSED;
+    ModularRoof* pModularRoof = NULL;
+    ExAirFan*    pExAirFan    = NULL;
+    BMS*         psBMS        = BMS_Core();
+    
+#if DEBUG_ENABLE > 0
+    myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
+#endif  
+    
+	if(pmExAirFan != NULL && pmExAirFan->xExAirFanRemote == TRUE && pmExAirFan->xExAirFanErr == FALSE)
+	{
+		if(pmExAirFan->Device.eRunningState == STATE_RUN)
+	    {
+		    pmExAirFan->eCtrlCmd = ON;
+	    }
+	    else
+	    {
+		     pmExAirFan->eCtrlCmd = OFF;
+	    }
+	}
+	for(n=0; n < EX_AIR_FAN_NUM; n++)  
+    {
+        pExAirFan = pThis->psExAirFanList[n];
+        if(pExAirFan->Device.eRunningState == STATE_RUN)
+        {
+			
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eSystemMode = MODE_MANUAL;
+                psBMS->eSystemMode = MODE_MANUAL;
+            } 
+            eState = STATE_EX_FAN;
+        }
+       
+    }
+    for(n=0; n < MODULAR_ROOF_NUM; n++)
+    {
+        pModularRoof = pThis->psModularRoofList[n];
+        if(pModularRoof->Device.eRunningState == STATE_RUN)  //机组运行
+        {		
+            switch(pModularRoof->eRunningMode)
+            {
+                case RUN_MODE_COOL:
+                    eState = STATE_COOL;
+				    pThis->eRunningMode = RUN_MODE_COOL;
+                break;
+                case RUN_MODE_HEAT:
+                    eState = STATE_HEAT;
+				    pThis->eRunningMode = RUN_MODE_HEAT;
+                break;
+                case RUN_MODE_FAN:
+                    eState = STATE_FAN;
+				    pThis->eRunningMode = RUN_MODE_FAN;
+                break;
+                case RUN_MODE_WET:
+                    eState = STATE_WET;
+				    pThis->eRunningMode = RUN_MODE_WET;
+                break;
+                default:break;
+            }
+            if(pThis->eSystemMode == MODE_CLOSE)
+            {
+                pThis->eRunningMode = pModularRoof->eRunningMode;
+                psBMS->eRunningMode = pModularRoof->eRunningMode;
+                pThis->eSystemMode  = MODE_MANUAL;
+                psBMS->eSystemMode  = MODE_MANUAL;
+            }
+            pThis->eSystemState = eState;			
+            return;
+        }	
+    }
+    pThis->eSystemState = eState;    
+}
+
+
 /*系统当前正在运行的时间最长定频排风机*/
 ExAirFan* psSystem_LongestExAirFan(System* pt)
 {
@@ -690,11 +772,11 @@ void vSystem_ExAirSet_Vol(System* pt)
     uint32_t  ulExAirRequest_Vol = pThis->ulExAirRequest_Vol; 
     (void)vSystem_ExAirRequest_Vol(pThis);
     
-#if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", pThis->ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
-#endif    
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
+#if DEBUG_ENABLE > 0
+        myprintf("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", pThis->ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
+#endif  
         (void)vSystem_ExAirRequest_Vol(pThis);  //计算排风需求量
         if(ucConstantFanRequestNum != pThis->ucConstantFanRequestNum)
         {
@@ -709,13 +791,18 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
     uint8_t  n = 0; 
     
     System*   pThis     = (System*)pt;
+	BMS*      psBMS    = BMS_Core();
+	
     ExAirFan* pExAirFan = NULL;
     
     pThis->usExAirFanMinFreq = usMinFreq;
     pThis->usExAirFanMaxFreq = usMaxFreq;
   
+//	psBMS->usExAirFanMinFreq = usMinFreq;
+//	psBMS->usExAirFanMaxFreq = usMaxFreq;
+	
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
+//    myprintf("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
 #endif
     
     if(pThis->usExAirFanFreq < pThis->usExAirFanMinFreq)

@@ -7,9 +7,8 @@
 
 typedef struct        /**AI数据结构**/
 {
-    int32_t         lMax;          //量程最大值 = 实际量程最大值*10
 	int32_t         lMin;          //量程最小值 = 实际量程最小值*10
-    int16_t         s10_uA;        //输入电流值  单位10uA
+    int32_t         lMax;          //量程最大值 = 实际量程最大值*10
 	void*           pvAIVal;       //根据量程转化为实际值       
 }sAIData; 
 

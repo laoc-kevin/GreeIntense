@@ -119,7 +119,7 @@ eMBErrorCode eMBMasterUtilSetBits(sMBMasterInfo* psMBMasterInfo, UCHAR* ucByteBu
                 usAddress++;
             }	
         iNReg--;
-        ucByteBuf++;	
+        ucByteBuf++;			
     }
     break;
     

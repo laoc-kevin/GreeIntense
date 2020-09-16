@@ -3,7 +3,7 @@
 
 #include "device.h"
 
-#define MIN_FAN_FREQ   100
+#define MIN_FAN_FREQ   0
 #define MAX_FAN_FREQ   500
 
 typedef enum   /*系统状态*/

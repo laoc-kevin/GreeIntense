@@ -18,10 +18,9 @@ typedef enum
 
 typedef struct        
 {
-    int32_t      lMax;            //量程最大值 = 实际量程最大值*10
 	int32_t      lMin;            //量程最小值 = 实际量程最小值*10
-	int16_t      s10_uA;          //输出电流值  单位10uA电流值       
-    int32_t      lAOVal;          //根据量程转化为实际输出值      
+    int32_t      lMax;            //量程最大值 = 实际量程最大值*10    
+//    int32_t      lAOVal;          //根据量程转化为实际输出值	
 }sAOData;  
 
 typedef struct        

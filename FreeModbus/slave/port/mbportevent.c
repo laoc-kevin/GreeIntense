@@ -25,7 +25,7 @@
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
 
-#define TIME_TICK_OUT 0
+#define TIME_TICK_OUT_MS    500
 
 /* ----------------------- Start implementation -----------------------------*/
 
@@ -76,7 +76,9 @@ BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType * eEvent)
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-	(void)OSSemPend(&psMBPort->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err);    
+	OS_TICK i = (OS_TICK)( TIME_TICK_OUT_MS * TMR_TICK_PER_SECOND / 1000 );  //等待响应时间
+    
+	(void)OSSemPend(&psMBPort->sMBEventSem, i, OS_OPT_PEND_BLOCKING, &ts, &err);    
 	(void)OSSemSet(&psMBPort->sMBEventSem, 0, &err);
   
     if( psMBPort->xEventInQueue )
