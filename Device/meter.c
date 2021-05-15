@@ -63,17 +63,17 @@ void vMeter_InitDevCommData(Meter* pt)
     sMBTestDevCmd* psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
     
     
-MASTER_PBUF_INDEX_ALLOC()
+MASTER_PBUF_INDEX_ALLOC
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, FALSE)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(&pThis->sMeter_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable; )
+MASTER_BEGIN_DATA_BUF(pThis->sMeter_RegHoldBuf, pThis->sDevCommData.sMBRegHoldTable; )
     
-    MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, (void*)&pThis->sMBSlaveDev.ucDevAddr)
+    MASTER_REG_HOLD_DATA(0x30, uint8, 1, 255, 0, RW, pThis->sMBSlaveDev.ucDevAddr, pThis->sMBSlaveDev.ucDevAddr)
         
 MASTER_END_DATA_BUF(1, 0x30)
 
-    pThis->sDevCommData.ucProtocolID = 0;
+    pThis->sDevCommData.usProtocolID = 0;
     pThis->sDevCommData.pxDevDataMapIndex = xMeter_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }
@@ -97,7 +97,6 @@ void vMeter_Init(Meter* pt, sMBMasterInfo* psMBMasterInfo)
     pThis->usPower = 166;             //耗电功率(有功功率)
 #endif    
 }
-
 
 CTOR(Meter)    //电表构造函数
     SUPER_CTOR(Device); 

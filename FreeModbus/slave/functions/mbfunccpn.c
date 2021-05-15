@@ -42,7 +42,6 @@
 #include "mbconfig.h"
 #include "mbutils.h"
 #include "mbmap.h"
-#include "md_led.h"
 
 #if MB_SLAVE_CPN_ENABLED > 0 
 

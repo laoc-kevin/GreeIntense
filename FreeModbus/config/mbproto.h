@@ -30,10 +30,11 @@
 
 #ifndef _MB_PROTO_H
 #define _MB_PROTO_H
+
 #include "port.h"
 
 #ifdef __cplusplus
-PR_BEGIN_EXTERN_C
+extern "C" {
 #endif
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_ADDRESS_BROADCAST    ( 0 )   /*! Modbus broadcast address. */
@@ -56,12 +57,13 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_OTHER_REPORT_SLAVEID          ( 17 )
 #define MB_FUNC_ERROR                         ( 128 )
 
-#define MB_CPN_ADDRESS_BROADCAST              ( 0xFF )
-#define MB_FUNC_CPN_WRITE                     ( 105 )
-#define MB_FUNC_CPN_READ                      ( 106 )
-
-
 /* ----------------------- Type definitions ---------------------------------*/
+typedef enum
+{
+    TYPE_MASTER,              /*!< master. */
+    TYPE_SLAVE,               /*!< slave. */
+}eMBType;
+
 
 typedef enum
 {
@@ -80,10 +82,9 @@ typedef enum
 
 typedef enum
 {
-    MB_RTU,                     /*!< RTU transmission mode. */
-    MB_ASCII,                   /*!< ASCII transmission mode. */
-    MB_TCP,                     /*!< TCP mode. */
-	MB_CPN                      /*!< CPN mode. */
+    MB_RTU,      /*!< RTU transmission mode. */
+    MB_ASCII,    /*!< ASCII transmission mode. */
+    MB_TCP       /*!< TCP transmission mode. */
 }eMBMode;
 
 /*! \ingroup modbus
@@ -139,10 +140,8 @@ typedef enum
     MB_EX_GATEWAY_TGT_FAILED = 0x0B
 }eMBException;
 
-
-
 #ifdef __cplusplus
-PR_END_EXTERN_C
+}
 #endif
 
 #endif

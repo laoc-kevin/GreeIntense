@@ -31,7 +31,7 @@
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
-#include "mbutils.h"
+#include "mbbits.h"
 
 #if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
@@ -56,19 +56,16 @@
 eMBException 
 eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
-    USHORT          usRegAddress;
-    USHORT          usDiscreteCnt;
+    USHORT          usRegAddress, usDiscreteCnt;
     UCHAR           ucNBytes;
     UCHAR          *pucFrameCur;
 
-    eMBException    eStatus = MB_EX_NONE;
     eMBErrorCode    eRegStatus;
 
     if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
     {
         usRegAddress  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
         usRegAddress |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
-        usRegAddress++;
 
         usDiscreteCnt  = (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF] << 8 );
         usDiscreteCnt |= (USHORT)( pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF + 1] );
@@ -105,28 +102,23 @@ eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
             /* If an error occured convert it into a Modbus exception. */
             if( eRegStatus != MB_ENOERR )
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
-                /* The response contains the function code, the starting address
-                 * and the quantity of registers. We reuse the old values in the 
-                 * buffer because they are still valid. */
                 *usLen += ucNBytes;;
             }
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
-        /* Can't be a valid read coil register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 
 
@@ -147,30 +139,27 @@ eMBSlaveFuncReadDiscreteInputs(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
 eMBErrorCode 
 eMBSlaveRegDiscreteCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
 {
-    USHORT          usDiscreteInputStart;
-    USHORT          DISCRETE_INPUT_START,DISCRETE_INPUT_END;
-    eMBErrorCode    eStatus = MB_ENOERR;
-
+    USHORT DISCRETE_INPUT_START, DISCRETE_INPUT_END;
     sMBSlaveDataTable* psMBDiscInTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBDiscInTable;  //从栈通讯协议表
     
+    if( (psMBDiscInTable == NULL) || (psMBDiscInTable->pvDataBuf == NULL) ||
+        (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
+    {
+        return MB_ENOREG;
+    }
     DISCRETE_INPUT_START = psMBDiscInTable->usStartAddr;
     DISCRETE_INPUT_END = psMBDiscInTable->usEndAddr;
-
-    /* it already plus one in modbus function method. */
-    usAddress--;
 
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete -1 <= DISCRETE_INPUT_END) )
     {
         /* read current coil values from the protocol stack. */ 
-        eStatus = eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
+        return eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData);
     }
     else
     {
-        eStatus = MB_ENOREG;
+        return MB_ENOREG;
     }
-    return eStatus;
 }
-
 #endif
 
 #endif

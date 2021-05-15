@@ -23,12 +23,8 @@
 #include  <bsp.h>
 #include  <bsp_int.h>
 
-#include "lpc_clkpwr.h"
-#include "my_rtt_printf.h"
-
 #include "app_config.h"
 
-#include "mb.h"
 #include "md_led.h"
 #include "md_input.h"
 #include "md_segment.h"
@@ -39,7 +35,9 @@
 #include "md_rtc.h"
 #include "md_watchdog.h"
 #include "md_modbus.h"
-#include "system.h"
+#include "md_lwip.h"
+//#include "system.h"
+
 
 /*
 *********************************************************************************************************
@@ -51,7 +49,6 @@ uint8_t SysStartFlag = 1;
                                                                 /* --------------- APPLICATION GLOBALS ---------------- */
 static  OS_TCB       AppTaskStartTCB;
 static  CPU_STK      AppTaskStartStk[APP_CFG_TASK_START_STK_SIZE];
-
 
 /*
 *********************************************************************************************************
@@ -171,6 +168,11 @@ static  void  AppTaskStart (void *p_arg)
 
 /************************任务配置信息***************************/
 
+#if LWIP_TASK_EN > 0                               //LWIP协议栈初始化任务
+    OS_TCB      LwipCreateTaskTCB;
+    CPU_STK     LwipCreateTaskStk[LWIP_CREATE_TASK_STK_SIZE];
+#endif
+
 #if INPUT_RECEIVE_TASK_EN  >0                     //IO输入数据接收功能
     OS_TCB      InputReceiveTaskTCB;
     CPU_STK     InputReceiveTaskStk[INPUT_RECEIVE_TASK_STK_SIZE];
@@ -216,6 +218,9 @@ static  void  AppTaskStart (void *p_arg)
 
 #if TASK_STACK_WATCH_TASK_EN > 0
 
+extern OS_TCB  SYS_TASK_TCB;
+extern sMBSlaveTcpInfo m_SlaveTcpInfo;
+
 void  AppTaskStackWatch(void *p_arg)
 {
     CPU_SR_ALLOC();
@@ -226,10 +231,21 @@ void  AppTaskStackWatch(void *p_arg)
     {
         OS_CRITICAL_ENTER();  
           
-        OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-           
-        OSTaskStkChk (&SystemEventPollTCB,&free,&used,&err);   //需要监控的任务堆栈，根据需要编写
-        myprintf("Data_Process  used/free:%d/%d  usage:%%%d\r\n",used,free,(used*100)/(used+free));
+        OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);     
+        OSTaskStkChk (&SYS_TASK_TCB, &free, &used, &err);   //需要监控的任务堆栈，根据需要编写
+        myprintf("SYS_TASK_TCB  used/free:%d/%d  usage:%%%d\r\n", used, free, (used*100)/(used+free));
+        
+        OSTaskStkChk(&m_SlaveTcpInfo.sMBSlaveTcpClients[0].sMBTask.sSlavePollTCB, &free,&used,&err);   
+        myprintf("sSlavePollTCB  used/free:%d/%d  usage:%%%d\r\n", used, free, (used*100)/(used+free));
+        
+        OSTaskStkChk(&WatchDogFeedTaskTCB, &free, &used, &err);   
+        myprintf("WatchDogFeedTaskTCB  used/free:%d/%d  usage:%%%d\r\n",used, free, (used*100)/(used+free));
+        
+        OSTaskStkChk(&InputReceiveTaskTCB, &free, &used, &err);   
+        myprintf("InputReceiveTaskTCB  used/free:%d/%d  usage:%%%d\r\n",used, free, (used*100)/(used+free));
+        
+        OSTaskStkChk(&SegmentTaskTCB, &free, &used, &err);   
+        myprintf("SegmentTaskTCB  used/free:%d/%d  usage:%%%d\r\n",used, free, (used*100)/(used+free));
         
         OS_CRITICAL_EXIT(); //退出临界区	
      }
@@ -260,12 +276,13 @@ static  void  AppTaskCreate (void)
 {
 	OS_ERR err = OS_ERR_NONE;
 	CPU_SR_ALLOC();
-
-	vRTCInit();
-    
 	OS_CRITICAL_ENTER();
-
-     myprintf("****************************************************************************\n"); 
+    
+    vRTCInit();
+    myprintf("****************************************************************************\n");    
+#if LWIP_TASK_EN > 0 //LWIP协议栈初始化任务
+    vLwipInit(&LwipCreateTaskTCB, LWIP_CREATE_TASK_PRIO, LwipCreateTaskStk, LWIP_CREATE_TASK_STK_SIZE);        
+#endif    
     
 #if OUTPUT_SET_TASK_EN > 0     //IO输出数据接收功能 
     vOutputInit();   
@@ -287,12 +304,20 @@ static  void  AppTaskCreate (void)
     vMonitorInit(&SystemMonitorTaskTCB, SYSTEM_MONITOR_TASK_PRIO, SystemMonitorTaskStk, SYSTEM_MONITOR_TASK_STK_SIZE);
 #endif
 
-#if MB_SLAVE_TASK_EN > 0         //Modbus RS485 从栈功能 
+#if MB_SLAVE_RTU_EN > 0         //Modbus RS485 从栈功能 
     vModbusSlaveInit(MB_SLAVE_POLL_TASK_PRIO);
 #endif
 
-#if MB_MASTER_TASK_EN > 0       //Modbus RS485 主栈功能
-    vModbusMasterInit(MB_MASTER_HEART_TASK_PRIO, MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_TASK_PRIO);
+#if MB_MASTER_RTU_EN > 0       //Modbus RS485 主栈功能
+    vModbusMasterInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_READ_TASK_PRIO, MB_MASTER_SCAN_WRITE_TASK_PRIO);
+#endif
+
+#if MB_SLAVE_TCP_EN > 0         //Modbus RS485 TCP 从栈功能 
+    vModbusSlaveTCPInit(MB_SLAVE_TCP_SERVER_TASK_PRIO, MB_SLAVE_POLL_TASK_PRIO);
+#endif
+
+#if MB_MASTER_TCP_EN > 0         //Modbus RS485 TCP 主栈功能 
+    vModbusMasterTCPInit(MB_MASTER_POLL_TASK_PRIO, MB_MASTER_SCAN_READ_TASK_PRIO, MB_MASTER_SCAN_WRITE_TASK_PRIO);
 #endif
 
 #if SYSTEM_MAIN_CTRL_TASK_EN > 0 //系统控制功能 

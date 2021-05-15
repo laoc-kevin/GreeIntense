@@ -32,10 +32,9 @@
 #define _MB_FRAME_H
 
 #include "stdint.h"
-#include "os.h"
 
 #ifdef __cplusplus
-PR_BEGIN_EXTERN_C
+extern "C" {
 #endif
 
 /*!
@@ -75,24 +74,38 @@ PR_BEGIN_EXTERN_C
 #define MB_PDU_DATA_OFF          1   /*!< Offset of response data in PDU. */
 #define MB_PDU_VALUE_OFF         2   /*!< Offset of data value in PDU. */
 
-#define MB_CPN_FRAME_SIZE_MIN         22      /*!< Minimum size of a Modbus CPN frame. */
-#define MB_CPN_FRAME_SIZE_MAX         1022    /*!< Maximum size of a Modbus CPN frame. */
-#define MB_CPN_PDU_SIZE_MAX           1004    /*!< Maximum size of a cpn PDU. */
-#define MB_CPN_PDU_SIZE_MIN           4       /*!< Minimum size of a cpn PDU. */
-#define MB_CPN_PDU_FUNC_OFF           0       /*!< Offset of cpn function code in cpn PDU. */
-#define MB_CPN_PDU_DATA_OFF           4       /*!< Offset for response data in cpn PDU. */
-#define MB_CPN_PDU_VALUE_COUNT_OFF    1       /*!< Offset of the count of values in cpn PDU. */
+/* ----------------------- MBAP Header --------------------------------------*/
+/*
+ *
+ * <------------------------ MODBUS TCP/IP ADU(1) ------------------------->
+ *              <----------- MODBUS PDU (1') ---------------->
+ *  +-----------+---------------+------------------------------------------+
+ *  | TID | PID | Length | UID  |Code | Data                               |
+ *  +-----------+---------------+------------------------------------------+
+ *  |     |     |        |      |
+ * (2)   (3)   (4)      (5)    (6)
+ *
+ * (2)  ... MB_TCP_TID          = 0 (Transaction Identifier - 2 Byte)
+ * (3)  ... MB_TCP_PID          = 2 (Protocol Identifier - 2 Byte)
+ * (4)  ... MB_TCP_LEN          = 4 (Number of bytes - 2 Byte)
+ * (5)  ... MB_TCP_UID          = 6 (Unit Identifier - 1 Byte)
+ * (6)  ... MB_TCP_FUNC         = 7 (Modbus Function Code)
+ *
+ * (1)  ... Modbus TCP/IP Application Data Unit
+ * (1') ... Modbus Protocol Data Unit
+ */
+
+#define MB_TCP_TID          0
+#define MB_TCP_PID          2
+#define MB_TCP_LEN          4
+#define MB_TCP_UID          6
+#define MB_TCP_FUNC         7
+#define MB_TCP_REQ          12
+
+#define MB_TCP_PROTOCOL_ID  0   /* 0 = Modbus Protocol */
 
 
-#define MB_CPN_VALUE_DEFINE_SIZE      8    /*!< The size of the defination of a CPN value. */
-#define MB_CPN_VALUE_DATA_NAME_OFF    0    /*!< The offset of the name of CPN value. */
-#define MB_CPN_VALUE_DATA_BYTES_OFF   4    /*!< The offset of the data bytes of CPN value. */
-#define MB_CPN_VALUE_DATA_TYPE_OFF    6    /*!< The offset of the type of CPN value. */
-
-#define MB_CPN_FUNC_CODE_OFF_TO_REAL    100  /*!< Offset of cpn function code to real code. */
-#define MB_CPN_FLOAT_INT_MUX            10   /*!< The mux of the CPN float data to integer data. */
-
-#define single          0x00
+//#define single          0x00
 #define boolean         0x01
 #define int8            0x02
 #define int16           0x03
@@ -120,11 +133,6 @@ PR_BEGIN_EXTERN_C
 #define uint48          0x19
 #define uint56          0x1A
 #define uint64          0x1B
-
-#define CPN_UINT8        0x01
-#define CPN_UINT16       0x02
-#define CPN_UINT32       0x03
-#define CPN_FLOAT        0x04
 
 // Integers
 #define INTEGER8 signed char
@@ -181,16 +189,15 @@ typedef enum
     MB_PAR_EVEN                 /*!< Even parity. */
 } eMBParity;
 
-typedef enum                      /* Modbus数据类型 */
+typedef enum                      /* Modbus数杮类型 */
 {
-  RegHoldData = 0,
-  RegInputData ,
-  CoilData ,
-  DiscInData ,
-  ValCPNData ,
+    RegHoldData = 0,
+    RegInputData ,
+    CoilData ,
+    DiscInData ,
 }eDataType ;  
 
 #ifdef __cplusplus
-PR_END_EXTERN_C
+}
 #endif
 #endif

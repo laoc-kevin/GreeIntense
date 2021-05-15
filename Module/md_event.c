@@ -4,7 +4,6 @@
 
 #define  EVENT_MAX_NUM        50     //最大可监控点位数，根据实际情况调整
 
-
 sEvent*  EventList = NULL;
 sEvent   EventBuf[EVENT_MAX_NUM];
 

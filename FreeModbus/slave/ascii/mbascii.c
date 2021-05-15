@@ -41,7 +41,6 @@
 #include "mbascii.h"
 #include "mbframe.h"
 
-#include "mbcrc.h"
 #include "mbport.h"
 
 #if MB_ASCII_ENABLED > 0

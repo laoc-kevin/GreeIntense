@@ -35,15 +35,13 @@ ABS_CLASS(Sensor)          /*传感器*/
     uint8_t              ucSampleIndex_2;  //采样次数
     
     eSensorType          eSensorType;      //传感器类型
-    
-    sMBMasterInfo*       psMBMasterInfo;   //通讯主栈
     sMBSlaveDevCommData  sDevCommData;     //通讯数据表
     sMBSlaveDev          sMBSlaveDev;      //本通讯设备
     
     OS_SEM               sValChange;       //变量变化事件
     OS_TMR               sSensorTmr;       //传感器内部定时器
     
-    void (*init)(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex);
+    void (*init)(Sensor* pt, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex);
     void (*registMonitor)(Sensor* pt);
     void (*timeoutInd)(void * p_tmr, void * p_arg);  //定时器中断服务函数
 };

@@ -1,4 +1,4 @@
-/* 
+/*
  * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
  * Copyright (c) 2006 Christian Walter <wolti@sil.at>
  * All rights reserved.
@@ -33,8 +33,12 @@
 #define _MB_CONFIG_H
 
 #ifdef __cplusplus
-PR_BEGIN_EXTERN_C
+extern "C" {
 #endif
+
+/* This enable the protocol stack in the os*/
+#define MB_LINUX_ENABLED                        (  0 )
+#define MB_UCOSIII_ENABLED                      (  1 )
 /* ----------------------- Defines ------------------------------------------*/
 /*! \defgroup modbus_cfg Modbus Configuration
  *
@@ -47,6 +51,7 @@ PR_BEGIN_EXTERN_C
 /*! \addtogroup modbus_cfg
  *  @{
  */
+
 /*! \brief If Modbus Master ASCII support is enabled. */
 #define MB_MASTER_ASCII_ENABLED                 (  0 )
 /*! \brief If Modbus Master RTU support is enabled. */
@@ -56,20 +61,16 @@ PR_BEGIN_EXTERN_C
 /*! \brief If Modbus Master DTU support is enabled. */
 #define MB_MASTER_DTU_ENABLED                   (  0 )
 /*! \brief If Modbus Master Heart beat support is enabled. */
-#define MB_MASTER_HEART_BEAT_ENABLED            (  1 )
-
+#define MB_MASTER_HEART_BEAT_ENABLED            (  0 )
 
 /*! \brief If Modbus Slave ASCII support is enabled. */
 #define MB_SLAVE_ASCII_ENABLED                  (  0 )
 /*! \brief If Modbus Slave RTU support is enabled. */
-#define MB_SLAVE_RTU_ENABLED                    (  1 )
+#define MB_SLAVE_RTU_ENABLED                    (  0 )
 /*! \brief If Modbus Slave TCP support is enabled. */
-#define MB_SLAVE_TCP_ENABLED                    (  0 )
-/*! \brief If Modbus Slave CPN support is enabled. */
-#define MB_SLAVE_CPN_ENABLED                    (  0 )
+#define MB_SLAVE_TCP_ENABLED                    (  1 )
 
 #define MB_SLAVE_USE_TABLE                      (  0 )
-
 
 /*! \brief The character timeout value for Modbus ASCII.
  *
@@ -108,7 +109,7 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_READ_HOLDING_ENABLED            (  1 )
 
 /*! \brief If the <em>Write Single Register</em> function should be enabled. */
-#define MB_FUNC_WRITE_HOLDING_ENABLED           (  1 )
+#define MB_FUNC_WRITE_HOLDING_ENABLED           (  0 )
 
 /*! \brief If the <em>Write Multiple registers</em> function should be enabled. */
 #define MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED  (  1 )
@@ -117,7 +118,7 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_READ_COILS_ENABLED              (  1 )
 
 /*! \brief If the <em>Write Coils</em> function should be enabled. */
-#define MB_FUNC_WRITE_COIL_ENABLED              (  1 )
+#define MB_FUNC_WRITE_COIL_ENABLED              (  0 )
 
 /*! \brief If the <em>Write Coils</em> function should be enabled. */
 #define MB_FUNC_WRITE_COILS_ENABLED              (  1 )
@@ -132,14 +133,6 @@ PR_BEGIN_EXTERN_C
 #define MB_FUNC_READWRITE_HOLDING_ENABLED       (  1 )
 /*! @} */
 
-/*! \brief If the cpn read function should be enabled. */
-#define MB_FUNC_CPN_READ_ENABLED                (  1 )
-
-/*! \brief If the cpn write function should be enabled. */
-#define MB_FUNC_CPN_WRITE_ENABLED               (  1 )
-
-
-#if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /*! \brief If master send a broadcast frame,the master will wait time of convert to delay,
  * then master can send other frame */
 #define MB_MASTER_DELAY_MS_CONVERT              (200 )
@@ -152,11 +145,11 @@ PR_BEGIN_EXTERN_C
 /*! \brief The total slaves in Modbus Master system. Default 16.
  * \note : The slave ID must be continuous from 1.*/
 
-
-#endif
-
-#endif
+#define MB_SLAVE_MAX_TCP_CLIENT     ( 1 )
+#define MODBUS_TCP_PORT             ( 502 )
 
 #ifdef __cplusplus
-    PR_END_EXTERN_C
+    }
+#endif
+    
 #endif

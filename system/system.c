@@ -67,7 +67,7 @@ void vSystem_ChangeExAirFanType(System* pt, eExAirFanType eExAirFanType)
         pThis->pExAirFanVariate = NULL;
     }  
 #if DEBUG_ENABLE > 0        
-    myprintf("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  
+    debug("vSystem_ChangeExAirFanType  eExAirFanType %d  usRunningFreq %d\n",  
              pThis->eExAirFanType, pThis->pExAirFanVariate->usRunningFreq);
 #endif           
 }
@@ -207,7 +207,7 @@ void vSystem_EventPollTask(void *p_arg)
 		vSystem_SetExAirFanFreqRange(psSystem, psSystem->usExAirFanMinFreq, psSystem->usExAirFanMaxFreq);
 	
 #if DEBUG_ENABLE > 0 
-        myprintf("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
+        debug("pExAirFan %d ulRunTime_S %ld  usRunTime_H %d \n", n, pExAirFan->Device.ulRunTime_S, pExAirFan->Device.usRunTime_H);
 #endif
     }
     while(DEF_TRUE)
@@ -314,7 +314,7 @@ begin:
             HANDLE(pTempHumiSensor->xTempSenErr, vSystem_TempHumiInErr(psSystem))            
             HANDLE(pTempHumiSensor->xHumiSenErr, vSystem_TempHumiInErr(psSystem))
         }
-        myprintf("******************************OSTaskOver******************************\n");
+        debug("******************************OSTaskOver******************************\n");
     }
 }
 
@@ -506,7 +506,7 @@ void vSystem_InitDefaultData(System* pt)
 //    vSystem_ChangeExAirFanType(pThis, pThis->eExAirFanType);
 //    vSystem_SetExAirFanFreqRange(pThis, pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
     
-//    myprintf("vSystem_InitDefaultData ulExAirFanRated_Vol %ld \n\n", pThis->ulExAirFanRated_Vol);
+//    debug("vSystem_InitDefaultData ulExAirFanRated_Vol %ld \n\n", pThis->ulExAirFanRated_Vol);
 }
 
 /*系统初始化*/
@@ -520,42 +520,47 @@ void vSystem_Init(System* pt)
     TempHumiSensor* pTempHumiSensor = NULL;
     CO2Sensor*      pCO2Sensor      = NULL;
     
-#if MB_MASTER_DTU_ENABLED > 0 
-    DTU*            psDTU           = NULL;
-#endif 
+#if MB_MASTER_RTU_EN    
+    pThis->psMBMasterInfo = psMBGetMasterInfo(); //主栈
     
-    pThis->psMBMasterInfo = psMBGetMasterInfo();    //主栈
+#elif MB_MASTER_TCP_EN
+    pThis->psMBMasterInfo = psMBGetTCPMasterInfo(); //主栈
+#endif
+    
+#if MB_SLAVE_RTU_EN    
+    pThis->psMBSlaveInfo = psMBGetSlaveInfo();   //从栈
+#endif 
+
+#if MB_SLAVE_TCP_EN    
+    pThis->psMBSlaveInfo = psMBGetTCPSlaveInfo();  //从栈
+#endif  
     if(pThis->psMBMasterInfo == NULL)
     {
-        return;
+        ucDevAddr = pThis->psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
     }
-    ucDevAddr =  pThis->psMBMasterInfo->sMBDevsInfo.ucSlaveDevMinAddr;
-    
+    else
+    {
+        ucDevAddr = 1;
+    }
     vSystem_RegistAlarmIO(pThis, SYSTEM_ALARM_DO);  //注册报警接口
     
-#if MB_MASTER_DTU_ENABLED  > 0   //GPRS模块功能支持    
-    psDTU = DTU_new(psDTU);
-    if(psDTU != NULL)
-    {
-        psDTU->init(psDTU, pThis->psMBMasterInfo);
-    }
-#endif 
-    
     /*实例化各设备对象时，要特别注意防止内存溢出，要根据设备多少调整堆区大小，
-      堆区大小通过修改startup_LPC407x_8x.s 文件中的Heap_Size*/
-                     
+      堆区大小通过修改startup_LPC407x_8x.s 文件中的Heap_Size*/                  
     /*********************主机*************************/
     for(n=0; n < MODULAR_ROOF_NUM; n++)
     {
-        pModularRoof = (ModularRoof*)ModularRoof_new();
-        
+       pModularRoof = (ModularRoof*)ModularRoof_new();
         if(pModularRoof != NULL)
         {
-            pModularRoof->init(pModularRoof, pThis->psMBMasterInfo, ucDevAddr++, n); //初始化
+            pModularRoof->init(pModularRoof, ucDevAddr++, n); //初始化
             pThis->psModularRoofList[n] = pModularRoof;
-        
-            CONNECT( &pModularRoof->sValChange, psSysEventPollTaskTCB);  //绑定主机变量变化事件     
-        } 
+            xMasterRegistSlaveDev(pThis->psMBMasterInfo, &pModularRoof->sMBSlaveDev);
+            CONNECT(&pModularRoof->sValChange, psSysEventPollTaskTCB);  //绑定主机变量变化事件     
+        }
+        else
+        {
+            debug("ModularRoof_new  %d error\n", n); 
+        }            
     }
     /*********************排风风机*************************/
     for(n=0; n < EX_AIR_FAN_NUM; n++)
@@ -565,9 +570,12 @@ void vSystem_Init(System* pt)
         {
             pExAirFan->init(pExAirFan, &ExAirFanSet[n], n);
             pThis->psExAirFanList[n] = pExAirFan; 
-            
             CONNECT( &pExAirFan->sValChange, psSysEventPollTaskTCB);  //绑定风机变量变化事件  
-        }     
+        }
+        else
+        {
+            debug("ExAirFan_new  %d error\n", n); 
+        }            
     }
     /***********************CO2传感器***********************/
     for(n=0; n < CO2_SEN_NUM; n++)
@@ -575,11 +583,15 @@ void vSystem_Init(System* pt)
         pCO2Sensor = (CO2Sensor*)CO2Sensor_new();     //实例化对象
         if(pCO2Sensor != NULL)
         {
-            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor),  pThis->psMBMasterInfo, TYPE_CO2, ucDevAddr++, n); //向上转型，由子类转为父类
+            pCO2Sensor->Sensor.init( SUPER_PTR(pCO2Sensor, Sensor), TYPE_CO2, ucDevAddr++, n); //向上转型，由子类转为父类
             pThis->psCO2SenList[n] = pCO2Sensor;
-            
-            CONNECT( &pCO2Sensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件
+            xMasterRegistSlaveDev(pThis->psMBMasterInfo, &pCO2Sensor->Sensor.sMBSlaveDev);
+            CONNECT(&pCO2Sensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件
         }
+        else
+        {
+            debug("CO2Sensor_new  %d error\n", n); 
+        }   
     }
     /***********************室外温湿度传感器***********************/
     for(n=0; n < TEMP_HUMI_SEN_OUT_NUM; n++)
@@ -587,10 +599,14 @@ void vSystem_Init(System* pt)
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         if(pTempHumiSensor != NULL)
         {
-            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_OUT, ucDevAddr++, n);
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor), TYPE_TEMP_HUMI_OUT, ucDevAddr++, n);
             pThis->psTempHumiSenOutList[n] = pTempHumiSensor;
-            
-            CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件 
+            xMasterRegistSlaveDev(pThis->psMBMasterInfo, &pTempHumiSensor->Sensor.sMBSlaveDev);
+            CONNECT(&pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件 
+        }
+        else
+        {
+            debug("TempHumiSensor_new out %d error\n", n); 
         }          
     }
     /***********************室内温湿度传感器***********************/
@@ -599,31 +615,30 @@ void vSystem_Init(System* pt)
         pTempHumiSensor = (TempHumiSensor*)TempHumiSensor_new();
         if(pTempHumiSensor != NULL)
         {
-            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor),  pThis->psMBMasterInfo, TYPE_TEMP_HUMI_IN, ucDevAddr++, n);
-            pThis->psTempHumiSenInList[n] = pTempHumiSensor; 
-            
+            pTempHumiSensor->Sensor.init( SUPER_PTR(pTempHumiSensor, Sensor), TYPE_TEMP_HUMI_IN, ucDevAddr++, n);
+            pThis->psTempHumiSenInList[n] = pTempHumiSensor;     
+            xMasterRegistSlaveDev(pThis->psMBMasterInfo, &pTempHumiSensor->Sensor.sMBSlaveDev);
             CONNECT( &pTempHumiSensor->Sensor.sValChange, psSysEventPollTaskTCB);  //绑定传感器变量变化事件    
         }
+        else
+        {
+            debug("TempHumiSensor_new in %d error\n", n); 
+        } 
     } 
-//    /*********************电表*************************/
-//    pThis->pUnitMeter     = (Meter*)Meter_new();     //机组电表  
-//    pThis->pExAirFanMeter = (Meter*)Meter_new();     //排风机电表 
-
-//    pThis->pUnitMeter->init(pThis->pUnitMeter, pThis->psMBMasterInfo, ucDevAddr++);
-//    pThis->pExAirFanMeter->init(pThis->pExAirFanMeter, pThis->psMBMasterInfo, ucDevAddr++);    
-    
     (void)xSystem_CreatePollTask(pThis);
-    CONNECT( &(BMS_Core()->sValChange), psSysEventPollTaskTCB);  // 绑定BMS变量变化事件
+    pThis->psBMS = (BMS*)BMS_Core();
+    CONNECT(&(BMS_Core()->sValChange), psSysEventPollTaskTCB);  // 绑定BMS变量变化事件
     
     vSystem_InitDefaultData(pThis);
     vSystem_RegistEEPROMData(pThis);
-    
     vSystem_InitRuntimeTmr(pThis);
-    pThis->psBMS = (BMS*)BMS_Core();
     
-    myprintf("vSystem_Init \n");   
+    if(pThis->psMBSlaveInfo != NULL)
+    {
+        vRegistSlaveCommData(pThis->psMBSlaveInfo, &pThis->psBMS->sBMSCommData);
+    } 
+    //debug("vSystem_Init \n");   
 }
-
 CTOR(System)   //系统构造函数
     SUPER_CTOR(Device);
 END_CTOR
@@ -658,5 +673,3 @@ System* System_Core()
     }
     return psSystem;
 }
-
-

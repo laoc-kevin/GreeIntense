@@ -109,17 +109,16 @@ CLASS(ModularRoof)   /*屋顶机机组*/
     OS_SEM        sValChange;               //变量变化事件
     OS_TMR        sModularRoofTmr;          //机组内部定时器
     
-    SupAirFan*     psSupAirFan;                      //机组送风机
-    Modular*       psModularList[MODULAR_NUM];       //模块列表
+    SupAirFan*     psSupAirFan;                 //机组送风机
+    Modular*       psModularList[MODULAR_NUM];  //模块列表
   
-    sMBMasterInfo*       psMBMasterInfo;             //所属通讯主栈
-    sMBSlaveDevCommData  sDevCommData;               //本设备通讯数据表
-    sMBSlaveDev          sMBSlaveDev;                //本通讯设备
+    sMBSlaveDevCommData  sDevCommData;   //本设备通讯数据表
+    sMBSlaveDev          sMBSlaveDev;    //本通讯设备
     
     sMasterRegHoldData   sModularRoof_RegHoldBuf[MODULAR_ROOF_REG_HOLD_NUM];  //保持寄存器数据域
     sMasterBitCoilData   sModularRoof_BitCoilBuf[MODULAR_ROOF_BIT_COIL_NUM];  //线圈数据域
 
-    void (*init)(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr, uint8_t ucDevIndex);
+    void (*init)(ModularRoof* pt, UCHAR ucDevAddr, uint8_t ucDevIndex);
     void (*setRunningMode)(ModularRoof* pt, eRunningMode eMode);
 };
 

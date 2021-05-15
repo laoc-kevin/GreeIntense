@@ -11,31 +11,20 @@
 /*************************************************************
 *                         传感器                             *
 **************************************************************/
-
-/*向通讯主栈中注册设备*/
-void vSensor_RegistDev(Sensor* pt)
-{
-    Sensor* pThis = (Sensor*)pt;
-    (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
-}
-
-void vSensor_Init(Sensor* pt, sMBMasterInfo* psMBMasterInfo, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex)
+void vSensor_Init(Sensor* pt, eSensorType eSensorType, UCHAR ucDevAddr, uint8_t ucDevIndex)
 {
     OS_ERR err = OS_ERR_NONE;
     
     Sensor*  pThis   = (Sensor*)pt;
     IDevCom* pDevCom = SUPER_PTR(pThis, IDevCom);
     
-    pThis->psMBMasterInfo        = psMBMasterInfo; //所属通讯主栈
     pThis->sMBSlaveDev.ucDevAddr = ucDevAddr;
     pThis->eSensorType           = eSensorType; 
     pThis->Device.ucDevIndex     = ucDevIndex;
     
     pThis->registMonitor(pThis);            //注册监控数据
-    
     pDevCom->initDevCommData(pDevCom);      //通讯数据初始化
-    vSensor_RegistDev(pThis);               //向通讯主栈中注册设备
-
+    
     //传感器1s周期定时器,延时启动
     (void)xTimerRegist(&pThis->sSensorTmr, SENSOR_TIME_OUT_DELAY_S, SENSOR_TIME_OUT_S, 
                         OS_OPT_TMR_PERIODIC, pThis->timeoutInd, pThis, FALSE);   
@@ -82,21 +71,21 @@ void vCO2Sensor_InitDevCommData(IDevCom* pt)
     CO2Sensor*     pCO2Sen = SUB_PTR(pThis, Sensor, CO2Sensor);
     sMBTestDevCmd* psMBCmd = &pThis->sDevCommData.sMBDevCmdTable;
     
-MASTER_PBUF_INDEX_ALLOC()
+MASTER_PBUF_INDEX_ALLOC
 MASTER_TEST_CMD_INIT(psMBCmd, 528, READ_REG_HOLD, pCO2Sen->usDataOffset, TRUE)  
     
     /******************************输入寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(&pCO2Sen->sSensor_RegInBuf, &pThis->sDevCommData.sMBRegInTable;)
+MASTER_BEGIN_DATA_BUF(pCO2Sen->sSensor_RegInBuf, pThis->sDevCommData.sMBRegInTable;)
     
-    MASTER_REG_IN_DATA(0,   uint16, 0, 65535, RO, 1, (void*)&pCO2Sen->usCO2PPM)
-//	MASTER_REG_IN_DATA(528, uint16, 0, 65535, RO, 1, (void*)&pCO2Sen->usDataOffset)
+    MASTER_REG_IN_DATA(0,   uint16, 0, 65535, RO, 1, pCO2Sen->usCO2PPM)
+//	MASTER_REG_IN_DATA(528, uint16, 0, 65535, RO, 1, pCO2Sen->usDataOffset)
 //      
 MASTER_END_DATA_BUF(0, 1)
      
     pCO2Sen->usMaxPPM = MAX_CO2_PPM;
     pCO2Sen->usMinPPM = MIN_CO2_PPM;
     
-    pThis->sDevCommData.ucProtocolID = SENSOR_CO2_PROTOCOL_TYPE_ID;
+    pThis->sDevCommData.usProtocolID = SENSOR_CO2_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xCO2Sensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData); 
 }
@@ -199,14 +188,14 @@ void vTempHumiSensor_InitDevCommData(IDevCom* pt)
     TempHumiSensor* pTempHumiSen = SUB_PTR(pThis, Sensor, TempHumiSensor);  
     sMBTestDevCmd*  psMBCmd      = &pThis->sDevCommData.sMBDevCmdTable;
   
-MASTER_PBUF_INDEX_ALLOC()
+MASTER_PBUF_INDEX_ALLOC
 MASTER_TEST_CMD_INIT(psMBCmd, 0x30, READ_REG_HOLD, pThis->sMBSlaveDev.ucDevAddr, TRUE)  
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(&pTempHumiSen->sSensor_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable) 
+MASTER_BEGIN_DATA_BUF(pTempHumiSen->sSensor_RegHoldBuf, pThis->sDevCommData.sMBRegHoldTable) 
     
-    MASTER_REG_HOLD_DATA(0, int16,  -32768, 32767, 0, RO,  1, (void*)&pTempHumiSen->sTemp)
-    MASTER_REG_HOLD_DATA(1, uint16,     0, 65535, 0, RO, 10, (void*)&pTempHumiSen->usHumi) 
+    MASTER_REG_HOLD_DATA(0, int16,  -32768, 32767, 0, RO,  1, pTempHumiSen->sTemp)
+    MASTER_REG_HOLD_DATA(1, uint16,      0, 65535, 0, RO, 10,  pTempHumiSen->usHumi) 
   
 MASTER_END_DATA_BUF(0, 1)
     
@@ -223,7 +212,7 @@ MASTER_END_DATA_BUF(0, 1)
     pTempHumiSen->usMaxHumi = MAX_HUMI;
     pTempHumiSen->usMinHumi = MIN_HUMI;
     
-    pThis->sDevCommData.ucProtocolID = SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID;
+    pThis->sDevCommData.usProtocolID = SENSOR_TEMP_HUMI_PROTOCOL_TYPE_ID;
     pThis->sDevCommData.pxDevDataMapIndex = xTempHumiSensor_DevDataMapIndex;    //绑定映射函数
     pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
 }

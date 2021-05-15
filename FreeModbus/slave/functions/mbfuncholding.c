@@ -40,11 +40,9 @@
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
-#include "mbutils.h"
+#include "mbbits.h"
 #include "mbdict.h"
 #include "mbmap.h"
-
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_FUNC_READ_ADDR_OFF               ( MB_PDU_DATA_OFF + 0)
@@ -74,7 +72,7 @@
 
 /* ----------------------- Start implementation -----------------------------*/
 
-#if MB_FUNC_WRITE_HOLDING_ENABLED > 0
+#if MB_FUNC_WRITE_HOLDING_ENABLED
 /***********************************************************************************
  * @brief 写单个保持寄存器功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -88,13 +86,11 @@ eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, U
 {
     USHORT          usRegAddress;
     eMBErrorCode    eRegStatus;
-    eMBException    eStatus = MB_EX_NONE;
     
     if( *usLen == ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF + 1) );
-        usRegAddress++;
 
         /* Make callback to update the value. */
         eRegStatus = eMBSlaveRegHoldingCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_WRITE_VALUE_OFF,
@@ -103,19 +99,19 @@ eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, U
         /* If an error occured convert it into a Modbus exception. */
         if(eRegStatus != MB_ENOERR)
         {
-            eStatus = prveMBSlaveError2Exception(eRegStatus);
+            return prveMBSlaveError2Exception(eRegStatus);
         }
     }
     else
     {
         /* Can't be a valid request because the length is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0
+#if MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED
 /***********************************************************************************
  * @brief 写多个保持寄存器功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -127,18 +123,14 @@ eMBSlaveFuncWriteHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, U
 eMBException 
 eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
-    USHORT          usRegAddress;
-    USHORT          usRegCount;
+    USHORT          usRegAddress, usRegCount;
     UCHAR           ucRegByteCount;
     eMBErrorCode    eRegStatus;
-    
-    eMBException    eStatus = MB_EX_NONE;
 
     if( *usLen >= ( MB_PDU_FUNC_WRITE_MUL_SIZE_MIN + MB_PDU_SIZE_MIN ) )
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
-        usRegAddress++;
 
         usRegCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF) << 8 );
         usRegCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_REGCNT_OFF + 1) );
@@ -155,7 +147,7 @@ eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* puc
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -168,19 +160,19 @@ eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* puc
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
         /* Can't be a valid request because the length is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_READ_HOLDING_ENABLED > 0
+#if MB_FUNC_READ_HOLDING_ENABLED
 /***********************************************************************************
  * @brief 读多个保持寄存器功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -192,21 +184,17 @@ eMBSlaveFuncWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* puc
 eMBException 
 eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
-    USHORT          usRegAddress;
-    USHORT          usRegCount;
-    UCHAR          *pucFrameCur;
-    eMBErrorCode    eRegStatus;
+    USHORT usRegAddress, usRegCount;
+    UCHAR *pucFrameCur;
+    eMBErrorCode eRegStatus;
     
-    eMBException    eStatus = MB_EX_NONE;
-    
-    if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
+    if(*usLen == (MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN))
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
         usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF + 1) );
-        usRegAddress++;
 
         usRegCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_REGCNT_OFF) << 8 );
-        usRegCount = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_REGCNT_OFF + 1) );
+        usRegCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_REGCNT_OFF + 1) );
 
         /* Check if the number of registers to read is valid. If not
          * return Modbus illegal data value exception. 
@@ -231,7 +219,7 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -240,20 +228,20 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
         /* Can't be a valid request because the length is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 
 #endif
 
-#if MB_FUNC_READWRITE_HOLDING_ENABLED > 0
+#if MB_FUNC_READWRITE_HOLDING_ENABLED
 /***********************************************************************************
  * @brief 读写保持寄存器功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -265,21 +253,15 @@ eMBSlaveFuncReadHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, US
 eMBException 
 eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen )
 {
-    USHORT          usRegReadAddress;
-    USHORT          usRegReadCount;
-    USHORT          usRegWriteAddress;
-    USHORT          usRegWriteCount;
+    USHORT          usRegReadAddress, usRegReadCount, usRegWriteAddress, usRegWriteCount;
     UCHAR           ucRegWriteByteCount;
     UCHAR          *pucFrameCur;
     eMBErrorCode    eRegStatus;
-    
-    eMBException    eStatus = MB_EX_NONE;
-   
+
     if( *usLen >= (MB_PDU_FUNC_READWRITE_SIZE_MIN + MB_PDU_SIZE_MIN) )
     {
         usRegReadAddress = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_ADDR_OFF) << 8U );
         usRegReadAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_ADDR_OFF + 1) );
-        usRegReadAddress++;
 
         usRegReadCount  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_REGCNT_OFF) << 8U );
         usRegReadCount |= (USHORT)( *(pucFrame + MB_PDU_FUNC_READWRITE_READ_REGCNT_OFF + 1) );
@@ -323,20 +305,20 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
             }
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_WRITE_HOLDING_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED > 0 \
-    || MB_FUNC_READ_HOLDING_ENABLED > 0 || MB_FUNC_READWRITE_HOLDING_ENABLED > 0
+#if MB_FUNC_WRITE_HOLDING_ENABLED || MB_FUNC_WRITE_MULTIPLE_HOLDING_ENABLED \
+    || MB_FUNC_READ_HOLDING_ENABLED || MB_FUNC_READWRITE_HOLDING_ENABLED
 /***********************************************************************************
  * @brief 保持寄存器回调函数（读、连续读、写、连续写）
  * @param pucRegBuffer  如果需要更新用户寄存器数值，这个缓冲区必须指向新的寄存器数值。
@@ -355,29 +337,27 @@ eMBSlaveFuncReadWriteMultipleHoldingRegister(sMBSlaveInfo* psMBSlaveInfo, UCHAR*
 eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuffer, 
                                   USHORT usAddress, USHORT usNRegs, eMBRegisterMode eMode)
 {
-    USHORT          iRegIndex, REG_HOLDING_START, REG_HOLDING_END;
+    USHORT iRegIndex, REG_HOLDING_START, REG_HOLDING_END;
 
-	USHORT          usRegHoldValue;
-	SHORT           sRegHoldValue;
-	int8_t          cRegHoldValue;
+    USHORT usRegHoldValue = 0;
+    SHORT  sRegHoldValue = 0;
+    int8_t cRegHoldValue = 0;
 	
-    OS_ERR            err = OS_ERR_NONE;
-    eMBErrorCode  eStatus = MB_ENOERR;
+    sMBSlaveRegData   *pvRegHoldValue = NULL;
+    sMBSlaveDataTable *psMBRegHoldTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBRegHoldTable;  //从栈通讯协议表
     
-    sMBSlaveRegData *      pvRegHoldValue = NULL;
-	sMBSlaveDataTable*   psMBRegHoldTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBRegHoldTable;  //从栈通讯协议表
-    
+    if( (psMBRegHoldTable == NULL) || (psMBRegHoldTable->pvDataBuf == NULL) ||
+        (psMBRegHoldTable->usDataCount == 0)) //非空且数据点不为0
+    {
+        return MB_ENOREG;
+    }
     REG_HOLDING_START = psMBRegHoldTable->usStartAddr;
     REG_HOLDING_END = psMBRegHoldTable->usEndAddr;
-
-    /* it already plus one in modbus function method. */
-    usAddress--;
 
     if( (usAddress < REG_HOLDING_START) || (usAddress + usNRegs -1 > REG_HOLDING_END) )
     {
         return  MB_ENOREG;
     }
-    
     iRegIndex = usAddress;
     switch (eMode)
     {
@@ -387,11 +367,7 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
         {
             (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue);
       
-            if(pvRegHoldValue->ucAccessMode == WO)
-            {
-                return MB_ENOREG;
-            }
-            if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL))                        
+            if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) && (pvRegHoldValue->ucAccessMode != WO))
             {	
                 /* 根据数据类型进行指针转换，需要特别注意，转错会导致数值异常*/
                 if (pvRegHoldValue->ucDataType == uint16)   
@@ -409,11 +385,10 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 else if(pvRegHoldValue->ucDataType == int8)
                 {
                 	usRegHoldValue = (USHORT)(*(int8_t*)pvRegHoldValue->pvValue);
-                }
-                    
-                if( (pvRegHoldValue->fTransmitMultiple != 0.0) && (pvRegHoldValue->fTransmitMultiple != 1.0) )
+                }   
+                if( (pvRegHoldValue->ucTmitMult != 0) && (pvRegHoldValue->ucTmitMult != 1) )
                 {
-                    usRegHoldValue = (USHORT)((float)usRegHoldValue * (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
+                    usRegHoldValue = (USHORT)(usRegHoldValue * pvRegHoldValue->ucTmitMult);     //传输因子
                 }                        
                 *pucRegBuffer++ = (UCHAR)(usRegHoldValue >> 8);
             	*pucRegBuffer++ = (UCHAR)(usRegHoldValue & 0xFF);
@@ -432,29 +407,29 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
     case MB_REG_WRITE:
         while(usNRegs > 0)
         {
-            (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue); //扫描保持寄存器字典，取对应的点
-            
-            if(pvRegHoldValue->ucAccessMode == RO)
-            {
-                return MB_ENOREG;
-            }
-            usRegHoldValue  =((LONG)(*pucRegBuffer++)) << 8;
-            usRegHoldValue |=((LONG)(*pucRegBuffer++)) & 0xFF;
+            (void)eMBSlaveRegHoldMap(psMBSlaveInfo, iRegIndex, &pvRegHoldValue); //扫描保持寄存器字典，取对应的点  
+
+            usRegHoldValue  =((USHORT)(*pucRegBuffer++)) << 8;
+            usRegHoldValue |=((USHORT)(*pucRegBuffer++)) & 0xFF;
             
             if( (pvRegHoldValue != NULL) && (pvRegHoldValue->pvValue != NULL) )
             {
-                if( (pvRegHoldValue->fTransmitMultiple != 0.0) && (pvRegHoldValue->fTransmitMultiple != 1.0))
+                if(pvRegHoldValue->ucAccessMode == RO)
                 {
-                    usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->fTransmitMultiple);     //传输因子
+                    return MB_EINVAL;
+                }
+                if( (pvRegHoldValue->ucTmitMult != 0) && (pvRegHoldValue->ucTmitMult != 1))
+                {
+                    usRegHoldValue = (USHORT)((float)usRegHoldValue / (float)pvRegHoldValue->ucTmitMult);     //传输因子
                 }
                 if (pvRegHoldValue->ucDataType == uint16)
                 {
-                    if( (usRegHoldValue >= pvRegHoldValue->lMinVal ) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )	
+                    if( (usRegHoldValue >= pvRegHoldValue->usMinVal ) && (usRegHoldValue <= pvRegHoldValue->usMaxVal) )	
                     {		
                         if ( usRegHoldValue != *(USHORT*)pvRegHoldValue->pvValue ) //更新数据
                         {
                             *(USHORT*)pvRegHoldValue->pvValue = (USHORT)usRegHoldValue;
-                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(USHORT*)pvRegHoldValue->pvValue);                            
+                            //debug("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(USHORT*)pvRegHoldValue->pvValue);
                         }	
                     }
                     else
@@ -464,12 +439,12 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 }
                 else if(pvRegHoldValue->ucDataType == uint8)
                 {				
-                    if( (usRegHoldValue >= pvRegHoldValue->lMinVal) && (usRegHoldValue <= pvRegHoldValue->lMaxVal) )
+                    if( (usRegHoldValue >= pvRegHoldValue->usMinVal) && (usRegHoldValue <= pvRegHoldValue->usMaxVal) )
                 	 {
                 	 	 if(usRegHoldValue != *(UCHAR*)pvRegHoldValue->pvValue)
                 	 	 {
                              *(UCHAR*)pvRegHoldValue->pvValue = (UCHAR)usRegHoldValue;
-                             myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(UCHAR*)pvRegHoldValue->pvValue);                             
+                             //debug("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(UCHAR*)pvRegHoldValue->pvValue);
                 	 	 }							
                 	 }
                 	 else
@@ -480,12 +455,12 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 else if (pvRegHoldValue->ucDataType == int16)
                 {
                     sRegHoldValue = (SHORT)usRegHoldValue;
-                    if( (sRegHoldValue >= (SHORT)pvRegHoldValue->lMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->lMaxVal) )	
+                    if( (sRegHoldValue >= (SHORT)pvRegHoldValue->usMinVal ) && (sRegHoldValue <= (SHORT)pvRegHoldValue->usMaxVal) )	
                     {		
                         if(sRegHoldValue != *(SHORT*)pvRegHoldValue->pvValue)
                         {
                             *(SHORT*)pvRegHoldValue->pvValue = (SHORT)sRegHoldValue;
-                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(SHORT*)pvRegHoldValue->pvValue);							
+                            //debug("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(SHORT*)pvRegHoldValue->pvValue);
                         }		
                     }
                     else
@@ -496,12 +471,12 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
                 else if(pvRegHoldValue->ucDataType == int8)
                 {	
                     cRegHoldValue = (int8_t)usRegHoldValue;						
-                    if( (cRegHoldValue >= (int8_t)pvRegHoldValue->lMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->lMaxVal) )	
+                    if( (cRegHoldValue >= (int8_t)pvRegHoldValue->usMinVal ) && (cRegHoldValue <= (int8_t)pvRegHoldValue->usMaxVal) )	
                     {
                         if(cRegHoldValue != *(int8_t*)pvRegHoldValue->pvValue)
                         {
                             *(int8_t*)pvRegHoldValue->pvValue = (int8_t)cRegHoldValue;
-                            myprintf("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(int8_t*)pvRegHoldValue->pvValue);                              
+                            //debug("eMBSlaveRegHoldingCB %d %d %d\n", usAddress, iRegIndex, *(int8_t*)pvRegHoldValue->pvValue);
                         }					
                     }
                     else
@@ -514,11 +489,8 @@ eMBErrorCode eMBSlaveRegHoldingCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR * pucRegBuf
             usNRegs--;
         }
     break;
-	default: break;
     }
-    return eStatus;
+    return MB_ENOERR;
 }
-
-#endif
 
 #endif

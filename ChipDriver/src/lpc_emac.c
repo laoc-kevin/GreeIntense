@@ -39,7 +39,8 @@
 #include "lpc_emac.h"
 #include "lpc_clkpwr.h"
 #include "lpc_pinsel.h"
-
+#include "my_rtt_printf.h"
+#include "os.h"
 /* Peripheral group ----------------------------------------------------------- */
 /** @addtogroup EMAC
  * @{
@@ -69,12 +70,16 @@ static uint16_t __attribute__ ((aligned (4))) saFrameBuffers[EMAC_MAX_FRAME_NUM]
 static uint32_t sulCurrFrameSz = 0;
 static uint8_t  sbCurrFrameID = 0;
 
+///* Global pointers on Tx and Rx descriptor used to track transmit and receive descriptors */
+//ETH_DMADESCTypeDef  *DMATxDescToSet;
+//ETH_DMADESCTypeDef  *DMARxDescToGet;
+//ETH_DMADESCTypeDef  *DMAPTPTxDescToSet;
+//ETH_DMADESCTypeDef  *DMAPTPRxDescToGet;
+
 /***************************** PRIVATE FUNCTION *****************************/
 static void EMAC_UpdateRxConsumeIndex(void);
 static void EMAC_UpdateTxProduceIndex(void);
 static uint32_t EMAC_AllocTxBuff(uint16_t nFrameSize, uint8_t bLastFrame);
-static uint32_t EMAC_GetRxFrameSize(void);
-
 
 /*********************************************************************//**
  * @brief
@@ -141,7 +146,6 @@ void setEmacAddr(uint8_t abStationAddr[])
 	LPC_EMAC->SA2 = ((uint32_t)abStationAddr[1] << 8) | (uint32_t)abStationAddr[0];
 }
 
-
 /************************** GLOBAL/PUBLIC FUNCTIONS *************************/
 
 /** @defgroup EMAC_Public_Functions
@@ -152,9 +156,10 @@ void setEmacAddr(uint8_t abStationAddr[])
  * @brief          Write data to PHY
  * @param[in]  PhyReg    PHY register address
  * @param[in]  Value       Register Value
+ * @param[in]  err_t     0 if the read was successful, otherwise !0
  * @return        None
  **********************************************************************/
-void EMAC_Write_PHY (uint8_t PhyReg, uint16_t Value)
+void EMAC_Write_PHY (uint8_t PhyReg, uint16_t Value, void * err_t)
 {
 	unsigned int tout;
 
@@ -171,15 +176,43 @@ void EMAC_Write_PHY (uint8_t PhyReg, uint16_t Value)
 			break;
 		}
 	}
+	
+	if(tout == EMAC_MII_RD_TOUT)
+	{
+		*(uint8_t*)err_t = 1;
+	}
+}
+
+/*********************************************************************//**
+ * @brief      Write data to PHY(NoBlock)
+
+    This function will write a value on the MII link interface to a PHY
+	or a connected device. The function will return immediately without
+	a status. Status needs to be polled later to determine if the write
+	was successful.
+
+ * @param[in]  PhyReg    PHY register address
+ * @param[in]  Value       Register Value
+ * @return     None
+ **********************************************************************/
+void EMAC_Write_PHY_NoBlock (uint8_t PhyReg, uint16_t Value)
+{
+	LPC_EMAC->MADR = ((EMAC_Configs.bPhyAddr & 0x1F) << 8 )| (PhyReg & 0x1F);
+	LPC_EMAC->MWTD = Value;
 }
 
 /*********************************************************************//**
  * @brief          Read data from PHY register
+
+    This function will read a value on the MII link interface from a PHY
+	or a connected device. The function will block until complete.
+
  * @param[in]  PhyReg    PHY register address
+ * @param[in]  err_t     0 if the read was successful, otherwise !0
  * @return        Register value
  **********************************************************************/
-uint16_t EMAC_Read_PHY (uint8_t PhyReg)
-{
+uint16_t EMAC_Read_PHY (uint8_t PhyReg, void * err_t)
+{ 
 	unsigned int tout;
 
 	LPC_EMAC->MADR = ((EMAC_Configs.bPhyAddr & 0x1F) << 8 )| (PhyReg & 0x1F);
@@ -195,8 +228,51 @@ uint16_t EMAC_Read_PHY (uint8_t PhyReg)
 		}
 	}
 
+	if(tout == EMAC_MII_RD_TOUT)
+	{
+		*(uint8_t*)err_t = 1;
+	}
+	
+	
+//	myprintf("LPC_EMAC->MRDD = %u \n",LPC_EMAC->MRDD);
 	LPC_EMAC->MCMD = 0;
 	return (LPC_EMAC->MRDD);
+}
+
+/*********************************************************************//**
+ * @brief          Starts a read operation via the MII link (non-blocking)
+
+    This function returns the current value in the MII data register. It is
+	meant to be used with the non-blocking oeprations. This value should
+	only be read after a non-block read command has been issued and the
+	MII status has been determined to be good.
+
+ * @return        The current value in the MII value register
+ **********************************************************************/
+uint16_t EMAC_ReadData (void)
+{
+	uint32_t data = LPC_EMAC->MRDD;
+	LPC_EMAC->MCMD = 0;
+
+	return data;
+}
+
+/*********************************************************************//**
+ * @brief           Starts a read operation via the MII link (non-blocking)
+
+    This function will start a read operation on the MII link interface
+	from a PHY or a connected device. The function will not block and
+	the status mist be polled until complete. Once complete, the data
+	can be read.
+
+ * @param[in]  PhyReg    PHY register address
+ * @return        None
+ **********************************************************************/
+void EMAC_Read_PHY_Noblock (uint8_t PhyReg)
+{
+	/* Read value at PHY address and register */
+	LPC_EMAC->MADR = ((EMAC_Configs.bPhyAddr & 0x1F) << 8 )| (PhyReg & 0x1F);
+	LPC_EMAC->MCMD = EMAC_MCMD_READ;
 }
 
 /*********************************************************************//**
@@ -234,7 +310,6 @@ void EMAC_SetPHYSpeed(uint8_t mode_100Mbps)
   }
 }
 
-
 /*********************************************************************//**
  * @brief		Initializes the EMAC peripheral according to the specified
 *               parameters in the EMAC_ConfigStruct.
@@ -257,9 +332,13 @@ void EMAC_SetPHYSpeed(uint8_t mode_100Mbps)
 int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 {
 	/* Initialize the EMAC Ethernet controller. */
-	volatile int32_t tout, tmp;
-
+	volatile int32_t tout, i, tmp;
+    int8_t err = 0;
+	
 	EMAC_Configs = *EMAC_ConfigStruct;
+
+	/* Power Up the EMAC controller. */
+     LPC_SC->PCONP |= (0x1<<30);
 
 	/* Set up power for Ethernet module */
 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCENET, ENABLE);
@@ -267,9 +346,10 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	/* Enable P1 Ethernet Pins. */
 
 	/* Reset all EMAC internal modules */
-	LPC_EMAC->MAC1    = EMAC_MAC1_RES_TX | EMAC_MAC1_RES_MCS_TX | EMAC_MAC1_RES_RX |
-					EMAC_MAC1_RES_MCS_RX | EMAC_MAC1_SIM_RES | EMAC_MAC1_SOFT_RES;
+	LPC_EMAC->MAC1  = EMAC_MAC1_RES_TX | EMAC_MAC1_RES_MCS_TX | EMAC_MAC1_RES_RX |
+					  EMAC_MAC1_RES_MCS_RX | EMAC_MAC1_SIM_RES | EMAC_MAC1_SOFT_RES;
 
+	// Set up MAC Command Register (0x78) 
 	LPC_EMAC->Command = EMAC_CR_REG_RES | EMAC_CR_TX_RES | EMAC_CR_RX_RES | EMAC_CR_PASS_RUNT_FRM;
 
 	/* A short delay after reset. */
@@ -278,7 +358,8 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	/* Initialize MAC control registers. */
 	LPC_EMAC->MAC1 = EMAC_MAC1_PASS_ALL;
 	LPC_EMAC->MAC2 = EMAC_MAC2_CRC_EN | EMAC_MAC2_PAD_EN;
-	LPC_EMAC->MAXF = EMAC_ETH_MAX_FLEN;
+	LPC_EMAC->MAXF = EMAC_ConfigStruct->nMaxFrameSize;  // Set Frame size
+	
 	/*
 	 * Find the clock that close to desired target clock
 	 */
@@ -286,16 +367,17 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	for (tout = 0; tout < sizeof (EMAC_clkdiv); tout++)
 	{
 		if (EMAC_clkdiv[tout] >= tmp)
+		{
 			break;
+		}		
 	}
 
-        if(tout >= sizeof (EMAC_clkdiv))
+    if(tout >= sizeof (EMAC_clkdiv))
+	{
 		return ERROR;
+	}	
 	tout++;
-
-	// Set Frame size
-	LPC_EMAC->MAXF = EMAC_ConfigStruct->nMaxFrameSize;
-
+	
 	// Write to MAC configuration register and reset
 	LPC_EMAC->MCFG = EMAC_MCFG_CLK_SEL(tout) | EMAC_MCFG_RES_MII;
 
@@ -304,19 +386,37 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	LPC_EMAC->CLRT = EMAC_CLRT_DEF;
 	LPC_EMAC->IPGR = EMAC_IPGR_P2_DEF;
 
-	/* Enable Reduced MII interface. */
-	LPC_EMAC->Command = EMAC_CR_RMII | EMAC_CR_PASS_RUNT_FRM;
+#if RMII 
+    /* Enable Reduced MII interface. */
+  LPC_EMAC->Command = EMAC_CR_RMII | EMAC_CR_PASS_RUNT_FRM ;
 
+  /* Reset Reduced MII Logic. */
+  LPC_EMAC->SUPP = EMAC_SUPP_RES_RMII;
+  for (tout = 100; tout; tout--);
+  LPC_EMAC->SUPP = 0x0000;
+#else
+  LPC_EMAC->Command &= ~CR_RMII;
+  LPC_EMAC->SUPP = 0x0000;
+#endif
 
 	// Initilialize PHY
 	if(EMAC_ConfigStruct->pfnPHYInit != NULL)
 	{
-	    if(EMAC_ConfigStruct->pfnPHYInit(&EMAC_ConfigStruct->PhyCfg) != SUCCESS)
+	    if(!(EMAC_ConfigStruct->pfnPHYInit(&EMAC_ConfigStruct->PhyCfg) != SUCCESS))
 	    {
-		return ERROR;
+		     return ERROR;
 	    }
+		else
+		{
+			// Update EMAC configuration with current PHY status
+	        if (EMAC_UpdatePHYStatus() < 0)
+	        {
+	        	return ERROR;
+	        }
+		}
+		
 	}
-
+	
 	// Set EMAC address
 	setEmacAddr(EMAC_ConfigStruct->pbEMAC_Addr);
 
@@ -331,6 +431,11 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	EMAC_IntCmd((EMAC_INT_RX_OVERRUN | EMAC_INT_RX_ERR | EMAC_INT_RX_FIN \
 			| EMAC_INT_RX_DONE | EMAC_INT_TX_UNDERRUN | EMAC_INT_TX_ERR \
 			| EMAC_INT_TX_FIN | EMAC_INT_TX_DONE), ENABLE);
+	
+//	EMAC_IntCmd( (EMAC_INT_RX_DONE | EMAC_INT_TX_DONE), ENABLE);
+//	
+	
+	
 
 	/* Reset all interrupts */
 	LPC_EMAC->IntClear  = 0xFFFF;
@@ -339,11 +444,282 @@ int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct)
 	EMAC_TxEnable();
 	EMAC_RxEnable();
 
-	NVIC_EnableIRQ(ENET_IRQn);
+//	NVIC_EnableIRQ(ENET_IRQn);
 
+	return SUCCESS;
+
+//    int8_t err = 0;
+
+//	/* Initialize the EMAC Ethernet controller. */
+//	int32_t regv,tout, tmp;
+
+//	/* Set up power for Ethernet module */
+//	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCENET, ENABLE);
+
+//	/* Enable P1 Ethernet Pins. */
+
+//	/* Reset all EMAC internal modules */
+//	LPC_EMAC->MAC1    = EMAC_MAC1_RES_TX | EMAC_MAC1_RES_MCS_TX | EMAC_MAC1_RES_RX |
+//					EMAC_MAC1_RES_MCS_RX | EMAC_MAC1_SIM_RES | EMAC_MAC1_SOFT_RES;
+
+//	LPC_EMAC->Command = EMAC_CR_REG_RES | EMAC_CR_TX_RES | EMAC_CR_RX_RES | EMAC_CR_PASS_RUNT_FRM;
+
+//	/* A short delay after reset. */
+//	for (tout = 100; tout; tout--);
+
+//	/* Initialize MAC control registers. */
+//	LPC_EMAC->MAC1 = EMAC_MAC1_PASS_ALL;
+//	LPC_EMAC->MAC2 = EMAC_MAC2_CRC_EN | EMAC_MAC2_PAD_EN;
+//	LPC_EMAC->MAXF = EMAC_ETH_MAX_FLEN;
+//	/*
+//	 * Find the clock that close to desired target clock
+//	 */
+//	tmp = CLKPWR_GetCLK(CLKPWR_CLKTYPE_CPU)/ EMAC_MCFG_MII_MAXCLK;
+//	for (tout = 0; tout < sizeof (EMAC_clkdiv); tout++)
+//	{
+//		if (EMAC_clkdiv[tout] >= tmp)
+//			break;
+//	}
+
+//	tout++;
+
+//	// Write to MAC configuration register and reset
+//	LPC_EMAC->MCFG = EMAC_MCFG_CLK_SEL(tout) | EMAC_MCFG_RES_MII;
+
+//	// release reset
+//	LPC_EMAC->MCFG &= ~(EMAC_MCFG_RES_MII);
+//	LPC_EMAC->CLRT = EMAC_CLRT_DEF;
+//	LPC_EMAC->IPGR = EMAC_IPGR_P2_DEF;
+
+//	/* Enable Reduced MII interface. */
+//	LPC_EMAC->Command = EMAC_CR_RMII | EMAC_CR_PASS_RUNT_FRM;
+
+//	/* Reset Reduced MII Logic. */
+//	LPC_EMAC->SUPP = EMAC_SUPP_RES_RMII;
+
+//	for (tout = 100; tout; tout--);
+
+//	LPC_EMAC->SUPP = 0;
+
+//	/* Put the DP83848C in reset mode */
+//	EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_BMCR_RESET, &err);
+
+//	/* Wait for hardware reset to end. */
+////	for (tout = EMAC_PHY_RESP_TOUT; tout > 0; tout--)
+////	{
+////		regv = EMAC_Read_PHY (EMAC_PHY_REG_BMCR, &err);
+
+////		if (err != 0)
+////		{
+////			return ERROR;
+////		}
+////		
+////		if (!(regv & (EMAC_PHY_BMCR_RESET | EMAC_PHY_BMCR_POWERDOWN)))
+////		{
+////			/* Reset complete, device not Power Down. */
+////			myprintf("DP8_RESET tout %d\n", tout);
+////			break;
+////		}
+////		if (tout == 0)
+////		{
+////			// Time out, return ERROR
+////			myprintf("ERROR tout %d\n", tout);
+////			return (ERROR);
+////		}
+//////		myprintf(" tout %d\n", tout);
+////	}
+//	
+//	myprintf("EMAC_SetPHYMode tout %d\n", tout);
+//	
+//	
+//	// Set PHY mode
+//	if (EMAC_SetPHYMode(EMAC_ConfigStruct->PhyCfg.Mode ) < 0)
+//	{
+//		return (ERROR);
+//	}
+
+//	// Set EMAC address
+//	setEmacAddr(EMAC_ConfigStruct->pbEMAC_Addr);
+
+//	/* Initialize Tx and Rx DMA Descriptors */
+//	rx_descr_init ();
+//	tx_descr_init ();
+
+//	// Set Receive Filter register: enable broadcast and multicast
+//	LPC_EMAC->RxFilterCtrl = EMAC_RFC_MCAST_EN | EMAC_RFC_BCAST_EN | EMAC_RFC_PERFECT_EN;
+
+//	/* Enable Rx Done and Tx Done interrupt for EMAC */
+//	EMAC_IntCmd( (EMAC_INT_RX_DONE | EMAC_INT_TX_DONE), ENABLE);
+
+//	/* Reset all interrupts */
+//	LPC_EMAC->IntClear  = 0xFFFF;
+
+//	/* Enable receive and transmit mode of MAC Ethernet core */
+//	LPC_EMAC->Command  |= (EMAC_CR_RX_EN | EMAC_CR_TX_EN);
+//	LPC_EMAC->MAC1     |= EMAC_MAC1_REC_EN;
+
+//	return SUCCESS;
+}
+
+/*********************************************************************//**
+ * @brief		Set specified PHY mode in EMAC peripheral
+ * @param[in]	ulPHYState	Specified PHY mode, should be:
+ * 							- EMAC_MODE_AUTO
+ * 							- EMAC_MODE_10M_FULL
+ * 							- EMAC_MODE_10M_HALF
+ * 							- EMAC_MODE_100M_FULL
+ * 							- EMAC_MODE_100M_HALF
+ * @return		Return (0) if error
+ **********************************************************************/
+int32_t EMAC_SetPHYMode(uint32_t ulPHYMode)
+{
+	int32_t id1, id2, tout, regv;
+
+    int8_t err = 0;
+	OS_ERR error = 0;
+	/* Check if this is a DP83848C PHY. */
+	id1 = EMAC_Read_PHY (EMAC_PHY_REG_IDR1, &err);
+	id2 = EMAC_Read_PHY (EMAC_PHY_REG_IDR2, &err);
+
+	if ((id1 == EMAC_PHY_ID1_CRIT) && ((id2 >> 4) == EMAC_PHY_ID2_CRIT))
+	{
+		/* Configure the PHY device */
+		switch(ulPHYMode)
+		{
+			case EMAC_MODE_AUTO:
+				/* Use auto-negotiation about the link speed. */
+
+				EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_AUTO_NEG, &err);
+			
+			    OSTimeDlyHMSM(0, 0, 0, 1, OS_OPT_TIME_HMSM_STRICT, &error);   /* 1 ms */
+				/* Wait to complete Auto_Negotiation */
+				for (tout = EMAC_PHY_RESP_TOUT; tout; tout--)
+				{
+					regv = EMAC_Read_PHY (EMAC_PHY_REG_BMSR, &err);
+
+					if (regv & EMAC_PHY_BMSR_AUTO_DONE)
+					{
+						/* Auto-negotiation Complete. */
+						myprintf("DP8_AUTONEG_COMP \n");
+						break;
+					}
+				}
+				 if (tout == 0)
+				{
+					// Time out, return error
+					myprintf("error \n");
+					return ERROR;
+				}
+			break;
+               
+			case EMAC_MODE_10M_FULL:
+				/* Connect at 10MBit full-duplex */
+				EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_FULLD_10M, &err);
+				break;
+
+			case EMAC_MODE_10M_HALF:
+				/* Connect at 10MBit half-duplex */
+				EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_HALFD_10M, &err);
+				break;
+
+			case EMAC_MODE_100M_FULL:
+				/* Connect at 100MBit full-duplex */
+				EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_FULLD_100M, &err);
+				break;
+
+			case EMAC_MODE_100M_HALF:
+				/* Connect at 100MBit half-duplex */
+				EMAC_Write_PHY (EMAC_PHY_REG_BMCR, EMAC_PHY_HALFD_100M, &err);
+				break;
+
+			default:
+				// un-supported
+				return ERROR;
+		}
+	}
+	// It's not correct module ID
+	else
+	{
+		return ERROR;
+	}
+
+	// Update EMAC configuration with current PHY status
+	if (EMAC_UpdatePHYStatus() == 0)
+	{
+		return ERROR;
+	}
+
+	// Complete
 	return SUCCESS;
 }
 
+/*********************************************************************//**
+ * @brief		Auto-Configures value for the EMAC configuration register to
+ * 				match with current PHY mode
+ * @param[in]	None
+ * @return		Return (0) if error
+ *
+ * Note: The EMAC configuration will be auto-configured:
+ * 		- Speed mode.
+ * 		- Half/Full duplex mode
+ **********************************************************************/
+int32_t EMAC_UpdatePHYStatus(void)
+{
+	int32_t regv, tout;
+	
+    int8_t err = SUCCESS;
+	
+	/* Check the link status. */
+	for (tout = EMAC_PHY_RESP_TOUT; tout; tout--)
+	{
+		regv = EMAC_Read_PHY (EMAC_PHY_REG_BMSR, &err);
+
+		//Check Link Status
+		if (regv & EMAC_PHY_BMSR_LINK_ESTABLISHED)
+		{
+			/* Link is on. */
+			myprintf("DP8_VALID_LINK \n");
+			break;
+		}
+
+		if (tout == 0)
+		{
+			// time out
+			return ERROR;
+		}
+	}
+
+	/* Configure Full/Half Duplex mode. */
+	if((regv & EMAC_PHY_BMSR_100TX_FULL) || (regv & EMAC_PHY_BMSR_10BT_FULL))
+	{
+		/* Full duplex is enabled. */
+		LPC_EMAC->MAC2    |= EMAC_MAC2_FULL_DUP;
+		LPC_EMAC->Command |= EMAC_CR_FULL_DUP;
+		LPC_EMAC->IPGT     = EMAC_IPGT_FULL_DUP;
+	}
+	else if ((regv & EMAC_PHY_BMSR_100TX_HALF) || (regv & EMAC_PHY_BMSR_10BT_HALF))
+	{
+		/* Half duplex mode. */
+		LPC_EMAC->IPGT = EMAC_IPGT_HALF_DUP;
+	}
+
+	/* Configure 100MBit/10MBit mode. */
+	if ((regv & EMAC_PHY_BMSR_100BT4)
+				|| (regv & EMAC_PHY_BMSR_100TX_FULL)
+				|| (regv & EMAC_PHY_BMSR_100TX_HALF))
+	{
+		/* 100MBit mode. */
+		LPC_EMAC->SUPP = EMAC_SUPP_SPEED;
+	}
+	else if((regv & EMAC_PHY_BMSR_10BT_FULL) || (regv & EMAC_PHY_BMSR_10BT_HALF))
+	{
+		/* 10MBit mode. */
+		LPC_EMAC->SUPP = 0;
+	}
+
+	// Complete
+	return SUCCESS;
+}
 
 /*********************************************************************//**
  * @brief		De-initializes the EMAC peripheral registers to their
@@ -553,7 +929,7 @@ void EMAC_WritePacketBuffer(EMAC_PACKETBUF_Type *pDataStruct)
      }
      frame_num--;
      size -= tmp;
-
+	 
      // Update produce index
      EMAC_UpdateTxProduceIndex();
    } 
@@ -573,7 +949,6 @@ uint32_t EMAC_GetRxFrameStatus(void)
 	return (RX_STAT_INFO(idx));
 }
 
-
 /*********************************************************************//**
  * @brief		Get size of current Received data in received buffer (due to
  * 				RxConsumeIndex)
@@ -591,9 +966,9 @@ uint32_t EMAC_GetRxFrameSize(void)
 
 
 /*********************************************************************//**
- * @brief		Get the address of TX_DESC_PACKET buffer so that user can access from application
+ * @brief		Get the address of RX_DESC_PACKET buffer so that user can access from application
  * @param[in] None
- * @return	Address of the TX_DESC_PACKET buffer
+ * @return	Address of the RX_DESC_PACKET buffer
  **********************************************************************/
 
 uint32_t EMAC_GetRxBuffer(void)
@@ -603,8 +978,22 @@ uint32_t EMAC_GetRxBuffer(void)
 	idx = LPC_EMAC->RxConsumeIndex;
 
   	return RX_DESC_PACKET(idx);
- }
+}
 
+/*********************************************************************//**
+ * @brief		Get the address of TX_DESC_PACKET buffer so that user can access from application
+ * @param[in] None
+ * @return	Address of the TX_DESC_PACKET buffer
+ **********************************************************************/
+
+uint32_t EMAC_GetWriteBuffer(void)
+{
+	uint32_t idx;
+
+	idx = LPC_EMAC->TxProduceIndex;
+
+  	return TX_DESC_PACKET(idx);
+ }
 
 /*********************************************************************//**
  * @brief		Increase the RxConsumeIndex (after reading the Receive buffer
@@ -648,8 +1037,9 @@ void ENET_IRQHandler(void)
 	/* EMAC Ethernet Controller Interrupt function. */
 	uint32_t int_stat;
 	int32_t RxLen;
+	uint16_t *pDest ;
+	uint16_t *pSource; // Get EMAC interrupt status
 	
-	// Get EMAC interrupt status
 	while ((int_stat = (LPC_EMAC->IntStatus & LPC_EMAC->IntEnable)) != 0)
 	{
 		// Clear interrupt status
@@ -659,7 +1049,8 @@ void ENET_IRQHandler(void)
 		{
 		   uint32_t ulFrameSts = EMAC_GetRxFrameStatus();
 		   uint32_t ulErrCode = 0;
-
+			
+//           myprintf("EMAC_INT_RX_OVERRUN ulFrameSts = %u \n", ulFrameSts);
 		   ulErrCode |= (ulFrameSts & EMAC_RINFO_CRC_ERR) ? EMAC_CRC_ERR:0;
 		   ulErrCode |= (ulFrameSts & EMAC_RINFO_SYM_ERR) ? EMAC_SYMBOL_ERR:0;
 		   ulErrCode |= (ulFrameSts & EMAC_RINFO_LEN_ERR) ? EMAC_LENGTH_ERR:0;
@@ -682,97 +1073,105 @@ void ENET_IRQHandler(void)
 		   }
 		   else
 		   {
-		     if(EMAC_Configs.pfnErrorReceive != NULL)
-		       EMAC_Configs.pfnErrorReceive(ulErrCode);
+		       if(EMAC_Configs.pfnErrorReceive != NULL)
+			   {
+			       EMAC_Configs.pfnErrorReceive(ulErrCode);
+		       } 
 		   	}
 		}
-
 		if(int_stat & (EMAC_INT_TX_UNDERRUN|EMAC_INT_TX_ERR ))
 		{
-		   uint32_t ulFrameSts = EMAC_GetTxFrameStatus();
-		   uint32_t ulErrCode = 0;
+		    uint32_t ulFrameSts = EMAC_GetTxFrameStatus();
+		    uint32_t ulErrCode = 0;
 
-		   ulErrCode |= (ulFrameSts & EMAC_TINFO_EXCESS_DEF) ? EMAC_EXCESSIVE_DEFER_ERR:0;
-		   ulErrCode |= (ulFrameSts & EMAC_TINFO_EXCESS_COL) ? EMAC_EXCESSIVE_COLLISION_ERR:0;
-		   ulErrCode |= (ulFrameSts & EMAC_TINFO_LATE_COL) ? EMAC_LATE_COLLISION_ERR:0;
-		   ulErrCode |= (ulFrameSts & EMAC_TINFO_UNDERRUN) ? EMAC_UNDERRUN_ERR:0;
-		   ulErrCode |= (ulFrameSts & EMAC_TINFO_NO_DESCR) ? EMAC_TX_NO_DESC_ERR:0;
-		   if(EMAC_Configs.pfnErrorReceive != NULL)
-		      EMAC_Configs.pfnErrorReceive(ulErrCode);
-		}
-   
+//		    myprintf("EMAC_INT_TX_UNDERRUN ulFrameSts = %u \n", ulFrameSts);
+		    ulErrCode |= (ulFrameSts & EMAC_TINFO_EXCESS_DEF) ? EMAC_EXCESSIVE_DEFER_ERR:0;
+		    ulErrCode |= (ulFrameSts & EMAC_TINFO_EXCESS_COL) ? EMAC_EXCESSIVE_COLLISION_ERR:0;
+		    ulErrCode |= (ulFrameSts & EMAC_TINFO_LATE_COL) ? EMAC_LATE_COLLISION_ERR:0;
+		    ulErrCode |= (ulFrameSts & EMAC_TINFO_UNDERRUN) ? EMAC_UNDERRUN_ERR:0;
+		    ulErrCode |= (ulFrameSts & EMAC_TINFO_NO_DESCR) ? EMAC_TX_NO_DESC_ERR:0;
+		    if(EMAC_Configs.pfnErrorReceive != NULL)
+		    {
+			    EMAC_Configs.pfnErrorReceive(ulErrCode);
+		    }   
+		} 
 	    if(int_stat & EMAC_INT_RX_DONE)
-	    {
-
+	    {  
 	      /* Packet received. */
-	      if(EMAC_GetBufferSts(EMAC_RX_BUFF) != EMAC_BUFF_EMPTY)
-	      {
+	       if(EMAC_GetBufferSts(EMAC_RX_BUFF) != EMAC_BUFF_EMPTY)
+	       {
 	         // Get data size
-		 RxLen = EMAC_GetRxFrameSize();
-		 if(RxLen > 0)
-		 {
-		    // trip out 4-bytes CRC field, note that length in (-1) style format
-		    RxLen -= 3;
+		       RxLen = EMAC_GetRxFrameSize();
+		       if(RxLen > 0)
+		       {
+		           // trip out 4-bytes CRC field, note that length in (-1) style format
+		           RxLen -= 3;
 			  
-		    if((EMAC_GetRxFrameStatus() & EMAC_RINFO_ERR_MASK )== 0)
-                    {
-			uint16_t *pDest = (uint16_t*) &saFrameBuffers[sbCurrFrameID][sulCurrFrameSz];
-			uint16_t *pSource = (uint16_t*)EMAC_GetRxBuffer();
-                        sulCurrFrameSz += RxLen;
-				 
-			if(sulCurrFrameSz >= EMAC_MAX_FRAME_SIZE)
-			{
-			  sulCurrFrameSz = 0;
-			  if(EMAC_Configs.pfnErrorReceive != NULL)
-		             EMAC_Configs.pfnErrorReceive(EMAC_LENGTH_ERR);
-			}
-			else
-			{
-			    // Copy data
-			   while (RxLen > 0)
-			    {
-	                        *pDest++ = *pSource++;
-	                        RxLen -= 2;
+//				   myprintf("EMAC_INT_RX_DONE = %u RxLen %d\n", EMAC_GetRxFrameStatus(), RxLen);
+				   
+			       if((EMAC_GetRxFrameStatus() & EMAC_RINFO_ERR_MASK )== 0)
+			       {	 		   
+			            pDest = (uint16_t*) &saFrameBuffers[sbCurrFrameID][sulCurrFrameSz];
+			            pSource = (uint16_t*)EMAC_GetRxBuffer();
+					    sulCurrFrameSz += RxLen;
+					 
+			            if(sulCurrFrameSz >= EMAC_MAX_FRAME_SIZE)
+			            {
+			                sulCurrFrameSz = 0;
+			                if(EMAC_Configs.pfnErrorReceive != NULL)
+							{
+								EMAC_Configs.pfnErrorReceive(EMAC_LENGTH_ERR);
+							}    
+			            }
+			            else
+			            {
+			                // Copy data
+			                while (RxLen > 0)
+			                {
+	                            *pDest++ = *pSource++;
+	                            RxLen -= 2;
                             } 
-			    if(EMAC_GetRxFrameStatus() & EMAC_RINFO_LAST_FLAG)
-			    {
-				  
-			        if(EMAC_Configs.pfnFrameReceive != NULL)
-			        {
-				  EMAC_Configs.pfnFrameReceive((uint16_t*)saFrameBuffers[sbCurrFrameID], sulCurrFrameSz);
-			        }
-			        sulCurrFrameSz = 0;
-			        sbCurrFrameID ++;
-			        if(sbCurrFrameID >= EMAC_MAX_FRAME_NUM)
-				    sbCurrFrameID = 0;
-			    }	
-			    /* Release frame from EMAC buffer */
-			    EMAC_UpdateRxConsumeIndex();
-			}
-		    }
-		}			 
-	    }
- 	    
-	}
-		
-        if(int_stat & EMAC_INT_TX_FIN && (EMAC_Configs.pfnTransmitFinish != NULL))
-        {
-		   	 EMAC_Configs.pfnTransmitFinish();
-        }
+			                if(EMAC_GetRxFrameStatus() & EMAC_RINFO_LAST_FLAG)
+			                {
+			                    if(EMAC_Configs.pfnFrameReceive != NULL)
+			                    {
+//									myprintf("pfnFrameReceive = %u \n", EMAC_GetRxFrameStatus());
+				                    EMAC_Configs.pfnFrameReceive((uint16_t*)saFrameBuffers[sbCurrFrameID], sulCurrFrameSz);
+			                    }
+			                    sulCurrFrameSz = 0;
+			                    sbCurrFrameID ++;
+			                    if(sbCurrFrameID >= EMAC_MAX_FRAME_NUM)
+								{
+									sbCurrFrameID = 0;
+								}               
+			                }	
+			               
+							 /* Release frame from EMAC buffer */
+			                 EMAC_UpdateRxConsumeIndex();   
+			            }
+		           }    
+		       }			 
+	       }   
+	   }
+       if(int_stat & EMAC_INT_TX_FIN )
+	   {   
+	       if (EMAC_Configs.pfnTransmitFinish != NULL)
+           {
+		       EMAC_Configs.pfnTransmitFinish();
+           }
+       }
 
-		if(int_stat & EMAC_INT_SOFT_INT && (EMAC_Configs.pfnSoftInt!= NULL))
-        {
-		   	 EMAC_Configs.pfnSoftInt();
-        }
+       if(int_stat & EMAC_INT_SOFT_INT && (EMAC_Configs.pfnSoftInt!= NULL))
+       {
+		   EMAC_Configs.pfnSoftInt();
+       }
 
-		if(int_stat & EMAC_INT_WAKEUP && (EMAC_Configs.pfnWakeup!= NULL))
-        {
-		   	 EMAC_Configs.pfnWakeup();
-        }
-	 
+       if(int_stat & EMAC_INT_WAKEUP && (EMAC_Configs.pfnWakeup!= NULL))
+       {
+		   EMAC_Configs.pfnWakeup();
+       }
     }
 }
-
 
 /*********************************************************************//**
  * @brief		Enable/Disable hash filter functionality for specified destination
@@ -1002,6 +1401,21 @@ void EMAC_IntCmd(uint32_t ulIntType, FunctionalState NewState)
 }
 
 /*********************************************************************//**
+ * @brief 		interrupt clear in EMAC
+ * @return		None
+ **********************************************************************/
+void EMAC_IntClear(void)
+{	
+	uint32_t int_stat;
+	// Get EMAC interrupt status
+	while ((int_stat = (LPC_EMAC->IntStatus & LPC_EMAC->IntEnable)) != 0)
+	{
+		// Clear interrupt status
+		LPC_EMAC->IntClear = int_stat;
+	}
+}
+
+/*********************************************************************//**
  * @brief 		Check whether if specified interrupt flag is set or not
  * 				for each interrupt type in EMAC and clear interrupt pending
  * 				if it is set.
@@ -1031,7 +1445,14 @@ IntStatus EMAC_IntGetStatus(uint32_t ulIntType)
 	}
 }
 
-
+/*********************************************************************//**
+ * @brief		Reads current MII link busy status
+ * @return		!0 if the MII link is busy, otherwise 0
+ **********************************************************************/
+uint32_t EMAC_IsMiiBusy(void)
+{
+	return (uint32_t) (LPC_EMAC->MIND & EMAC_MIND_BUSY);
+}
 
 /**
  * @}

@@ -8,6 +8,9 @@
 #define MODULAR_TIME_OUT_S              5
 #define MODULAR_TIME_OUT_DELAY_S        20
 
+#define MODEBUS_SERVER_IP    "192.168.1.210"
+#define MODEBUS_SERVER_PORT  502
+
 /*************************************************************
 *                         模块                               *
 **************************************************************/
@@ -206,115 +209,113 @@ void vModularRoof_InitDevCommData(ModularRoof* pt)
 {
     ModularRoof* pThis = (ModularRoof*)pt;
     
-MASTER_PBUF_INDEX_ALLOC()
+MASTER_PBUF_INDEX_ALLOC
     
 MASTER_TEST_CMD_INIT(&pThis->sDevCommData.sMBDevCmdTable, 0, READ_REG_HOLD, 0x302A, TRUE)     //测试命令
-MASTER_HEART_BEAT_INIT(&pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, MODULAR_HEART_BEAT_PERIOD_S, TRUE)  //心跳帧
+//MASTER_HEART_BEAT_INIT(pThis->sDevCommData.sMBDevHeartBeat, 0, READ_REG_HOLD, 0x302A, MODULAR_HEART_BEAT_PERIOD_S, TRUE)  //心跳帧
     
     /******************************保持寄存器数据域*************************/
-MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_RegHoldBuf, &pThis->sDevCommData.sMBRegHoldTable)
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_RegHoldBuf, pThis->sDevCommData.sMBRegHoldTable)
     
-    MASTER_REG_HOLD_DATA(0, uint16,    0, 65535,  0x302A,  RO, 1, (void*)&pThis->usUnitID)
-    MASTER_REG_HOLD_DATA(2,  uint8,   85,   170,    0x55,  RW, 1, (void*)&pThis->eSwitchState)
-    MASTER_REG_HOLD_DATA(3,  uint8,    1,     4,       1,  RW, 1, (void*)&pThis->eRunningMode)
-    MASTER_REG_HOLD_DATA(5, uint16,  160,   350,     260,  RW, 1, (void*)&pThis->usCoolTempSet) 
-    MASTER_REG_HOLD_DATA(6, uint16,  160,   350,     200,  RW, 1, (void*)&pThis->usHeatTempSet)
+    MASTER_REG_HOLD_DATA(0, uint16,    0, 65535,  0x302A,  RO, 1, pThis->usUnitID)
+    MASTER_REG_HOLD_DATA(2,  uint8,   85,   170,    0x55,  RW, 1, pThis->eSwitchState)
+    MASTER_REG_HOLD_DATA(3,  uint8,    1,     4,       1,  RW, 1, pThis->eRunningMode)
+    MASTER_REG_HOLD_DATA(5, uint16,  160,   350,     260,  RW, 1, pThis->usCoolTempSet) 
+    MASTER_REG_HOLD_DATA(6, uint16,  160,   350,     200,  RW, 1, pThis->usHeatTempSet)
 
-    MASTER_REG_HOLD_DATA(8,  uint16,   0, MODULAR_MAX_FRE_AIR_VOL,  30000,  WO, 1, (void*)&pThis->usFreAirSet_Vol)
-    MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,                       55,  WO, 1, (void*)&pThis->usHumidityMin)
-    MASTER_REG_HOLD_DATA(10, uint16,   0,   100,                       65,  WO, 1, (void*)&pThis->usHumidityMax)
-    MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,                     2700,  WO, 1, (void*)&pThis->usCO2AdjustThr_V) 
-    MASTER_REG_HOLD_DATA(12, uint16,   5,   500,                       50,  WO, 1, (void*)&pThis->usCO2AdjustDeviat)
+    MASTER_REG_HOLD_DATA(8,  uint16,   0, MODULAR_MAX_FRE_AIR_VOL,  30000,  WO, 1, pThis->usFreAirSet_Vol)
+    MASTER_REG_HOLD_DATA(9,  uint16,   0,   100,                       55,  WO, 1, pThis->usHumidityMin)
+    MASTER_REG_HOLD_DATA(10, uint16,   0,   100,                       65,  WO, 1, pThis->usHumidityMax)
+    MASTER_REG_HOLD_DATA(11, uint16,   0,  5000,                     2700,  WO, 1, pThis->usCO2AdjustThr_V) 
+    MASTER_REG_HOLD_DATA(12, uint16,   5,   500,                       50,  WO, 1, pThis->usCO2AdjustDeviat)
      
-    MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  WO, 1, (void*)&pThis->sAmbientIn_T)
-    MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  WO, 1, (void*)&pThis->usAmbientIn_H)
-    MASTER_REG_HOLD_DATA(18, uint16,    MIN_CO2_PPM,  MAX_CO2_PPM,  0,  WO, 1, (void*)&pThis->usCO2PPM)   
-    MASTER_REG_HOLD_DATA(37,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[0]->ucModularState) 
-    MASTER_REG_HOLD_DATA(38,  uint8,    0,            5,            0,  RO, 1, (void*)&pThis->psModularList[1]->ucModularState)   
+    MASTER_REG_HOLD_DATA(16,  int16,    MIN_IN_TEMP,  MAX_IN_TEMP,  0,  WO, 1, pThis->sAmbientIn_T)
+    MASTER_REG_HOLD_DATA(17, uint16,    MIN_HUMI,     MAX_HUMI,     0,  WO, 1, pThis->usAmbientIn_H)
+    MASTER_REG_HOLD_DATA(18, uint16,    MIN_CO2_PPM,  MAX_CO2_PPM,  0,  WO, 1, pThis->usCO2PPM)   
+    MASTER_REG_HOLD_DATA(37,  uint8,    0,            5,            0,  RO, 1, pThis->psModularList[0]->ucModularState) 
+    MASTER_REG_HOLD_DATA(38,  uint8,    0,            5,            0,  RO, 1, pThis->psModularList[1]->ucModularState)   
                                                                                           
-    MASTER_REG_HOLD_DATA(39, uint8,     0,     5,     0,  RO, 1, (void*)&pThis->psModularList[2]->ucModularState) 
-    MASTER_REG_HOLD_DATA(40, uint8,     0,     5,     0,  RO, 1, (void*)&pThis->psModularList[3]->ucModularState)   
-    MASTER_REG_HOLD_DATA(44, int16,  -200,  1400,     0,  RO, 1, (void*)&pThis->sRetAir_T)      
-    MASTER_REG_HOLD_DATA(45, int16,  -200,  1400,     0,  RO, 1, (void*)&pThis->sSupAir_T)
-    MASTER_REG_HOLD_DATA(46, int16,  -400,   700,     0,  RO, 1, (void*)&pThis->sAmbientInSelf_T)
+    MASTER_REG_HOLD_DATA(39, uint8,     0,     5,     0,  RO, 1, pThis->psModularList[2]->ucModularState) 
+    MASTER_REG_HOLD_DATA(40, uint8,     0,     5,     0,  RO, 1, pThis->psModularList[3]->ucModularState)   
+    MASTER_REG_HOLD_DATA(44, int16,  -200,  1400,     0,  RO, 1, pThis->sRetAir_T)      
+    MASTER_REG_HOLD_DATA(45, int16,  -200,  1400,     0,  RO, 1, pThis->sSupAir_T)
+    MASTER_REG_HOLD_DATA(46, int16,  -400,   700,     0,  RO, 1, pThis->sAmbientInSelf_T)
    
-    MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO,  1, (void*)&pThis->usAmbientInSelf_H)
-    MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO,  1, (void*)&pThis->sAmbientOutSelf_T) 
-    MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO,  1, (void*)&pThis->usAmbientOutSelf_H)
-    MASTER_REG_HOLD_DATA(51, uint16,    0,  1000,  1000,  RO, 10, (void*)&pThis->usFreAirDamper_Ang)
-    MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO,  1, (void*)&pThis->usCO2PPMSelf)         
+    MASTER_REG_HOLD_DATA(47, uint16,    0,   100,     0,  RO,  1, pThis->usAmbientInSelf_H)
+    MASTER_REG_HOLD_DATA(48, int16,  -400,   700,     0,  RO,  1, pThis->sAmbientOutSelf_T) 
+    MASTER_REG_HOLD_DATA(49, uint16,    0,   100,     0,  RO,  1, pThis->usAmbientOutSelf_H)
+    MASTER_REG_HOLD_DATA(51, uint16,    0,  1000,  1000,  RO, 10, pThis->usFreAirDamper_Ang)
+    MASTER_REG_HOLD_DATA(52, uint16,    0,  5000,     0,  RO,  1, pThis->usCO2PPMSelf)         
    
-    MASTER_REG_HOLD_DATA(53, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usFreAir_Vol)
-    MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usSupAir_Vol)
-    MASTER_REG_HOLD_DATA(55, uint16,    0,  65000,    0,  RO, 1, (void*)&pThis->usRetAir_Vol)
+    MASTER_REG_HOLD_DATA(53, uint16,    0,  65000,    0,  RO, 1, pThis->usFreAir_Vol)
+    MASTER_REG_HOLD_DATA(54, uint16,    0,  65000,    0,  RO, 1, pThis->usSupAir_Vol)
+    MASTER_REG_HOLD_DATA(55, uint16,    0,  65000,    0,  RO, 1, pThis->usRetAir_Vol)
 
 MASTER_END_DATA_BUF(0, 55)
     
     /******************************线圈数据域*************************/ 
-MASTER_BEGIN_DATA_BUF(&pThis->sModularRoof_BitCoilBuf, &pThis->sDevCommData.sMBCoilTable) 
+MASTER_BEGIN_DATA_BUF(pThis->sModularRoof_BitCoilBuf, pThis->sDevCommData.sMBCoilTable) 
     
-    MASTER_COIL_BIT_DATA(0,  0, RO, (void*)&pThis->Device.eRunningState);   
-    MASTER_COIL_BIT_DATA(1,  0, RO, (void*)&pThis->xStopErrFlag);
-    MASTER_COIL_BIT_DATA(2,  0, RO, (void*)&pThis->Device.xErrFlag);
-    MASTER_COIL_BIT_DATA(3,  0, RO, (void*)&pThis->Device.xAlarmFlag); 
-    MASTER_COIL_BIT_DATA(10, 0, WO, (void*)&pThis->xErrClean);
+    MASTER_COIL_BIT_DATA(0,  0, RO, pThis->Device.eRunningState);   
+    MASTER_COIL_BIT_DATA(1,  0, RO, pThis->xStopErrFlag);
+    MASTER_COIL_BIT_DATA(2,  0, RO, pThis->Device.xErrFlag);
+    MASTER_COIL_BIT_DATA(3,  0, RO, pThis->Device.xAlarmFlag); 
+    MASTER_COIL_BIT_DATA(10, 0, WO, pThis->xErrClean);
     
-    MASTER_COIL_BIT_DATA(16, 0, WO, (void*)&pThis->xTempSenInErr); 
-    MASTER_COIL_BIT_DATA(17, 0, WO, (void*)&pThis->xHumiSenInErr);
-    MASTER_COIL_BIT_DATA(18, 0, WO, (void*)&pThis->xCO2SenErr);
-    MASTER_COIL_BIT_DATA(48, 0, RO, (void*)&pThis->psSupAirFan->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(54, 0, RO, (void*)&pThis->xSupAirDamperState); 
+    MASTER_COIL_BIT_DATA(16, 0, WO, pThis->xTempSenInErr); 
+    MASTER_COIL_BIT_DATA(17, 0, WO, pThis->xHumiSenInErr);
+    MASTER_COIL_BIT_DATA(18, 0, WO, pThis->xCO2SenErr);
+    MASTER_COIL_BIT_DATA(48, 0, RO, pThis->psSupAirFan->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(54, 0, RO, pThis->xSupAirDamperState); 
     
-    MASTER_COIL_BIT_DATA(55,  0, RO, (void*)&pThis->xWetMode);  
-    MASTER_COIL_BIT_DATA(64,  0, RO, (void*)&pThis->psModularList[0]->psCompList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(65,  0, RO, (void*)&pThis->psModularList[0]->psCompList[1]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(66,  0, RO, (void*)&pThis->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(67,  0, RO, (void*)&pThis->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(55,  0, RO, pThis->xWetMode);  
+    MASTER_COIL_BIT_DATA(64,  0, RO, pThis->psModularList[0]->psCompList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(65,  0, RO, pThis->psModularList[0]->psCompList[1]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(66,  0, RO, pThis->psModularList[0]->psAmbientOutFanList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(67,  0, RO, pThis->psModularList[0]->psAmbientOutFanList[1]->Device.eRunningState);
     
-    MASTER_COIL_BIT_DATA(80,  0, RO, (void*)&pThis->psModularList[1]->psCompList[0]->Device.eRunningState);  
-    MASTER_COIL_BIT_DATA(81,  0, RO, (void*)&pThis->psModularList[1]->psCompList[1]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(82,  0, RO, (void*)&pThis->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(83,  0, RO, (void*)&pThis->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(96,  0, RO, (void*)&pThis->psModularList[2]->psCompList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(80,  0, RO, pThis->psModularList[1]->psCompList[0]->Device.eRunningState);  
+    MASTER_COIL_BIT_DATA(81,  0, RO, pThis->psModularList[1]->psCompList[1]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(82,  0, RO, pThis->psModularList[1]->psAmbientOutFanList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(83,  0, RO, pThis->psModularList[1]->psAmbientOutFanList[1]->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(96,  0, RO, pThis->psModularList[2]->psCompList[0]->Device.eRunningState); 
     
-    MASTER_COIL_BIT_DATA(97,  0, RO, (void*)&pThis->psModularList[2]->psCompList[1]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(98,  0, RO, (void*)&pThis->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(99,  0, RO, (void*)&pThis->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(112, 0, RO, (void*)&pThis->psModularList[3]->psCompList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(113, 0, RO, (void*)&pThis->psModularList[3]->psCompList[1]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(97,  0, RO, pThis->psModularList[2]->psCompList[1]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(98,  0, RO, pThis->psModularList[2]->psAmbientOutFanList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(99,  0, RO, pThis->psModularList[2]->psAmbientOutFanList[1]->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(112, 0, RO, pThis->psModularList[3]->psCompList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(113, 0, RO, pThis->psModularList[3]->psCompList[1]->Device.eRunningState); 
     
-    MASTER_COIL_BIT_DATA(114, 0, RO, (void*)&pThis->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState); 
-    MASTER_COIL_BIT_DATA(115, 0, RO, (void*)&pThis->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState);
-    MASTER_COIL_BIT_DATA(144, 0, RO, (void*)&pThis->psModularList[0]->xTempSenOutErr); 
-    MASTER_COIL_BIT_DATA(145, 0, RO, (void*)&pThis->psModularList[0]->xHumiSenOutErr);
-    MASTER_COIL_BIT_DATA(264, 0, RO, (void*)&pThis->psModularList[1]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(114, 0, RO, pThis->psModularList[3]->psAmbientOutFanList[0]->Device.eRunningState); 
+    MASTER_COIL_BIT_DATA(115, 0, RO, pThis->psModularList[3]->psAmbientOutFanList[1]->Device.eRunningState);
+    MASTER_COIL_BIT_DATA(144, 0, RO, pThis->psModularList[0]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(145, 0, RO, pThis->psModularList[0]->xHumiSenOutErr);
+    MASTER_COIL_BIT_DATA(264, 0, RO, pThis->psModularList[1]->xTempSenOutErr); 
     
-    MASTER_COIL_BIT_DATA(265, 0, RO, (void*)&pThis->psModularList[1]->xHumiSenOutErr); 
-    MASTER_COIL_BIT_DATA(384, 0, RO, (void*)&pThis->psModularList[2]->xTempSenOutErr); 
-    MASTER_COIL_BIT_DATA(385, 0, RO, (void*)&pThis->psModularList[2]->xHumiSenOutErr); 
-    MASTER_COIL_BIT_DATA(404, 0, RO, (void*)&pThis->psModularList[3]->xTempSenOutErr); 
-    MASTER_COIL_BIT_DATA(405, 0, RO, (void*)&pThis->psModularList[3]->xHumiSenOutErr); 
+    MASTER_COIL_BIT_DATA(265, 0, RO, pThis->psModularList[1]->xHumiSenOutErr); 
+    MASTER_COIL_BIT_DATA(384, 0, RO, pThis->psModularList[2]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(385, 0, RO, pThis->psModularList[2]->xHumiSenOutErr); 
+    MASTER_COIL_BIT_DATA(404, 0, RO, pThis->psModularList[3]->xTempSenOutErr); 
+    MASTER_COIL_BIT_DATA(405, 0, RO, pThis->psModularList[3]->xHumiSenOutErr); 
     
-    MASTER_COIL_BIT_DATA(621, 0, RO, (void*)&pThis->xFreAirSenErr);
-    MASTER_COIL_BIT_DATA(622, 0, RO, (void*)&pThis->xRetAirSenErr);
-    MASTER_COIL_BIT_DATA(630, 0, RO, (void*)&pThis->xCO2SenSelfErr_1);
-    MASTER_COIL_BIT_DATA(631, 0, RO, (void*)&pThis->xCO2SenSelfErr_2);
+    MASTER_COIL_BIT_DATA(621, 0, RO, pThis->xFreAirSenErr);
+    MASTER_COIL_BIT_DATA(622, 0, RO, pThis->xRetAirSenErr);
+    MASTER_COIL_BIT_DATA(630, 0, RO, pThis->xCO2SenSelfErr_1);
+    MASTER_COIL_BIT_DATA(631, 0, RO, pThis->xCO2SenSelfErr_2);
     
 MASTER_END_DATA_BUF(0, 631)  
     
 //    myprintf("&sMBRegHoldTable %d  sModularRoof_RegHoldBuf %d\n", 
 //    &pThis->sDevCommData.sMBRegHoldTable, &pThis->sModularRoof_RegHoldBuf);
-    
-    pThis->sDevCommData.ucProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
-    pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
-    pThis->sMBSlaveDev.psDevDataInfo = &(pThis->sDevCommData);
-}
 
-/*向通讯主栈中注册设备*/
-void vModularRoof_RegistDev(ModularRoof* pt)
-{
-    ModularRoof* pThis = (ModularRoof*)pt;
-   (void)xMBMasterRegistDev(pThis->psMBMasterInfo, &pThis->sMBSlaveDev);
+#if MB_MASTER_TCP_EN && MB_MASTER_TCP_ENABLED    
+    pThis->sMBSlaveDev.pcMBServerIP = MODEBUS_SERVER_IP;
+    pThis->sMBSlaveDev.uiMBServerPort = MODEBUS_SERVER_PORT;
+#endif    
+    pThis->sDevCommData.usProtocolID = MODULAR_ROOF_PROTOCOL_TYPE_ID;
+    pThis->sDevCommData.pxDevDataMapIndex = xModularRoof_DevDataMapIndex;  //绑定映射函数
+    pThis->sMBSlaveDev.psDevDataInfo = &pThis->sDevCommData;
+    
 }
 
 /*机组数据监控*/
@@ -399,13 +400,12 @@ void vModularRoof_TimeoutInd(void * p_tmr, void * p_arg)
 }
 
 /*机组初始化*/
-void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucDevAddr, uint8_t ucDevIndex)
+void vModularRoof_Init(ModularRoof* pt, UCHAR ucDevAddr, uint8_t ucDevIndex)
 {
     uint8_t n = 0;
-    ModularRoof* pThis     = (ModularRoof*)pt;
-    Modular*     psModular = NULL;
+    ModularRoof* pThis = (ModularRoof*)pt;
+    Modular* psModular = NULL;
     
-    pThis->psMBMasterInfo        = psMBMasterInfo;
     pThis->psSupAirFan           = (SupAirFan*)SupAirFan_new();  //送风风机
     pThis->sMBSlaveDev.ucDevAddr = ucDevAddr;
     pThis->Device.ucDevIndex     = ucDevIndex;
@@ -420,12 +420,9 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
         }       
     } 
     vModularRoof_RegistMonitor(pThis);      //注册监控数据
-   
     vModularRoof_InitDevCommData(pThis);    //初始化设备通讯数据表 
     vModularRoof_InitDefaultData(pThis);    //初始化默认数据
-    
     vModularRoof_RegistEEPROMData(pThis);   //EEPROM数据注册
-    vModularRoof_RegistDev(pThis);          //向通讯主栈中注册设备
 
     //机组周期定时器
     (void)xTimerRegist(&pThis->sModularRoofTmr, MODULAR_TIME_OUT_DELAY_S, MODULAR_TIME_OUT_S, 
@@ -434,12 +431,12 @@ void vModularRoof_Init(ModularRoof* pt, sMBMasterInfo* psMBMasterInfo, UCHAR ucD
 
 CTOR(ModularRoof)   //屋顶机构造函数
     SUPER_CTOR(Device);
-    FUNCTION_SETTING(init,                   vModularRoof_Init);
+    FUNCTION_SETTING(init, vModularRoof_Init);
                                              
-    FUNCTION_SETTING(IDevSwitch.switchOpen,  vModularRoof_SwitchOpen);
+    FUNCTION_SETTING(IDevSwitch.switchOpen, vModularRoof_SwitchOpen);
     FUNCTION_SETTING(IDevSwitch.switchClose, vModularRoof_SwitchClose);
 
-    FUNCTION_SETTING(setRunningMode,         vModularRoof_SetRunningMode);
+    FUNCTION_SETTING(setRunningMode, vModularRoof_SetRunningMode);
 END_CTOR
 
 

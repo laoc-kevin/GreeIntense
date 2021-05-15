@@ -40,9 +40,7 @@
 #include "mbframe.h"
 #include "mbproto.h"
 #include "mbconfig.h"
-#include "mbutils.h"
-
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 
+#include "mbbits.h"
 
 /* ----------------------- Defines ------------------------------------------*/
 #define MB_PDU_FUNC_READ_ADDR_OFF           ( MB_PDU_DATA_OFF )
@@ -64,7 +62,7 @@
 
 /* ----------------------- Start implementation -----------------------------*/
 
-#if MB_FUNC_READ_COILS_ENABLED > 0
+#if MB_FUNC_READ_COILS_ENABLED
 /***********************************************************************************
  * @brief 读线圈功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -81,8 +79,6 @@ eMBSlaveFuncReadCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
     UCHAR *pucFrameCur;
 
     eMBErrorCode eRegStatus;
-    eMBException eStatus = MB_EX_NONE;
-    
     if( *usLen == (MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN) )
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_READ_ADDR_OFF) << 8 );
@@ -118,37 +114,32 @@ eMBSlaveFuncReadCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
             *pucFrameCur++ = ucNBytes;
             *usLen += 1;
 
-            eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usCoilCount, MB_REG_READ);    //回调函数
+            eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, pucFrameCur, usRegAddress, usCoilCount, MB_BIT_READ);    //回调函数
                     
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
-                /* The response contains the function code, the starting address
-                 * and the quantity of registers. We reuse the old values in the 
-                 * buffer because they are still valid. */
                 *usLen += ucNBytes;;
             }
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
-        /* Can't be a valid read coil register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_WRITE_COIL_ENABLED > 0
+#if MB_FUNC_WRITE_COIL_ENABLED
 /***********************************************************************************
  * @brief 写单个线圈功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -161,12 +152,10 @@ eMBException
 eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
     USHORT          usRegAddress;
-    
     eMBErrorCode    eRegStatus;
-    eMBException    eStatus = MB_EX_NONE;
-    
+
     UCHAR ucBuf[2] = {0};
-    
+
     if(*usLen == MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN)
     {
         usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_ADDR_OFF) << 8 );
@@ -185,30 +174,28 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
             {
                 ucBuf[0] = 0;
             }
-            eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, &ucBuf[0], usRegAddress, 1, MB_REG_WRITE);
+            eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, &ucBuf[0], usRegAddress, 1, MB_BIT_WRITE);
 
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
-        /* Can't be a valid write coil register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0
+#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED
 /***********************************************************************************
  * @brief 写多个线圈功能函数
  * @param pucFrame       Modbus的PDU缓冲区数据指针
@@ -220,19 +207,15 @@ eMBSlaveFuncWriteCoil(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLe
 eMBException 
 eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USHORT* usLen)
 {
-    USHORT          usRegAddress;
-    USHORT          usCoilCnt;
-    UCHAR           ucByteCount;
-    UCHAR           ucByteCountVerify;
+    USHORT usCoilAddress, usCoilCnt;
+    UCHAR  ucByteCount, ucByteCountVerify;
 
-    eMBException    eStatus = MB_EX_NONE;
     eMBErrorCode    eRegStatus;
 
     if( *usLen > ( MB_PDU_FUNC_WRITE_SIZE + MB_PDU_SIZE_MIN ) )
     {
-        usRegAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
-        usRegAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
-        usRegAddress++;
+        usCoilAddress  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF) << 8 );
+        usCoilAddress |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_ADDR_OFF + 1) );
 
         usCoilCnt  = (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF) << 8 );
         usCoilCnt |= (USHORT)( *(pucFrame + MB_PDU_FUNC_WRITE_MUL_COILCNT_OFF + 1) );
@@ -253,12 +236,12 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
             (ucByteCountVerify == ucByteCount) )
         {
             eRegStatus = eMBSlaveRegCoilsCB(psMBSlaveInfo, pucFrame + MB_PDU_FUNC_WRITE_MUL_VALUES_OFF,
-                                            usRegAddress, usCoilCnt, MB_REG_WRITE );
+                                            usCoilAddress, usCoilCnt, MB_BIT_WRITE);
 
             /* If an error occured convert it into a Modbus exception. */
             if(eRegStatus != MB_ENOERR)
             {
-                eStatus = prveMBSlaveError2Exception(eRegStatus);
+                return prveMBSlaveError2Exception(eRegStatus);
             }
             else
             {
@@ -270,20 +253,20 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
         /* Can't be a valid write coil register request because the length
          * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 #endif
 
-#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED> 0 || MB_FUNC_READ_COILS_ENABLED > 0 
+#if MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED || MB_FUNC_WRITE_COIL_ENABLED || MB_FUNC_READ_COILS_ENABLED
 /***********************************************************************************
  * @brief 线圈状态寄存器回调函数（读、连续读、写、连续写）
  * @param pucRegBuffer  位组成一个字节，起始寄存器对应的位处于该字节pucRegBuffer的最低位LSB。
@@ -300,34 +283,32 @@ eMBSlaveFuncWriteMultipleCoils(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucFrame, USH
  * @date 2019.01.22
  *************************************************************************************/
 eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer, 
-                                USHORT usAddress, USHORT usNCoils, eMBRegisterMode eMode)
+                                USHORT usAddress, USHORT usNCoils, eMBBitMode eMode)
 {
-	USHORT          COIL_START, COIL_END;
-    eMBErrorCode    eStatus = MB_ENOERR;
-	OS_ERR          err = OS_ERR_NONE;
-    
+    USHORT COIL_START, COIL_END;
     sMBSlaveDataTable* psMBCoilTable = &psMBSlaveInfo->sMBCommInfo.psSlaveCurData->sMBCoilTable;  //从栈通讯协议表
-    
+    eMBErrorCode  eStatus = MB_ENOERR;
+
+    if( (psMBCoilTable == NULL) || (psMBCoilTable->pvDataBuf == NULL) ||
+        (psMBCoilTable->usDataCount == 0)) //非空且数据点不为0
+    {
+        return MB_ENOREG;
+    }
     COIL_START = psMBCoilTable->usStartAddr;
     COIL_END = psMBCoilTable->usEndAddr;
-   
-    /* it already plus one in modbus function method. */
-    usAddress--;
 
     if( (usAddress >= COIL_START) && (usAddress + usNCoils -1 <= COIL_END) )
     {
 		switch (eMode)
         {
         /* read current coil values from the protocol stack. */
-        case MB_REG_READ:
+        case MB_BIT_READ:
             eStatus = eMBSlaveUtilGetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
         break;
 
-        case MB_REG_WRITE:	
+        case MB_BIT_WRITE:
             eStatus = eMBSlaveUtilSetBits(psMBSlaveInfo, pucRegBuffer, usAddress, usNCoils, CoilData);
         break;
-		
-		default: break;
         }
     }
     else
@@ -338,6 +319,3 @@ eMBErrorCode eMBSlaveRegCoilsCB(sMBSlaveInfo* psMBSlaveInfo, UCHAR* pucRegBuffer
 }
 
 #endif
-
-#endif
-

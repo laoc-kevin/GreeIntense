@@ -34,7 +34,7 @@ void vSystem_FanRunningState(System* pt, ExAirFan* pmExAirFan)
     BMS*         psBMS        = BMS_Core();
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
+  //  debug("vSystem_DeviceRunningState  eSystemState %d  \n", pThis->eSystemState);
 #endif  
     
 	if(pmExAirFan != NULL && pmExAirFan->xExAirFanRemote == TRUE && pmExAirFan->xExAirFanErr == FALSE)
@@ -138,7 +138,7 @@ ExAirFan* psSystem_LongestExAirFan(System* pt)
 #if DEBUG_ENABLE > 0
     if(pExAirFan != NULL)
     {
-        myprintf("psSystem_LongestExAirFan  ucConstantNum %d  ucDevIndex %d\n", ucConstantNum, pExAirFan->Device.ucDevIndex);
+     //   debug("psSystem_LongestExAirFan  ucConstantNum %d  ucDevIndex %d\n", ucConstantNum, pExAirFan->Device.ucDevIndex);
     }
 #endif
     return pExAirFan;
@@ -182,7 +182,7 @@ ExAirFan* psSystem_ShortestExAirFan(System* pt)
 #if DEBUG_ENABLE > 0
     if(pExAirFan != NULL)
     {
-        myprintf("psSystem_ShortestExAirFan ucDevIndex %d\n",  pExAirFan->Device.ucDevIndex);
+     //   debug("psSystem_ShortestExAirFan ucDevIndex %d\n",  pExAirFan->Device.ucDevIndex);
     }
 #endif         
     return pExAirFan;
@@ -214,7 +214,7 @@ void vSystem_ExAirFanRequestTimeTmrCallback(void* p_tmr, void* p_arg)
         {
             pExAirFan->IDevSwitch.switchClose(SUPER_PTR(pExAirFan, IDevSwitch));
 #if DEBUG_ENABLE > 0
-            myprintf("vSystem_ExAirFanRequestTimeTmrCallback %d \n", pThis->eSystemMode);
+         //   debug("vSystem_ExAirFanRequestTimeTmrCallback %d \n", pThis->eSystemMode);
 #endif             
         } 
     }
@@ -303,7 +303,7 @@ void vSystem_ExAirFanConstantAlwaysOpen(System* pt)
     }
 //    ucConstantFanRequestNum = pThis->ucConstantFanRequestNum;   
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanConstantAlwaysOpen  ucConstantFanRequestNum %d  ucRunningNum %d \n", pThis->ucConstantFanRequestNum, ucRunningNum);
+    //debug("vSystem_ExAirFanConstantAlwaysOpen  ucConstantFanRequestNum %d  ucRunningNum %d \n", pThis->ucConstantFanRequestNum, ucRunningNum);
 #endif    
 }
 
@@ -390,7 +390,7 @@ void vSystem_ExAirFanConstantSwitch(System* pt)
     }
     ucConstantFanRequestNum = pThis->ucConstantFanRequestNum;   
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanConstantSwitch  ucConstantFanRequestNum %d  ucRunningNum %d \n", pThis->ucConstantFanRequestNum, ucRunningNum);
+    //debug("vSystem_ExAirFanConstantSwitch  ucConstantFanRequestNum %d  ucRunningNum %d \n", pThis->ucConstantFanRequestNum, ucRunningNum);
 #endif    
 }
 
@@ -469,8 +469,8 @@ void vSystem_ExAirRequest_Vol(System* pt)
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
 #if DEBUG_ENABLE > 0
-        myprintf("ulSystem_ExAirRequest_Vol ulExAirRequest_Vol %ld ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
-                  pThis->ulExAirRequest_Vol, pThis->ulExAirFanRequestTime, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
+       // debug("ulSystem_ExAirRequest_Vol ulExAirRequest_Vol %ld ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
+       //           pThis->ulExAirRequest_Vol, pThis->ulExAirFanRequestTime, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
 #endif  
     }
 }
@@ -510,7 +510,7 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
                     xTimerRegist(&pThis->sExAirFanRequestTimeTmr, pThis->ulExAirFanRequestTime, 0, 
                                  OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanRequestTimeTmrCallback, pThis, FALSE);
 #if DEBUG_ENABLE > 0
-                    myprintf("xTimerRegist  vSystem_ExAirFanRequestTimeTmrCallback %ld\n", pThis->ulExAirFanRequestTime);
+       //             debug("xTimerRegist  vSystem_ExAirFanRequestTimeTmrCallback %ld\n", pThis->ulExAirFanRequestTime);
 #endif
                 }
             }
@@ -538,13 +538,13 @@ void vSystem_ExAirFanCtrlTmrCallback(void* p_tmr, void* p_arg)
                 xTimerRegist(&pThis->sExAirFanRequestTimeTmr, pThis->ulExAirFanRequestTime, 0, 
                              OS_OPT_TMR_ONE_SHOT, vSystem_ExAirFanRequestTimeTmrCallback, pThis, FALSE);
 #if DEBUG_ENABLE > 0
-                myprintf("xTimerRegist  vSystem_ExAirFanRequestTimeTmrCallback %ld\n", pThis->ulExAirFanRequestTime);
+        //        debug("xTimerRegist  vSystem_ExAirFanRequestTimeTmrCallback %ld\n", pThis->ulExAirFanRequestTime);
 #endif
             }
         }
     }
 //#if DEBUG_ENABLE > 0
-//    myprintf("vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
+//    debug("vSystem_ExAirFanCtrlTmrCallback %d\n", pThis->ulExAirFanRequestTime);
 //#endif    
 }
 
@@ -577,7 +577,7 @@ void vSystem_ExAirFanConstantCtrl(System* pt)
         }
 
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirFanConstantCtrl \n");
+      //  debug("vSystem_ExAirFanConstantCtrl \n");
 #endif  
     }
 }
@@ -601,7 +601,7 @@ void vSystem_AdjustExAirFanFreq(System* pt, uint16_t usFreq)
         usFreq = pThis->usExAirFanMaxFreq;
     }
 #if DEBUG_ENABLE > 0          
-    myprintf("vSystem_AdjustExAirFanFreq  usExAirFanFreq  %d usRunningFreq %d\n", usFreq, pExAirFanVariate->usRunningFreq);
+    //debug("vSystem_AdjustExAirFanFreq  usExAirFanFreq  %d usRunningFreq %d\n", usFreq, pExAirFanVariate->usRunningFreq);
 #endif    
 
     pExAirFanVariate->IDevFreq.setFreq(SUPER_PTR(pExAirFanVariate, IDevFreq), usFreq);  //设置频率
@@ -664,7 +664,7 @@ void vSystem_ExAirFanBothCtrl(System* pt)
         }
     }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanBothCtrl usFreq %d ulExAirRequest_Vol %ld  ucConstantFanOpenNum %d \n", usFreq, ulExAirRequest_Vol, ucConstantFanOpenNum);
+    debug("vSystem_ExAirFanBothCtrl usFreq %d ulExAirRequest_Vol %ld  ucConstantFanOpenNum %d \n", usFreq, ulExAirRequest_Vol, ucConstantFanOpenNum);
 #endif    
 }
 
@@ -745,7 +745,7 @@ void vSystem_ExAirFanCtrl(System* pt)
             }
         }
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirFanCtrl  ulExAirRequest_Vol %ld  ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
+        debug("vSystem_ExAirFanCtrl  ulExAirRequest_Vol %ld  ulExAirFanRequestTime %ld  ucConstantFanRequestNum %d  ucConstantFanOpenNum %d \n", 
         pThis->ulExAirRequest_Vol, pThis->ulExAirFanRequestTime, pThis->ucConstantFanRequestNum, pThis->ucConstantFanOpenNum);
 #endif  
     }
@@ -775,7 +775,7 @@ void vSystem_ExAirSet_Vol(System* pt)
     if(pThis->ulExAirRequest_Vol != ulExAirRequest_Vol)
     {
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", pThis->ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
+        debug("vSystem_ExAirSet_Vol usExAirRequest_Vol %d ucConstantFanOpenNum %d \n", pThis->ulExAirRequest_Vol, pThis->ucConstantFanOpenNum);
 #endif  
         (void)vSystem_ExAirRequest_Vol(pThis);  //计算排风需求量
         if(ucConstantFanRequestNum != pThis->ucConstantFanRequestNum)
@@ -802,7 +802,7 @@ void vSystem_SetExAirFanFreqRange(System* pt, uint16_t usMinFreq, uint16_t usMax
 //	psBMS->usExAirFanMaxFreq = usMaxFreq;
 	
 #if DEBUG_ENABLE > 0
-//    myprintf("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
+//    debug("vSystem_SetExAirFanFreqRange  usMinFreq %d  usMaxFreq %d\n", pThis->usExAirFanMinFreq, pThis->usExAirFanMaxFreq);
 #endif
     
     if(pThis->usExAirFanFreq < pThis->usExAirFanMinFreq)
@@ -863,7 +863,7 @@ void vSystem_ExAirFanErr(System* pt)
         vSystem_DelAlarmRequst(pThis);
     }     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanErr  xExFanErrFlag %d\n", pThis->xExFanErrFlag);
+    debug("vSystem_ExAirFanErr  xExFanErrFlag %d\n", pThis->xExFanErrFlag);
 #endif    
     vSystem_ExAirFanCtrl(pThis); 
 }
@@ -889,7 +889,7 @@ void vSystem_ExAirFanErrClean(System* pt)
     psBMS->xExAirFanErrClean = FALSE;
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanErrClean \n");
+    debug("vSystem_ExAirFanErrClean \n");
 #endif    
 }
 
@@ -920,6 +920,6 @@ void vSystem_ExAirFanRemoteChange(System* pt)
     vSystem_ExAirFanCtrl(pThis); 
     
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_ExAirFanRemoteChange \n");
+    debug("vSystem_ExAirFanRemoteChange \n");
 #endif    
 }

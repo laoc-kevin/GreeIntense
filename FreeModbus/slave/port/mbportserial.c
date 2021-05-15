@@ -24,14 +24,26 @@
 #include "mb.h"
 #include "mbport.h"
 
-#include "lpc_mbdriver.h"
-#include "my_rtt_printf.h"
+#if MB_UCOSIII_ENABLED
+#include "mbdriver.h"
 
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
+#elif MB_LINUX_ENABLED
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+
+#endif
+
+#if MB_SLAVE_RTU_ENABLED || MB_SLAVE_ASCII_ENABLED
 
 /* ----------------------- Start implementation -----------------------------*/
-void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxEnable )
+void vMBSlavePortSerialEnable(sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxEnable)
 {
+    sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
+#if MB_UCOSIII_ENABLED	
     const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	UART_FIFOReset(psMBSlaveUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
@@ -44,7 +56,7 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 	{
 		 UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_RBR, DISABLE);    //关闭接收中断
 		 MB_SendOrRecive(psMBSlaveUart, UART_TX_EN);
-	} 
+	}
 
 	if(xTxEnable)
 	{
@@ -58,47 +70,87 @@ void vMBSlavePortSerialEnable( sMBSlavePort* psMBPort, BOOL xRxEnable, BOOL xTxE
 		MB_SendOrRecive(psMBSlaveUart, UART_RX_EN);
 		UART_TxCmd(psMBSlaveUart->ID, DISABLE);                           
 	}
-    UART_FIFOReset(psMBSlaveUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+#elif MB_LINUX_ENABLED
+
+    int select_ret = 0;
+    fd_set rfds;
+
+    if(xRxEnable)
+    {
+        //ioctl(psMBPort->psMBSlaveUart->fd, TCFLSH, TCIFLUSH);
+        //tcflush(psMBPort->psMBSlaveUart->fd, TCIFLUSH);
+        FD_ZERO(&rfds);
+        FD_SET(psMBPort->fd, &rfds);
+
+        select_ret = select(psMBPort->fd+1, &rfds, NULL, NULL, NULL);
+        if (select_ret > 0)
+        {
+            if(psMBSlaveInfo->pxMBSlaveFrameCBByteReceivedCur != NULL)
+            {
+                (void)psMBSlaveInfo->pxMBSlaveFrameCBByteReceivedCur(psMBPort->psMBSlaveInfo);
+            }
+        }
+        else
+        {
+             xMBSlavePortEventPost(psMBPort, EV_ERROR_RCV);
+        }
+    }
+    if(xTxEnable)
+    {
+        //tcflush(psMBPort->psMBSlaveUart->fd, TCOFLUSH);
+        //ioctl(psMBPort->psMBSlaveUart->fd, TCFLSH, TCOFLUSH);
+    }
+#endif 
 }
 
 void vMBSlavePortClose(sMBSlavePort* psMBPort)
 {
+#if MB_UCOSIII_ENABLED 	
     const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
     
 	UART_IntConfig(psMBSlaveUart->ID, UART_INTCFG_THRE|UART_INTCFG_RBR, DISABLE);
 	UART_TxCmd(psMBSlaveUart->ID, DISABLE);
+#elif MB_LINUX_ENABLED
+    
+    close(psMBPort->fd);
+#endif  
 }
 
 BOOL xMBSlavePortSerialInit(sMBSlavePort* psMBPort)
-{	
-	BOOL bInitialized = TRUE;
-    const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
-    
-	MB_UartInit(psMBSlaveUart);
-    return bInitialized;
+{
+#if MB_UCOSIII_ENABLED
+    return xMB_UartInit(psMBPort->psMBSlaveUart);
+	
+#elif MB_LINUX_ENABLED 
+    psMBPort->fd = open(psMBPort->pcMBPortName, O_RDWR | O_NOCTTY | O_NDELAY);
+    if(psMBPort->fd < 0) {
+        return 0;
+    }
+    return xMB_UartInit(psMBPort->psMBSlaveUart, psMBPort->fd);
+#endif  
 }
 
-BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, CHAR ucByte)
+BOOL xMBSlavePortSerialPutByte(sMBSlavePort* psMBPort, UCHAR ucByte)
 {
+#if MB_UCOSIII_ENABLED
 //	UCHAR h, l;
-    
 	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
-    
 //	h=ucByte >> 4 ;
 //	l=ucByte % 16 ;	
 //	h= (h<10)? h+48: h+87;
 //	l= (l<10)? l+48: l+87;	
 //	
-//    myprintf("TX:%c%c\n", h,l);
+//    debug("TX:%c%c\n", h,l);
 	
 	UART_SendByte(psMBSlaveUart->ID, ucByte);
+#endif
     return TRUE;
 }
 
-BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
+BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, UCHAR* pucByte)
 {
-//	UCHAR h, l;
-    
+#if MB_UCOSIII_ENABLED
+	//UCHAR h, l;
 	const sUART_Def* psMBSlaveUart = psMBPort->psMBSlaveUart;
 	*pucByte = UART_ReceiveByte(psMBSlaveUart->ID);
 	
@@ -107,8 +159,31 @@ BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 //	h= (h<10)? h+48: h+87;
 //	l= (l<10)? l+48: l+87;	
 //	
-//    myprintf("RX:%c%c\n", h,l);
+//    debug("RX:%c%c\n", h,l);
+#endif
     return TRUE;
+}
+
+BOOL xMBSlavePortSerialWriteBytes(sMBSlavePort* psMBPort, UCHAR* pucSndBuf, USHORT usSndBytes)
+{
+#if MB_LINUX_ENABLED
+    ssize_t ret = write(psMBPort->fd, pucSndBuf, usSndBytes);
+    return ret == usSndBytes ? TRUE : FALSE;
+#endif
+}
+
+BOOL xMBSlavePortSerialReadBytes(const sMBSlavePort* psMBPort, UCHAR* pucRcvBuf, USHORT* psReadBytes)
+{
+#if MB_LINUX_ENABLED
+    ssize_t sReadBytes = 0;
+    *psReadBytes = 0;
+
+    while( (sReadBytes = read(psMBPort->fd, pucRcvBuf + *psReadBytes, 255)) > 0)
+    {
+        *psReadBytes += (USHORT)sReadBytes;
+    }
+    return *psReadBytes > 0 ? TRUE:FALSE;
+#endif
 }
 
 /* 
@@ -121,9 +196,9 @@ BOOL xMBSlavePortSerialGetByte(sMBSlavePort* psMBPort, CHAR* pucByte)
 void prvvSlaveUARTTxReadyISR(const sMBSlavePort* psMBPort)
 {
     sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
-    if(psMBSlaveInfo != NULL)
+    if(psMBSlaveInfo != NULL && psMBSlaveInfo->pxMBSlaveFrameCBTransmitterEmptyCur != NULL)
     {
-        (void)pxMBSlaveFrameCBTransmitterEmptyCur(psMBSlaveInfo);
+        (void)psMBSlaveInfo->pxMBSlaveFrameCBTransmitterEmptyCur(psMBSlaveInfo);
     } 
 }
 
@@ -136,9 +211,9 @@ void prvvSlaveUARTTxReadyISR(const sMBSlavePort* psMBPort)
 void prvvSlaveUARTRxISR(const sMBSlavePort* psMBPort)
 {
     sMBSlaveInfo* psMBSlaveInfo = psMBPort->psMBSlaveInfo;
-    if(psMBSlaveInfo != NULL)
+    if(psMBSlaveInfo != NULL && psMBSlaveInfo->pxMBSlaveFrameCBByteReceivedCur != NULL)
     {
-        (void)pxMBSlaveFrameCBByteReceivedCur(psMBSlaveInfo);
+        (void)psMBSlaveInfo->pxMBSlaveFrameCBByteReceivedCur(psMBSlaveInfo);
     }
 }
 

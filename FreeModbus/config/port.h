@@ -18,18 +18,19 @@
  *
  * File: $Id: port.h,v 1.1 2007/04/24 23:15:18 wolti Exp $
  */
-#include <LPC407x_8x_177x_8x.h>
 
 #ifndef _PORT_H
 #define _PORT_H
 
 #include <assert.h>
 #include <inttypes.h>
-#include "lpc_types.h"
-#include "os.h"
-#include "lpc_mbdriver.h"
+
 #include "mbconfig.h"
-#include "my_rtt_printf.h"
+
+#if MB_UCOSIII_ENABLED
+#include "os.h"
+#include "mbdriver.h"
+#endif
 
 #define	INLINE
 #define PR_BEGIN_EXTERN_C           extern "C" {
@@ -49,8 +50,6 @@ void ExitCriticalSection(void);
 void prvvUARTTxReadyISR(void);    
 void prvvUARTRxISR(void);
 
-
-
 typedef uint8_t BOOL;
 
 typedef unsigned char UCHAR;
@@ -62,12 +61,21 @@ typedef int16_t SHORT;
 typedef uint32_t ULONG;
 typedef int32_t LONG;
 
+
+#if MB_UCOSIII_ENABLED
+#define TMR_TICK_PER_SECOND OS_CFG_TMR_TASK_RATE_HZ
+
+#elif MB_LINUX_ENABLED
+#define TMR_TICK_PER_SECOND HZ
+
+#endif
+
 #ifndef TRUE
 #define TRUE            1
 #endif
 
-#ifndef FALSE
+//#ifndef FALSE
 #define FALSE           0
-#endif
+//#endif
 
 #endif

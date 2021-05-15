@@ -233,14 +233,14 @@ void vExAirFan_TimeoutInd(void * p_tmr, void * p_arg)  //定时器中断服务�
 /*排风机数据监控*/
 void vExAirFan_RegistMonitor(ExAirFan* pt)
 {
-    OS_ERR err = OS_ERR_NONE;
-    ExAirFan* pThis = (ExAirFan*)pt;
+//    OS_ERR err = OS_ERR_NONE;
+//    ExAirFan* pThis = (ExAirFan*)pt;
 
-    OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
-    
-    MONITOR(&pThis->xExAirFanErr,         uint8, &pThis->sValChange)
-    MONITOR(&pThis->xExAirFanRemote,      uint8, &pThis->sValChange)
-    MONITOR(&pThis->Device.eRunningState, uint8, &pThis->sValChange)
+//    OSSemCreate( &(pThis->sValChange), "sValChange", 0, &err );  //事件消息量初始化
+//    
+//    MONITOR(&pThis->xExAirFanErr,         uint8, &pThis->sValChange)
+//    MONITOR(&pThis->xExAirFanRemote,      uint8, &pThis->sValChange)
+//    MONITOR(&pThis->Device.eRunningState, uint8, &pThis->sValChange)
 }
 
 /*排风机EEPROM数据注册*/

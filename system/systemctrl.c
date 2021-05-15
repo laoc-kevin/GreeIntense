@@ -104,7 +104,7 @@ void vSystem_ChangeSystemMode(System* pt, eSystemMode eSystemMode)
         vSystem_ExAirFanCtrl(pThis);                     //排风机控制
     }
 #if DEBUG_ENABLE > 0  
-        myprintf("vSystem_ChangeSystemMode %d %d\n", pThis->eSystemMode, psBMS->eSystemMode);
+    //    debug("vSystem_ChangeSystemMode %d %d\n", pThis->eSystemMode, psBMS->eSystemMode);
 #endif 
 }
 
@@ -121,7 +121,7 @@ void vSystem_SetTemp(System* pt, uint16_t usTempSet)
         pThis->usTempSet = usTempSet;
 
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_SetTemp %d\n", pThis->usTempSet);
+    //    debug("vSystem_SetTemp %d\n", pThis->usTempSet);
 #endif
         for(n=0; n < MODULAR_ROOF_NUM; n++)
         {
@@ -191,7 +191,7 @@ void vSystem_SetFreAir(System* pt, uint16_t usFreAirSet_Vol_H, uint16_t usFreAir
         }  
     }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetFreAir  ulFreAirSet_Vol %ld \n", pThis->ulFreAirSet_Vol);
+  //  debug("vSystem_SetFreAir  ulFreAirSet_Vol %ld \n", pThis->ulFreAirSet_Vol);
 #endif    
     vSystem_ExAirSet_Vol(pThis); //系统排风需求量变化
 }
@@ -255,7 +255,7 @@ void vSystem_SetExAirFanRated(System* pt, uint16_t usExAirFanRated_Vol_H, uint16
     pThis->ulExAirFanRated_Vol = ulExAirFanRated_Vol;
     
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_SetExAirFanRated  usExAirFanRated_Vol_L %d  usExAirFanRated_Vol_H %d\n", usExAirFanRated_Vol_L, usExAirFanRated_Vol_H);
+    //    debug("vSystem_SetExAirFanRated  usExAirFanRated_Vol_L %d  usExAirFanRated_Vol_H %d\n", usExAirFanRated_Vol_L, usExAirFanRated_Vol_H);
 #endif 
     vSystem_ExAirFanCtrl(pThis);    
 }
@@ -269,7 +269,7 @@ void vSystem_SetExAirFanCtrlPeriod(System* pt, uint16_t usExAirFanCtrlPeriod)
     {
         pThis->usExAirFanCtrlPeriod = usExAirFanCtrlPeriod;
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_SetExAirFanCtrlPeriod  usExAirFanCtrlPeriod %d  \n", pThis->usExAirFanCtrlPeriod);
+    //    debug("vSystem_SetExAirFanCtrlPeriod  usExAirFanCtrlPeriod %d  \n", pThis->usExAirFanCtrlPeriod);
 #endif 
         vSystem_ExAirFanCtrl(pThis);   
     }
@@ -292,7 +292,7 @@ void vSystem_SetHumidity(System* pt, uint16_t usHumidityMin, uint16_t usHumidity
         pModularRoof->usHumidityMax = usHumidityMax;
     }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetHumidity  usHumidityMin %d  usHumidityMax %d\n", pThis->usHumidityMin, pThis->usHumidityMax);
+    //debug("vSystem_SetHumidity  usHumidityMin %d  usHumidityMax %d\n", pThis->usHumidityMin, pThis->usHumidityMax);
 #endif        
 }
 
@@ -313,7 +313,7 @@ void vSystem_SetCO2AdjustThr_V(System* pt, uint16_t usCO2AdjustThr_V)
             pModularRoof->usCO2AdjustThr_V = usCO2AdjustThr_V;
         }
 #if DEBUG_ENABLE > 0
-        myprintf("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
+    //    debug("vSystem_SetCO2AdjustThr_V  usCO2AdjustThr_V %d  \n", pThis->usCO2AdjustThr_V);
 #endif  
         vSystem_ExAirFanCtrl(pThis);    
     }
@@ -334,7 +334,7 @@ void vSystem_SetCO2AdjustDeviat(System* pt, uint16_t usCO2AdjustDeviat)
         pModularRoof->usCO2AdjustDeviat = usCO2AdjustDeviat;
     }
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetCO2AdjustDeviat  usCO2AdjustDeviat %d  \n", pThis->usCO2AdjustDeviat);
+   // debug("vSystem_SetCO2AdjustDeviat  usCO2AdjustDeviat %d  \n", pThis->usCO2AdjustDeviat);
 #endif   
 }
 
@@ -354,7 +354,7 @@ void vSystem_SetAlarm(System* pt)
     {
         vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, ON); //输出开启,继电器闭合        
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_SetAlarm  ucChannel %d xAlarmEnable %d  \n",pThis->sAlarm_DO.ucChannel,  pThis->xAlarmEnable);
+   /// debug("vSystem_SetAlarm  ucChannel %d xAlarmEnable %d  \n",pThis->sAlarm_DO.ucChannel,  pThis->xAlarmEnable);
 #endif   
     }
 }
@@ -367,7 +367,7 @@ void vSystem_DelAlarm(System* pt)
     vDigitalOutputCtrl(pThis->sAlarm_DO.ucChannel, OFF);   //输出关闭，继电器断开
     
 #if DEBUG_ENABLE > 0
-//    myprintf("vSystem_DelAlarm ucChannel %d \n", pThis->sAlarm_DO.ucChannel);
+//    debug("vSystem_DelAlarm ucChannel %d \n", pThis->sAlarm_DO.ucChannel);
 #endif  
 }
 
@@ -431,7 +431,7 @@ void vSystem_CleanAlarm(System* pt, BOOL* pxAlarmClean)
         *pxAlarmClean = FALSE;
         
 #if DEBUG_ENABLE > 0
-    myprintf("vSystem_CleanAlarm   pxAlarmClean %d  \n",  *pxAlarmClean);
+    //debug("vSystem_CleanAlarm   pxAlarmClean %d  \n",  *pxAlarmClean);
 #endif   
     }
 }

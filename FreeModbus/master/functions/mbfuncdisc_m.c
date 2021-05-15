@@ -39,7 +39,7 @@
 //#include "mb.h"
 #include "mb_m.h"
 #include "mbframe.h"
-#include "mbutils_m.h"
+#include "mbbits_m.h"
 #include "mbproto.h"
 #include "mbconfig.h"
 #include "mbfunc_m.h"
@@ -54,9 +54,9 @@
 #define MB_PDU_FUNC_READ_SIZE_MIN           ( 1 )
 
 /* ----------------------- Start implementation -----------------------------*/
-#if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
+#if MB_MASTER_RTU_ENABLED || MB_MASTER_ASCII_ENABLED || MB_MASTER_TCP_ENABLED
 
-#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED > 0
+#if MB_FUNC_READ_DISCRETE_INPUTS_ENABLED
  /***********************************************************************************
  * @brief  主栈读离散量
  * @param  ucSndAddr      从栈地址
@@ -68,24 +68,19 @@
  * @date 2019.01.22
  *************************************************************************************/
 eMBMasterReqErrCode
-eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, LONG lTimeOut )
+eMBMasterReqReadDiscreteInputs(sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, USHORT usDiscreteAddr, USHORT usNDiscreteIn, ULONG ulTimeOut)
 {
     UCHAR  *pucMBFrame = NULL;
-	OS_ERR  err = OS_ERR_NONE;
-    
-    eMBMasterReqErrCode eErrStatus   = MB_MRE_NO_ERR;
     sMBMasterDevsInfo*  psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;  //从设备状态信息
     sMBMasterPort*      psMBPort     = &psMBMasterInfo->sMBPort;      //硬件结构
 	
-    vMBMasterPortLock(psMBPort);
-    
     if( (ucSndAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSndAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
-		eErrStatus = MB_MRE_ILL_ARG;
+        return MB_MRE_ILL_ARG;
 	}		
-    else if ( xMBMasterRunResTake( lTimeOut ) == FALSE ) 
+    else if ( xMBMasterRunResTake(psMBPort, ulTimeOut ) == FALSE )
 	{
-		eErrStatus = MB_MRE_MASTER_BUSY;
+        return MB_MRE_MASTER_BUSY;
 	}
     else
     {
@@ -94,16 +89,15 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
         
 		*(pucMBFrame + MB_PDU_FUNC_OFF)                 = MB_FUNC_READ_DISCRETE_INPUTS;
 		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF)        = usDiscreteAddr >> 8;
-		*(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = usDiscreteAddr;
+        *(pucMBFrame + MB_PDU_REQ_READ_ADDR_OFF + 1)    = (UCHAR)usDiscreteAddr;
 		*(pucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF)     = usNDiscreteIn >> 8;
-		*(pucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = usNDiscreteIn;
+        *(pucMBFrame + MB_PDU_REQ_READ_DISCCNT_OFF + 1) = (UCHAR)usNDiscreteIn;
         
 		vMBMasterSetPDUSndLength( psMBMasterInfo, MB_PDU_SIZE_MIN + MB_PDU_REQ_READ_SIZE );
         
 		(void) xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_SENT);
-		eErrStatus = eMBMasterWaitRequestFinish(psMBPort);
+        return eMBMasterWaitRequestFinish(psMBPort);
     }
-    return eErrStatus;
 }
 
 /***********************************************************************************
@@ -115,7 +109,7 @@ eMBMasterReqReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR ucSndAddr, 
  * @date 2019.01.22
  *************************************************************************************/
 eMBException
-eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen )
+eMBMasterFuncReadDiscreteInputs(sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame, USHORT * usLen)
 {
     USHORT usRegAddress, usDiscreteCnt;
 
@@ -123,32 +117,31 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
     UCHAR *pucMBFrame;
 
     eMBErrorCode    eRegStatus;
-    eMBException    eStatus = MB_EX_NONE;
-    
+
     /* If this request is broadcast, and it's read mode. This request don't need execute. */
-    if ( xMBMasterRequestIsBroadcast(psMBMasterInfo) )
+    if (xMBMasterRequestIsBroadcast(psMBMasterInfo))
     {
-    	eStatus = MB_EX_NONE;
+        return MB_EX_NONE;
     }
     else if( *usLen >= MB_PDU_SIZE_MIN + MB_PDU_FUNC_READ_SIZE_MIN )
     {
     	vMBMasterGetPDUSndBuf(psMBMasterInfo, &pucMBFrame);
-        usRegAddress = ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
+        usRegAddress = (USHORT)( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF] << 8 );
+        usRegAddress |= (USHORT)( pucMBFrame[MB_PDU_REQ_READ_ADDR_OFF + 1] );
         usRegAddress++;
 
-        usDiscreteCnt = ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF] << 8 );
-        usDiscreteCnt |= ( USHORT )( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] );
+        usDiscreteCnt = (USHORT)( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF] << 8 );
+        usDiscreteCnt |= (USHORT)( pucMBFrame[MB_PDU_REQ_READ_DISCCNT_OFF + 1] );
 
         /* Test if the quantity of coils is a multiple of 8. If not last
          * byte is only partially field with unused coils set to zero. */
         if( ( usDiscreteCnt & 0x0007 ) != 0 )
         {
-        	ucNBytes = ( UCHAR )( usDiscreteCnt / 8 + 1 );
+            ucNBytes = (UCHAR)( usDiscreteCnt / 8 + 1 );
         }
         else
         {
-        	ucNBytes = ( UCHAR )( usDiscreteCnt / 8 );
+            ucNBytes = (UCHAR)( usDiscreteCnt / 8 );
         }
 
         /* Check if the number of registers to read is valid. If not
@@ -157,26 +150,24 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
 		if ((usDiscreteCnt >= 1) && ucNBytes == pucFrame[MB_PDU_FUNC_READ_DISCCNT_OFF])
         {
 	       	/* Make callback to fill the buffer. */
-			eRegStatus = eMBMasterRegDiscreteCB( psMBMasterInfo, &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usDiscreteCnt );
+            eRegStatus = eMBMasterRegDiscreteCB(psMBMasterInfo, &pucFrame[MB_PDU_FUNC_READ_VALUES_OFF], usRegAddress, usDiscreteCnt);
 
 			/* If an error occured convert it into a Modbus exception. */
-			if( eRegStatus != MB_ENOERR )
+            if(eRegStatus != MB_ENOERR)
 			{
-				eStatus = prveMBMasterError2Exception( eRegStatus );
+                return prveMBMasterError2Exception(eRegStatus);
 			}
         }
         else
         {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+           return MB_EX_ILLEGAL_DATA_VALUE;
         }
     }
     else
     {
-        /* Can't be a valid read coil register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+        return MB_EX_ILLEGAL_DATA_VALUE;
     }
-    return eStatus;
+    return MB_EX_NONE;
 }
 
 /**
@@ -188,10 +179,9 @@ eMBMasterFuncReadDiscreteInputs( sMBMasterInfo* psMBMasterInfo, UCHAR * pucFrame
  *
  * @return result
  */
-eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
+eMBErrorCode eMBMasterRegDiscreteCB(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete)
 {
     USHORT          DISCRETE_INPUT_START, DISCRETE_INPUT_END;
-    eMBErrorCode    eStatus = MB_ENOERR;
    
     sMBSlaveDev*         psMBSlaveDevCur = psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur ;    //当前从设备
     sMBDevDataTable*     psMBDiscInTable = &psMBSlaveDevCur->psDevCurData->sMBDiscInTable;  //从设备通讯协议表
@@ -203,7 +193,8 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
         psMBMasterInfo->sMBDevsInfo.psMBSlaveDevCur = psMBSlaveDevCur;
         psMBDiscInTable = &psMBSlaveDevCur->psDevCurData->sMBDiscInTable;
     } 
-    if( (psMBDiscInTable->pvDataBuf == NULL) || (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
+    if( (psMBDiscInTable == NULL) || (psMBDiscInTable->pvDataBuf == NULL) ||
+        (psMBDiscInTable->usDataCount == 0)) //非空且数据点不为0
 	{
 		return MB_ENOREG;
 	} 
@@ -215,13 +206,12 @@ eMBErrorCode eMBMasterRegDiscreteCB( sMBMasterInfo* psMBMasterInfo, UCHAR * pucR
 
     if ( (usAddress >= DISCRETE_INPUT_START) && (usAddress + usNDiscrete -1 <= DISCRETE_INPUT_END) )
     {
-		eStatus = eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData, MB_BIT_READ);
+        return eMBMasterUtilSetBits(psMBMasterInfo, pucRegBuffer, usAddress, usNDiscrete, DiscInData, MB_BIT_READ);
 	}   
     else
     {
-        eStatus = MB_ENOREG;
+        return MB_ENOREG;
     }
-    return eStatus;
 }
 #endif
 

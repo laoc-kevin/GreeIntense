@@ -23,9 +23,7 @@
 #include "mb.h"
 #include "mbport.h"
 
-#if MB_SLAVE_RTU_ENABLED > 0 || MB_SLAVE_ASCII_ENABLED > 0 || MB_SLAVE_CPN_ENABLED > 0
-
-#define TIME_TICK_OUT_MS    500
+#define TIME_TICK_OUT 0
 
 /* ----------------------- Start implementation -----------------------------*/
 
@@ -37,12 +35,20 @@
  *********************************************************************/
 BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort)
 {
+#if  MB_UCOSIII_ENABLED    
     OS_ERR err = OS_ERR_NONE;
     
     psMBPort->xEventInQueue = FALSE;
     OSSemCreate(&psMBPort->sMBEventSem, "sMBEventSem", 0, &err);      //从栈事件消息量
     
-    return (err == OS_ERR_NONE);
+    return err == OS_ERR_NONE;
+#elif MB_LINUX_ENABLED
+    int ret = 0;
+    psMBPort->xEventInQueue = FALSE;
+
+	ret = sem_init(&psMBPort->sMBEventSem, 0, 0);      //从栈事件消息量
+    return ret >= 0;
+#endif
 }
 
 /**********************************************************************
@@ -54,6 +60,7 @@ BOOL xMBSlavePortEventInit(sMBSlavePort* psMBPort)
  *********************************************************************/
 BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
 {
+#if MB_UCOSIII_ENABLED
 	OS_ERR err = OS_ERR_NONE;
     psMBPort->xEventInQueue = TRUE;
     psMBPort->eQueuedEvent = eEvent;
@@ -61,6 +68,14 @@ BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
     (void)OSSemPost(&psMBPort->sMBEventSem, OS_OPT_POST_ALL, &err);
     
     return (err == OS_ERR_NONE);
+#elif MB_LINUX_ENABLED
+    int ret = 0;
+    psMBPort->xEventInQueue = TRUE;
+    psMBPort->eQueuedEvent = eEvent;
+
+    ret = sem_post(&psMBPort->sMBEventSem);
+    return ret >= 0;
+#endif    
 }
 
 /**********************************************************************
@@ -70,17 +85,19 @@ BOOL xMBSlavePortEventPost(sMBSlavePort* psMBPort, eMBSlaveEventType eEvent)
  * @author laoc
  * @date 2019.01.22
  *********************************************************************/
-BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType * eEvent)
+BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType* eEvent)
 {
     BOOL xEventHappened = FALSE;
+#if  MB_UCOSIII_ENABLED
 	CPU_TS ts = 0;
     OS_ERR err = OS_ERR_NONE;
 	
-	OS_TICK i = (OS_TICK)( TIME_TICK_OUT_MS * TMR_TICK_PER_SECOND / 1000 );  //等待响应时间
-    
-	(void)OSSemPend(&psMBPort->sMBEventSem, i, OS_OPT_PEND_BLOCKING, &ts, &err);    
+	(void)OSSemPend(&psMBPort->sMBEventSem, TIME_TICK_OUT, OS_OPT_PEND_BLOCKING, &ts, &err);    
 	(void)OSSemSet(&psMBPort->sMBEventSem, 0, &err);
-  
+
+ #elif MB_LINUX_ENABLED
+    sem_wait(&psMBPort->sMBEventSem);
+#endif
     if( psMBPort->xEventInQueue )
     {
         *eEvent = psMBPort->eQueuedEvent;
@@ -90,4 +107,39 @@ BOOL xMBSlavePortEventGet(sMBSlavePort* psMBPort, eMBSlaveEventType * eEvent)
     return xEventHappened;
 }
 
-#endif
+/***********************************************************************************
+ * @brief  错误代码转异常码
+ * @param  eMBErrorCode  mb错误代码
+ * @return eMBException  异常码
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+eMBException prveMBSlaveError2Exception(eMBErrorCode eErrorCode)
+{
+    eMBException    eStatus;
+
+    switch(eErrorCode)
+    {
+        case MB_ENOERR:
+            eStatus = MB_EX_NONE;
+            break;
+
+        case MB_ENOREG:
+            eStatus = MB_EX_ILLEGAL_DATA_ADDRESS;
+            break;
+
+		case MB_EINVAL:
+            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            break;
+		
+        case MB_ETIMEDOUT:
+            eStatus = MB_EX_SLAVE_BUSY;
+            break;
+
+        default:
+            eStatus = MB_EX_SLAVE_DEVICE_FAILURE;
+            break;
+    }
+    return eStatus;
+}
+

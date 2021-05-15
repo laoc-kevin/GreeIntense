@@ -156,8 +156,9 @@ CLASS(System)   /*系统*/
     TempHumiSensor*   psTempHumiSenInList[TEMP_HUMI_SEN_IN_NUM];     //室内温湿度传感器列表
                       
     sMBMasterInfo*    psMBMasterInfo;   //通讯主栈
+    sMBSlaveInfo*     psMBSlaveInfo;    //通讯从栈
 
-    void   (*init)( System* pt);
+    void   (*init)(System* pt);
 };
 
 void vSystemInit(OS_TCB* psEventPollTaskTCB, OS_PRIO ucEventPollTaskPrio, CPU_STK* psEventPollTaskStkBase, CPU_STK_SIZE usEventPollTaskStkSize,

@@ -41,7 +41,11 @@
 
 #include "LPC407x_8x_177x_8x.h"
 #include "lpc_types.h"
+#include "lpc_emac_config.h"
 
+#ifdef LPC_PHY_DP83848	
+   #include "lpc_phy_dp83848.h"
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -53,6 +57,9 @@ extern "C"
  */
 
 /* Ethernet MAC register definitions --------------------------------------------------------------------- */
+	
+#define RMII			1
+	
 /* MAC Configuration Register 1 */
 #define EMAC_MAC1_MASK		0xcf1f		/*MAC1 register mask*/
 #define EMAC_MAC1_REC_EN         0x00000001  /**< Receive Enable                    */
@@ -131,7 +138,7 @@ extern "C"
 
 /* PHY Support Register */
 #define EMAC_SUPP_SPEED			0x00000100  	/**< Reduced MII Logic Current Speed   */
-//#define EMAC_SUPP_RES_RMII      0x00000800  	/**< Reset Reduced MII Logic           */
+#define EMAC_SUPP_RES_RMII      0x00000800  	/**< Reset Reduced MII Logic           */
 
 /* Test Register */
 #define EMAC_TEST_SHCUT_PQUANTA  0x00000001  	/**< Shortcut Pause Quanta             */
@@ -144,6 +151,16 @@ extern "C"
 #define EMAC_MCFG_CLK_SEL(n)     ((n&0x0F)<<2)  /**< Clock Select Field                 */
 #define EMAC_MCFG_RES_MII        0x00008000  	/**< Reset MII Management Hardware     */
 #define EMAC_MCFG_MII_MAXCLK	 2500000UL		/**< MII Clock max */
+
+#define EMAC_MCFG_CLK_DIV4       0x00000000  /* MDC = hclk / 4                    */
+#define EMAC_MCFG_CLK_DIV6       0x00000008  /* MDC = hclk / 6                    */
+#define EMAC_MCFG_CLK_DIV8       0x0000000C  /* MDC = hclk / 8                    */
+#define EMAC_MCFG_CLK_DIV10      0x00000010  /* MDC = hclk / 10                   */
+#define EMAC_MCFG_CLK_DIV14      0x00000014  /* MDC = hclk / 14                   */
+#define EMAC_MCFG_CLK_DIV20      0x00000018  /* MDC = hclk / 20                   */
+#define EMAC_MCFG_CLK_DIV28      0x0000001C  /* MDC = hclk / 28 */
+#define EMAC_MCFG_CLK_DIV36      0x00000020
+#define EMAC_MCFG_CLK_DIV64      0x0000003c
 
 /* MII Management Command Register */
 #define EMAC_MCMD_READ           0x00000001  	/**< MII Read                          */
@@ -414,7 +431,7 @@ extern "C"
 /* DP83848C PHY definition ------------------------------------------------------------ */
 
 /** PHY device reset time out definition */
-#define EMAC_PHY_RESP_TOUT		0x100000UL
+#define EMAC_PHY_RESP_TOUT		0x400UL
 
 /* ENET Device Revision ID */
 #define EMAC_OLD_EMAC_MODULE_ID  0x39022000  /**< Rev. ID for first rev '-'         */
@@ -436,8 +453,6 @@ extern "C"
 #define EMAC_PHY_FULLD_10M       ((~ EMAC_PHY_BMCR_SPEED_SEL) | EMAC_PHY_BMCR_DUPLEX)		// Full Duplex 10Mbit
 #define EMAC_PHY_HALFD_10M       ((~ EMAC_PHY_BMCR_SPEED_SEL) | (~EMAC_PHY_BMCR_DUPLEX))	// Half Duplex 10MBit
 #define EMAC_PHY_AUTO_NEG        (EMAC_PHY_BMCR_SPEED_SEL | EMAC_PHY_BMCR_AN)				// Select Auto Negotiation
-
-
 
 /* EMAC PHY status type definitions */
 #define EMAC_PHY_STAT_LINK			(0)		/**< Link Status */
@@ -489,6 +504,17 @@ typedef struct {
 	uint32_t ulDataLen;			/**< Data length */
 	uint32_t *pbDataBuf;		/**< A word-align data pointer to data buffer */
 } EMAC_PACKETBUF_Type;
+
+/** 
+  * @brief  ETH DMA Desciptors data structure definition
+  */ 
+typedef struct  {
+  uint32_t   Status;                /*!< Status */
+  uint32_t   ControlBufferSize;     /*!< Control and Buffer1, Buffer2 lengths */
+  uint32_t   Buffer1Addr;           /*!< Buffer1 address pointer */
+  uint32_t   Buffer2NextDescAddr;   /*!< Buffer2 or next descriptor address pointer */
+} ETH_DMADESCTypeDef;
+
 
 /**
  * @brief PHY Configuration structure definition
@@ -577,18 +603,27 @@ typedef enum {
 int32_t EMAC_Init(EMAC_CFG_Type *EMAC_ConfigStruct);
 void EMAC_DeInit(void);
 
+int32_t EMAC_SetPHYMode(uint32_t ulPHYMode);
+int32_t EMAC_UpdatePHYStatus(void);
+
 /** Send/Receive data */
 void EMAC_TxEnable( void );
 void EMAC_RxEnable( void );
 void EMAC_SetHashFilter(uint8_t dstMAC_addr[], FunctionalState NewState);
 int32_t EMAC_CRCCalc(uint8_t frame_no_fcs[], int32_t frame_len);
 void EMAC_WritePacketBuffer(EMAC_PACKETBUF_Type *pDataStruct);
-
+uint32_t EMAC_GetRxFrameSize(void);
+uint32_t EMAC_GetRxBuffer(void);
+uint32_t EMAC_GetWriteBuffer(void);
 /** PHY Setup */
-void EMAC_Write_PHY (uint8_t PhyReg, uint16_t Value);
-uint16_t EMAC_Read_PHY (uint8_t PhyReg);
+void EMAC_Write_PHY (uint8_t PhyReg, uint16_t Value, void * err_t);
+void EMAC_Write_PHY_NoBlock (uint8_t PhyReg, uint16_t Value);
+uint16_t EMAC_Read_PHY (uint8_t PhyReg, void * err_t);
+uint16_t EMAC_ReadData (void);
+void EMAC_Read_PHY_Noblock (uint8_t PhyReg);
 void EMAC_SetFullDuplexMode(uint8_t full_duplex);
 void EMAC_SetPHYSpeed(uint8_t mode_100Mbps);
+void setEmacAddr(uint8_t abStationAddr[]);
 
 /** Filter */
 void EMAC_SetFilterMode(uint32_t ulFilterMode, FunctionalState NewState);
@@ -596,7 +631,8 @@ FlagStatus EMAC_GetWoLStatus(uint32_t ulWoLMode);
 void EMAC_IntCmd(uint32_t ulIntType, FunctionalState NewState);
 IntStatus EMAC_IntGetStatus(uint32_t ulIntType);
 EMAC_BUFF_STATUS EMAC_GetBufferSts(EMAC_BUFF_IDX idx);
-
+uint32_t EMAC_IsMiiBusy(void);
+void EMAC_IntClear(void);
 
 /**
  * @}

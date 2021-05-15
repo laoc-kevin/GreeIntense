@@ -6,8 +6,8 @@
 #include "md_monitor.h"
 
 #define   EX_AIR_FAN_NUM     4
-#define   BMS_REG_HOLD_NUM   200    //BMS通讯数据表保持寄存器数量
-#define   BMS_BIT_COIL_NUM   200    //BMS通讯数据表线圈数量
+#define   BMS_REG_HOLD_NUM   160    //BMS通讯数据表保持寄存器数量
+#define   BMS_BIT_COIL_NUM   150    //BMS通讯数据表线圈数量
 
 CLASS(BMS)
 {
@@ -53,8 +53,7 @@ CLASS(BMS)
     BOOL              xAlarmClean;              //声光报警清除
     BOOL              xAlarmEnable;             //声光报警使能
     BOOL              xExAirFanErrClean;        //排风机故障清除
-    
-    sMBSlaveInfo*     psBMSInfo;          //从栈接口
+//    
     sMBSlaveCommData  sBMSCommData;       //系统从栈通讯数据表
     
     sMBSlaveRegData   sBMS_RegHoldBuf[BMS_REG_HOLD_NUM];  //保持寄存器数据域

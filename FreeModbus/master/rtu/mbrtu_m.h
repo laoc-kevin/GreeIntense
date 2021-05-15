@@ -30,37 +30,31 @@
 #ifndef _MB_RTU_M_H
 #define _MB_RTU_M_H
 
-#ifdef __cplusplus
-PR_BEGIN_EXTERN_C
-#endif
-
 #include "port.h"
 #include "mbport_m.h"
 #include "mbconfig.h"
 #include "mb_m.h"
 
-#if MB_MASTER_RTU_ENABLED > 0
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-eMBErrorCode    eMBMasterRTUInit( sMBMasterInfo* psMBMasterInfo );
-void            eMBMasterRTUStart( sMBMasterInfo* psMBMasterInfo );
-void            eMBMasterRTUStop( sMBMasterInfo* psMBMasterInfo );
+#if MB_MASTER_RTU_ENABLED
 
-eMBErrorCode    eMBMasterRTUReceive( sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, 
-                                     UCHAR ** pucFrame, USHORT * pusLength );
-									 
-eMBErrorCode    eMBMasterRTUSend( sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddress, 
-                                  const UCHAR * pucFrame, USHORT usLength );
+eMBErrorCode eMBMasterRTUInit(sMBMasterInfo* psMBMasterInfo);
+void vMBMasterRTUStart(sMBMasterInfo* psMBMasterInfo);
+void vMBMasterRTUStop(sMBMasterInfo* psMBMasterInfo);
 
-BOOL            xMBMasterRTUReceiveFSM( sMBMasterInfo* psMBMasterInfo );
-BOOL            xMBMasterRTUTransmitFSM( sMBMasterInfo* psMBMasterInfo );
-BOOL            xMBMasterRTUTimerT35Expired( sMBMasterInfo* psMBMasterInfo );
+eMBErrorCode eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR* pucRcvAddress, UCHAR** pucFrame, USHORT* pusLength);
+eMBErrorCode eMBMasterRTUSend(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddress, UCHAR* pucFrame, USHORT usLength);
 
-eMBMasterRcvState usMBMasterGetRcvState( const sMBMasterInfo* psMBMasterInfo );
-eMBMasterSndState usMBMasterGetSndState( const sMBMasterInfo* psMBMasterInfo );
+BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo);
+BOOL xMBMasterRTUTransmitFSM(sMBMasterInfo* psMBMasterInfo);
+BOOL xMBMasterRTUTimerExpired(sMBMasterInfo* psMBMasterInfo);
 
 #endif
 
 #ifdef __cplusplus
-PR_END_EXTERN_C
+}
 #endif
 #endif
