@@ -58,7 +58,6 @@
 #define CANOPEN_SENDSDO_TASK_PRIO  	  13
 #define CAN1_SENDDATA_TASK_PRIO  	  14
         
-
 #define TCP_SERVER_TASK_PRIO          16                                                                                                        
 #define TCP_CLIENT_TASK_PRIO          17
      
