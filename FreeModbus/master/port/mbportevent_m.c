@@ -366,31 +366,31 @@ eMBMasterReqErrCode eMBMasterWaitRequestFinish(sMBMasterPort* psMBPort)
         sem_post(&psMBPort->sMBEventSem);
         vMBMasterRunResRelease(psMBPort);
 
-        debug(" eMBMasterWaitRequestFinish %d\n" ,psMBPort->eQueuedEvent);
+        //debug(" eMBMasterWaitRequestFinish %d\n" ,psMBPort->eQueuedEvent);
         return MB_MRE_TIMEDOUT;
     }
 #endif
     switch(psMBPort->eQueuedEvent)
     {
     case EV_MASTER_PROCESS_SUCCESS:
-        debug(" EV_MASTER_PROCESS_SUCCESS \n");
+        //debug(" EV_MASTER_PROCESS_SUCCESS \n");
         break;
     case EV_MASTER_ERROR_RESPOND_TIMEOUT:
-        debug(" EV_MASTER_ERROR_RESPOND_TIMEOUT \n");
+        //debug(" EV_MASTER_ERROR_RESPOND_TIMEOUT \n");
         eErrStatus = MB_MRE_TIMEDOUT;
 #if MB_LINUX_ENABLED
         tcflush(psMBPort->fd, TCIOFLUSH);
 #endif
         break;
     case EV_MASTER_ERROR_RECEIVE_DATA:
-        debug(" EV_MASTER_ERROR_RECEIVE_DATA \n");
+        //debug(" EV_MASTER_ERROR_RECEIVE_DATA \n");
         eErrStatus = MB_MRE_REV_DATA;
 #if MB_LINUX_ENABLED
         tcflush(psMBPort->fd, TCIOFLUSH);
 #endif
         break;
     case EV_MASTER_ERROR_EXECUTE_FUNCTION:
-        debug(" EV_MASTER_ERROR_EXECUTE_FUNCTION \n");
+        //debug(" EV_MASTER_ERROR_EXECUTE_FUNCTION \n");
         eErrStatus = MB_MRE_EXE_FUN;
 #if MB_LINUX_ENABLED
         tcflush(psMBPort->fd, TCIOFLUSH);

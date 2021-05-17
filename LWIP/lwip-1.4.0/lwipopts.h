@@ -48,24 +48,24 @@
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE                ( 8 * 128 ) /* used for Lwip malloc */
+#define MEM_SIZE                ( 8 * 256 ) /* used for Lwip malloc */
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
    should be set high. */
-#define MEMP_NUM_PBUF           10
+#define MEMP_NUM_PBUF           8
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
 #define MEMP_NUM_UDP_PCB        6
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
    connections. */
-#define MEMP_NUM_TCP_PCB        10
+#define MEMP_NUM_TCP_PCB        8
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
    connections. */
-#define MEMP_NUM_TCP_PCB_LISTEN 6
+#define MEMP_NUM_TCP_PCB_LISTEN 4
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
    segments. */
-#define MEMP_NUM_TCP_SEG        12
+#define MEMP_NUM_TCP_SEG        10
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
 //#define MEMP_NUM_SYS_TIMEOUT    3
@@ -73,8 +73,14 @@ a lot of data that needs to be copied, this should be set high. */
 
 
 /* ---------- Pbuf options ---------- */
+//#define MEM_LIBC_MALLOC         1
+#define MEMP_MEM_MALLOC         1
+//#define MEM_USE_POOLS           1
+//#define MEMP_USE_CUSTOM_POOLS   1
+
+
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE          8
+#define PBUF_POOL_SIZE          10
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
 #define PBUF_POOL_BUFSIZE       128
@@ -204,7 +210,7 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
  * API_MSG_DEBUG: Enable debugging in api_msg.c.
  */ 
 //#define API_MSG_DEBUG                   LWIP_DBG_ON
-//#define SOCKETS_DEBUG                   LWIP_DBG_ON
+#define SOCKETS_DEBUG                   LWIP_DBG_ON
 //#define API_LIB_DEBUG                   LWIP_DBG_ON
 //#define TCP_DEBUG                       LWIP_DBG_ON
 //#define TCPIP_DEBUG                     LWIP_DBG_ON

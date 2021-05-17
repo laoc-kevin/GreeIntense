@@ -57,13 +57,13 @@ typedef enum {
 #define LWIP_MALLOC_MEMPOOL(num, size) * MEMP_POOL_##size + 0
 #define LWIP_MALLOC_MEMPOOL_END
 #include "lwip/memp_std.h"
-    ) ,
+    ),
     /* Get the last (via:
        MEMP_POOL_HELPER_END = ((u8_t) 0 + MEMP_POOL_A*0 + MEMP_POOL_B*0 + MEMP_POOL_C*1) */
     MEMP_POOL_HELPER_LAST = ((u8_t)
 #define LWIP_MEMPOOL(name,num,size,desc)
 #define LWIP_MALLOC_MEMPOOL_START
-#define LWIP_MALLOC_MEMPOOL(num, size) 0 + MEMP_POOL_##size *
+#define LWIP_MALLOC_MEMPOOL(num, size) 0 + MEMP_POOL_##size * 
 #define LWIP_MALLOC_MEMPOOL_END 1
 #include "lwip/memp_std.h"
     )

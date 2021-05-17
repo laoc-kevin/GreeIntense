@@ -211,7 +211,7 @@ BOOL xMBMasterTCPTransmitFSM(sMBMasterInfo* psMBMasterInfo)
             else
             {
                 vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);
-                debug("vMBsMasterPortTmrsRespondTimeoutEnable\n");
+                //debug("vMBsMasterPortTmrsRespondTimeoutEnable\n");
             }
         }
         break;

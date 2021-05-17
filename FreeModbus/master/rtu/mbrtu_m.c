@@ -192,7 +192,7 @@ eMBMasterRTUSend(sMBMasterInfo* psMBMasterInfo, UCHAR ucSlaveAddr, UCHAR* pucFra
     sMBMasterPort*     psMBPort     = &psMBMasterInfo->sMBPort;
     sMBMasterDevsInfo* psMBDevsInfo = &psMBMasterInfo->sMBDevsInfo;   //从设备状态
 
-    debug("eMBMasterRTUSend ucSlaveAddr %d\n" ,ucSlaveAddr);
+    //debug("eMBMasterRTUSend ucSlaveAddr %d\n" ,ucSlaveAddr);
     
     if( (ucSlaveAddr < psMBDevsInfo->ucSlaveDevMinAddr) || (ucSlaveAddr > psMBDevsInfo->ucSlaveDevMaxAddr) ) 
 	{
@@ -304,7 +304,7 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
         //xMBMasterRTUTimerExpired(psMBMasterInfo);
         vMBsMasterPortTmrsEnable(psMBPort);              //重启3.5T定时器
 
-        debug("xMBMasterRTUReceiveFSM usRcvBufferPos %d \n",  psMBMasterInfo->usRcvBufferPos);
+        //debug("xMBMasterRTUReceiveFSM usRcvBufferPos %d \n",  psMBMasterInfo->usRcvBufferPos);
 #endif
         break;
         /* We are currently receiving a frame. Reset the timer after
@@ -388,7 +388,7 @@ BOOL xMBMasterRTUTransmitFSM(sMBMasterInfo* psMBMasterInfo)
             }
             else
             {
-                debug("xMBMasterRTUTransmitFSM  %d \n", psMBMasterInfo->eSndState);
+                //debug("xMBMasterRTUTransmitFSM  %d \n", psMBMasterInfo->eSndState);
                 vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);
             }
         }
@@ -409,7 +409,7 @@ BOOL xMBMasterRTUTimerExpired(sMBMasterInfo* psMBMasterInfo)
 	BOOL xNeedPoll = FALSE;
 	sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;
 	
-    debug("xMBMasterRTUTimerExpired %d \n", psMBMasterInfo->eSndState);
+    //debug("xMBMasterRTUTimerExpired %d \n", psMBMasterInfo->eSndState);
 	switch (psMBMasterInfo->eRcvState)
 	{
 	case STATE_M_RX_INIT:  /* Timer t35 expired. Startup phase is finished. */
@@ -426,7 +426,7 @@ BOOL xMBMasterRTUTimerExpired(sMBMasterInfo* psMBMasterInfo)
 			psMBMasterInfo->eSndState = STATE_M_TX_XFWR;
 			//vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);      //接收数据不完整，重启定时器
 			//xSndStateNeedChange = FALSE;
-			debug("EV_MASTER_FRAME_RECEIVED_ERROR******************\n");
+			//debug("EV_MASTER_FRAME_RECEIVED_ERROR******************\n");
         }
 		break;	
 	case STATE_M_RX_ERROR:  /* An error occured while receiving the frame. */

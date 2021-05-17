@@ -69,7 +69,7 @@ void  vModbusSlaveReceiveCallback(void* p_arg)
 ******************************************************************/
 void  vModbusSlaveSendCallback(void* p_arg)  
 {
-    (void)vMBTimeDly(0, 5);
+    //(void)vMBTimeDly(0, 5);
     vLedStateChange(&LedModbus2, MBSlaveLedState);
     MBSlaveLedState = !MBSlaveLedState;
 }                                    
@@ -214,7 +214,7 @@ BOOL  vModbusSlaveTCPInit(OS_PRIO prio, OS_PRIO pollprio)
     m_SlaveTcpInfo.ucSlaveTcpPollPrio = pollprio;     
     m_SlaveTcpInfo.ucSlaveTcpServerPrio = prio; 
     
-    m_SlaveTcpInfo.pvMBSlaveReceiveCallback = vModbusSlaveReceiveCallback;
+    //m_SlaveTcpInfo.pvMBSlaveReceiveCallback = vModbusSlaveReceiveCallback;
     m_SlaveTcpInfo.pvMBSlaveSendCallback    = vModbusSlaveSendCallback;  	      
     return xMBSlaveTCPServerInit(&m_SlaveTcpInfo);
 }

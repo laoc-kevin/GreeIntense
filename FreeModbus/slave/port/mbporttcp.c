@@ -50,6 +50,7 @@ BOOL xMBSlaveTCPPortGetRequest(sMBSlavePort* psMBPort)
     {
         psMBPort->xSocketConnected = FALSE;
         close(psMBPort->fd);
+        debug("close sReadBytes %d \n", sReadBytes);
         xMBSlavePortEventPost(psMBPort, EV_ERROR_RCV);
         return FALSE;
     }
