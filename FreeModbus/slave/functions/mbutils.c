@@ -28,10 +28,20 @@
  * File: $Id: mbutils.c,v 1.6 2007/02/18 23:49:07 wolti Exp $
  */
 
+/* ----------------------- System includes ----------------------------------*/
+#include "stdlib.h"
+#include "string.h"
+
+/* ----------------------- Platform includes --------------------------------*/
+#include "port.h"
+
 /* ----------------------- Modbus includes ----------------------------------*/
-#include "stddef.h"
-#include "mbbits.h"
+
+#include "mbproto.h"
+#include "mbframe.h"
+#include "mbutils.h"
 #include "mbmap.h"
+
 
 /* ----------------------- Defines ------------------------------------------*/
 #define BITS_UCHAR      8U
@@ -49,16 +59,17 @@
  * @date 2019.01.22
  *************************************************************************************/
 eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
-                                 USHORT usAddress, USHORT usNBits, eDataType eDataType)
+                                 USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     eMBErrorCode    eStatus = MB_ENOERR;
-    USHORT          usNPreBits, iNReg, iBits, i; 
+    USHORT          usNPreBits, iNReg, iBits, i;
+    UCHAR*          pucValue; 
 	UCHAR           ucBit;
 	
-    sMBSlaveBitData * pucBitData = NULL;
+    sMBSlaveBitData *    pucBitData = NULL;
 	
-    iNReg = (USHORT)(usNBits / BITS_UCHAR) + 1;
-    usNPreBits = (USHORT)(usNBits % BITS_UCHAR);
+	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
 	while (iNReg > 0)
 	{
@@ -74,7 +85,7 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
         {
             switch(eDataType)
             {	
-#if MB_FUNC_READ_COILS_ENABLED || MB_FUNC_WRITE_COIL_ENABLED || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED
+#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
                 case CoilData:		   
                     (void)eMBSlaveCoilsMap(psMBSlaveInfo, usAddress, &pucBitData);         //扫描线圈字典，找到对应的线圈
 				break;
@@ -96,7 +107,7 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
                 ucBit = (UCHAR)( ((*ucByteBuf) & (1<<i)) >> i );   //取对应位的值
                 *(UCHAR*)(pucBitData->pvValue) = (UCHAR)ucBit;			
 
-                //debug("eMBSlaveUtilSetBits usCoilAddr %d  usMBBitData %d\n", usAddress, *(UCHAR*)(pucBitData->pvValue));
+                myprintf("eMBSlaveUtilSetBits usCoilAddr %d  usMBBitData %d\n", usAddress, *(UCHAR*)(pucBitData->pvValue));  
             }
             usAddress++;
 		}
@@ -118,16 +129,18 @@ eMBErrorCode eMBSlaveUtilSetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
  * @date 2019.01.22
  *************************************************************************************/
 eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf, 
-                                 USHORT usAddress, USHORT usNBits, eDataType eDataType)
+                                 USHORT usAddress, UCHAR ucNBits, eDataType eDataType)
 {
     USHORT          usNPreBits, iNReg, iBits, i;
+    UCHAR*          pucValue; 
+    
 	eMBErrorCode      eStatus = MB_ENOERR;
 	sMBSlaveBitData * pucBitData = NULL;
 	
-    iNReg = (USHORT)(usNBits / BITS_UCHAR) + 1;
-    usNPreBits = (USHORT)(usNBits % BITS_UCHAR);
+	iNReg = (USHORT)(ucNBits / BITS_UCHAR) + 1;
+    usNPreBits = (USHORT)(ucNBits % BITS_UCHAR);
 
-    while(iNReg > 0)
+	while (iNReg > 0)
 	{
 		*ucByteBuf = 0;
 		if( (iNReg == 1) && ( usNPreBits > 0) ) //未满8个bit
@@ -143,7 +156,7 @@ eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
         {
             switch(eDataType)
             {					
-#if MB_FUNC_READ_COILS_ENABLED || MB_FUNC_WRITE_COIL_ENABLED || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED
+#if MB_FUNC_READ_COILS_ENABLED > 0 || MB_FUNC_WRITE_COIL_ENABLED > 0 || MB_FUNC_WRITE_MULTIPLE_COILS_ENABLED > 0					
 				case CoilData:		   
                     (void)eMBSlaveCoilsMap(psMBSlaveInfo, usAddress, &pucBitData);         //扫描线圈字典，找到对应的线圈
 				break;
@@ -180,4 +193,39 @@ eMBErrorCode eMBSlaveUtilGetBits(sMBSlaveInfo* psMBSlaveInfo, UCHAR* ucByteBuf,
     return eStatus;
 }
 
+/***********************************************************************************
+ * @brief  错误代码转异常码
+ * @param  eMBErrorCode  mb错误代码
+ * @return eMBException  异常码
+ * @author laoc
+ * @date 2019.01.22
+ *************************************************************************************/
+eMBException prveMBSlaveError2Exception( eMBErrorCode eErrorCode )
+{
+    eMBException    eStatus;
 
+    switch(eErrorCode)
+    {
+        case MB_ENOERR:
+            eStatus = MB_EX_NONE;
+            break;
+
+        case MB_ENOREG:
+            eStatus = MB_EX_ILLEGAL_DATA_ADDRESS;
+            break;
+
+		case MB_EINVAL:
+            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
+            break;
+		
+        case MB_ETIMEDOUT:
+            eStatus = MB_EX_SLAVE_BUSY;
+            break;
+
+        default:
+            eStatus = MB_EX_SLAVE_DEVICE_FAILURE;
+            break;
+    }
+
+    return eStatus;
+}

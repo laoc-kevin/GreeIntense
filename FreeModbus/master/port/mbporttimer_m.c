@@ -84,11 +84,13 @@ void vMBsMasterPortTmrsEnable(sMBMasterPort* psMBPort)
     uint32_t i = psMBPort->usTim1Timerout50us * MB_MASTER_PORT_TIMEOUT_US;
     sMBSlaveDev* psMBSlaveDevCur = psMBPort->psMBSlaveDevCur;
 
+ #if MB_MASTER_TCP_ENABLED
     if(psMBMasterInfo->eMode == MB_TCP)
     {
         if(psMBSlaveDevCur == NULL){return;}
         psMBPort->fd = psMBSlaveDevCur->iSocketClient;
     }
+#endif
     psMBPort->sMasterPortTv.tv_sec = i / ( 1000*1000 );
     psMBPort->sMasterPortTv.tv_usec = i % (1000*1000 );
 
@@ -186,11 +188,13 @@ void vMBsMasterPortTmrsRespondTimeoutEnable(sMBMasterPort* psMBPort)
     uint8_t usRetryTimes = 0;
     sMBSlaveDev* psMBSlaveDevCur = psMBPort->psMBSlaveDevCur;
 
+#if MB_MASTER_TCP_ENABLED
     if(psMBMasterInfo->eMode == MB_TCP)
     {
         if(psMBSlaveDevCur == NULL){return;}
         psMBPort->fd = psMBSlaveDevCur->iSocketClient;
     }
+#endif
     FD_ZERO(&rfds);
     FD_SET(psMBPort->fd, &rfds);
 
@@ -209,18 +213,22 @@ void vMBsMasterPortTmrsRespondTimeoutEnable(sMBMasterPort* psMBPort)
 	}
     else if(select_ret < 0)
     {
+#if MB_MASTER_TCP_ENABLED
         if(psMBMasterInfo->eMode == MB_TCP && psMBSlaveDevCur != NULL)
         {
             psMBSlaveDevCur->xSocketConnected = FALSE;
             close(psMBSlaveDevCur->iSocketClient);
         }
+#endif
         if(psMBMasterInfo->pxMBMasterFrameCBTimerExpiredCur != NULL)
         {
             psMBMasterInfo->pxMBMasterFrameCBTimerExpiredCur(psMBPort->psMBMasterInfo);
         }
+
     }
 	else
 	{
+ #if MB_MASTER_TCP_ENABLED
         if(psMBMasterInfo->eMode == MB_TCP && psMBSlaveDevCur != NULL)
         {
             if(psMBSlaveDevCur->xSocketConnected)
@@ -234,6 +242,7 @@ void vMBsMasterPortTmrsRespondTimeoutEnable(sMBMasterPort* psMBPort)
                 psMBSlaveDevCur->iSocketOfflines = 0;
             }
         }
+#endif
         if(psMBMasterInfo->pxMBMasterFrameCBTimerExpiredCur != NULL)
         {
             psMBMasterInfo->pxMBMasterFrameCBTimerExpiredCur(psMBPort->psMBMasterInfo);

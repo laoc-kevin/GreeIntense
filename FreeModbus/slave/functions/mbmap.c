@@ -1,3 +1,4 @@
+#include "string.h"
 #include "mbmap.h"
 
 #if MB_FUNC_READ_INPUT_ENABLED

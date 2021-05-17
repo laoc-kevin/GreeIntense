@@ -33,6 +33,7 @@
 
 #include "mbproto.h"
 #include "mbconfig.h"
+#include "mbdriver.h"
 
 #if MB_UCOSIII_ENABLED
 
@@ -61,9 +62,9 @@ typedef struct                        /* 从栈接口定义  */
     const CHAR*          pcMBPortName;  //从栈接口名称
     BOOL                 xEventInQueue; //从栈接口有新事件
 
-#if MB_SLAVE_RTU_ENABLED || MB_SLAVE_ASCII_ENABLED
-    
+#if MB_SLAVE_RTU_ENABLED || MB_SLAVE_ASCII_ENABLED 
     sUART_Def* psMBSlaveUart;      //从栈接口通讯串口结构
+
 #if MB_UCOSIII_ENABLED
     OS_TMR    sSlavePortTmr;  //从栈接口3.5字符间隔定时器
 #elif MB_LINUX_ENABLED

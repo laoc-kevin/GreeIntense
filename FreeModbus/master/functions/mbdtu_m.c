@@ -206,11 +206,11 @@ eMBMasterScanWriteDTUHoldReg(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSla
                 {
                 case uint16:
                     usRegHoldValue = *(USHORT*)psRegHoldValue->pvValue;
-                    if( psRegHoldValue->fTransmitMultiple != 1.0f)
+                    if( psRegHoldValue->ucTmitMult != 1)
                     {
-                        usRegHoldValue = (USHORT)( (float)usRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
+                        usRegHoldValue = (USHORT)( (float)usRegHoldValue * (float)psRegHoldValue->ucTmitMult ); //传输因子
                     }
-                    if( (usRegHoldValue >= (USHORT)psRegHoldValue->lMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->lMaxVal) )
+                    if( (usRegHoldValue >= (USHORT)psRegHoldValue->usMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->usMaxVal) )
                     {
                         psMBMasterInfo->RegHoldValList[iWriteCount] = (USHORT)usRegHoldValue;
                         iWriteCount++;
@@ -218,12 +218,12 @@ eMBMasterScanWriteDTUHoldReg(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSla
                 break;
                 case uint8:
                     usRegHoldValue = *(UCHAR*)psRegHoldValue->pvValue;
-                    if( psRegHoldValue->fTransmitMultiple != 1.0f)
+                    if( psRegHoldValue->ucTmitMult != 1.0f)
                     {
-                        usRegHoldValue =  (UCHAR)( (float)usRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
+                        usRegHoldValue =  (UCHAR)( (float)usRegHoldValue * (float)psRegHoldValue->ucTmitMult ); //传输因子
                     }
 
-                    if( (usRegHoldValue >= (USHORT)psRegHoldValue->lMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->lMaxVal) )
+                    if( (usRegHoldValue >= (USHORT)psRegHoldValue->usMinVal) && (usRegHoldValue <= (USHORT)psRegHoldValue->usMaxVal) )
                     {
                         psMBMasterInfo->RegHoldValList[iWriteCount] = (USHORT)usRegHoldValue;
                         iWriteCount++;
@@ -231,12 +231,12 @@ eMBMasterScanWriteDTUHoldReg(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSla
                 break;
                 case int16:
                     sRegHoldValue = *(SHORT*)psRegHoldValue->pvValue;
-                    if( psRegHoldValue->fTransmitMultiple != 1.0f)
+                    if( psRegHoldValue->ucTmitMult != 1.0f)
                     {
-                        sRegHoldValue = (SHORT)( (float)sRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
+                        sRegHoldValue = (SHORT)( (float)sRegHoldValue * (float)psRegHoldValue->ucTmitMult ); //传输因子
                     }
 
-                    if( (sRegHoldValue >= (SHORT)psRegHoldValue->lMinVal) && (sRegHoldValue <= (SHORT)psRegHoldValue->lMaxVal) )
+                    if( (sRegHoldValue >= (SHORT)psRegHoldValue->usMinVal) && (sRegHoldValue <= (SHORT)psRegHoldValue->usMaxVal) )
                     {
                         psMBMasterInfo->RegHoldValList[iWriteCount] = (USHORT)sRegHoldValue;
                         iWriteCount++;
@@ -244,12 +244,12 @@ eMBMasterScanWriteDTUHoldReg(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSla
                 break;
                 case int8:
                     cRegHoldValue = *(int8_t*)psRegHoldValue->pvValue;
-                    if( psRegHoldValue->fTransmitMultiple != 1.0f)
+                    if( psRegHoldValue->ucTmitMult != 1.0f)
                     {
-                        cRegHoldValue = (int8_t)( (float)cRegHoldValue * (float)psRegHoldValue->fTransmitMultiple ); //传输因子
+                        cRegHoldValue = (int8_t)( (float)cRegHoldValue * (float)psRegHoldValue->ucTmitMult ); //传输因子
                     }
 
-                    if( (cRegHoldValue >= (int8_t)psRegHoldValue->lMinVal) && (cRegHoldValue <= (int8_t)psRegHoldValue->lMaxVal) )
+                    if( (cRegHoldValue >= (int8_t)psRegHoldValue->usMinVal) && (cRegHoldValue <= (int8_t)psRegHoldValue->usMaxVal) )
                     {
                         psMBMasterInfo->RegHoldValList[iWriteCount] = (USHORT)cRegHoldValue;
                         iWriteCount++;

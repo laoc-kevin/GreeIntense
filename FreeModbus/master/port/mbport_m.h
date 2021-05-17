@@ -74,6 +74,10 @@ typedef struct                        /* 主栈接口定义  */
     struct timeval sRespondTimeoutTv;
 #endif
 
+#if MB_MASTER_RTU_ENABLED && MB_LINUX_ENABLED
+    struct timeval sConvertDelayTv;
+#endif
+
 #if MB_UCOSIII_ENABLED
     OS_MUTEX sMBIdleMutex;            //主栈接口空闲消息量
     OS_SEM sMBEventSem;               //主栈接口事件消息量

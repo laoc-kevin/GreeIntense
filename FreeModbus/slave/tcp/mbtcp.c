@@ -35,14 +35,16 @@
 
 #if MB_SLAVE_TCP_ENABLED
 #include "mbtcp.h"
-#include "md_lwip.h"
+
 #if MB_UCOSIII_ENABLED
+#include "md_lwip.h"
 #include "tcp.h"
 #include "sys_arch.h"
 
 #elif MB_LINUX_ENABLED
 #include <signal.h>
 #include <pthread.h>
+#include <netinet/tcp.h>
 
 #endif
 
@@ -54,11 +56,133 @@ char cMBSlaveTcpClientName[MB_SLAVE_MAX_TCP_CLIENT][16];
 /* ----------------------- Start implementation -----------------------------*/
 #if MB_UCOSIII_ENABLED
 void vMBSlaveTcpServerTask(void *p_arg)
-#elif MB_LINUX_ENABLED
-void* vMBSlaveTcpServerTask(void *p_arg)
-#endif 
 {
     OS_ERR err = OS_ERR_NONE;
+    struct sockaddr_in tSocketClientAddr;
+
+    int iRet;
+    int iSocketServer;
+    int iClientNum = 0;
+
+    uint8_t i = 0;
+    uint32_t iAddrLen = 0;
+    char c1[] = {"MB_TCP_CLIENT_"};
+
+    int keeplive = 1;     //开启keeplive属性
+    int keepidle = 5;     //该时间段内无数据交互，则进行探测
+    int keepinterval = 5; //探测包间隔
+    int keepcount = 3;    //探测次数
+
+    sMBSlaveNodeInfo m_MBSlaveNode;
+    sMBSlaveTcpInfo *psMBSlaveTcpInfo = (sMBSlaveTcpInfo*)p_arg;
+
+    m_MBSlaveNode.eMode = MB_TCP;
+    m_MBSlaveNode.ucSlaveAddr = psMBSlaveTcpInfo->ucSlaveAddr;
+
+    psMBSlaveTcpInfo->sTcpServerAddr.sin_family      = AF_INET;
+    psMBSlaveTcpInfo->sTcpServerAddr.sin_port        = htons(MODBUS_TCP_PORT);  /* host to net, short */
+    psMBSlaveTcpInfo->sTcpServerAddr.sin_addr.s_addr = INADDR_ANY;
+
+    memset(psMBSlaveTcpInfo->sTcpServerAddr.sin_zero, 0, 8);
+
+    iSocketServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (-1 == iSocketServer)
+    {
+        debug("socket error!\n");
+        return;
+    }
+    iRet = bind(iSocketServer, (const struct sockaddr*)&psMBSlaveTcpInfo->sTcpServerAddr, sizeof(struct sockaddr));
+    if (-1 == iRet)
+    {
+        debug("bind error!\n");
+        return;
+    }
+    iRet = listen(iSocketServer, BACKLOG);
+    if (-1 == iRet)
+    {
+        debug("listen error!\n");
+        return;
+    }
+    for(i = 0; i < MB_SLAVE_MAX_TCP_CLIENT; i++)
+    {
+        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.xSocketConnected = FALSE;
+    }
+    while(1)
+    {
+        m_MBSlaveNode.iSocketClient = -1;
+        for(i = 0; i < MB_SLAVE_MAX_TCP_CLIENT; i++)
+        {
+            if(psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.xSocketConnected == FALSE)
+            {
+                iAddrLen = sizeof(struct sockaddr);
+                m_MBSlaveNode.iSocketClient = accept(iSocketServer, (struct sockaddr*)&tSocketClientAddr, &iAddrLen);
+#if MB_UCOSIII_ENABLED
+                m_MBSlaveNode.ucSlavePollPrio = psMBSlaveTcpInfo->ucSlaveTcpPollPrio;
+#endif
+                break;
+            }
+        }
+        if(m_MBSlaveNode.iSocketClient != -1)
+        {
+            keeplive = 1;     //开启keeplive属性
+            keepidle = 5;     //该时间段内无数据交互，则进行探测
+            keepinterval = 5; //探测包间隔
+            keepcount = 3;    //探测次数
+
+            setsockopt(m_MBSlaveNode.iSocketClient, SOL_SOCKET, SO_KEEPALIVE, (void*)&keeplive, sizeof(keeplive));
+            setsockopt(m_MBSlaveNode.iSocketClient, IPPROTO_TCP, TCP_KEEPIDLE, (void*)&keepidle, sizeof(keepidle));
+            setsockopt(m_MBSlaveNode.iSocketClient, IPPROTO_TCP, TCP_KEEPINTVL, (void*)&keepinterval, sizeof(keepinterval));
+            setsockopt(m_MBSlaveNode.iSocketClient, IPPROTO_TCP, TCP_KEEPCNT, (void*)&keepcount, sizeof(keepcount));
+
+            if(iClientNum < MB_SLAVE_MAX_TCP_CLIENT)
+            {
+                c1[14] = '0' + iClientNum;
+                strcpy(cMBSlaveTcpClientName[iClientNum], c1);
+                m_MBSlaveNode.pcMBPortName = cMBSlaveTcpClientName[iClientNum];
+
+                if(xMBSlaveRegistNode(&psMBSlaveTcpInfo->sMBSlaveTcpClients[iClientNum], &m_MBSlaveNode))
+                {
+                    psMBSlaveTcpInfo->sMBSlaveTcpClients[iClientNum].sMBPort.xSocketConnected = TRUE;
+                    psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.iSocketOfflines = 0;
+
+                    if(psMBSlaveTcpInfo->pvMBSlaveReceiveCallback != NULL)
+                    {
+                        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].pvMBSlaveReceiveCallback = psMBSlaveTcpInfo->pvMBSlaveReceiveCallback;
+                    }
+                    if(psMBSlaveTcpInfo->pvMBSlaveSendCallback != NULL)
+                    {
+                        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].pvMBSlaveSendCallback = psMBSlaveTcpInfo->pvMBSlaveSendCallback;
+                    }
+                }
+                debug("vMBSlaveTcpServerTask iClientNum %d \n", iClientNum);
+                iClientNum++;
+            }
+            else
+            {
+                for(i = 0; i < MB_SLAVE_MAX_TCP_CLIENT; i++)
+                {
+                    if(psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.xSocketConnected == FALSE)
+                    {
+                        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.fd = m_MBSlaveNode.iSocketClient;
+                        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.xSocketConnected = TRUE;
+                        psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.iSocketOfflines = 0;
+                        debug("vMBSlaveTcpServerTask xSocketConnected %d %d\n", i, psMBSlaveTcpInfo->sMBSlaveTcpClients[i].sMBPort.xSocketConnected);
+                        break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            (void)vMBTimeDly(0, 500);
+        }
+    }
+    close(iSocketServer);
+}
+#elif MB_LINUX_ENABLED
+void* vMBSlaveTcpServerTask(void *p_arg)
+{
+   // OS_ERR err = OS_ERR_NONE;
     struct sockaddr_in tSocketClientAddr;
     
     int iRet;
@@ -90,19 +214,19 @@ void* vMBSlaveTcpServerTask(void *p_arg)
     if (-1 == iSocketServer)
     {
         debug("socket error!\n");
-        return;
+        return NULL;
     }
     iRet = bind(iSocketServer, (const struct sockaddr*)&psMBSlaveTcpInfo->sTcpServerAddr, sizeof(struct sockaddr));
     if (-1 == iRet)
     {
         debug("bind error!\n");
-        return;
+        return NULL;
     }
     iRet = listen(iSocketServer, BACKLOG);
     if (-1 == iRet)
     {
         debug("listen error!\n");
-        return;
+        return NULL;
     } 
     for(i = 0; i < MB_SLAVE_MAX_TCP_CLIENT; i++)
     {
@@ -180,6 +304,7 @@ void* vMBSlaveTcpServerTask(void *p_arg)
     }
     close(iSocketServer);
 }
+#endif
 
 BOOL xMBSlaveTCPServerInit(sMBSlaveTcpInfo *psMBSlaveTcpInfo)
 {  

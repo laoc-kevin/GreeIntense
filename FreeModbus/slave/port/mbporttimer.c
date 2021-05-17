@@ -18,9 +18,7 @@
  *
  * File: $Id: porttimer.c,v 1.1 2007/04/24 23:15:18 wolti Exp $
  */
-
-/* ----------------------- Platform includes --------------------------------*/
-#include "port.h"
+#include "stddef.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
