@@ -151,7 +151,7 @@ eMBMasterReqErrCode eMBDevCmdTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* ps
     }
     psMBMasterInfo->eMBRunMode = STATE_SCAN_DEV;  //退出测试从设备状态
 
-    debug("eMBDevCmdTest ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
+    //debug("eMBDevCmdTest ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
     return errorCode;
 }
 
@@ -196,7 +196,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             errorCode = eMBDevCmdTest(psMBMasterInfo, psMBSlaveDev, psMBCmd);
             if(errorCode != MB_MRE_TIMEDOUT){break;}
 
-            debug("eMBDevCmdTest ucDevAddr %d errorCode %d \n", psMBSlaveDev->ucDevAddr, errorCode);
+            //debug("eMBDevCmdTest ucDevAddr %d errorCode %d \n", psMBSlaveDev->ucDevAddr, errorCode);
         }
         if(errorCode != MB_MRE_TIMEDOUT)
         {
@@ -238,7 +238,7 @@ void vMBDevTest(sMBMasterInfo* psMBMasterInfo, sMBSlaveDev* psMBSlaveDev)
             break;
         }
     }
-    debug("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
+    //debug("vMBDevTest  ucDevAddr %d errorCode %d\n", psMBSlaveDev->ucDevAddr, errorCode);
 
     if(errorCode == MB_MRE_TIMEDOUT) //证明从设备无反应
     {

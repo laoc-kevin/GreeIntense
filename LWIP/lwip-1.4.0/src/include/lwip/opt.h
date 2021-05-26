@@ -169,7 +169,7 @@
  * To use this, MEMP_USE_CUSTOM_POOLS also has to be enabled.
  */
 #ifndef MEM_USE_POOLS
-#define MEM_USE_POOLS                   0
+#define MEM_USE_POOLS                   0 
 #endif
 
 /**

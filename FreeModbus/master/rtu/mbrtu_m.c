@@ -141,7 +141,7 @@ void vMBMasterRTUStop(sMBMasterInfo* psMBMasterInfo)
  * @date 2019.01.22
  *********************************************************************/
 eMBErrorCode
-eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength)
+eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR *pucRcvAddress, UCHAR **pucFrame, USHORT *pusLength)
 {
     /*  eMBRTUReceive函数完成了CRC校验、帧数据地址和长度的赋值，便于给上层进行处理*/
     if((psMBMasterInfo->usRcvBufferPos >= MB_SER_PDU_SIZE_MIN)  /* Length and CRC check */
@@ -159,6 +159,8 @@ eMBMasterRTUReceive(sMBMasterInfo* psMBMasterInfo, UCHAR * pucRcvAddress, UCHAR 
 
         /* Return the start of the Modbus PDU to the caller. */
         *pucFrame = (UCHAR*) &(psMBMasterInfo->ucRTURcvBuf[MB_SER_PDU_PDU_OFF]);      //pucFrame指向PDU起始位置
+        
+        //debug("eMBMasterRTUReceive pucRcvAddress %d\n" , *pucRcvAddress);
     }
     else
     {
@@ -262,6 +264,8 @@ BOOL xMBMasterRTUReceiveFSM(sMBMasterInfo* psMBMasterInfo)
     sMBMasterPort* psMBPort = &psMBMasterInfo->sMBPort;
 	
     assert_param(eSndState == STATE_M_TX_IDLE || eSndState == STATE_M_TX_XFWR);   //确保没有数据在发送或者主栈没有在等待从栈响应
+    
+    //debug("xMBMasterRTUReceiveFSM usRcvBufferPos %d \n",  psMBMasterInfo->usRcvBufferPos);
     
     (void)xMBMasterPortSerialGetByte(psMBPort, &ucByte); /* Always read the character. */
     switch(psMBMasterInfo->eRcvState)
@@ -421,13 +425,17 @@ BOOL xMBMasterRTUTimerExpired(sMBMasterInfo* psMBMasterInfo)
              xNeedPoll = xMBMasterPortEventPost(psMBPort, EV_MASTER_FRAME_RECEIVED);   //一帧数据接收完成，上报协议栈事件,接收到一帧完整的数据
  //           debug("EV_MASTER_FRAME_RECEIVED  %d \n", psMBMasterInfo->usRcvBufferPos);
 		}
+#if MB_UCOSIII_ENABLED        
 		else
 		{
+            psMBMasterInfo->eRcvState = STATE_M_RX_IDLE;
 			psMBMasterInfo->eSndState = STATE_M_TX_XFWR;
-			//vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);      //接收数据不完整，重启定时器
-			//xSndStateNeedChange = FALSE;
+			vMBsMasterPortTmrsRespondTimeoutEnable(psMBPort);      //接收数据不完整，重启定时器
+
 			//debug("EV_MASTER_FRAME_RECEIVED_ERROR******************\n");
+            return FALSE;
         }
+#endif        
 		break;	
 	case STATE_M_RX_ERROR:  /* An error occured while receiving the frame. */
 		vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_RECEIVE_DATA);
@@ -446,10 +454,11 @@ BOOL xMBMasterRTUTimerExpired(sMBMasterInfo* psMBMasterInfo)
 		 * If the frame is broadcast,The master will idle,and if the frame is not
 		 * broadcast.Notify the listener process error.*/
 	case STATE_M_TX_XFWR:      
-		if (psMBMasterInfo->xFrameIsBroadcast == FALSE) 
+		if(psMBMasterInfo->xFrameIsBroadcast == FALSE) 
 		{
 			vMBMasterSetErrorType(psMBMasterInfo, EV_ERROR_RESPOND_TIMEOUT);
 			xNeedPoll = xMBMasterPortEventPost(psMBPort, EV_MASTER_ERROR_PROCESS);   //上报接收数据超时
+            //debug("xMBMasterPortEventPost EV_ERROR_RESPOND_TIMEOUT******************\n");
 		}
 		break;
 	default:    /* Function called in an illegal state. */

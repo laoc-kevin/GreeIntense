@@ -74,9 +74,9 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* ---------- Pbuf options ---------- */
 //#define MEM_LIBC_MALLOC         1
-#define MEMP_MEM_MALLOC         1
-//#define MEM_USE_POOLS           1
-//#define MEMP_USE_CUSTOM_POOLS   1
+//#define MEMP_MEM_MALLOC         1
+#define MEM_USE_POOLS           1
+#define MEMP_USE_CUSTOM_POOLS   1
 
 
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
@@ -210,7 +210,7 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
  * API_MSG_DEBUG: Enable debugging in api_msg.c.
  */ 
 //#define API_MSG_DEBUG                   LWIP_DBG_ON
-#define SOCKETS_DEBUG                   LWIP_DBG_ON
+//#define SOCKETS_DEBUG                   LWIP_DBG_ON
 //#define API_LIB_DEBUG                   LWIP_DBG_ON
 //#define TCP_DEBUG                       LWIP_DBG_ON
 //#define TCPIP_DEBUG                     LWIP_DBG_ON

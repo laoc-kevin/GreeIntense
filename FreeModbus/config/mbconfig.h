@@ -55,9 +55,9 @@ extern "C" {
 /*! \brief If Modbus Master ASCII support is enabled. */
 #define MB_MASTER_ASCII_ENABLED                 (  0 )
 /*! \brief If Modbus Master RTU support is enabled. */
-#define MB_MASTER_RTU_ENABLED                   (  0 )
+#define MB_MASTER_RTU_ENABLED                   (  1 )
 /*! \brief If Modbus Master TCP support is enabled. */
-#define MB_MASTER_TCP_ENABLED                   (  1 )
+#define MB_MASTER_TCP_ENABLED                   (  0 )
 /*! \brief If Modbus Master DTU support is enabled. */
 #define MB_MASTER_DTU_ENABLED                   (  0 )
 /*! \brief If Modbus Master Heart beat support is enabled. */

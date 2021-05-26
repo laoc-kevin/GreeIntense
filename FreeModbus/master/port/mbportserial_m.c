@@ -71,32 +71,32 @@ void vMBMasterPortSerialEnable(sMBMasterPort* psMBPort, BOOL xRxEnable, BOOL xTx
 {
 #if MB_UCOSIII_ENABLED
     const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
-    UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+    //UART_FIFOReset(psMBMasterUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TRG_LEV3));
     
     if(xRxEnable)
 	{
-         UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
-		 MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
+        //(void)vMBTimeDly(0, 5);
+		MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
+        UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, ENABLE); 		//开启接收中断
 	}
 	else
 	{
-		 UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR, DISABLE);    //开启关闭接收中断
-		 MB_SendOrRecive(psMBMasterUart, UART_TX_EN);
+		MB_SendOrRecive(psMBMasterUart, UART_TX_EN);
+        UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_RBR | UART_INTCFG_CTS, DISABLE);    //开启关闭接收中断
 	}
 	if(xTxEnable)
 	{
-		UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, ENABLE); 		//开启发送中断
 		MB_SendOrRecive(psMBMasterUart, UART_TX_EN);
-		UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
+		//UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
+        UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, ENABLE); 		//开启发送中断
 	}
 	else
 	{
-		UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, DISABLE); 		//关闭接收中断
 		MB_SendOrRecive(psMBMasterUart, UART_RX_EN);
-		UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
+		//UART_TxCmd(psMBMasterUart->ID, ENABLE);                           //UART中断
+        UART_IntConfig(psMBMasterUart->ID, UART_INTCFG_THRE, DISABLE); 		//关闭接收中断
 	}
-	UART_FIFOReset(psMBMasterUart->ID, ( UART_FCR_FIFO_EN | UART_FCR_RX_RS | 
-	                                                   UART_FCR_TX_RS | UART_FCR_TRG_LEV2));
+	UART_FIFOReset(psMBMasterUart->ID, (UART_FCR_FIFO_EN | UART_FCR_RX_RS | UART_FCR_TX_RS | UART_FCR_TRG_LEV3));
 #elif MB_LINUX_ENABLED
     if(xRxEnable)
     {
@@ -129,14 +129,15 @@ BOOL xMBMasterPortSerialPutByte(sMBMasterPort* psMBPort, UCHAR ucByte)   //发�
 #if MB_UCOSIII_ENABLED
 //	UCHAR h;
 //	UCHAR l;
-//	
+	
+    const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
 //	h=ucByte >> 4 ;
 //	l=ucByte % 16 ;	
 //	h= (h<10)? h+48: h+87;
 //	l= (l<10)? l+48: l+87;	
+//	
+//    debug("%c%c ", h,l);
 	
-//    debug("TX:%c%c\n", h,l);
-	const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     UART_SendByte(psMBMasterUart->ID, ucByte);
 #endif
     return TRUE;
@@ -153,16 +154,16 @@ BOOL xMBMasterPortSerialWriteBytes(sMBMasterPort* psMBPort, UCHAR* pucSndBufferC
 BOOL xMBMasterPortSerialGetByte(const sMBMasterPort* psMBPort, UCHAR* pucByte)  //接收一个字节
 {
 #if MB_UCOSIII_ENABLED
-/* 	UCHAR h;
-	UCHAR l; */
+// 	UCHAR h;
+//	UCHAR l; 
 	const sUART_Def* psMBMasterUart = psMBPort->psMBMasterUart;
     *pucByte = UART_ReceiveByte(psMBMasterUart->ID);
-//	
-/* 	h=(* pucByte )>> 4 ;
-	l=(* pucByte ) % 16 ;	
-	h= (h<10)? h+48: h+87;
-	l= (l<10)? l+48: l+87;	 */
-//    debug("RX:%c%c\n", h,l);
+	
+// 	h=(* pucByte )>> 4 ;
+//	l=(* pucByte ) % 16 ;	
+//	h= (h<10)? h+48: h+87;
+//	l= (l<10)? l+48: l+87;	
+//    debug("%c%c ", h,l);
 #endif
     return TRUE;
 }

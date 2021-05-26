@@ -554,7 +554,7 @@ void* vMBMasterPollTask(void *p_arg)
     while(1)
     {
 //        debug("vMBMasterPollTask\n");
-        (void)vMBTimeDly(0, MB_MASTER_POLL_INTERVAL_MS);
+        //(void)vMBTimeDly(0, MB_MASTER_POLL_INTERVAL_MS);
         (void)eMBMasterPoll(psMBMasterInfo);      
     }
     return NULL;
