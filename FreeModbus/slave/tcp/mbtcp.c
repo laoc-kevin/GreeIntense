@@ -80,7 +80,7 @@ void vMBSlaveTcpServerTask(void *p_arg)
     m_MBSlaveNode.ucSlaveAddr = psMBSlaveTcpInfo->ucSlaveAddr;
 
     psMBSlaveTcpInfo->sTcpServerAddr.sin_family      = AF_INET;
-    psMBSlaveTcpInfo->sTcpServerAddr.sin_port        = htons(MODBUS_TCP_PORT);  /* host to net, short */
+    psMBSlaveTcpInfo->sTcpServerAddr.sin_port        = htons(MB_TCP_PORT_USE_DEFAULT);  /* host to net, short */
     psMBSlaveTcpInfo->sTcpServerAddr.sin_addr.s_addr = INADDR_ANY;
 
     memset(psMBSlaveTcpInfo->sTcpServerAddr.sin_zero, 0, 8);
@@ -205,7 +205,7 @@ void* vMBSlaveTcpServerTask(void *p_arg)
     m_MBSlaveNode.ucSlaveAddr = psMBSlaveTcpInfo->ucSlaveAddr;
     
     psMBSlaveTcpInfo->sTcpServerAddr.sin_family      = AF_INET;
-    psMBSlaveTcpInfo->sTcpServerAddr.sin_port        = htons(MODBUS_TCP_PORT);  /* host to net, short */
+    psMBSlaveTcpInfo->sTcpServerAddr.sin_port        = htons(MB_TCP_PORT_USE_DEFAULT);  /* host to net, short */
     psMBSlaveTcpInfo->sTcpServerAddr.sin_addr.s_addr = INADDR_ANY;
    
     memset(psMBSlaveTcpInfo->sTcpServerAddr.sin_zero, 0, 8);
@@ -316,8 +316,8 @@ BOOL xMBSlaveTCPServerInit(sMBSlaveTcpInfo *psMBSlaveTcpInfo)
                  (void		*)psMBSlaveTcpInfo,					
                  (OS_PRIO	 )psMBSlaveTcpInfo->ucSlaveTcpServerPrio,    
                  (CPU_STK   *)&psMBSlaveTcpInfo->usSlaveTcpServerStk[0],	
-                 (CPU_STK_SIZE)MB_SLAVE_POLL_TASK_STK_SIZE / 10,	
-                 (CPU_STK_SIZE)MB_SLAVE_POLL_TASK_STK_SIZE,	
+                 (CPU_STK_SIZE)MB_SLAVE_TCP_SERVER_TASK_STK_SIZE / 10,	
+                 (CPU_STK_SIZE)MB_SLAVE_TCP_SERVER_TASK_STK_SIZE,	
                  (OS_MSG_QTY )0,					
                  (OS_TICK	 )0,					
                  (void   	*)0,					

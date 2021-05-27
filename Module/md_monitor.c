@@ -4,7 +4,9 @@
 
 #include "system.h"
 
-#define MONITOR_DATA_MAX_NUM        200     //最大可监控点位数，根据实际情况调整
+#if SYSTEM_MONITOR_TASK_EN
+
+#define MONITOR_DATA_MAX_NUM        90     //最大可监控点位数，根据实际情况调整
 #define MONITOR_POLL_INTERVAL_S     1     //
 
 sMonitorInfo* MonitorList = NULL;
@@ -154,3 +156,5 @@ void vMonitorInit(OS_TCB *p_tcb, OS_PRIO prio, CPU_STK *p_stk_base, CPU_STK_SIZE
 {
     (void)eTaskCreate(p_tcb, vMonitorPollTask, NULL, prio, p_stk_base, stk_size);
 }
+
+#endif

@@ -81,8 +81,9 @@ extern "C" {
 /*! \ingroup modbus
  * \brief Use the default Modbus TCP port (502)
  */
-#define MB_TCP_PORT_USE_DEFAULT       0   
+#define MB_TCP_PORT_USE_DEFAULT       502   
 #define MB_SLAVE_POLL_TASK_STK_SIZE   256
+#define MB_SLAVE_TCP_SERVER_TASK_STK_SIZE  128
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -203,7 +204,7 @@ typedef struct                 /* master poll task information */
     OS_PRIO    ucSlaveTcpPollPrio;
     OS_PRIO    ucSlaveTcpServerPrio;
     OS_TCB     sSlaveTcpServerTCB;
-    CPU_STK    usSlaveTcpServerStk[MB_SLAVE_POLL_TASK_STK_SIZE];
+    CPU_STK    usSlaveTcpServerStk[MB_SLAVE_TCP_SERVER_TASK_STK_SIZE];
     
 #elif MB_LINUX_ENABLED  
     pthread_t sMBSlaveTcpServerTask;  //TCP从栈服务任务信息

@@ -59,6 +59,7 @@
 
 #define MB_SLAVE_POLL_INTERVAL_MS           50
 
+
 /* ----------------------- Static variables ---------------------------------*/ 
 static sMBSlaveInfo* psMBSlaveList = NULL; 
 
@@ -513,7 +514,7 @@ void* vMBSlavePollTask(void *p_arg)
     {
         while(1)
         {
-            (void)vMBTimeDly(0, MB_SLAVE_POLL_INTERVAL_MS);
+            //(void)vMBTimeDly(0, MB_SLAVE_POLL_INTERVAL_MS);
             (void)eMBSlavePoll(psMBSlaveInfo);
         }
     }

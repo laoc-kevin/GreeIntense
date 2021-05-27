@@ -14,7 +14,7 @@
 
 #if MB_SLAVE_TCP_ENABLED
 
-#define MB_SLAVE_RCV_MAX_BYTES    255    //最大读取字节数
+#define MB_SLAVE_RCV_MAX_BYTES    256    //最大读取字节数
 #define MB_SLAVE_PORT_TIMEOUT_S   10    //从站等待延时
 #define MB_SLAVE_PORT_OFF_TIMES   6    //从站掉线次数判断
 

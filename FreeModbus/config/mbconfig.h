@@ -146,7 +146,7 @@ extern "C" {
  * \note : The slave ID must be continuous from 1.*/
 
 #define MB_SLAVE_MAX_TCP_CLIENT     ( 1 )
-#define MODBUS_TCP_PORT             ( 502 )
+#define MB_TCP_PORT_USE_DEFAULT     ( 502 ) 
 
 #ifdef __cplusplus
     }

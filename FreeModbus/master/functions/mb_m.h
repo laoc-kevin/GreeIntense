@@ -77,7 +77,7 @@ extern "C" {
 /*! \ingroup modbus
  * \brief Use the default Modbus Master TCP port (502)
  */
-#define MB_MASTER_TCP_PORT_USE_DEFAULT   0
+#define MB_MASTER_TCP_PORT_USE_DEFAULT   502
 
 #define MB_MASTER_POLL_TASK_STK_SIZE        160
 #define MB_MASTER_SCAN_TASK_STK_SIZE        160
