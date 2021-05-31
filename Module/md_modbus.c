@@ -161,7 +161,7 @@ void vModbusSlaveInit(OS_PRIO prio)
 
     if(xMBSlaveRegistNode(&MBSlaveInfo, &MBSlaveNode))
     {
-        MBSlaveInfo.pvMBSlaveReceiveCallback = vModbusSlaveReceiveCallback;
+        //MBSlaveInfo.pvMBSlaveReceiveCallback = vModbusSlaveReceiveCallback;
         MBSlaveInfo.pvMBSlaveSendCallback    = vModbusSlaveSendCallback;  	    
     }
 }

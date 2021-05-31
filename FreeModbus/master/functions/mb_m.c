@@ -317,7 +317,7 @@ eMBErrorCode eMBMasterPoll(sMBMasterInfo* psMBMasterInfo)
     }
     /* Check if there is a event available. If not return control to caller.
      * Otherwise we will handle the event. */
-    if( xMBMasterPortEventGet(psMBPort, &eEvent) == TRUE )
+    if(xMBMasterPortEventGet(psMBPort, &eEvent) == TRUE)
     {
         //debug("eMBMasterPoll\n");
         switch (eEvent)

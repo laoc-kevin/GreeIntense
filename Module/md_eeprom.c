@@ -4,7 +4,7 @@
 #include "md_event.h"
 #include "my_rtt_printf.h"
 
-#define EEPROM_READ_DATA_DELAY_MS       50
+#define EEPROM_READ_DATA_DELAY_MS       60
 #define EEPROM_WRITE_DATA_DELAY_MS      200
 
 #define EEPROM_WRITE_DATA_INTERVAL_S    1
@@ -12,7 +12,7 @@
 #define UINT8_PAGE_OFFSET 	0			//uint8类型参数记忆EEPROM页寄存器偏移量
 #define UINT8_PAGE_ADDR 	0			//uint8类型参数记忆EEPROM存储器初始页地址
 
-#define INT8_PAGE_OFFSET 	58			//uint8类型参数记忆EEPROM页寄存器偏移量
+#define INT8_PAGE_OFFSET 	0			//uint8类型参数记忆EEPROM页寄存器偏移量
 #define INT8_PAGE_ADDR 		2			//uint8类型参数记忆EEPROM存储器初始页地址
 
 #define UINT16_PAGE_OFFSET 	0			//uint16类型参数记忆EEPROM页寄存器偏移量
@@ -751,7 +751,6 @@ void vEEPROMDataTask(void * p_arg)
 #if EEPROM_USE_DEFAULT_DATA == 0    //不使用默认参数
     
 #if EEPROM_DATA_INIT > 0    //参数复位
-    
     vWriteEEPROMDataFirstTime();
 #else 
     EEPROM_Read(UINT8_PAGE_OFFSET, UINT8_PAGE_ADDR, (void*)DataBufFirstRunUint8, MODE_8_BIT, UINT8_SAVE_SIZE);   //上电
@@ -762,13 +761,11 @@ void vEEPROMDataTask(void * p_arg)
     {
         EEPROMFirstRun = FALSE;
         DataBufUint8[DataBufUint8Count-1] = FALSE;
-        
         vWriteEEPROMDataFirstTime();
     }
 #endif 
     vReadEEPROMData();
 #endif    
-    
     while(DEF_TRUE)
 	{
         OSTimeDlyHMSM(0, 0, EEPROM_WRITE_DATA_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);

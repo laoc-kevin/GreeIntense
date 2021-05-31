@@ -219,7 +219,7 @@ static  void  AppTaskStart (void *p_arg)
 #if TASK_STACK_WATCH_TASK_EN > 0
 
 extern OS_TCB  SYS_TASK_TCB;
-extern sMBSlaveTcpInfo m_SlaveTcpInfo;
+//extern sMBSlaveTcpInfo m_SlaveTcpInfo;
 
 void  AppTaskStackWatch(void *p_arg)
 {
@@ -235,8 +235,8 @@ void  AppTaskStackWatch(void *p_arg)
         OSTaskStkChk (&SYS_TASK_TCB, &free, &used, &err);   //需要监控的任务堆栈，根据需要编写
         myprintf("SYS_TASK_TCB  used/free:%d/%d  usage:%%%d\r\n", used, free, (used*100)/(used+free));
         
-        OSTaskStkChk(&m_SlaveTcpInfo.sMBSlaveTcpClients[0].sMBTask.sSlavePollTCB, &free, &used, &err);   
-        myprintf("sSlavePollTCB  used/free:%d/%d  usage:%%%d\r\n", used, free, (used*100)/(used+free));
+        //OSTaskStkChk(&m_SlaveTcpInfo.sMBSlaveTcpClients[0].sMBTask.sSlavePollTCB, &free, &used, &err);   
+        //myprintf("sSlavePollTCB  used/free:%d/%d  usage:%%%d\r\n", used, free, (used*100)/(used+free));
         
 //        OSTaskStkChk(&WatchDogFeedTaskTCB, &free, &used, &err);   
 //        myprintf("WatchDogFeedTaskTCB  used/free:%d/%d  usage:%%%d\r\n",used, free, (used*100)/(used+free));
